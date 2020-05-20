@@ -3,11 +3,14 @@ on:
     branches:
       - "release"
     tags:
-      - "*"
-name: Deploy Extension
+      - "robotframework-lsp-*"
+name: Deploy - RobotFramework Larguage Server Extension
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./robotframework-ls
     
     strategy:
       fail-fast: true
@@ -19,17 +22,17 @@ jobs:
       with:
         node-version: 12.x
     - name: Yarn install
-      uses: borales/actions-yarn@v2.0.0
-      with:
-        cmd: install # will run `yarn install` command
+      run: yarn install
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
     - name: Install deps
       run: pip install --upgrade pip fire twine wheel setuptools
+    - name: Vendor robocode_ls_core
+      run: python -m dev vendor-robocode-ls-core
     - name: Build wheel
-      working-directory: ./src
+      working-directory: ./robotframework-ls/src
       run: |
         cp ../README.md ./README.md
         python setup.py sdist bdist_wheel --universal
@@ -38,11 +41,11 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: robotframework-lsp.vsix
-        path: robotframework-lsp.vsix
+        path: ./robotframework-ls/robotframework-lsp.vsix
     - name: Check tag version
       run: python -m dev check-tag-version
     - name: Upload to PyPI
-      working-directory: ./src
+      working-directory: ./robotframework-ls/src
       run: twine upload dist/*
       env:
         TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
