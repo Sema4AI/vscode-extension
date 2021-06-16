@@ -40,6 +40,9 @@ class LocatorsApiClient(LanguageServerClientBase):
         )
 
     def _unpack_result_as_action_result_dict(self, result) -> ActionResultDict:
+        if not isinstance(result, dict):
+            return {"success": False, "message": str(result), "result": None}
+
         if "result" in result:
             return result["result"]
         else:
@@ -67,7 +70,7 @@ class LocatorsApiClient(LanguageServerClientBase):
                     "method": "browserLocator/start",
                     "params": {"headless": headless},
                 },
-                None,
+                timeout=None,
             )
         )
 
@@ -76,7 +79,8 @@ class LocatorsApiClient(LanguageServerClientBase):
         msg_id = self.next_id()
         return self._unpack_result_as_action_result_dict(
             self.request(
-                {"jsonrpc": "2.0", "id": msg_id, "method": "browserLocator/stop"}, None
+                {"jsonrpc": "2.0", "id": msg_id, "method": "browserLocator/stop"},
+                timeout=None,
             )
         )
 
@@ -85,7 +89,8 @@ class LocatorsApiClient(LanguageServerClientBase):
         msg_id = self.next_id()
         return self._unpack_result_as_action_result_dict(
             self.request(
-                {"jsonrpc": "2.0", "id": msg_id, "method": "browserLocator/pick"}, None
+                {"jsonrpc": "2.0", "id": msg_id, "method": "browserLocator/pick"},
+                timeout=None,
             )
         )
 
@@ -94,6 +99,7 @@ class LocatorsApiClient(LanguageServerClientBase):
         msg_id = self.next_id()
         return self._unpack_result_as_action_result_dict(
             self.request(
-                {"jsonrpc": "2.0", "id": msg_id, "method": "imageLocator/pick"}, None
+                {"jsonrpc": "2.0", "id": msg_id, "method": "imageLocator/pick"},
+                timeout=None,
             )
         )
