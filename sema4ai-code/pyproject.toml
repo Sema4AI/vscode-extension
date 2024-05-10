@@ -1,0 +1,121 @@
+[tool.poetry]
+name = "sema4ai-code"
+version = "1.22.1"
+description = "Sema4.ai Code: Visual Studio Code Extension for AI Actions and Robot Tasks development"
+authors = [
+    "Fabio Zadrozny <fabio@robocorp.com>",
+]
+readme = "README.md"
+repository = "https://github.com/Sema4AI/vscode-extension/"
+license = "Apache-2.0"
+packages = [
+    {include = "robocorp_code", from = "src"},
+    {include = "robocorp_code_debug_adapter", from = "src"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Text Editors",
+    "Topic :: Text Editors :: Integrated Development Environments (IDE)",
+    "Topic :: Software Development :: Debuggers",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+tomli = { version = "^2.0.1", python = "<3.11" }
+msgspec = "^0.18"
+pyyaml = "^6"
+playwright = "<2"
+pillow = "^10.2.0"
+pywin32 = { version = ">=300,<304", platform = "win32", python = "!=3.8.1" }
+psutil = "^5.9.0"
+comtypes = "^1.2"
+pyscreeze = "^0.1.30"
+mss = "^9.0.1"
+
+java-access-bridge-wrapper = "^1.2.0"
+ruff = "^0.1.14"
+
+[tool.poetry.group.dev.dependencies]
+sema4ai-python-ls-core = {path = "../sema4ai-python-ls-core/", develop = true}
+
+fire = "*"
+
+robotframework = "5.0.1"
+robotremoteserver = "*"
+
+robocorp-actions = "^0.2.0" # Just needed for testing.
+sema4ai-actions = "^0.3.1" # Just needed for testing.
+
+numpy = "<2"
+black = "^24.3.0"
+ruff = "^0.1.14"
+mypy = "^1.1.1"
+isort = { version = "^5.12.0", python = "^3.8" }
+invoke = "^2.0"
+tomlkit = "^0.11.8"
+semver = "^3.0.0"
+requests = "*"
+truststore = "0.8.0"
+
+mock = "*"
+pytest = "*"
+pytest-regressions = "1.0.6"
+pytest-xdist = "*"
+pytest-timeout = "*"
+
+types-requests = "*"
+types-invoke = "^2.0"
+types-psutil = "^5.9"
+types-mock = "*"
+types-PyYAML = "*"
+robocorp-log-pytest = "*"
+types-docutils = "*"
+types-Pillow = "^10.2.0"
+types-pywin32 = "304.0.0.6"
+
+[tool.mypy]
+mypy_path = "src:tests"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+exclude = "vendored"
+
+[tool.ruff]
+ignore = [
+    "E501", # Line-len.
+    "F541", # f-string without placeholders.
+    "E731", # Use 'def' instead of lambda.
+]
+
+[[tool.mypy.overrides]]
+module = "setuptools.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pytest_timeout.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pytest_timeout.*"
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.robocorp.log]
+log_filter_rules = [
+    {name = "robocorp_code", kind = "full_log"},
+    {name = "robocorp_ls_core", kind = "full_log"},
+]

@@ -29,4 +29,4 @@ If applicable, add screenshots to help explain your problem.
 
 **Logs**
 Add the logs obtained when reproducing the issue.
-See: https://github.com/robocorp/robotframework-lsp/blob/master/robotframework-ls/docs/reporting_issues.md for details on how to collect the logs.
+See: https://github.com/Sema4AI/vscode-extension//blob/master/robotframework-ls/docs/reporting_issues.md for details on how to collect the logs.

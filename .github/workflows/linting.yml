@@ -24,78 +24,47 @@ jobs:
           python -m venv .venv
           source ./.venv/bin/activate
           
-          cd robocorp-code
+          cd sema4ai-code
           
           poetry config virtualenvs.prefer-active-python true
           poetry install
-          poetry run python -m pip install robotframework-output-stream
           
           cd ..
           
-          echo $PWD/robotframework-ls/src > .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/robocorp-code/src >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/robocorp-python-ls-core/src >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/robotframework-ls/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/robocorp-code/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/robocorp-python-ls-core/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
+          echo $PWD/sema4ai-code/src >> .venv/lib/python3.10/site-packages/rf_src.pth
+          echo $PWD/sema4ai-python-ls-core/src >> .venv/lib/python3.10/site-packages/rf_src.pth
+          echo $PWD/sema4ai-code/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
+          echo $PWD/sema4ai-python-ls-core/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
 
           
       - name: Install prettier
         run: |
           npm install -g prettier@2.4.1
           
-      - name: TS Format Robot Framework LS (yarn prettier --write vscode-client/**/*.ts to format files locally)
-        working-directory: ./robotframework-ls/
+      - name: Prettier Sema4.ai Code (yarn prettier --write vscode-client/**/*.ts to format files locally)
+        working-directory: ./sema4ai-code
         run: prettier --check vscode-client/**/*.ts
         
-      - name: Prettier Robocorp Code (yarn prettier --write vscode-client/**/*.ts to format files locally)
-        working-directory: ./robocorp-code
-        run: prettier --check vscode-client/**/*.ts
-        
-      - name: Prettier RF Interactive (yarn prettier --write src/**/*.{ts,tsx} to format files locally)
-        working-directory: ./robotframework-interactive/vscode-interpreter-webview
-        run: prettier --check src/**/*.{ts,tsx}
-        
-      - name: ruff format check robocorp-code
+      - name: ruff format check sema4ai-code
         run: |
           echo $PWD
           ls -la
           source ./.venv/bin/activate
-          ruff format --check ./robocorp-code --exclude=vendored --exclude=_vendored
+          ruff format --check ./sema4ai-code --exclude=vendored --exclude=_vendored
           
-      - name: ruff format check robotframework-ls
+      - name: ruff format check sema4ai-python-ls-core
         run: |
           source ./.venv/bin/activate
-          ruff format --check ./robotframework-ls --exclude=vendored --exclude=atest_v5
+          ruff format --check ./sema4ai-python-ls-core --exclude=vendored --exclude=libs
           
-      - name: ruff format check robotframework-interactive
+      - name: mypy sema4ai-code
         run: |
           source ./.venv/bin/activate
-          ruff format --check ./robotframework-interactive --exclude=vendored
-          
-      - name: ruff format check robocorp-python-ls-core
-        run: |
-          source ./.venv/bin/activate
-          ruff format --check ./robocorp-python-ls-core --exclude=vendored --exclude=libs
-          
-      - name: mypy robocorp-code
-        run: |
-          source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/robocorp-code/src $PWD/robocorp-code/tests  $PWD/robocorp-code/codegen
+          mypy --follow-imports=silent --show-column-numbers $PWD/sema4ai-code/src $PWD/sema4ai-code/tests  $PWD/sema4ai-code/codegen
 
-      - name: mypy robocorp-python-ls-core
+      - name: mypy sema4ai-python-ls-core
         run: |
           source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/robocorp-python-ls-core/src $PWD/robocorp-python-ls-core/tests
-          
-      - name: mypy robotframework-ls
-        run: |
-          source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/robotframework-ls/src $PWD/robotframework-ls/tests
-          
-      - name: mypy robotframework-interactive
-        run: |
-          source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/robotframework-interactive/src $PWD/robotframework-interactive/tests
-          
+          mypy --follow-imports=silent --show-column-numbers $PWD/sema4ai-python-ls-core/src $PWD/sema4ai-python-ls-core/tests
+                    
           

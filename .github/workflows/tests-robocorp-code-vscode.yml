@@ -1,18 +1,16 @@
-name: Tests - Robocorp Code (robocorp-code)
+name: Tests - Sema4.ai Code (sema4ai-code)
 
 on:
   push:
     paths:
-    - robocorp-code/**
-    - robocorp-python-ls-core/**
-    - robotframework-ls/**
+    - sema4ai-code/**
+    - sema4ai-python-ls-core/**
     - .github/**
 
   pull_request:
     paths:
-    - robocorp-code/**
-    - robocorp-python-ls-core/**
-    - robotframework-ls/**
+    - sema4ai-code/**
+    - sema4ai-python-ls-core/**
     - .github/**
       
 jobs:
@@ -49,30 +47,30 @@ jobs:
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
     - name: Vendor robocorp_ls_core
-      working-directory: ./robocorp-code
+      working-directory: ./sema4ai-code
       run: |
         pip install fire poetry
         python -m dev vendor-robocorp-ls-core
     - name: setup.py install
-      working-directory: ./robocorp-code
+      working-directory: ./sema4ai-code
       run: poetry install
     - name: Test
-      working-directory: ./robocorp-code/tests
+      working-directory: ./sema4ai-code/tests
       env:
         PYTHONPATH: .
         CI_CREDENTIALS: ${{ secrets.CI_CREDENTIALS }}
         CI_ENDPOINT: ${{ secrets.CI_ENDPOINT }}
         # Big timeout to create environment in windows.
         RUN_TESTS_TIMEOUT: 3000
-      run: poetry run python -u ../../robocorp-python-ls-core/tests/run_tests.py -rfE -otests_output -vv .
+      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv .
     - uses: actions/upload-artifact@v1
       if: always()
       with:
         name: tests_output.${{ matrix.name }}.txt
-        path: robocorp-code/tests/tests_output
+        path: sema4ai-code/tests/tests_output
     - uses: actions/upload-artifact@v1
       if: always()
       with:
         name: log.${{ matrix.name }}.html
-        path: robocorp-code/tests/output/log.html
+        path: sema4ai-code/tests/output/log.html
 

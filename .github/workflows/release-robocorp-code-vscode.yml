@@ -1,16 +1,16 @@
 on:
   push:
     branches:
-      - "release-robocorp-code"
+      - "release-sema4ai-code"
     tags:
-      - "robocorp-code-*"
-name: Deploy - Robocorp Code Extension
+      - "sema4ai-code-*"
+name: Deploy - Sema4.ai Code Extension
 jobs:
   deploy:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./robocorp-code
+        working-directory: ./sema4ai-code
     
     strategy:
       fail-fast: true
@@ -36,7 +36,7 @@ jobs:
     - name: Generate LICENSE.md
       run: python -m dev generate-license-file
     - name: Install locally
-      working-directory: ./robocorp-code
+      working-directory: ./sema4ai-code
       run: poetry install
     - run: npm install -g vsce@2.15.0
         
@@ -47,20 +47,20 @@ jobs:
     - name: Download rcc for windows
       run: python -m dev download-rcc win32
       
-    - run: vsce package --target win32-x64 -o robocorp-code-win32-x64.vsix
+    - run: vsce package --target win32-x64 -o sema4ai-code-win32-x64.vsix
 
     - uses: actions/upload-artifact@v1
       with:
-        name: robocorp-code-win32-x64.vsix
-        path: ./robocorp-code/robocorp-code-win32-x64.vsix
+        name: sema4ai-code-win32-x64.vsix
+        path: ./sema4ai-code/sema4ai-code-win32-x64.vsix
     
     - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./robocorp-code-win32-x64.vsix -p $VSCE_TOKEN
+      run: vsce publish --packagePath ./sema4ai-code-win32-x64.vsix -p $VSCE_TOKEN
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         
     - name: Publish windows to open vsx marketplace 
-      run: npx ovsx publish robocorp-code-win32-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-win32-x64.vsix -p $OPEN_VSX_TOKEN
       env:
         OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
                 
@@ -68,20 +68,20 @@ jobs:
     - name: Download rcc for linux
       run: python -m dev download-rcc linux
       
-    - run: vsce package --target linux-x64 -o robocorp-code-linux-x64.vsix
+    - run: vsce package --target linux-x64 -o sema4ai-code-linux-x64.vsix
 
     - uses: actions/upload-artifact@v1
       with:
-        name: robocorp-code-linux-x64.vsix
-        path: ./robocorp-code/robocorp-code-linux-x64.vsix
+        name: sema4ai-code-linux-x64.vsix
+        path: ./sema4ai-code/sema4ai-code-linux-x64.vsix
     
     - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./robocorp-code-linux-x64.vsix -p $VSCE_TOKEN
+      run: vsce publish --packagePath ./sema4ai-code-linux-x64.vsix -p $VSCE_TOKEN
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         
     - name: Publish linux to open vsx marketplace 
-      run: npx ovsx publish robocorp-code-linux-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-linux-x64.vsix -p $OPEN_VSX_TOKEN
       env:
         OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
         
@@ -89,20 +89,20 @@ jobs:
     - name: Download rcc for darwin
       run: python -m dev download-rcc darwin
       
-    - run: vsce package --target darwin-x64 -o robocorp-code-darwin-x64.vsix
+    - run: vsce package --target darwin-x64 -o sema4ai-code-darwin-x64.vsix
 
     - uses: actions/upload-artifact@v1
       with:
-        name: robocorp-code-darwin-x64.vsix
-        path: ./robocorp-code/robocorp-code-darwin-x64.vsix
+        name: sema4ai-code-darwin-x64.vsix
+        path: ./sema4ai-code/sema4ai-code-darwin-x64.vsix
     
     - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./robocorp-code-darwin-x64.vsix -p $VSCE_TOKEN
+      run: vsce publish --packagePath ./sema4ai-code-darwin-x64.vsix -p $VSCE_TOKEN
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         
     - name: Publish darwin to open vsx marketplace 
-      run: npx ovsx publish robocorp-code-darwin-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-darwin-x64.vsix -p $OPEN_VSX_TOKEN
       env:
         OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
         
@@ -110,19 +110,19 @@ jobs:
     - name: Download rcc for darwin
       run: python -m dev download-rcc darwin
       
-    - run: vsce package --target darwin-arm64 -o robocorp-code-darwin-arm64.vsix
+    - run: vsce package --target darwin-arm64 -o sema4ai-code-darwin-arm64.vsix
 
     - uses: actions/upload-artifact@v1
       with:
-        name: robocorp-code-darwin-arm64.vsix
-        path: ./robocorp-code/robocorp-code-darwin-arm64.vsix
+        name: sema4ai-code-darwin-arm64.vsix
+        path: ./sema4ai-code/sema4ai-code-darwin-arm64.vsix
     
     - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./robocorp-code-darwin-arm64.vsix -p $VSCE_TOKEN
+      run: vsce publish --packagePath ./sema4ai-code-darwin-arm64.vsix -p $VSCE_TOKEN
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         
     - name: Publish darwin to open vsx marketplace 
-      run: npx ovsx publish robocorp-code-darwin-arm64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-darwin-arm64.vsix -p $OPEN_VSX_TOKEN
       env:
         OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}

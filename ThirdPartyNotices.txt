@@ -518,4 +518,4 @@ From: https://github.com/d-biehl/robotcode
    
 26) All third party javascript packages in node_modules folders are licensed under the licenses specified in those packages.
    
-27) All third party python packages in robocorp-python-ls-core/src/robocorp_ls_core/libs folders are licensed under the licenses specified in those packages.
+27) All third party python packages in sema4ai-python-ls-core/src/robocorp_ls_core/libs folders are licensed under the licenses specified in those packages.

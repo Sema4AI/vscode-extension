@@ -1,0 +1,43 @@
+{
+    "folders": [
+        {
+            "path": ".."
+        },
+        {
+            "path": "../../sema4ai-python-ls-core"
+        }
+    ],
+    "settings": {
+        "python.pydev.pythonPath": [
+            "src",
+            "tests",
+            "../sema4ai-python-ls-core/src",
+            "../sema4ai-python-ls-core/tests"
+        ],
+        "python.autoComplete.extraPaths": [
+            "src",
+            "tests",
+            "../sema4ai-python-ls-core/src",
+            "../sema4ai-python-ls-core/tests"
+        ],
+        "python.analysis.extraPaths": [
+            "src",
+            "tests",
+            "../sema4ai-python-ls-core/src",
+            "../sema4ai-python-ls-core/tests"
+        ],
+        "[javascript]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescript]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[html]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "python.terminal.activateEnvironment": false
+    }
+}
