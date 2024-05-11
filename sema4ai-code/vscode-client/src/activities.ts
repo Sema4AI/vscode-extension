@@ -149,7 +149,7 @@ export async function cloudLogout(): Promise<void> {
  * Note that callers need to check both whether it was successful as well as if the interpreter was resolved.
  */
 export async function resolveInterpreter(targetRobot: string): Promise<ActionResult<InterpreterInfo | undefined>> {
-    // Note: this may also activate robotframework-lsp if it's still not activated
+    // Note: this may also activate `Sema4.ai Code` if it's still not activated
     // (so, it cannot be used during startup as there'd be a cyclic dependency).
     try {
         let interpreter: InterpreterInfo | undefined = await commands.executeCommand(

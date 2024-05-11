@@ -41,7 +41,7 @@ jobs:
       env:
         PYTHONPATH: src
       
-    - name: Vendor robocorp_ls_core
+    - name: Vendor sema4ai_ls_core
       run: python -m dev vendor-robocorp-ls-core
       
     - name: Fix README references

@@ -223,7 +223,7 @@ export function registerDebugger() {
                 env = { "ROBOCORP_HOME": robotHome };
             }
         }
-        let targetMain: string = path.resolve(__dirname, "../../src/robocorp_code_debug_adapter/__main__.py");
+        let targetMain: string = path.resolve(__dirname, "../../src/sema4ai_code_debug_adapter/__main__.py");
         if (!fs.existsSync(targetMain)) {
             window.showWarningMessage("Error. Expected: " + targetMain + " to exist.");
             return;

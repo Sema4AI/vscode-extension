@@ -1,1 +1,1 @@
-pytest_plugins = ["robocorp_ls_core.unittest_tools.fixtures"]
+pytest_plugins = ["sema4ai_ls_core.unittest_tools.fixtures"]

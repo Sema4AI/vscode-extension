@@ -46,12 +46,12 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
-    - name: Vendor robocorp_ls_core
+    - name: Vendor sema4ai_ls_core
       working-directory: ./sema4ai-code
       run: |
         pip install fire poetry
         python -m dev vendor-robocorp-ls-core
-    - name: setup.py install
+    - name: poetry install
       working-directory: ./sema4ai-code
       run: poetry install
     - name: Test

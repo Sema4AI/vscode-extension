@@ -4,7 +4,7 @@ tests/**
 .settings
 .pydevproject
 .project
-robocorp_code.egg-info
+sema4ai_code.egg-info
 vscode-client/src
 **/.gitignore
 **/pytest.ini
@@ -14,4 +14,4 @@ vscode-client/src
 **/__pycache__
 src/build/**
 src/dist/**
-src/robocorp_code.egg-info/**
+src/sema4ai_code.egg-info/**

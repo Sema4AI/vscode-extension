@@ -1,5 +1,4 @@
 class Setting(object):
-
     def __init__(
         self,
         name,
@@ -41,7 +40,7 @@ SETTINGS = [
     Setting(
         "robocorp.language-server.args",
         [],
-        'Specifies the arguments to be passed to the Sema4.ai Code language server (i.e.: ["-vv", "--log-file=~/robocorp_code.log"]). Requires a VSCode restart to take effect.',
+        'Specifies the arguments to be passed to the Sema4.ai Code language server (i.e.: ["-vv", "--log-file=~/sema4ai_code.log"]). Requires a VSCode restart to take effect.',
         setting_type="array",
         js_type="string[]",
     ),

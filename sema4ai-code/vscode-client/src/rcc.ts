@@ -170,7 +170,7 @@ function getBaseAsZipBasename() {
  */
 async function getBaseAsZipDownloadLocation(): Promise<string> {
     const robocorpHome = await getRobocorpHome();
-    let robocorpCodePath = path.join(robocorpHome, ".robocorp_code");
+    let robocorpCodePath = path.join(robocorpHome, ".sema4ai_code");
     return path.join(robocorpCodePath, getBaseAsZipBasename());
 }
 
@@ -685,7 +685,7 @@ export async function collectBaseEnv(
 ): Promise<IEnvInfo | undefined> {
     let spaceName = "vscode-base-v01-" + robotCondaHash.substring(0, 6);
 
-    let robocorpCodePath = path.join(robocorpHome, ".robocorp_code");
+    let robocorpCodePath = path.join(robocorpHome, ".sema4ai_code");
     let spaceInfoPath = path.join(robocorpCodePath, spaceName);
     let rccEnvInfoCachePath = path.join(spaceInfoPath, "rcc_env_info.json");
     try {

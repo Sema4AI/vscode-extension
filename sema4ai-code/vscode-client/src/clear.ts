@@ -78,7 +78,7 @@ async function removeCaches(dirPath: string, level: number, removeDirsArray: str
 }
 
 export async function clearRobocorpCodeCaches(robocorpHome: string) {
-    let robocorpCodePath = path.join(robocorpHome, ".robocorp_code");
+    let robocorpCodePath = path.join(robocorpHome, ".sema4ai_code");
     removeCaches(robocorpCodePath, 0, []);
 }
 

@@ -21,21 +21,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip fire poetry
           
-          python -m venv .venv
-          source ./.venv/bin/activate
-          
           cd sema4ai-code
           
           poetry config virtualenvs.prefer-active-python true
           poetry install
-          
-          cd ..
-          
-          echo $PWD/sema4ai-code/src >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/sema4ai-python-ls-core/src >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/sema4ai-code/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
-          echo $PWD/sema4ai-python-ls-core/tests >> .venv/lib/python3.10/site-packages/rf_src.pth
-
           
       - name: Install prettier
         run: |
@@ -43,28 +32,29 @@ jobs:
           
       - name: Prettier Sema4.ai Code (yarn prettier --write vscode-client/**/*.ts to format files locally)
         working-directory: ./sema4ai-code
+        if: always()
         run: prettier --check vscode-client/**/*.ts
         
       - name: ruff format check sema4ai-code
+        working-directory: ./sema4ai-code
+        if: always()
         run: |
           echo $PWD
           ls -la
-          source ./.venv/bin/activate
-          ruff format --check ./sema4ai-code --exclude=vendored --exclude=_vendored
-          
-      - name: ruff format check sema4ai-python-ls-core
-        run: |
-          source ./.venv/bin/activate
-          ruff format --check ./sema4ai-python-ls-core --exclude=vendored --exclude=libs
+          # Fix with python -m dev ruff_format --format
+          poetry run python -m dev ruff_format
           
       - name: mypy sema4ai-code
+        if: always()
+        working-directory: ./sema4ai-code
         run: |
-          source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/sema4ai-code/src $PWD/sema4ai-code/tests  $PWD/sema4ai-code/codegen
+          poetry run mypy --follow-imports=silent --show-column-numbers $PWD/src $PWD/tests $PWD/codegen
 
       - name: mypy sema4ai-python-ls-core
+        if: always()
+        working-directory: ./sema4ai-python-ls-core
         run: |
-          source ./.venv/bin/activate
-          mypy --follow-imports=silent --show-column-numbers $PWD/sema4ai-python-ls-core/src $PWD/sema4ai-python-ls-core/tests
+          poetry install
+          poetry run mypy --follow-imports=silent --show-column-numbers $PWD/src $PWD/tests
                     
           

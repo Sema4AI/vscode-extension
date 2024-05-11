@@ -84,7 +84,7 @@ def main():
                         pids.append(s.pid)
 
                     try:
-                        from robocorp_ls_core.basic import kill_process_and_subprocesses
+                        from sema4ai_ls_core.basic import kill_process_and_subprocesses
                     except:
                         # Automatically add it to the path if not there.
                         sys.path.append(
@@ -95,7 +95,7 @@ def main():
                                 "src",
                             )
                         )
-                        from robocorp_ls_core.basic import kill_process_and_subprocesses
+                        from sema4ai_ls_core.basic import kill_process_and_subprocesses
 
                     kill_process_and_subprocesses(pid)
 

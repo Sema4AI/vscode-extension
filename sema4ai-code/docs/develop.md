@@ -9,7 +9,7 @@ Install Yarn (https://yarnpkg.com/) -- make sure that `yarn` is in the `PATH`.
 Download the sources, head to the root directory (where `package.json` is located)
 and run: `yarn install`.
 
-After this step, it should be possible to open the `robocorp_code` folder in VSCode and launch
+After this step, it should be possible to open the `sema4ai_code` folder in VSCode and launch
 `Extension: Sema4.ai Code` to have a new instance of VSCode with the loaded extension.
 
 
@@ -52,7 +52,7 @@ Note: the code in the extension side (in TypeScript) should be kept to a minimum
 redone if porting to a different client).
 
 Note: at least one integration test for each action must be added in
-`/sema4ai-code/tests/robocorp_code_tests/test_vscode_integration.py`
+`/sema4ai-code/tests/sema4ai_code_tests/test_vscode_integration.py`
 
 
 Adding a new setting
@@ -87,7 +87,7 @@ is updated accordingly.
 Updating RCC
 --------------------
 
-- Open a shell at the proper place (something as `X:\vscode-robot\robotframework-lsp\sema4ai-code`)
+- Open a shell at the proper place (something as `X:\vscode-robot\vscode-extension\sema4ai-code`)
 
 - Update version (`python -m dev set-rcc-version v11.14.5`).
 

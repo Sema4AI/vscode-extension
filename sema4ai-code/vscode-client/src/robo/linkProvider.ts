@@ -7,20 +7,18 @@ export async function registerLinkProviders(extensionContext: ExtensionContext) 
             provideTerminalLinks(context: TerminalLinkContext) {
                 const regex = /(Robocorp Log(\s*\(html\)\s*)?:\s*)(.+\.html)/;
                 const match = context.line.match(regex);
-                if(match){
+                if (match) {
                     let path: string = match[3].trim();
                     if (fs.existsSync(path)) {
                         return [
                             {
                                 startIndex: match.index + match[1].length,
                                 length: path.length,
-                                tooltip:
-                                    "Open Log in external Browser.",
+                                tooltip: "Open Log in external Browser.",
                                 path: path,
                             },
                         ];
                     }
-
                 }
 
                 return [];

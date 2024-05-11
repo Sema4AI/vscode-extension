@@ -20,20 +20,20 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "windows-py311",
-          "ubuntu-py39",
-          "macos-py38"
+          "windows-py310",
+          "ubuntu-py310",
+          "macos-py310"
         ]
         
         include:
-          - name: "windows-py311"
-            python: "3.11"
+          - name: "windows-py310"
+            python: "3.10"
             os: windows-latest
-          - name: "ubuntu-py39"
-            python: "3.9"
+          - name: "ubuntu-py310"
+            python: "3.10"
             os: ubuntu-latest
-          - name: "macos-py38"
-            python: "3.8"
+          - name: "macos-py310"
+            python: "3.10"
             os: macos-latest
 
     steps:
@@ -43,25 +43,19 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip
-    - name: setup.py install
+    - name: Upgrade pip, install fire, poetry
+      run: |
+        python -m pip install --upgrade pip
+        pip install fire poetry
+    - name: poetry install
       working-directory: ./sema4ai-python-ls-core
       run: |
-        cd src
-        python setup.py install
-        cd ..
-    - name: Install test deps
-      working-directory: ./sema4ai-python-ls-core
-      run: |
-        cd tests
-        pip install -r test_requirements.txt
-        cd ..
+        poetry install
     - name: Test
       working-directory: ./sema4ai-python-ls-core/tests
       env:
         PYTHONPATH: .
-      run: python -u ./run_tests.py -rfE -otests_output -vv .
+      run: poetry run python -u ./run_tests.py -rfE -otests_output -vv .
     - uses: actions/upload-artifact@v1
       with:
         name: tests_output.${{ matrix.name }}.txt

@@ -9,8 +9,8 @@ readme = "README.md"
 repository = "https://github.com/Sema4AI/vscode-extension/"
 license = "Apache-2.0"
 packages = [
-    {include = "robocorp_code", from = "src"},
-    {include = "robocorp_code_debug_adapter", from = "src"}
+    {include = "sema4ai_code", from = "src"},
+    {include = "sema4ai_code_debug_adapter", from = "src"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -49,14 +49,10 @@ sema4ai-python-ls-core = {path = "../sema4ai-python-ls-core/", develop = true}
 
 fire = "*"
 
-robotframework = "5.0.1"
-robotremoteserver = "*"
-
 robocorp-actions = "^0.2.0" # Just needed for testing.
 sema4ai-actions = "^0.3.1" # Just needed for testing.
 
 numpy = "<2"
-black = "^24.3.0"
 ruff = "^0.1.14"
 mypy = "^1.1.1"
 isort = { version = "^5.12.0", python = "^3.8" }
@@ -83,6 +79,7 @@ types-Pillow = "^10.2.0"
 types-pywin32 = "304.0.0.6"
 
 [tool.mypy]
+exclude = "_resources|libs|dap_schema|vendored"
 mypy_path = "src:tests"
 
 [tool.isort]
@@ -110,12 +107,16 @@ ignore_missing_imports = true
 module = "pytest_timeout.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "JABWrapper.*"
+ignore_missing_imports = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.robocorp.log]
 log_filter_rules = [
-    {name = "robocorp_code", kind = "full_log"},
-    {name = "robocorp_ls_core", kind = "full_log"},
+    {name = "sema4ai_code", kind = "full_log"},
+    {name = "sema4ai_ls_core", kind = "full_log"},
 ]

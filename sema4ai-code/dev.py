@@ -10,8 +10,10 @@ Some example commands:
     python -m dev vendor-robocorp-ls-core
 """
 import os
+import subprocess
 import sys
 import traceback
+from pathlib import Path
 
 __file__ = os.path.abspath(__file__)
 
@@ -19,13 +21,15 @@ if not os.path.exists(os.path.join(os.path.abspath("."), "dev.py")):
     raise RuntimeError('Please execute commands from the directory containing "dev.py"')
 
 try:
-    import robocorp_code
+    import sema4ai_code
 except ImportError:
     # I.e.: add relative path (the cwd must be the directory containing this file).
     sys.path.append("src")
-    import robocorp_code
+    import sema4ai_code
 
-robocorp_code.import_robocorp_ls_core()
+sema4ai_code.import_robocorp_ls_core()
+
+root = Path(__file__).parent.parent
 
 
 def _fix_contents_version(contents, version):
@@ -59,7 +63,6 @@ def _fix_rcc_contents_version(contents, version):
 
 
 class Dev(object):
-
     def set_version(self, version):
         """
         Sets a new version for sema4ai-code in all the needed files.
@@ -76,9 +79,7 @@ class Dev(object):
 
         update_version(version, os.path.join(".", "package.json"))
         update_version(version, os.path.join(".", "pyproject.toml"))
-        update_version(
-            version, os.path.join(".", "src", "robocorp_code", "__init__.py")
-        )
+        update_version(version, os.path.join(".", "src", "sema4ai_code", "__init__.py"))
 
     def set_rcc_version(self, version):
         """
@@ -96,7 +97,7 @@ class Dev(object):
             with open(filepath, "w") as stream:
                 stream.write(new_contents)
 
-        update_version(version, os.path.join(".", "src", "robocorp_code", "rcc.py"))
+        update_version(version, os.path.join(".", "src", "sema4ai_code", "rcc.py"))
         update_version(version, os.path.join(".", "vscode-client", "src", "rcc.ts"))
 
         print(
@@ -124,15 +125,15 @@ class Dev(object):
         import subprocess
 
         version = self.get_tag()
-        version = version[version.rfind("-") + 1:]
+        version = version[version.rfind("-") + 1 :]
 
-        if robocorp_code.__version__ == version:
+        if sema4ai_code.__version__ == version:
             sys.stderr.write("Version matches (%s) (exit(0))\n" % (version,))
             sys.exit(0)
         else:
             sys.stderr.write(
                 "Version does not match (found in sources: %s != tag: %s) (exit(1))\n"
-                % (robocorp_code.__version__, version)
+                % (sema4ai_code.__version__, version)
             )
             sys.exit(1)
 
@@ -143,9 +144,9 @@ class Dev(object):
         vendored_dir = os.path.join(
             os.path.dirname(__file__),
             "src",
-            "robocorp_code",
+            "sema4ai_code",
             "vendored",
-            "robocorp_ls_core",
+            "sema4ai_ls_core",
         )
         try:
             shutil.rmtree(vendored_dir)
@@ -157,7 +158,7 @@ class Dev(object):
 
     def vendor_robocorp_ls_core(self):
         """
-        Vendors robocorp_ls_core into robocorp_code/vendored.
+        Vendors sema4ai_ls_core into sema4ai_code/vendored.
         """
         import shutil
 
@@ -166,7 +167,7 @@ class Dev(object):
             "..",
             "sema4ai-python-ls-core",
             "src",
-            "robocorp_ls_core",
+            "sema4ai_ls_core",
         )
         vendored_dir = self.remove_vendor_robocorp_ls_core()
         print("Copying from: %s to %s" % (src_core, vendored_dir))
@@ -208,13 +209,13 @@ class Dev(object):
 
         new_content = re.sub(
             r"\(docs/",
-            rf"(https://github.com/Sema4AI/vscode-extension//tree/{tag}/sema4ai-code/docs/",
+            rf"(https://github.com/Sema4AI/vscode-extension/tree/{tag}/sema4ai-code/docs/",
             content,
         )
 
         new_content = re.sub(
             r"\(images/",
-            rf"(https://raw.githubusercontent.com/robocorp/robotframework-lsp/{tag}/sema4ai-code/images/",
+            rf"(https://raw.githubusercontent.com/Sema4AI/vscode-extension/{tag}/sema4ai-code/images/",
             content,
         )
 
@@ -232,7 +233,7 @@ class Dev(object):
         import tempfile
         import time
 
-        from robocorp_code.rcc import download_rcc
+        from sema4ai_code.rcc import download_rcc
 
         rcc_location = os.path.join(tempfile.mkdtemp(), "rcc.exe")
         download_rcc(rcc_location)
@@ -256,7 +257,7 @@ class Dev(object):
         import stat
         import time
 
-        from robocorp_code.rcc import download_rcc
+        from sema4ai_code.rcc import download_rcc
 
         root = os.path.dirname(__file__)
         bin_dir = os.path.join(root, "bin")
@@ -292,12 +293,7 @@ class Dev(object):
         Packages both Robotframework Language Server and Sema4.ai Code and installs
         them in Visual Studio Code.
         """
-        import subprocess
-
         print("Making local install")
-        from pathlib import Path
-
-        root = Path(__file__).parent.parent
 
         def run(args, shell=False):
             print("---", " ".join(args))
@@ -310,16 +306,6 @@ class Dev(object):
             contents = json.loads(p.read_text())
             return contents["version"]
 
-        print("--- installing RobotFramework Language Server")
-        curdir = root / "robotframework-ls"
-        run("python -m dev vendor_robocorp_ls_core".split())
-        run("vsce package".split(), shell=sys.platform == "win32")
-        run(
-            f"code --install-extension robotframework-lsp-{get_version()}.vsix".split(),
-            shell=sys.platform == "win32",
-        )
-        run("python -m dev remove_vendor_robocorp_ls_core".split())
-
         print("\n--- installing Sema4.ai Code")
         curdir = root / "sema4ai-code"
         run("python -m dev vendor_robocorp_ls_core".split())
@@ -329,6 +315,27 @@ class Dev(object):
             shell=sys.platform == "win32",
         )
         run("python -m dev remove_vendor_robocorp_ls_core".split())
+
+    def ruff_format(self, format=False):
+        """
+        To format:
+        python -m dev ruff_format --format
+
+        To check:
+        python -m dev ruff_format
+        """
+
+        def run(args):
+            print("---", " ".join(args))
+            return subprocess.check_call(args, cwd=root)
+
+        check_str = ""
+        if not format:
+            check_str = "--check"
+
+        run(
+            f"ruff format {check_str} . --exclude=vendored --exclude=libs".split(),
+        )
 
 
 def test_lines():
@@ -341,7 +348,7 @@ def test_lines():
         "version": "0.0.1",
         __version__ = "0.0.1"
     """
-    from robocorp_ls_core.unittest_tools.compare import compare_lines
+    from sema4ai_ls_core.unittest_tools.compare import compare_lines
 
     contents = _fix_contents_version(
         """
@@ -379,7 +386,6 @@ if __name__ == "__main__":
                 '\nError. "fire" library not found.\nPlease install with "pip install fire" (or activate the proper env).\n'
             )
         else:
-
             # Workaround so that fire always prints the output.
             # See: https://github.com/google/python-fire/issues/188
             def Display(lines, out):

@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://github.com/Sema4AI/vscode-extension/"
 license = "Apache-2.0"
 packages = [
-    {include = "robocorp_ls_core", from = "src"},
+    {include = "sema4ai_ls_core", from = "src"},
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -31,12 +31,40 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.10,<3.11"
 tomli = { version = "^2.0.1", python = "<3.11" }
 
+[tool.poetry.group.dev.dependencies]
+fire = "*"
+
+ruff = "^0.1.14"
+mypy = "^1.1.1"
+isort = { version = "^5.12.0", python = "^3.8" }
+invoke = "^2.0"
+tomlkit = "^0.11.8"
+semver = "^3.0.0"
+requests = "*"
+truststore = "0.8.0"
+
+mock = "*"
+pytest = "*"
+pytest-regressions = "1.0.6"
+pytest-xdist = "*"
+pytest-timeout = "*"
+
+types-requests = "*"
+types-invoke = "^2.0"
+types-psutil = "^5.9"
+types-mock = "*"
+types-PyYAML = "*"
+robocorp-log-pytest = "*"
+types-docutils = "*"
+types-Pillow = "^10.2.0"
+types-pywin32 = "304.0.0.6"
 
 [tool.mypy]
-mypy_path = "src:tests"
+exclude = "_resources|libs|dap_schema|vendored"
+mypy_path = "src:tests:src/sema4ai_ls_core/libs/watchdog_lib:src/sema4ai_ls_core/libs/yaml_lib:src/sema4ai_ls_core/libs/fsnotify_lib"
 
 [tool.isort]
 profile = "black"

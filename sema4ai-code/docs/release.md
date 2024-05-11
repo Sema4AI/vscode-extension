@@ -3,7 +3,7 @@ Steps to do a new release
 
 To release a new version:
 
-- Open a shell at the proper place (something as `X:\robocorpws\robotframework-lsp\sema4ai-code`)
+- Open a shell at the proper place (something as `X:\robocorpws\vscode-extension\sema4ai-code`)
 
 - Create release branch (`git branch -D release-sema4ai-code & git checkout -b release-sema4ai-code`)
 
