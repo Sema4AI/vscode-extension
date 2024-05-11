@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 
 class TreeView:
+
     def __init__(self, id, name, contextual_title, menus, add_to_package_json=True):
         self.id = id
         self.name = name
@@ -12,6 +13,7 @@ class TreeView:
 
 
 class TreeViewContainer:
+
     def __init__(self, id, title, icon, tree_views):
         self.id = id
         self.title = title
@@ -26,11 +28,12 @@ class MenuGroup(enum.Enum):
 
 
 class Menu:
+
     def __init__(
         self,
         command_id,
-        group: Optional[Union[MenuGroup, str]] = None,
-        when: Optional[str] = None,
+        group: Optional[Union[MenuGroup, str]]=None,
+        when: Optional[str]=None,
     ):
         self.command_id = command_id
         self.group = group
@@ -40,7 +43,7 @@ class Menu:
 TREE_VIEW_CONTAINERS = [
     TreeViewContainer(
         id="robocorp-robots",
-        title="Robocorp Code",
+        title="Sema4.ai Code",
         icon="images/robocorp-outline.svg",
         tree_views=[
             TreeView(

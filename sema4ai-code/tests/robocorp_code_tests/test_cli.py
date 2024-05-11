@@ -14,7 +14,7 @@ def test_cli_help(main_module):
     output = output.decode("utf-8")
     assert "Traceback" not in output
     assert "Python Language Server" not in output
-    assert "Robocorp Code" in output
+    assert "Sema4.ai Code" in output
 
 
 def test_cli_version(main_module):

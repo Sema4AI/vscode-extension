@@ -205,7 +205,7 @@ const serverOptions: ServerOptions = async function () {
     let executableAndEnv: InterpreterInfo | undefined;
     function onNoPython() {
         OUTPUT_CHANNEL.appendLine(
-            "Unable to activate Robocorp Code extension because python executable from RCC environment was not provided.\n" +
+            "Unable to activate Sema4.ai Code extension because python executable from RCC environment was not provided.\n" +
                 " -- Most common reason is that the environment couldn't be created due to network connectivity issues.\n" +
                 " -- Please fix the error and restart VSCode."
         );
@@ -266,7 +266,7 @@ const serverOptions: ServerOptions = async function () {
         }
 
         OUTPUT_CHANNEL.appendLine(
-            "Starting Robocorp Code with args: " + executableAndEnv.pythonExe + " " + args.join(" ")
+            "Starting Sema4.ai Code with args: " + executableAndEnv.pythonExe + " " + args.join(" ")
         );
 
         let src: string = path.resolve(__dirname, "../../src");
@@ -290,10 +290,10 @@ const serverOptions: ServerOptions = async function () {
 async function notifyOfInitializationErrorShowOutputTab(msg?: string) {
     OUTPUT_CHANNEL.show();
     if (!msg) {
-        msg = "Unable to activate Robocorp Code extension. Please see: Output > Robocorp Code for more details.";
+        msg = "Unable to activate Sema4.ai Code extension. Please see: Output > Sema4.ai Code for more details.";
     }
     window.showErrorMessage(msg);
-    const selection = await window.showErrorMessage(msg, "Show Output > Robocorp Code");
+    const selection = await window.showErrorMessage(msg, "Show Output > Sema4.ai Code");
     if (selection) {
         OUTPUT_CHANNEL.show();
     }
@@ -403,7 +403,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         } catch (error) {
             logError("Error downloading latest action server", error, "ERR_DOWNLOAD_ACTION_SERVER");
             window.showErrorMessage(
-                "There was an error downloading the action server. See `OUTPUT > Robocorp Code` for more information."
+                "There was an error downloading the action server. See `OUTPUT > Sema4.ai Code` for more information."
             );
         }
     });
@@ -520,7 +520,7 @@ async function clearEnvAndRestart() {
     await window.withProgress(
         {
             location: vscode.ProgressLocation.Window,
-            title: "Clearing environments and restarting Robocorp Code.",
+            title: "Clearing environments and restarting Sema4.ai Code.",
             cancellable: false,
         },
         clearEnvsAndRestart
@@ -541,22 +541,22 @@ async function clearEnvsAndRestart(progress: vscode.Progress<{ message?: string;
         });
         const timing = new Timing();
         progress.report({
-            "message": `Waiting for Robocorp Code to be ready.`,
+            "message": `Waiting for Sema4.ai Code to be ready.`,
         });
         await langServer.onReady();
-        let msg = "Restarted Robocorp Code. Took: " + timing.getTotalElapsedAsStr();
+        let msg = "Restarted Sema4.ai Code. Took: " + timing.getTotalElapsedAsStr();
         progress.report({
             "message": msg,
         });
         OUTPUT_CHANNEL.appendLine(msg);
     } catch (err) {
         allOk = false;
-        const msg = "Error restarting Robocorp Code";
+        const msg = "Error restarting Sema4.ai Code";
         notifyOfInitializationErrorShowOutputTab(msg);
         logError(msg, err, "INIT_RESTART_ROBOCORP_CODE");
     } finally {
         if (allOk) {
-            window.showInformationMessage("RCC Environments cleared and Robocorp Code restarted.");
+            window.showInformationMessage("RCC Environments cleared and Sema4.ai Code restarted.");
             C.useErrorStubs = false;
         } else {
             C.useErrorStubs = true;
@@ -590,7 +590,7 @@ async function clearEnvsLocked(progress: vscode.Progress<{ message?: string; inc
     globalCachedPythonInfo = undefined;
 
     C.useErrorStubs = true; // Prevent any calls while restarting...
-    C.errorMessage = "Unable to use Robocorp Code actions while clearing environments.";
+    C.errorMessage = "Unable to use Sema4.ai Code actions while clearing environments.";
     let okToRestartRFLS = false;
     try {
         let timing = new Timing();
@@ -608,10 +608,10 @@ async function clearEnvsLocked(progress: vscode.Progress<{ message?: string; inc
 
         let timingStop = new Timing();
         progress.report({
-            "message": `Stopping Robocorp Code.`,
+            "message": `Stopping Sema4.ai Code.`,
         });
         await langServer.stop();
-        OUTPUT_CHANNEL.appendLine("Stopped Robocorp Code. Took: " + timingStop.getTotalElapsedAsStr());
+        OUTPUT_CHANNEL.appendLine("Stopped Sema4.ai Code. Took: " + timingStop.getTotalElapsedAsStr());
 
         if (envsToLoCollect) {
             await clearRCCEnvironments(rccLocation, robocorpHome, envsToLoCollect, progress);
@@ -619,16 +619,16 @@ async function clearEnvsLocked(progress: vscode.Progress<{ message?: string; inc
 
         try {
             progress.report({
-                "message": `Clearing Robocorp Code caches.`,
+                "message": `Clearing Sema4.ai Code caches.`,
             });
             await clearRobocorpCodeCaches(robocorpHome);
         } catch (error) {
-            let msg = "Error clearing Robocorp Code caches.";
+            let msg = "Error clearing Sema4.ai Code caches.";
             logError(msg, error, "RCC_CLEAR_ENV");
         }
 
         progress.report({
-            "message": `Starting Robocorp Code.`,
+            "message": `Starting Sema4.ai Code.`,
         });
         langServer.start();
     } finally {
@@ -646,7 +646,7 @@ export let GLOBAL_STATE: undefined | vscode.Memento = undefined;
 export async function activate(context: ExtensionContext) {
     GLOBAL_STATE = context.globalState;
     let timing = new Timing();
-    OUTPUT_CHANNEL.appendLine("Activating Robocorp Code extension.");
+    OUTPUT_CHANNEL.appendLine("Activating Sema4.ai Code extension.");
     registerLinkProviders(context);
 
     C = new CommandRegistry(context);
@@ -654,11 +654,11 @@ export async function activate(context: ExtensionContext) {
     try {
         return await langServerMutex.dispatch(async () => {
             let ret = await doActivate(context, C);
-            OUTPUT_CHANNEL.appendLine("Robocorp Code initialization finished. Took: " + timing.getTotalElapsedAsStr());
+            OUTPUT_CHANNEL.appendLine("Sema4.ai Code initialization finished. Took: " + timing.getTotalElapsedAsStr());
             return ret;
         });
     } catch (error) {
-        logError("Error initializing Robocorp Code extension", error, "INIT_ROBOCORP_CODE_ERROR");
+        logError("Error initializing Sema4.ai Code extension", error, "INIT_ROBOCORP_CODE_ERROR");
         C.useErrorStubs = true;
         notifyOfInitializationErrorShowOutputTab();
     }
@@ -765,9 +765,9 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             const micro = parseInt(splitted[2]);
             if (major < 1 || (major == 1 && (minor < 7 || (minor == 7 && micro < 0)))) {
                 const msg =
-                    "Unable to initialize the Robocorp Code extension because the Robot Framework Language Server version (" +
+                    "Unable to initialize the Sema4.ai Code extension because the Robot Framework Language Server version (" +
                     version +
-                    ") is not compatible with this version of Robocorp Code. Robot Framework Language Server 1.7.0 or newer is required. Please update to proceed. ";
+                    ") is not compatible with this version of Sema4.ai Code. Robot Framework Language Server 1.7.0 or newer is required. Please update to proceed. ";
                 OUTPUT_CHANNEL.appendLine(msg);
                 C.useErrorStubs = true;
                 notifyOfInitializationErrorShowOutputTab(msg);
@@ -801,7 +801,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     });
 
     let startLsTiming = new Timing();
-    langServer = new LanguageClient("Robocorp Code", serverOptions, clientOptions);
+    langServer = new LanguageClient("Sema4.ai Code", serverOptions, clientOptions);
 
     context.subscriptions.push(
         langServer.onDidChangeState((event) => {
@@ -854,12 +854,12 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         context.subscriptions.push(disposable);
         // i.e.: if we return before it's ready, the language server commands
         // may not be available.
-        OUTPUT_CHANNEL.appendLine("Waiting for Robocorp Code (python) language server to finish activating...");
+        OUTPUT_CHANNEL.appendLine("Waiting for Sema4.ai Code (python) language server to finish activating...");
         await langServer.onReady();
         // If it started properly, mark that it worked.
         GLOBAL_STATE.update(CACHE_KEY_LAST_WORKED, true);
         OUTPUT_CHANNEL.appendLine(
-            "Took: " + startLsTiming.getTotalElapsedAsStr() + " to initialize Robocorp Code Language Server."
+            "Took: " + startLsTiming.getTotalElapsedAsStr() + " to initialize Sema4.ai Code Language Server."
         );
     } catch (error) {
         logError("Error initializing Robocorp code.", error, "ERROR_INITIALIZING_ROBOCORP_CODE_LANG_SERVER");

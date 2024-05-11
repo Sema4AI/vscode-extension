@@ -31,9 +31,9 @@ def get_json_contents():
 
     base_package_contents = {
         "name": "sema4ai-code",
-        "displayName": "Robocorp Code",
-        "description": "Extension for Robot development in VSCode using Robocorp",
-        "author": "Fabio Zadrozny",
+        "displayName": "Sema4.ai Code",
+        "description": "Sema4.ai Code: Visual Studio Code Extension for AI Actions and Robot Tasks development",
+        "author": "Sema4.ai, Inc.",
         "homepage": "https://github.com/Sema4AI/vscode-extension//blob/master/sema4ai-code/README.md",
         "repository": {
             "type": "git",
@@ -50,7 +50,7 @@ def get_json_contents():
         +["onLanguage:json", "onLanguage:yaml", "onLanguage:python"],
         "contributes": {
             "configuration": {
-                "title": "Robocorp Code Language Server Configuration",
+                "title": "Sema4.ai Code Language Server Configuration",
                 "type": "object",
                 "properties": get_settings_for_json(),
             },
@@ -61,7 +61,7 @@ def get_json_contents():
             "debuggers": [
                 {
                     "type": "sema4ai-code",
-                    "label": "Robocorp Code",
+                    "label": "Sema4.ai Code",
                     "languages": [],
                     "configurationAttributes": {
                         "launch": {
@@ -101,11 +101,11 @@ def get_json_contents():
                     },
                     "configurationSnippets": [
                         {
-                            "label": "Robocorp Code: Launch task from robot.yaml",
+                            "label": "Sema4.ai Code: Launch task from robot.yaml",
                             "description": "Add a new configuration for launching tasks from a robot.yaml.",
                             "body": {
                                 "type": "sema4ai-code",
-                                "name": "Robocorp Code: Launch task from robot.yaml",
+                                "name": "Sema4.ai Code: Launch task from robot.yaml",
                                 "request": "launch",
                                 # "terminal": "integrated",
                                 "robot": '^"\\${file}"',

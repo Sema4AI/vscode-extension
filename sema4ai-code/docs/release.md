@@ -14,7 +14,7 @@ To release a new version:
 - Update changelog.md to add notes on features/fixes and set release date.
 
 - Push contents to release branch, get the build in https://github.com/Sema4AI/vscode-extension//actions and install locally to test.
-  - `mu acp Release Robocorp Code 1.22.1`
+  - `mu acp Release Sema4.ai Code 1.22.1`
 
 - Rebase with master (`git checkout master & git rebase release-sema4ai-code`).
 

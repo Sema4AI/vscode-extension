@@ -2,6 +2,7 @@ from convert import convert_case_to_constant
 
 
 class Command(object):
+
     def __init__(
         self,
         name,
@@ -670,13 +671,13 @@ COMMANDS = [
     ),
     Command(
         "robocorp.clearEnvAndRestart",
-        "Clear Robocorp (RCC) environments and restart Robocorp Code",
+        "Clear Robocorp (RCC) environments and restart Sema4.ai Code",
         add_to_package_json=True,
         server_handled=False,
     ),
     Command(
         "robocorp.showOutput",
-        "Show Robocorp Code > Output logs",
+        "Show Sema4.ai Code > Output logs",
         add_to_package_json=True,
         server_handled=False,
     ),

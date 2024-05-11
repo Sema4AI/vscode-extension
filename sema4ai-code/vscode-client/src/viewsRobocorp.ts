@@ -99,7 +99,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
             } catch (error) {
                 logError("Error getting children", error, "VIEWS_CLOUD_COMPUTE_ROOTS");
                 ret.push({
-                    "label": "Error initializing. Click to see Output > Robocorp Code.",
+                    "label": "Error initializing. Click to see Output > Sema4.ai Code.",
                     "iconPath": "error",
                     "command": {
                         "title": "See output",

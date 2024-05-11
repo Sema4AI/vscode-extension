@@ -2,7 +2,7 @@
     "name": "sema4ai-code",
     "displayName": "Sema4.ai Code",
     "description": "Sema4.ai Code: Visual Studio Code Extension for AI Actions and Robot Tasks development",
-    "author": "Fabio Zadrozny",
+    "author": "Sema4.ai, Inc.",
     "homepage": "https://github.com/Sema4AI/vscode-extension//blob/master/sema4ai-code/README.md",
     "repository": {
         "type": "git",
@@ -139,7 +139,7 @@
     ],
     "contributes": {
         "configuration": {
-            "title": "Robocorp Code Language Server Configuration",
+            "title": "Sema4.ai Code Language Server Configuration",
             "type": "object",
             "properties": {
                 "robocorp.language-server.tcp-port": {
@@ -150,12 +150,12 @@
                 "robocorp.language-server.args": {
                     "type": "array",
                     "default": [],
-                    "description": "Specifies the arguments to be passed to the Robocorp Code language server (i.e.: [\"-vv\", \"--log-file=~/robocorp_code.log\"]). Requires a VSCode restart to take effect."
+                    "description": "Specifies the arguments to be passed to the Sema4.ai Code language server (i.e.: [\"-vv\", \"--log-file=~/robocorp_code.log\"]). Requires a VSCode restart to take effect."
                 },
                 "robocorp.language-server.python": {
                     "type": "string",
                     "default": "",
-                    "description": "Specifies the path to the python executable to be used for the Robocorp Code Language Server (the default is searching python on the PATH). Requires a VSCode restart to take effect."
+                    "description": "Specifies the path to the python executable to be used for the Sema4.ai Code Language Server (the default is searching python on the PATH). Requires a VSCode restart to take effect."
                 },
                 "robocorp.rcc.location": {
                     "type": "string",
@@ -195,7 +195,7 @@
                 "robocorp.proceedWithLongPathsDisabled": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enables Robocorp Code to be started even with long paths disabled."
+                    "description": "Enables Sema4.ai Code to be started even with long paths disabled."
                 },
                 "robocorp.vaultTokenTimeoutInMinutes": {
                     "type": "number",
@@ -218,7 +218,7 @@
             "activitybar": [
                 {
                     "id": "robocorp-robots",
-                    "title": "Robocorp Code",
+                    "title": "Sema4.ai Code",
                     "icon": "images/robocorp-outline.svg"
                 }
             ],
@@ -267,7 +267,7 @@
         "debuggers": [
             {
                 "type": "sema4ai-code",
-                "label": "Robocorp Code",
+                "label": "Sema4.ai Code",
                 "languages": [],
                 "configurationAttributes": {
                     "launch": {
@@ -294,11 +294,11 @@
                 },
                 "configurationSnippets": [
                     {
-                        "label": "Robocorp Code: Launch task from robot.yaml",
+                        "label": "Sema4.ai Code: Launch task from robot.yaml",
                         "description": "Add a new configuration for launching tasks from a robot.yaml.",
                         "body": {
                             "type": "sema4ai-code",
-                            "name": "Robocorp Code: Launch task from robot.yaml",
+                            "name": "Sema4.ai Code: Launch task from robot.yaml",
                             "request": "launch",
                             "robot": "^\"\\${file}\"",
                             "task": ""
@@ -731,12 +731,12 @@
             },
             {
                 "command": "robocorp.clearEnvAndRestart",
-                "title": "Clear Robocorp (RCC) environments and restart Robocorp Code",
+                "title": "Clear Robocorp (RCC) environments and restart Sema4.ai Code",
                 "category": "Robocorp"
             },
             {
                 "command": "robocorp.showOutput",
-                "title": "Show Robocorp Code > Output logs",
+                "title": "Show Sema4.ai Code > Output logs",
                 "category": "Robocorp"
             },
             {

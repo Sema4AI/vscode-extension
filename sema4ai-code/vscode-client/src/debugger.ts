@@ -34,7 +34,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         let configurations: DebugConfiguration[] = [];
         configurations.push({
             "type": "sema4ai-code",
-            "name": "Robocorp Code: Launch task from robot.yaml",
+            "name": "Sema4.ai Code: Launch task from robot.yaml",
             "request": "launch",
             "robot": '^"\\${file}"',
             "task": "",
@@ -149,7 +149,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
 
         // In a custom run we get the input contents -- something as:
         // "type": "sema4ai-code",
-        // "name": "Robocorp Code: Launch task from current robot.yaml",
+        // "name": "Sema4.ai Code: Launch task from current robot.yaml",
         // "request": "launch",
         // "robot": "c:/robot.yaml",
         // "task": "entrypoint",

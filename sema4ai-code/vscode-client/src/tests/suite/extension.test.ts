@@ -8,7 +8,7 @@ import { sleep } from "../../time";
 
 const testFolderLocation = "/resources/";
 
-suite("Robocorp Code Extension Test Suite", () => {
+suite("Sema4.ai Code Extension Test Suite", () => {
     vscode.window.showInformationMessage("Start all tests.");
 
     test("Test that robots can be listed", async () => {

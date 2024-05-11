@@ -330,7 +330,7 @@ export async function setPythonInterpreterFromRobotYaml() {
             window.showInformationMessage("Successfully set python executable path for vscode-python.");
         } else if (!pythonExecutableConfigured) {
             window.showInformationMessage(
-                "Unable to verify if vscode-python executable was properly set. See OUTPUT -> Robocorp Code for more info."
+                "Unable to verify if vscode-python executable was properly set. See OUTPUT -> Sema4.ai Code for more info."
             );
         } else {
             if (pythonExecutableConfigured != interpreter.pythonExe) {
@@ -855,7 +855,7 @@ export async function updateLaunchEnvironment(args): Promise<{ [key: string]: st
         if (error && error.message) {
             msg += ` (${error.message})`;
         }
-        msg += "See OUTPUT > Robocorp Code for more details.";
+        msg += "See OUTPUT > Sema4.ai Code for more details.";
         window.showErrorMessage(msg);
         logError("Error computing launch env.", error, "ERROR_LAUNCH_ENV");
         throw error;
@@ -872,7 +872,7 @@ export async function updateLaunchEnvironment(args): Promise<{ [key: string]: st
                     await window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
-                            title: "Running preRunScripts (see 'OUTPUT > Robocorp Code' for details).",
+                            title: "Running preRunScripts (see 'OUTPUT > Sema4.ai Code' for details).",
                             cancellable: false,
                         },
                         async (
@@ -890,7 +890,7 @@ export async function updateLaunchEnvironment(args): Promise<{ [key: string]: st
                                 if (!result["success"]) {
                                     OUTPUT_CHANNEL.show();
                                     window.showErrorMessage(
-                                        "There was a problem running preRunScripts. See `OUTPUT > Robocorp Code` for more details."
+                                        "There was a problem running preRunScripts. See `OUTPUT > Sema4.ai Code` for more details."
                                     );
                                 }
                             }

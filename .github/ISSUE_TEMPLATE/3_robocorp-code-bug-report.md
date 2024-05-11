@@ -1,6 +1,6 @@
 ---
-name: Bug Report - Robocorp Code
-about: Create a report to help us improve Robocorp Code
+name: Bug Report - Sema4.ai Code
+about: Create a report to help us improve Sema4.ai Code
 title: ''
 labels: bug, sema4ai-code
 assignees: ''

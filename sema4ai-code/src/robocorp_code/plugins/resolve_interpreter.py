@@ -1,6 +1,6 @@
 """
 Note: this code will actually run as a plugin in the RobotFramework Language
-Server, or in the Robocorp Code environment, so, we need to be careful on the
+Server, or in the Sema4.ai Code environment, so, we need to be careful on the
 imports so that it works on both cases.
 
 Also, the required version must be checked in the client (in case imports or APIs
@@ -46,7 +46,6 @@ from robocorp_code.protocols import IRobotYamlEnvInfo
 
 log = get_logger(__name__)
 
-
 _CachedFileMTimeInfo = namedtuple("_CachedFileMTimeInfo", "st_mtime, st_size, path")
 
 _CachedInterpreterMTime = Tuple[Optional[_CachedFileMTimeInfo], ...]
@@ -66,6 +65,7 @@ def _get_mtime_cache_info(file_path: Path) -> Optional[_CachedFileMTimeInfo]:
 
 
 class _CachedFileInfo(object):
+
     def __init__(self, file_path: Path):
         self.file_path = file_path
         self.mtime_info: Optional[_CachedFileMTimeInfo] = _get_mtime_cache_info(
@@ -91,6 +91,7 @@ class _CachedFileInfo(object):
 
 
 class _CachedInterpreterInfo(object):
+
     def __init__(
         self,
         robot_yaml_file_info: _CachedFileInfo,
@@ -127,7 +128,7 @@ class _CachedInterpreterInfo(object):
             ) as f:
                 if progress_reporter is not None and progress_reporter.cancelled:
                     file_contents = f"""
-Robocorp Code: Environment creation cancelled
+Sema4.ai Code: Environment creation cancelled
 ===============================================
 
 The process to create the the environment for:
@@ -146,10 +147,10 @@ If the environment file should be already correct, chose one of the options belo
 
   "Developer: Reload Window"
 
-- Clear all environments and restart Robocorp Code (advised if you suspect
+- Clear all environments and restart Sema4.ai Code (advised if you suspect
   that some environment was partially created and is corrupt):
 
-  "Robocorp: Clear Robocorp (RCC) environments and restart Robocorp Code"
+  "Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai Code"
 
 Full error message
 ====================
@@ -159,7 +160,7 @@ Full error message
 
                 else:
                     file_contents = f"""
-Robocorp Code: Unable to create environment
+Sema4.ai Code: Unable to create environment
 =============================================
 
 There was an error creating the environment for:
@@ -186,7 +187,7 @@ The most common reasons and fixes for this failure are:
     - Clear all environments and restart Robocorp code (advised if you suspect
       that some environment was partially created and is corrupt):
 
-      "Robocorp: Clear Robocorp (RCC) environments and restart Robocorp Code"
+      "Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai Code"
 
 If you still can't get it to work, please submit an issue to Robocorp using the command:
 
@@ -362,10 +363,11 @@ class _CacheInfo(object):
 
 
 class _TouchInfo(object):
+
     def __init__(self):
         self._last_touch = 0
 
-    def touch(self, info: IInterpreterInfo, force: bool = False):
+    def touch(self, info: IInterpreterInfo, force: bool=False):
         curr_time = time.time()
         diff = curr_time - self._last_touch
 
@@ -403,6 +405,7 @@ def _touch_temp(info: IInterpreterInfo):
 
 
 class _PackageYamlCachedInfo:
+
     def __init__(
         self,
         robot_yaml: Path,
@@ -428,6 +431,7 @@ class _PackageYamlCachedInfo:
 
 
 class _CachePackage:
+
     def __init__(self) -> None:
         self._cache: Dict[Path, "_PackageYamlCachedInfo"] = {}
         self._hits = 0
@@ -534,7 +538,7 @@ class RobocorpResolveInterpreter(object):
     def _generate_robot_and_conda_from_package_yaml(
         self,
         package_yaml_file_info: _CachedFileInfo,
-        cache: _CachePackage = _cache_package,
+        cache: _CachePackage=_cache_package,
     ) -> Optional[Tuple[Path, Path]]:
         import yaml
         from robocorp_ls_core.ep_providers import EPConfigurationProvider

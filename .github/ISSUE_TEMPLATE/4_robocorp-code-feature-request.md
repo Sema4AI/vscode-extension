@@ -1,6 +1,6 @@
 ---
-name: Feature request - Robocorp Code
-about: Suggest an idea for Robocorp Code
+name: Feature request - Sema4.ai Code
+about: Suggest an idea for Sema4.ai Code
 title: ''
 labels: enhancement, sema4ai-code
 assignees: ''

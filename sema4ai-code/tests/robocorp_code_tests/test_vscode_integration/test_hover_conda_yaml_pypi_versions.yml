@@ -326,7 +326,7 @@ contents:
     \ **releasenotes.rst**\n   and **pyproject.toml** with message \"PACKAGE. version\
     \ x.y.z\"\n#. git push\n#. ``invoke publish`` after Github action on master branch\
     \ is all green\n\nSome recommended tools for development\n\n- `Visual Studio Code`_\
-    \ as a code editor with following extensions:\n\n   - `Robocorp Code`_\n   - `Robot\
+    \ as a code editor with following extensions:\n\n   - `Sema4.ai Code`_\n   - `Robot\
     \ Framework Language Server`_\n   - `GitLens`_\n   - `Python extension`_\n\n-\
     \ `GitHub Desktop`_ will make version management less prone to errors\n\n.. _poetry:\
     \ https://python-poetry.org\n.. _invoke: https://www.pyinvoke.org\n.. _Visual\

@@ -16,6 +16,7 @@ playwright_command_dispatcher = _SubCommandDispatcher("_playwright")
 
 
 class _Playwright(object):
+
     def __init__(
         self, base_command_dispatcher, feedback, plugin_manager, lsp_messages
     ) -> None:
@@ -112,7 +113,7 @@ class _Playwright(object):
                 {
                     "success": False,
                     "message": "Running the Playwright Recorder failed. Please check environment for playwright package and try again."
-                    + str(e),
+                    +str(e),
                     "result": None,
                 }
             )
@@ -190,7 +191,7 @@ class _Playwright(object):
 
             if playwright_recorder_returncode != 0:
                 self._lsp_messages.show_message(
-                    "There was some error running the Playwright recorder.\nPlease see `View > OUTPUT > Robocorp Code` for more details.",
+                    "There was some error running the Playwright recorder.\nPlease see `View > OUTPUT > Sema4.ai Code` for more details.",
                     MessageType.Error,
                 )
 

@@ -212,7 +212,7 @@ async function verifyLongPathSupportOnWindows(
                 const NO = "No (don't warn again)";
 
                 let result = await window.showErrorMessage(
-                    "Windows long paths support is not enabled. Would you like to have Robocorp Code enable it now?",
+                    "Windows long paths support is not enabled. Would you like to have Sema4.ai Code enable it now?",
                     {
                         "modal": true,
                         "detail":
@@ -303,7 +303,7 @@ export async function basicValidations(
     // Check that ROBOCORP_HOME is valid (i.e.: doesn't have any spaces in it).
     let rccDiagnostics: RCCDiagnostics | undefined = await configDiagnosticsPromise;
     if (!rccDiagnostics) {
-        let msg: string = "There was an error getting RCC diagnostics. Robocorp Code will not be started!";
+        let msg: string = "There was an error getting RCC diagnostics. Sema4.ai Code will not be started!";
         if (!failsPreventStartup) {
             msg = "There was an error getting RCC diagnostics.";
         }
@@ -357,7 +357,7 @@ export async function basicValidations(
         robocorpHome = uriResult[0].fsPath;
         rccDiagnostics = await runConfigDiagnostics(rccLocation, robocorpHome);
         if (!rccDiagnostics) {
-            let msg: string = "There was an error getting RCC diagnostics. Robocorp Code will not be started!";
+            let msg: string = "There was an error getting RCC diagnostics. Sema4.ai Code will not be started!";
             if (!failsPreventStartup) {
                 msg = "There was an error getting RCC diagnostics.";
             }
@@ -498,10 +498,10 @@ async function createDefaultEnv(
 
 /**
  * Shows a messages saying that the extension is disabled (as an error message to the user)
- * and logs it to OUTPUT > Robocorp Code.
+ * and logs it to OUTPUT > Sema4.ai Code.
  */
 function disabled(msg: string): undefined {
-    msg = "Robocorp Code extension disabled. Reason: " + msg;
+    msg = "Sema4.ai Code extension disabled. Reason: " + msg;
     OUTPUT_CHANNEL.appendLine(msg);
     window.showErrorMessage(msg);
     OUTPUT_CHANNEL.show();

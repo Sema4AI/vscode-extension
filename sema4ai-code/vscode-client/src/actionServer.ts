@@ -19,7 +19,7 @@ if (process.platform === "win32") {
     DOWNLOAD_URL = "https://downloads.robocorp.com/action-server/releases/latest/macos64/action-server";
 }
 
-// Update so that Robocorp Code requests the latest version of the action server.
+// Update so that Sema4.ai Code requests the latest version of the action server.
 const LATEST_ACTION_SERVER_VERSION = "0.3.2";
 
 async function downloadActionServer(internalActionServerLocation: string) {

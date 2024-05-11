@@ -309,6 +309,6 @@ export async function createActionPackage() {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
         OUTPUT_CHANNEL.appendLine(errorMsg);
-        window.showErrorMessage(errorMsg + " (see `OUTPUT > Robocorp Code` for more details).");
+        window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai Code` for more details).");
     }
 }

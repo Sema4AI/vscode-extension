@@ -62,8 +62,8 @@ export async function showSubmitIssueUI(context: vscode.ExtensionContext) {
                         await submitIssue(
                             contents.details,
                             contents.email,
-                            "Robocorp Code",
-                            "Robocorp Code",
+                            "Sema4.ai Code",
+                            "Sema4.ai Code",
                             contents.summary,
                             contents.files
                         );

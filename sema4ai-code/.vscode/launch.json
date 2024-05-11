@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "configurations": [
         {
-            "name": "Extension: Robocorp Code",
+            "name": "Extension: Sema4.ai Code",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -26,7 +26,7 @@
             }
         },
         {
-            "name": "Extension Tests: Robocorp Code",
+            "name": "Extension Tests: Sema4.ai Code",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",

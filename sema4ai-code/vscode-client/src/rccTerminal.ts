@@ -93,7 +93,7 @@ export async function createRccTerminal(robotInfo: LocalRobotMetadataInfo) {
                     name: robotInfo.name + " Package environment",
                     env: env,
                     cwd: pathModule.dirname(robotInfo.filePath),
-                    message: "Robocorp Code Package Activated Interpreter (Python Environment)",
+                    message: "Sema4.ai Code Package Activated Interpreter (Python Environment)",
                     shellPath: "C:\\Windows\\System32\\cmd.exe",
                 });
                 const varsFilePath = pathModule.join(env.RCC_HOLOTREE_SPACE_ROOT, "environment_vars.bat");
@@ -112,7 +112,7 @@ export async function createRccTerminal(robotInfo: LocalRobotMetadataInfo) {
                     name: robotInfo.name + " Package environment",
                     env: env,
                     cwd: pathModule.dirname(robotInfo.filePath),
-                    message: "Robocorp Code Package Activated Interpreter (Python Environment)",
+                    message: "Sema4.ai Code Package Activated Interpreter (Python Environment)",
                 });
                 const varsFilePath = pathModule.join(env.RCC_HOLOTREE_SPACE_ROOT, "environment_vars.sh");
                 const envVarsContent = Object.keys(env)

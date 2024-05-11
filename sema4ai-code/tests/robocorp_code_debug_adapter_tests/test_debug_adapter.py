@@ -84,7 +84,7 @@ def test_work_item_variables_not_overridden(
 ):
     """
     Verifies that variables from env.json don't override variables related
-    to work items set by Robocorp Code:
+    to work items set by Sema4.ai Code:
         - RPA_INPUT_WORKITEM_PATH
         - RPA_OUTPUT_WORKITEM_PATH
         - RPA_WORKITEMS_ADAPTER

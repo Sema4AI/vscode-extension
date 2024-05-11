@@ -289,7 +289,7 @@ class Dev(object):
 
     def local_install(self):
         """
-        Packages both Robotframework Language Server and Robocorp Code and installs
+        Packages both Robotframework Language Server and Sema4.ai Code and installs
         them in Visual Studio Code.
         """
         import subprocess
@@ -320,7 +320,7 @@ class Dev(object):
         )
         run("python -m dev remove_vendor_robocorp_ls_core".split())
 
-        print("\n--- installing Robocorp Code")
+        print("\n--- installing Sema4.ai Code")
         curdir = root / "sema4ai-code"
         run("python -m dev vendor_robocorp_ls_core".split())
         run("vsce package".split(), shell=sys.platform == "win32")

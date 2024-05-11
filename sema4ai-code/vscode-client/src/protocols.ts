@@ -125,7 +125,7 @@ export interface ConversionSuccess {
     files: Array<File>;
     report?: File;
     images?: Array<File>;
-    outputDir: string; // Used internally in Robocorp Code
+    outputDir: string; // Used internally in Sema4.ai Code
 }
 
 export interface ConversionFailure {
@@ -133,7 +133,7 @@ export interface ConversionFailure {
     error: string;
     report?: File;
     images?: Array<File>;
-    outputDir: string; // Used internally in Robocorp Code
+    outputDir: string; // Used internally in Sema4.ai Code
 }
 
 export type ConversionResult = ConversionSuccess | ConversionFailure;
@@ -190,7 +190,7 @@ export interface A360ConvertCommand {
     targetLanguage: string;
     adapterFilePaths: Array<string>;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface A360SchemaCommand {
@@ -200,7 +200,7 @@ export interface A360SchemaCommand {
     /** properties that should be considered as ENUM  */
     types?: Array<string>;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface A360AnalyseCommand {
@@ -209,7 +209,7 @@ export interface A360AnalyseCommand {
     projects: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface UiPathConvertCommand {
@@ -218,7 +218,7 @@ export interface UiPathConvertCommand {
     projectFolderPath: string;
     targetLanguage: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface UiPathSchemaCommand {
@@ -228,7 +228,7 @@ export interface UiPathSchemaCommand {
     /** properties that should be considered as ENUM  */
     types?: Array<string>;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface UiPathAnalyseCommand {
@@ -237,7 +237,7 @@ export interface UiPathAnalyseCommand {
     projects: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface BlueprismConvertCommand {
@@ -247,7 +247,7 @@ export interface BlueprismConvertCommand {
     targetLanguage: string;
     apiImplementationFolderPath?: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface BlueprismAnalyseCommand {
@@ -256,7 +256,7 @@ export interface BlueprismAnalyseCommand {
     projects: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface AAV11ConvertCommand {
@@ -267,7 +267,7 @@ export interface AAV11ConvertCommand {
     tempFolder: string;
     targetLanguage: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface AAV11GenerateCommand {
@@ -277,7 +277,7 @@ export interface AAV11GenerateCommand {
     projects: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface AAV11AnalyseCommand {
@@ -287,7 +287,7 @@ export interface AAV11AnalyseCommand {
     projects: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export interface AAV11SchemaCommand {
@@ -299,7 +299,7 @@ export interface AAV11SchemaCommand {
     types?: Array<string>;
     tempFolder: string;
     onProgress: Progress;
-    outputRelativePath: string; // Used internally in Robocorp Code
+    outputRelativePath: string; // Used internally in Sema4.ai Code
 }
 
 export type BlueprismCommand = BlueprismConvertCommand | BlueprismAnalyseCommand;

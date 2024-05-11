@@ -46,7 +46,7 @@ def add_arguments(parser):
         port = 1456
         verbose = 0
 
-    parser.description = "Robocorp Code"
+    parser.description = "Sema4.ai Code"
 
     parser.add_argument(
         "--tcp", action="store_true", help="Use TCP server instead of stdio."
@@ -174,8 +174,8 @@ if __name__ == "__main__":
     try:
         if sys.version_info[0] <= 2:
             raise AssertionError(
-                "Python 3+ is required for Robocorp Code.\nCurrent executable: "
-                + sys.executable
+                "Python 3+ is required for Sema4.ai Code.\nCurrent executable: "
+                +sys.executable
             )
         main()
     except (SystemExit, KeyboardInterrupt):
