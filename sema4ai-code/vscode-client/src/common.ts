@@ -29,7 +29,7 @@ export const isActionPackage = (entry: PackageEntry | LocalRobotMetadataInfo) =>
 
 export async function areThereRobotsInWorkspace(): Promise<boolean> {
     let asyncListLocalRobots: Thenable<ActionResult<LocalRobotMetadataInfo[]>> = vscode.commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
     let actionResultListLocalRobots: ActionResult<LocalRobotMetadataInfo[]> = await asyncListLocalRobots;

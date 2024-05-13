@@ -8,7 +8,7 @@ import { ActionResult } from "./protocols";
 export async function connectWorkspace(checkLogin: boolean = true) {
     if (checkLogin) {
         let isLoginNeededActionResult: ActionResult<boolean> = await vscode.commands.executeCommand(
-            roboCommands.ROBOCORP_IS_LOGIN_NEEDED_INTERNAL
+            roboCommands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL
         );
         if (!isLoginNeededActionResult) {
             vscode.window.showInformationMessage("Error getting if login is needed.");
@@ -31,7 +31,7 @@ export async function connectWorkspace(checkLogin: boolean = true) {
         return;
     }
     let setWorkspaceResult: ActionResult<boolean> = await vscode.commands.executeCommand(
-        roboCommands.ROBOCORP_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
+        roboCommands.SEMA4AI_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
         {
             "workspaceId": workspaceSelection.selectedWorkspaceInfo.workspaceId,
             "organizationName": workspaceSelection.selectedWorkspaceInfo.organizationName,
@@ -52,7 +52,7 @@ export async function connectWorkspace(checkLogin: boolean = true) {
 
 export async function disconnectWorkspace() {
     let setWorkspaceResult: ActionResult<boolean> = await vscode.commands.executeCommand(
-        roboCommands.ROBOCORP_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
+        roboCommands.SEMA4AI_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
         {
             "workspaceId": null,
         }

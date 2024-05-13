@@ -1,6 +1,6 @@
 import { DebugConfiguration, DebugSessionOptions, commands, debug } from "vscode";
 import { OUTPUT_CHANNEL, logError } from "../channel";
-import { ROBOCORP_RESOLVE_INTERPRETER } from "../robocorpCommands";
+import { SEMA4AI_RESOLVE_INTERPRETER } from "../robocorpCommands";
 import { ActionResult, InterpreterInfo } from "../protocols";
 import * as path from "path";
 
@@ -23,7 +23,7 @@ export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
     let interpreterInfo: InterpreterInfo | undefined = undefined;
     try {
         let result: ActionResult<InterpreterInfo | undefined> = await commands.executeCommand(
-            ROBOCORP_RESOLVE_INTERPRETER,
+            SEMA4AI_RESOLVE_INTERPRETER,
             {
                 "target_robot": targetPy,
             }

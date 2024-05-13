@@ -30,9 +30,7 @@ class _Vault:
     def discard_vault_workspace_info(self):
         self._dir_cache.discard(self.VAULT_WORKSPACE_INFO_CACHE_KEY)
 
-    @vault_command_dispatcher(
-        commands.ROBOCORP_UPDATE_LAUNCH_ENV_GET_VAULT_ENV_INTERNAL
-    )
+    @vault_command_dispatcher(commands.SEMA4AI_UPDATE_LAUNCH_ENV_GET_VAULT_ENV_INTERNAL)
     def _update_launch_env_get_vault_env_internal(
         self, params: Optional[dict] = None
     ) -> ActionResultDict:
@@ -65,7 +63,7 @@ class _Vault:
             },
         ).as_dict()
 
-    @vault_command_dispatcher(commands.ROBOCORP_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL)
+    @vault_command_dispatcher(commands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL)
     def _get_connected_vault_workspace(
         self, params: Optional[dict] = None
     ) -> ActionResultDict:
@@ -88,7 +86,7 @@ class _Vault:
             log.exception("Error loading WORKSPACE_INFO.")
             return ActionResult(False, str(e), None).as_dict()
 
-    @vault_command_dispatcher(commands.ROBOCORP_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL)
+    @vault_command_dispatcher(commands.SEMA4AI_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL)
     def _set_connected_vault_workspace(self, params: dict) -> ActionResultDict:
         if "workspaceId" not in params:
             return ActionResult(

@@ -36,7 +36,7 @@ class _Profile(object):
             profile_command_dispatcher
         )
 
-    @profile_command_dispatcher(commands.ROBOCORP_PROFILE_IMPORT_INTERNAL)
+    @profile_command_dispatcher(commands.SEMA4AI_PROFILE_IMPORT_INTERNAL)
     def _profile_import(self, params: ProfileImportParamsDict) -> ActionResultDict:
         from sema4ai_ls_core import uris, yaml_wrapper
         from sema4ai_ls_core.progress_report import progress_context
@@ -75,7 +75,7 @@ class _Profile(object):
             self._last_rcc_settings = None
         return {"success": True, "message": None, "result": result}
 
-    @profile_command_dispatcher(commands.ROBOCORP_PROFILE_SWITCH_INTERNAL)
+    @profile_command_dispatcher(commands.SEMA4AI_PROFILE_SWITCH_INTERNAL)
     def _profile_switch(self, params: ProfileSwitchParamsDict) -> ActionResultDict:
         from sema4ai_ls_core.progress_report import progress_context
 
@@ -102,7 +102,7 @@ class _Profile(object):
             self._last_rcc_settings = None
         return {"success": True, "message": None, "result": result}
 
-    @profile_command_dispatcher(commands.ROBOCORP_PROFILE_LIST_INTERNAL)
+    @profile_command_dispatcher(commands.SEMA4AI_PROFILE_LIST_INTERNAL)
     def _profile_list(self, *params) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
@@ -111,7 +111,7 @@ class _Profile(object):
         ] = self._rcc.profile_list()
         return action_result.as_dict()
 
-    @profile_command_dispatcher(commands.ROBOCORP_GET_PY_PI_BASE_URLS_INTERNAL)
+    @profile_command_dispatcher(commands.SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL)
     def get_pypi_base_urls(self) -> Sequence[str]:
         try:
             if self._last_rcc_settings is None:

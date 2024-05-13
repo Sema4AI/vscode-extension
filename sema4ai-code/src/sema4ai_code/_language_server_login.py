@@ -33,7 +33,7 @@ class _Login(object):
             login_command_dispatcher
         )
 
-    @login_command_dispatcher(commands.ROBOCORP_IS_LOGIN_NEEDED_INTERNAL)
+    @login_command_dispatcher(commands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL)
     def _is_login_needed_internal(self) -> ActionResultDict:
         from sema4ai_ls_core.progress_report import progress_context
 
@@ -43,7 +43,7 @@ class _Login(object):
             login_needed = not self._rcc.credentials_valid()
         return {"success": login_needed, "message": None, "result": login_needed}
 
-    @login_command_dispatcher(commands.ROBOCORP_CLOUD_LOGIN_INTERNAL)
+    @login_command_dispatcher(commands.SEMA4AI_CLOUD_LOGIN_INTERNAL)
     def _cloud_login(self, params: CloudLoginParamsDict) -> ActionResultDict:
         from sema4ai_ls_core.progress_report import progress_context
 
@@ -64,7 +64,7 @@ class _Login(object):
             result = self._rcc.credentials_valid()
         return {"success": result, "message": None, "result": result}
 
-    @login_command_dispatcher(commands.ROBOCORP_CLOUD_LOGOUT_INTERNAL)
+    @login_command_dispatcher(commands.SEMA4AI_CLOUD_LOGOUT_INTERNAL)
     def _cloud_logout(self) -> ActionResultDict:
         from sema4ai_ls_core.progress_report import progress_context
 

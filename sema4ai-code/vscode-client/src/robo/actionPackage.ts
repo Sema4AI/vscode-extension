@@ -45,12 +45,12 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
     }
 
     const RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE = "RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE";
-    let runLRU: string[] = await commands.executeCommand(roboCommands.ROBOCORP_LOAD_FROM_DISK_LRU, {
+    let runLRU: string[] = await commands.executeCommand(roboCommands.SEMA4AI_LOAD_FROM_DISK_LRU, {
         "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
     });
 
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Action Packages: " + actionResult.message);
@@ -75,7 +75,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
         try {
             const actionPackageUri = vscode.Uri.file(robotInfo.filePath);
             let result: ActionResult<undefined> = await vscode.commands.executeCommand(
-                roboCommands.ROBOCORP_LIST_ACTIONS_INTERNAL,
+                roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
                 {
                     "action_package": actionPackageUri.toString(),
                 }
@@ -127,7 +127,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
         return;
     }
 
-    await commands.executeCommand(roboCommands.ROBOCORP_SAVE_IN_DISK_LRU, {
+    await commands.executeCommand(roboCommands.SEMA4AI_SAVE_IN_DISK_LRU, {
         "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
         "entry": selectedItem.keyInLRU,
         "lru_size": 3,

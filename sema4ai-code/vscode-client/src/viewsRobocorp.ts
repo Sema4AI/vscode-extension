@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as roboCommands from "./robocorpCommands";
 import { CloudEntry, treeViewIdToTreeDataProvider } from "./viewsCommon";
-import { ROBOCORP_SUBMIT_ISSUE } from "./robocorpCommands";
+import { SEMA4AI_SUBMIT_ISSUE } from "./robocorpCommands";
 import { TREE_VIEW_ROBOCORP_CLOUD_TREE } from "./robocorpViews";
 import { getWorkspaceDescription } from "./ask";
 import { logError } from "./channel";
@@ -19,10 +19,10 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
 
     private async _fillRoots(ret: CloudEntry[]) {
         const accountInfoResult: ActionResult<IAccountInfo> = await vscode.commands.executeCommand(
-            roboCommands.ROBOCORP_GET_LINKED_ACCOUNT_INFO_INTERNAL
+            roboCommands.SEMA4AI_GET_LINKED_ACCOUNT_INFO_INTERNAL
         );
         const profileListResultPromise: Thenable<ActionResult<any>> = vscode.commands.executeCommand(
-            roboCommands.ROBOCORP_PROFILE_LIST_INTERNAL
+            roboCommands.SEMA4AI_PROFILE_LIST_INTERNAL
         );
 
         if (!accountInfoResult.success) {
@@ -32,7 +32,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                 "viewItemContextValue": "cloudLoginItem",
                 "command": {
                     "title": "Link to Control Room",
-                    "command": roboCommands.ROBOCORP_CLOUD_LOGIN,
+                    "command": roboCommands.SEMA4AI_CLOUD_LOGIN,
                 },
             });
         } else {
@@ -44,7 +44,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
             });
 
             let vaultInfoResult: ActionResult<any> = await vscode.commands.executeCommand(
-                roboCommands.ROBOCORP_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
+                roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
             );
 
             if (!vaultInfoResult || !vaultInfoResult.success || !vaultInfoResult.result) {
@@ -103,7 +103,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                     "iconPath": "error",
                     "command": {
                         "title": "See output",
-                        "command": roboCommands.ROBOCORP_SHOW_OUTPUT,
+                        "command": roboCommands.SEMA4AI_SHOW_OUTPUT,
                     },
                 });
             }
@@ -112,7 +112,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                 "iconPath": "report",
                 "command": {
                     "title": "Submit issue to Robocorp",
-                    "command": ROBOCORP_SUBMIT_ISSUE,
+                    "command": SEMA4AI_SUBMIT_ISSUE,
                 },
             });
 

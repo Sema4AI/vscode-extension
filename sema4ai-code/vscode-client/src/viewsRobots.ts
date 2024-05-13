@@ -203,7 +203,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 let children: RobotEntry[] = [];
                 try {
                     let result: ActionResult<undefined> = await vscode.commands.executeCommand(
-                        roboCommands.ROBOCORP_LIST_ACTIONS_INTERNAL,
+                        roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
                         {
                             "action_package": element.uri.toString(),
                         }
@@ -347,7 +347,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
 
         if (!_globalSentMetric) {
             _globalSentMetric = true;
-            vscode.commands.executeCommand(roboCommands.ROBOCORP_SEND_METRIC, {
+            vscode.commands.executeCommand(roboCommands.SEMA4AI_SEND_METRIC, {
                 "name": "vscode.treeview.used",
                 "value": "1",
             });
@@ -355,7 +355,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
 
         // Get root elements.
         let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
-            roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+            roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
         );
         if (!actionResult.success) {
             OUTPUT_CHANNEL.appendLine(actionResult.message);
@@ -386,13 +386,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.contextValue = "taskItemRun";
             treeItem.command = {
                 "title": "Run",
-                "command": roboCommands.ROBOCORP_ROBOTS_VIEW_TASK_RUN,
+                "command": roboCommands.SEMA4AI_ROBOTS_VIEW_TASK_RUN,
                 "arguments": [element],
             };
         } else if (element.type === RobotEntryType.Debug) {
             treeItem.command = {
                 "title": "Debug",
-                "command": roboCommands.ROBOCORP_ROBOTS_VIEW_TASK_DEBUG,
+                "command": roboCommands.SEMA4AI_ROBOTS_VIEW_TASK_DEBUG,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -400,7 +400,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.RunAction) {
             treeItem.command = {
                 "title": "Run Action",
-                "command": roboCommands.ROBOCORP_ROBOTS_VIEW_ACTION_RUN,
+                "command": roboCommands.SEMA4AI_ROBOTS_VIEW_ACTION_RUN,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -408,7 +408,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.DebugAction) {
             treeItem.command = {
                 "title": "Debug Action",
-                "command": roboCommands.ROBOCORP_ROBOTS_VIEW_ACTION_DEBUG,
+                "command": roboCommands.SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -419,28 +419,28 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.OpenRobotYaml) {
             treeItem.command = {
                 "title": "Configure Robot (robot.yaml)",
-                "command": roboCommands.ROBOCORP_OPEN_ROBOT_TREE_SELECTION,
+                "command": roboCommands.SEMA4AI_OPEN_ROBOT_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenRobotCondaYaml) {
             treeItem.command = {
                 "title": "Configure Dependencies (conda.yaml)",
-                "command": roboCommands.ROBOCORP_OPEN_ROBOT_CONDA_TREE_SELECTION,
+                "command": roboCommands.SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenPackageYaml) {
             treeItem.command = {
                 "title": "Configure Action Package (package.yaml)",
-                "command": roboCommands.ROBOCORP_OPEN_PACKAGE_YAML_TREE_SELECTION,
+                "command": roboCommands.SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.RobotTerminal) {
             treeItem.command = {
                 "title": "Open Robot Terminal",
-                "command": roboCommands.ROBOCORP_CREATE_RCC_TERMINAL_TREE_SELECTION,
+                "command": roboCommands.SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -454,7 +454,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.UploadRobot) {
             treeItem.command = {
                 "title": "Upload Robot to Control Room",
-                "command": roboCommands.ROBOCORP_CLOUD_UPLOAD_ROBOT_TREE_SELECTION,
+                "command": roboCommands.SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -472,14 +472,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.StartActionServer) {
             treeItem.command = {
                 "title": "Start Action Server",
-                "command": roboCommands.ROBOCORP_START_ACTION_SERVER,
+                "command": roboCommands.SEMA4AI_START_ACTION_SERVER,
                 "arguments": [vscode.Uri.file(element.robot.directory)],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageRebuildEnvironment) {
             treeItem.command = {
                 "title": "Rebuild Package Environment",
-                "command": roboCommands.ROBOCORP_PACKAGE_ENVIRONMENT_REBUILD,
+                "command": roboCommands.SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         }

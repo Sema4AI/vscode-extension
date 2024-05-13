@@ -34,13 +34,13 @@ from typing import Dict, List, Optional, Tuple
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import implements
+from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.ep_resolve_interpreter import (
     DefaultInterpreterInfo,
     EPResolveInterpreter,
     IInterpreterInfo,
 )
 from sema4ai_ls_core.pluginmanager import PluginManager
-from sema4ai_ls_core.core_log import get_logger
 
 from sema4ai_code.protocols import IRobotYamlEnvInfo
 
@@ -104,7 +104,7 @@ class _CachedInterpreterInfo(object):
         from sema4ai_ls_core.lsp import LSPMessages
         from sema4ai_ls_core.protocols import IEndPoint
 
-        from sema4ai_code.commands import ROBOCORP_SHOW_INTERPRETER_ENV_ERROR
+        from sema4ai_code.commands import SEMA4AI_SHOW_INTERPRETER_ENV_ERROR
 
         self._mtime: _CachedInterpreterMTime = self._obtain_mtime(
             robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
@@ -204,7 +204,7 @@ Full error message
 
             lsp_messages = LSPMessages(endpoint)
             lsp_messages.execute_workspace_command(
-                ROBOCORP_SHOW_INTERPRETER_ENV_ERROR,
+                SEMA4AI_SHOW_INTERPRETER_ENV_ERROR,
                 {
                     "fileWithError": str(f.name),
                     "condaYaml": str(conda_config_file_info.file_path),

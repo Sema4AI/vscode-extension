@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { resolve, join, dirname, basename } from "path";
 
 import { logError } from "./channel";
-import { ROBOCORP_LIST_WORK_ITEMS_INTERNAL, ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL } from "./robocorpCommands";
+import { SEMA4AI_LIST_WORK_ITEMS_INTERNAL, SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL } from "./robocorpCommands";
 import {
     FSEntry,
     getSelectedRobot,
@@ -64,7 +64,7 @@ async function getWorkItemInfo(): Promise<WorkItemsInfo | null> {
         return;
     }
     const workItemsResult: ActionResultWorkItems = await vscode.commands.executeCommand(
-        ROBOCORP_LIST_WORK_ITEMS_INTERNAL,
+        SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
         { robot: resolve(currTreeDir.filePath), "increment_output": false }
     );
     if (!workItemsResult.success) {
@@ -248,7 +248,7 @@ export class WorkItemsTreeDataProvider extends RobotSelectionTreeDataProviderBas
         let robot = resolve(this.lastRobotEntry.uri.fsPath);
 
         const workItemsResult: ActionResultWorkItems = await vscode.commands.executeCommand(
-            ROBOCORP_LIST_WORK_ITEMS_INTERNAL,
+            SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
             { "robot": robot, "increment_output": false }
         );
 
@@ -331,7 +331,7 @@ export class WorkItemsTreeDataProvider extends RobotSelectionTreeDataProviderBas
         let libraryVersionInfoActionResult: LibraryVersionInfoDict;
         try {
             libraryVersionInfoActionResult = await vscode.commands.executeCommand(
-                ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL,
+                SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
                 {
                     "conda_prefix": condaPrefix,
                     "libs_and_version": [

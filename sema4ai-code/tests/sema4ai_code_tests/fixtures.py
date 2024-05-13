@@ -7,8 +7,8 @@ from typing import Any, Iterator
 
 import pytest
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
-from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 from sema4ai_code.protocols import ActionResult, IRcc
@@ -374,7 +374,7 @@ def language_server_initialized(
     rcc_config_location: str,
     initialization_options,
 ):
-    from sema4ai_code.commands import ROBOCORP_RUN_IN_RCC_INTERNAL
+    from sema4ai_code.commands import SEMA4AI_RUN_IN_RCC_INTERNAL
 
     language_server = language_server_tcp
     language_server.initialize(
@@ -394,7 +394,7 @@ def language_server_initialized(
         }
     )
     result = language_server.execute_command(
-        ROBOCORP_RUN_IN_RCC_INTERNAL,
+        SEMA4AI_RUN_IN_RCC_INTERNAL,
         [
             {
                 "args": "configure identity --do-not-track --config".split()

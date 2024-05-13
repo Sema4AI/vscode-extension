@@ -10,7 +10,7 @@ def test_list_work_items(
     cases: CasesFixture,
     data_regression,
 ):
-    from sema4ai_code.commands import ROBOCORP_LIST_WORK_ITEMS_INTERNAL
+    from sema4ai_code.commands import SEMA4AI_LIST_WORK_ITEMS_INTERNAL
     from sema4ai_code.protocols import ActionResultDictWorkItems, WorkItemsInfo
     from sema4ai_code.robocorp_language_server import RobocorpLanguageServer
 
@@ -19,13 +19,13 @@ def test_list_work_items(
     robot = cases.get_path("custom_envs/work_items/robot.yaml")
 
     # Fail: robot required
-    ret = client.execute_command(ROBOCORP_LIST_WORK_ITEMS_INTERNAL, [])
+    ret = client.execute_command(SEMA4AI_LIST_WORK_ITEMS_INTERNAL, [])
     action_result: ActionResultDictWorkItems = ret["result"]
     assert not action_result["success"]
 
     # Fail: robot does not exist
     ret = client.execute_command(
-        ROBOCORP_LIST_WORK_ITEMS_INTERNAL,
+        SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
         [{"robot": "does not exist", "increment_output": True}],
     )
     action_result = ret["result"]
@@ -39,7 +39,7 @@ def test_list_work_items(
             dct["output_prefix"] = output_prefix
         dct["increment_output"] = increment_output
 
-        ret = client.execute_command(ROBOCORP_LIST_WORK_ITEMS_INTERNAL, [dct])
+        ret = client.execute_command(SEMA4AI_LIST_WORK_ITEMS_INTERNAL, [dct])
         action_result = ret["result"]
         assert action_result["success"]
 
@@ -125,7 +125,7 @@ def test_work_items_removal(
 ):
     from sema4ai_ls_core.basic import wait_for_condition
 
-    from sema4ai_code.commands import ROBOCORP_LIST_WORK_ITEMS_INTERNAL
+    from sema4ai_code.commands import SEMA4AI_LIST_WORK_ITEMS_INTERNAL
 
     client = language_server_initialized
 
@@ -135,7 +135,7 @@ def test_work_items_removal(
 
     def run():
         ret = client.execute_command(
-            ROBOCORP_LIST_WORK_ITEMS_INTERNAL,
+            SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
             [{"robot": robot, "increment_output": True}],
         )
         action_result = ret["result"]
@@ -186,12 +186,12 @@ def test_work_items_removal(
 def test_verify_library_version(
     language_server_initialized: IRobocorpLanguageServerClient, tmpdir
 ):
-    from sema4ai_code.commands import ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL
+    from sema4ai_code.commands import SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL
 
     client = language_server_initialized
 
     ret = client.execute_command(
-        ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL,
+        SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
         [{"conda_prefix": str(tmpdir), "libs_and_version": [["rpaframework", "11.1"]]}],
     )
     result = ret["result"]
@@ -215,7 +215,7 @@ def test_verify_library_version(
 
     for v in ("10", "11", "11.1", "11.1.1", "11.1.2"):
         ret = client.execute_command(
-            ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL,
+            SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
             [{"conda_prefix": str(tmpdir), "libs_and_version": [["rpaframework", v]]}],
         )
         result = ret["result"]
@@ -224,7 +224,7 @@ def test_verify_library_version(
 
     for v in ("12", "11.2", "11.1.3"):
         ret = client.execute_command(
-            ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL,
+            SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
             [{"conda_prefix": str(tmpdir), "libs_and_version": [["rpaframework", v]]}],
         )
         result = ret["result"]

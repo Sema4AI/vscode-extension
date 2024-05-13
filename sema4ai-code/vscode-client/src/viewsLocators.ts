@@ -27,7 +27,7 @@ export class LocatorsTreeDataProvider
             // Collect the basic structure and create tree from it.
             // Afterwards, just return element.children for any subsequent request.
             let actionResult: ActionResult<LocatorEntry[]> = await vscode.commands.executeCommand(
-                roboCommands.ROBOCORP_GET_LOCATORS_JSON_INFO,
+                roboCommands.SEMA4AI_GET_LOCATORS_JSON_INFO,
                 { "robotYaml": robotEntry.robot.filePath }
             );
             if (!actionResult["success"]) {
@@ -59,7 +59,7 @@ export class LocatorsTreeDataProvider
             treeItem.iconPath = new vscode.ThemeIcon("add");
             let commandName: string;
             if (node.locatorType === InspectorType.PlaywrightRecorder) {
-                commandName = roboCommands.ROBOCORP_OPEN_PLAYWRIGHT_RECORDER;
+                commandName = roboCommands.SEMA4AI_OPEN_PLAYWRIGHT_RECORDER;
                 treeItem.command = {
                     "title": node.caption,
                     "command": commandName,

@@ -81,79 +81,79 @@ import {
 } from "./viewsWorkItems";
 import { FSEntry, LocatorEntry, refreshTreeView, RobotEntry } from "./viewsCommon";
 import {
-    ROBOCORP_CLOUD_LOGIN,
-    ROBOCORP_CLOUD_LOGOUT,
-    ROBOCORP_CLOUD_UPLOAD_ROBOT_TREE_SELECTION,
-    ROBOCORP_CONFIGURATION_DIAGNOSTICS,
-    ROBOCORP_CONVERT_OUTPUT_WORK_ITEM_TO_INPUT,
-    ROBOCORP_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL,
-    ROBOCORP_CREATE_RCC_TERMINAL_TREE_SELECTION,
-    ROBOCORP_CREATE_ROBOT,
-    ROBOCORP_DEBUG_ROBOT_RCC,
-    ROBOCORP_DELETE_RESOURCE_IN_ROBOT_CONTENT_VIEW,
-    ROBOCORP_DELETE_WORK_ITEM_IN_WORK_ITEMS_VIEW,
-    ROBOCORP_EDIT_ROBOCORP_INSPECTOR_LOCATOR,
-    ROBOCORP_GET_LANGUAGE_SERVER_PYTHON,
-    ROBOCORP_GET_LANGUAGE_SERVER_PYTHON_INFO,
-    ROBOCORP_HELP_WORK_ITEMS,
-    ROBOCORP_NEW_FILE_IN_ROBOT_CONTENT_VIEW,
-    ROBOCORP_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW,
-    ROBOCORP_NEW_ROBOCORP_INSPECTOR_BROWSER,
-    ROBOCORP_NEW_ROBOCORP_INSPECTOR_IMAGE,
-    ROBOCORP_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW,
-    ROBOCORP_OPEN_CLOUD_HOME,
-    ROBOCORP_OPEN_ROBOT_TREE_SELECTION,
-    ROBOCORP_RCC_TERMINAL_NEW,
-    ROBOCORP_REFRESH_CLOUD_VIEW,
-    ROBOCORP_REFRESH_ROBOTS_VIEW,
-    ROBOCORP_REFRESH_ROBOT_CONTENT_VIEW,
-    ROBOCORP_REMOVE_LOCATOR_FROM_JSON,
-    ROBOCORP_RENAME_RESOURCE_IN_ROBOT_CONTENT_VIEW,
-    ROBOCORP_ROBOTS_VIEW_TASK_DEBUG,
-    ROBOCORP_ROBOTS_VIEW_TASK_RUN,
-    ROBOCORP_RUN_ROBOT_RCC,
-    ROBOCORP_SET_PYTHON_INTERPRETER,
-    ROBOCORP_SUBMIT_ISSUE,
-    ROBOCORP_SUBMIT_ISSUE_INTERNAL,
-    ROBOCORP_UPDATE_LAUNCH_ENV,
-    ROBOCORP_UPLOAD_ROBOT_TO_CLOUD,
-    ROBOCORP_ERROR_FEEDBACK_INTERNAL,
-    ROBOCORP_OPEN_EXTERNALLY,
-    ROBOCORP_OPEN_IN_VS_CODE,
-    ROBOCORP_REVEAL_IN_EXPLORER,
-    ROBOCORP_REVEAL_ROBOT_IN_EXPLORER,
-    ROBOCORP_CONNECT_WORKSPACE,
-    ROBOCORP_DISCONNECT_WORKSPACE,
-    ROBOCORP_OPEN_VAULT_HELP,
-    ROBOCORP_CLEAR_ENV_AND_RESTART,
-    ROBOCORP_NEW_ROBOCORP_INSPECTOR_WINDOWS,
-    ROBOCORP_SHOW_OUTPUT,
-    ROBOCORP_SHOW_INTERPRETER_ENV_ERROR,
-    ROBOCORP_FEEDBACK_INTERNAL,
-    ROBOCORP_OPEN_FLOW_EXPLORER_TREE_SELECTION,
-    ROBOCORP_OPEN_LOCATORS_JSON,
-    ROBOCORP_OPEN_ROBOT_CONDA_TREE_SELECTION,
-    ROBOCORP_CONVERT_PROJECT,
-    ROBOCORP_PROFILE_IMPORT,
-    ROBOCORP_PROFILE_SWITCH,
-    ROBOCORP_RUN_ROBOCORPS_PYTHON_TASK,
-    ROBOCORP_DEBUG_ROBOCORPS_PYTHON_TASK,
-    ROBOCORP_OPEN_PLAYWRIGHT_RECORDER,
-    ROBOCORP_INSPECTOR,
-    ROBOCORP_INSPECTOR_DUPLICATE,
-    ROBOCORP_START_ACTION_SERVER,
-    ROBOCORP_OPEN_PACKAGE_YAML_TREE_SELECTION,
-    ROBOCORP_ROBOTS_VIEW_ACTION_RUN,
-    ROBOCORP_ROBOTS_VIEW_ACTION_DEBUG,
-    ROBOCORP_ROBOTS_VIEW_ACTION_EDIT_INPUT,
-    ROBOCORP_ROBOTS_VIEW_ACTION_OPEN,
-    ROBOCORP_RUN_ACTION_FROM_ACTION_PACKAGE,
-    ROBOCORP_DEBUG_ACTION_FROM_ACTION_PACKAGE,
-    ROBOCORP_CREATE_ACTION_PACKAGE,
-    ROBOCORP_CREATE_TASK_OR_ACTION_PACKAGE,
-    ROBOCORP_NEW_ROBOCORP_INSPECTOR_JAVA,
-    ROBOCORP_DOWNLOAD_ACTION_SERVER,
-    ROBOCORP_PACKAGE_ENVIRONMENT_REBUILD,
+    SEMA4AI_CLOUD_LOGIN,
+    SEMA4AI_CLOUD_LOGOUT,
+    SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION,
+    SEMA4AI_CONFIGURATION_DIAGNOSTICS,
+    SEMA4AI_CONVERT_OUTPUT_WORK_ITEM_TO_INPUT,
+    SEMA4AI_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL,
+    SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION,
+    SEMA4AI_CREATE_ROBOT,
+    SEMA4AI_DEBUG_ROBOT_RCC,
+    SEMA4AI_DELETE_RESOURCE_IN_ROBOT_CONTENT_VIEW,
+    SEMA4AI_DELETE_WORK_ITEM_IN_WORK_ITEMS_VIEW,
+    SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR,
+    SEMA4AI_GET_LANGUAGE_SERVER_PYTHON,
+    SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO,
+    SEMA4AI_HELP_WORK_ITEMS,
+    SEMA4AI_NEW_FILE_IN_ROBOT_CONTENT_VIEW,
+    SEMA4AI_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW,
+    SEMA4AI_NEW_ROBOCORP_INSPECTOR_BROWSER,
+    SEMA4AI_NEW_ROBOCORP_INSPECTOR_IMAGE,
+    SEMA4AI_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW,
+    SEMA4AI_OPEN_CLOUD_HOME,
+    SEMA4AI_OPEN_ROBOT_TREE_SELECTION,
+    SEMA4AI_RCC_TERMINAL_NEW,
+    SEMA4AI_REFRESH_CLOUD_VIEW,
+    SEMA4AI_REFRESH_ROBOTS_VIEW,
+    SEMA4AI_REFRESH_ROBOT_CONTENT_VIEW,
+    SEMA4AI_REMOVE_LOCATOR_FROM_JSON,
+    SEMA4AI_RENAME_RESOURCE_IN_ROBOT_CONTENT_VIEW,
+    SEMA4AI_ROBOTS_VIEW_TASK_DEBUG,
+    SEMA4AI_ROBOTS_VIEW_TASK_RUN,
+    SEMA4AI_RUN_ROBOT_RCC,
+    SEMA4AI_SET_PYTHON_INTERPRETER,
+    SEMA4AI_SUBMIT_ISSUE,
+    SEMA4AI_SUBMIT_ISSUE_INTERNAL,
+    SEMA4AI_UPDATE_LAUNCH_ENV,
+    SEMA4AI_UPLOAD_ROBOT_TO_CLOUD,
+    SEMA4AI_ERROR_FEEDBACK_INTERNAL,
+    SEMA4AI_OPEN_EXTERNALLY,
+    SEMA4AI_OPEN_IN_VS_CODE,
+    SEMA4AI_REVEAL_IN_EXPLORER,
+    SEMA4AI_REVEAL_ROBOT_IN_EXPLORER,
+    SEMA4AI_CONNECT_WORKSPACE,
+    SEMA4AI_DISCONNECT_WORKSPACE,
+    SEMA4AI_OPEN_VAULT_HELP,
+    SEMA4AI_CLEAR_ENV_AND_RESTART,
+    SEMA4AI_NEW_ROBOCORP_INSPECTOR_WINDOWS,
+    SEMA4AI_SHOW_OUTPUT,
+    SEMA4AI_SHOW_INTERPRETER_ENV_ERROR,
+    SEMA4AI_FEEDBACK_INTERNAL,
+    SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION,
+    SEMA4AI_OPEN_LOCATORS_JSON,
+    SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION,
+    SEMA4AI_CONVERT_PROJECT,
+    SEMA4AI_PROFILE_IMPORT,
+    SEMA4AI_PROFILE_SWITCH,
+    SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK,
+    SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK,
+    SEMA4AI_OPEN_PLAYWRIGHT_RECORDER,
+    SEMA4AI_INSPECTOR,
+    SEMA4AI_INSPECTOR_DUPLICATE,
+    SEMA4AI_START_ACTION_SERVER,
+    SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION,
+    SEMA4AI_ROBOTS_VIEW_ACTION_RUN,
+    SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
+    SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT,
+    SEMA4AI_ROBOTS_VIEW_ACTION_OPEN,
+    SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE,
+    SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE,
+    SEMA4AI_CREATE_ACTION_PACKAGE,
+    SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE,
+    SEMA4AI_NEW_ROBOCORP_INSPECTOR_JAVA,
+    SEMA4AI_DOWNLOAD_ACTION_SERVER,
+    SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -376,13 +376,13 @@ async function cloudLogoutAndRefresh() {
 }
 
 function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionContext) {
-    C.register(ROBOCORP_START_ACTION_SERVER, startActionServer);
+    C.register(SEMA4AI_START_ACTION_SERVER, startActionServer);
 
-    C.register(ROBOCORP_GET_LANGUAGE_SERVER_PYTHON, () => getLanguageServerPython());
-    C.register(ROBOCORP_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
-    C.register(ROBOCORP_CREATE_ROBOT, () => createRobot());
-    C.register(ROBOCORP_CREATE_ACTION_PACKAGE, () => createActionPackage());
-    C.register(ROBOCORP_CREATE_TASK_OR_ACTION_PACKAGE, async () => {
+    C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON, () => getLanguageServerPython());
+    C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
+    C.register(SEMA4AI_CREATE_ROBOT, () => createRobot());
+    C.register(SEMA4AI_CREATE_ACTION_PACKAGE, () => createActionPackage());
+    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE, async () => {
         const TASK_PACKAGE = "Task Package (Robot)";
         const ACTION_PACKAGE = "Action Package";
         const packageType = await showSelectOneStrQuickPick(
@@ -397,7 +397,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
             }
         }
     });
-    C.register(ROBOCORP_DOWNLOAD_ACTION_SERVER, async () => {
+    C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
             const location = await downloadLatestActionServer();
             window.showInformationMessage(`The latest action server was downloaded to: ${location}`);
@@ -408,70 +408,70 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
             );
         }
     });
-    C.register(ROBOCORP_UPLOAD_ROBOT_TO_CLOUD, () => uploadRobot());
-    C.register(ROBOCORP_CONFIGURATION_DIAGNOSTICS, () => rccConfigurationDiagnostics());
-    C.register(ROBOCORP_RUN_ROBOT_RCC, () => askAndRunRobotRCC(true));
-    C.register(ROBOCORP_DEBUG_ROBOT_RCC, () => askAndRunRobotRCC(false));
-    C.register(ROBOCORP_RUN_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(true));
-    C.register(ROBOCORP_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
-    C.register(ROBOCORP_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
-    C.register(ROBOCORP_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE));
-    C.register(ROBOCORP_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
-    C.register(ROBOCORP_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
-    C.register(ROBOCORP_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
-    C.register(ROBOCORP_ROBOTS_VIEW_ACTION_RUN, (entry: RobotEntry) => views.runSelectedAction(true, entry));
-    C.register(ROBOCORP_ROBOTS_VIEW_ACTION_DEBUG, (entry: RobotEntry) => views.runSelectedAction(false, entry));
-    C.register(ROBOCORP_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) => views.editInput(entry));
-    C.register(ROBOCORP_ROBOTS_VIEW_ACTION_OPEN, (entry: RobotEntry) => views.openAction(entry));
-    C.register(ROBOCORP_RUN_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(true, args));
-    C.register(ROBOCORP_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(false, args));
-    C.register(ROBOCORP_EDIT_ROBOCORP_INSPECTOR_LOCATOR, (locator?: LocatorEntry): Promise<void> => {
+    C.register(SEMA4AI_UPLOAD_ROBOT_TO_CLOUD, () => uploadRobot());
+    C.register(SEMA4AI_CONFIGURATION_DIAGNOSTICS, () => rccConfigurationDiagnostics());
+    C.register(SEMA4AI_RUN_ROBOT_RCC, () => askAndRunRobotRCC(true));
+    C.register(SEMA4AI_DEBUG_ROBOT_RCC, () => askAndRunRobotRCC(false));
+    C.register(SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(true));
+    C.register(SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
+    C.register(SEMA4AI_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
+    C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE));
+    C.register(SEMA4AI_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
+    C.register(SEMA4AI_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_RUN, (entry: RobotEntry) => views.runSelectedAction(true, entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG, (entry: RobotEntry) => views.runSelectedAction(false, entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) => views.editInput(entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_OPEN, (entry: RobotEntry) => views.openAction(entry));
+    C.register(SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(true, args));
+    C.register(SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(false, args));
+    C.register(SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR, (locator?: LocatorEntry): Promise<void> => {
         return showInspectorUI(context, IAppRoutes.LOCATORS_MANAGER);
     });
-    C.register(ROBOCORP_OPEN_PLAYWRIGHT_RECORDER, (useTreeSelected: boolean = false) =>
+    C.register(SEMA4AI_OPEN_PLAYWRIGHT_RECORDER, (useTreeSelected: boolean = false) =>
         playwright.openPlaywrightRecorder(useTreeSelected)
     );
-    C.register(ROBOCORP_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL, (locator?: LocatorEntry) =>
+    C.register(SEMA4AI_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL, (locator?: LocatorEntry) =>
         copySelectedToClipboard(locator)
     );
-    C.register(ROBOCORP_REMOVE_LOCATOR_FROM_JSON, (locator?: LocatorEntry) => removeLocator(locator));
-    C.register(ROBOCORP_OPEN_ROBOT_TREE_SELECTION, (robot: RobotEntry) => views.openRobotTreeSelection(robot));
-    C.register(ROBOCORP_OPEN_ROBOT_CONDA_TREE_SELECTION, (robot: RobotEntry) =>
+    C.register(SEMA4AI_REMOVE_LOCATOR_FROM_JSON, (locator?: LocatorEntry) => removeLocator(locator));
+    C.register(SEMA4AI_OPEN_ROBOT_TREE_SELECTION, (robot: RobotEntry) => views.openRobotTreeSelection(robot));
+    C.register(SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION, (robot: RobotEntry) =>
         views.openRobotCondaTreeSelection(robot)
     );
-    C.register(ROBOCORP_OPEN_PACKAGE_YAML_TREE_SELECTION, (robot: RobotEntry) => views.openPackageTreeSelection(robot));
-    C.register(ROBOCORP_OPEN_LOCATORS_JSON, (locatorRoot) => views.openLocatorsJsonTreeSelection());
-    C.register(ROBOCORP_CLOUD_UPLOAD_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
+    C.register(SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION, (robot: RobotEntry) => views.openPackageTreeSelection(robot));
+    C.register(SEMA4AI_OPEN_LOCATORS_JSON, (locatorRoot) => views.openLocatorsJsonTreeSelection());
+    C.register(SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.cloudUploadRobotTreeSelection(robot)
     );
-    C.register(ROBOCORP_OPEN_FLOW_EXPLORER_TREE_SELECTION, (robot: RobotEntry) =>
+    C.register(SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION, (robot: RobotEntry) =>
         commands.executeCommand("robot.openFlowExplorer", Uri.file(robot.robot.directory).toString())
     );
-    C.register(ROBOCORP_CONVERT_PROJECT, async () => await showConvertUI(context));
-    C.register(ROBOCORP_CREATE_RCC_TERMINAL_TREE_SELECTION, (robot: RobotEntry) =>
+    C.register(SEMA4AI_CONVERT_PROJECT, async () => await showConvertUI(context));
+    C.register(SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.createRccTerminalTreeSelection(robot)
     );
-    C.register(ROBOCORP_RCC_TERMINAL_NEW, () => askAndCreateRccTerminal());
-    C.register(ROBOCORP_REFRESH_ROBOT_CONTENT_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE));
-    C.register(ROBOCORP_NEW_FILE_IN_ROBOT_CONTENT_VIEW, newFileInRobotContentTree);
-    C.register(ROBOCORP_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW, newFolderInRobotContentTree);
-    C.register(ROBOCORP_DELETE_RESOURCE_IN_ROBOT_CONTENT_VIEW, deleteResourceInRobotContentTree);
-    C.register(ROBOCORP_RENAME_RESOURCE_IN_ROBOT_CONTENT_VIEW, renameResourceInRobotContentTree);
-    C.register(ROBOCORP_UPDATE_LAUNCH_ENV, updateLaunchEnvironment);
-    C.register(ROBOCORP_CONNECT_WORKSPACE, connectWorkspace);
-    C.register(ROBOCORP_DISCONNECT_WORKSPACE, disconnectWorkspace);
-    C.register(ROBOCORP_OPEN_CLOUD_HOME, async () => {
+    C.register(SEMA4AI_RCC_TERMINAL_NEW, () => askAndCreateRccTerminal());
+    C.register(SEMA4AI_REFRESH_ROBOT_CONTENT_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE));
+    C.register(SEMA4AI_NEW_FILE_IN_ROBOT_CONTENT_VIEW, newFileInRobotContentTree);
+    C.register(SEMA4AI_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW, newFolderInRobotContentTree);
+    C.register(SEMA4AI_DELETE_RESOURCE_IN_ROBOT_CONTENT_VIEW, deleteResourceInRobotContentTree);
+    C.register(SEMA4AI_RENAME_RESOURCE_IN_ROBOT_CONTENT_VIEW, renameResourceInRobotContentTree);
+    C.register(SEMA4AI_UPDATE_LAUNCH_ENV, updateLaunchEnvironment);
+    C.register(SEMA4AI_CONNECT_WORKSPACE, connectWorkspace);
+    C.register(SEMA4AI_DISCONNECT_WORKSPACE, disconnectWorkspace);
+    C.register(SEMA4AI_OPEN_CLOUD_HOME, async () => {
         const cloudBaseUrl = await getEndpointUrl("cloud-ui");
         commands.executeCommand("vscode.open", Uri.parse(cloudBaseUrl + "home"));
     });
-    C.register(ROBOCORP_OPEN_VAULT_HELP, async () => {
+    C.register(SEMA4AI_OPEN_VAULT_HELP, async () => {
         const cloudBaseUrl = await getEndpointUrl("docs");
         commands.executeCommand(
             "vscode.open",
             Uri.parse(cloudBaseUrl + "development-guide/variables-and-secrets/vault")
         );
     });
-    C.register(ROBOCORP_OPEN_EXTERNALLY, async (item: FSEntry) => {
+    C.register(SEMA4AI_OPEN_EXTERNALLY, async (item: FSEntry) => {
         if (item.filePath) {
             if (await fileExists(item.filePath)) {
                 env.openExternal(Uri.file(item.filePath));
@@ -480,7 +480,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         }
         window.showErrorMessage("Unable to open: " + item.filePath + " (file does not exist).");
     });
-    C.register(ROBOCORP_OPEN_IN_VS_CODE, async (item: FSEntry) => {
+    C.register(SEMA4AI_OPEN_IN_VS_CODE, async (item: FSEntry) => {
         if (item.filePath) {
             if (await fileExists(item.filePath)) {
                 commands.executeCommand("vscode.open", Uri.file(item.filePath));
@@ -489,7 +489,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         }
         window.showErrorMessage("Unable to open: " + item.filePath + " (file does not exist).");
     });
-    C.register(ROBOCORP_REVEAL_IN_EXPLORER, async (item: FSEntry) => {
+    C.register(SEMA4AI_REVEAL_IN_EXPLORER, async (item: FSEntry) => {
         if (item.filePath) {
             if (await fileExists(item.filePath)) {
                 commands.executeCommand("revealFileInOS", Uri.file(item.filePath));
@@ -498,7 +498,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         }
         window.showErrorMessage("Unable to reveal in explorer: " + item.filePath + " (file does not exist).");
     });
-    C.register(ROBOCORP_REVEAL_ROBOT_IN_EXPLORER, async (item: RobotEntry) => {
+    C.register(SEMA4AI_REVEAL_ROBOT_IN_EXPLORER, async (item: RobotEntry) => {
         if (item.uri) {
             if (await uriExists(item.uri)) {
                 commands.executeCommand("revealFileInOS", item.uri);
@@ -507,14 +507,14 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         }
         window.showErrorMessage("Unable to reveal in explorer: " + item.uri + " (Robot does not exist).");
     });
-    C.register(ROBOCORP_CONVERT_OUTPUT_WORK_ITEM_TO_INPUT, convertOutputWorkItemToInput);
-    C.register(ROBOCORP_CLOUD_LOGIN, () => cloudLoginShowConfirmationAndRefresh());
-    C.register(ROBOCORP_CLOUD_LOGOUT, () => cloudLogoutAndRefresh());
-    C.register(ROBOCORP_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW, newWorkItemInWorkItemsTree);
-    C.register(ROBOCORP_DELETE_WORK_ITEM_IN_WORK_ITEMS_VIEW, deleteWorkItemInWorkItemsTree);
-    C.register(ROBOCORP_HELP_WORK_ITEMS, openWorkItemHelp);
-    C.register(ROBOCORP_PROFILE_IMPORT, async () => await profileImport());
-    C.register(ROBOCORP_PROFILE_SWITCH, async () => await profileSwitch());
+    C.register(SEMA4AI_CONVERT_OUTPUT_WORK_ITEM_TO_INPUT, convertOutputWorkItemToInput);
+    C.register(SEMA4AI_CLOUD_LOGIN, () => cloudLoginShowConfirmationAndRefresh());
+    C.register(SEMA4AI_CLOUD_LOGOUT, () => cloudLogoutAndRefresh());
+    C.register(SEMA4AI_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW, newWorkItemInWorkItemsTree);
+    C.register(SEMA4AI_DELETE_WORK_ITEM_IN_WORK_ITEMS_VIEW, deleteWorkItemInWorkItemsTree);
+    C.register(SEMA4AI_HELP_WORK_ITEMS, openWorkItemHelp);
+    C.register(SEMA4AI_PROFILE_IMPORT, async () => await profileImport());
+    C.register(SEMA4AI_PROFILE_SWITCH, async () => await profileSwitch());
 }
 
 async function clearEnvAndRestart() {
@@ -673,37 +673,37 @@ interface ExecuteWorkspaceCommandArgs {
 export async function doActivate(context: ExtensionContext, C: CommandRegistry) {
     // Note: register the submit issue actions early on so that we can later actually
     // report startup errors.
-    C.registerWithoutStub(ROBOCORP_SUBMIT_ISSUE, async () => {
+    C.registerWithoutStub(SEMA4AI_SUBMIT_ISSUE, async () => {
         await showSubmitIssueUI(context);
     });
 
     // register Inspector applications
-    C.registerWithoutStub(ROBOCORP_INSPECTOR, async () => {
+    C.registerWithoutStub(SEMA4AI_INSPECTOR, async () => {
         await showInspectorUI(context, IAppRoutes.LOCATORS_MANAGER);
     });
-    C.registerWithoutStub(ROBOCORP_INSPECTOR_DUPLICATE, async () => {
+    C.registerWithoutStub(SEMA4AI_INSPECTOR_DUPLICATE, async () => {
         await showInspectorUI(context, IAppRoutes.LOCATORS_MANAGER);
     });
     C.register(
-        ROBOCORP_NEW_ROBOCORP_INSPECTOR_BROWSER,
+        SEMA4AI_NEW_ROBOCORP_INSPECTOR_BROWSER,
         async () => await showInspectorUI(context, IAppRoutes.WEB_INSPECTOR)
     );
     C.register(
-        ROBOCORP_NEW_ROBOCORP_INSPECTOR_WINDOWS,
+        SEMA4AI_NEW_ROBOCORP_INSPECTOR_WINDOWS,
         async () => await showInspectorUI(context, IAppRoutes.WINDOWS_INSPECTOR)
     );
     C.register(
-        ROBOCORP_NEW_ROBOCORP_INSPECTOR_IMAGE,
+        SEMA4AI_NEW_ROBOCORP_INSPECTOR_IMAGE,
         async () => await showInspectorUI(context, IAppRoutes.IMAGE_INSPECTOR)
     );
     C.register(
-        ROBOCORP_NEW_ROBOCORP_INSPECTOR_JAVA,
+        SEMA4AI_NEW_ROBOCORP_INSPECTOR_JAVA,
         async () => await showInspectorUI(context, IAppRoutes.JAVA_INSPECTOR)
     );
 
     // i.e.: allow other extensions to also use our submit issue api.
     C.registerWithoutStub(
-        ROBOCORP_SUBMIT_ISSUE_INTERNAL,
+        SEMA4AI_SUBMIT_ISSUE_INTERNAL,
         (
             dialogMessage: string,
             email: string,
@@ -714,20 +714,20 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         ) => submitIssue(dialogMessage, email, errorName, errorCode, errorMessage, files)
     );
 
-    C.registerWithoutStub(ROBOCORP_SHOW_OUTPUT, () => OUTPUT_CHANNEL.show());
-    C.registerWithoutStub(ROBOCORP_SHOW_INTERPRETER_ENV_ERROR, async (params) => {
+    C.registerWithoutStub(SEMA4AI_SHOW_OUTPUT, () => OUTPUT_CHANNEL.show());
+    C.registerWithoutStub(SEMA4AI_SHOW_INTERPRETER_ENV_ERROR, async (params) => {
         const fileWithError = params.fileWithError;
         vscode.window.showTextDocument(Uri.file(fileWithError));
     });
 
     // i.e.: allow other extensions to also use our error feedback api.
-    C.registerWithoutStub(ROBOCORP_ERROR_FEEDBACK_INTERNAL, (errorSource: string, errorCode: string) =>
+    C.registerWithoutStub(SEMA4AI_ERROR_FEEDBACK_INTERNAL, (errorSource: string, errorCode: string) =>
         feedbackAnyError(errorSource, errorCode)
     );
     // i.e.: allow other extensions to also use our feedback api.
-    C.registerWithoutStub(ROBOCORP_FEEDBACK_INTERNAL, (name: string, value: string) => feedback(name, value));
+    C.registerWithoutStub(SEMA4AI_FEEDBACK_INTERNAL, (name: string, value: string) => feedback(name, value));
 
-    C.register(ROBOCORP_PACKAGE_ENVIRONMENT_REBUILD, async () => {
+    C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async () => {
         const selected = await listAndAskRobotSelection(
             "Please select the Task/Action Package for which you'd like to rebuild the environment",
             "Unable to continue because no Action Package was found in the workspace.",
@@ -742,7 +742,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         }
     });
 
-    C.registerWithoutStub(ROBOCORP_CLEAR_ENV_AND_RESTART, clearEnvAndRestart);
+    C.registerWithoutStub(SEMA4AI_CLEAR_ENV_AND_RESTART, clearEnvAndRestart);
     // Register other commands (which will have an error message shown depending on whether
     // the extension was activated properly).
     registerRobocorpCodeCommands(C, context);

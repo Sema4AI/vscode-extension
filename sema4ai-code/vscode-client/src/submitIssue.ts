@@ -8,7 +8,7 @@ import { logError } from "./channel";
 import { getExtensionRelativeFile } from "./files";
 import { ActionResult, IAccountInfo } from "./protocols";
 import { CollectedLogs, collectIssueLogs, submitIssue } from "./rcc";
-import { ROBOCORP_GET_LINKED_ACCOUNT_INFO_INTERNAL } from "./robocorpCommands";
+import { SEMA4AI_GET_LINKED_ACCOUNT_INFO_INTERNAL } from "./robocorpCommands";
 
 export async function showSubmitIssueUI(context: vscode.ExtensionContext) {
     const info = await vscode.window.withProgress(
@@ -22,7 +22,7 @@ export async function showSubmitIssueUI(context: vscode.ExtensionContext) {
             let email = "";
             try {
                 let accountInfoResult: ActionResult<IAccountInfo> = await vscode.commands.executeCommand(
-                    ROBOCORP_GET_LINKED_ACCOUNT_INFO_INTERNAL
+                    SEMA4AI_GET_LINKED_ACCOUNT_INFO_INTERNAL
                 );
 
                 if (accountInfoResult.success) {

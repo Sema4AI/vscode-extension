@@ -115,7 +115,7 @@ def test_list_rcc_robot_templates(
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.ROBOCORP_LIST_ROBOT_TEMPLATES_INTERNAL, []
+        commands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL, []
     )["result"]
     assert result["success"]
     template_names = [template["name"] for template in result["result"]]
@@ -126,7 +126,7 @@ def test_list_rcc_robot_templates(
     language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
 
     result = language_server.execute_command(
-        commands.ROBOCORP_CREATE_ROBOT_INTERNAL,
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         [
             {
                 "directory": target,
@@ -140,7 +140,7 @@ def test_list_rcc_robot_templates(
 
     # Error
     result = language_server.execute_command(
-        commands.ROBOCORP_CREATE_ROBOT_INTERNAL,
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         [{"directory": target, "name": "example", "template": "01-python"}],
     )["result"]
     assert not result["success"]
@@ -149,13 +149,13 @@ def test_list_rcc_robot_templates(
     assert "b'" not in result["message"]
 
     result = language_server.execute_command(
-        commands.ROBOCORP_CREATE_ROBOT_INTERNAL,
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         [{"directory": ws_root_path, "name": "example2", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
     result = language_server.execute_command(
-        commands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL, []
+        commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL, []
     )["result"]
     assert result["success"]
     folder_info_lst: List[LocalRobotMetadataInfoDict] = result["result"]
@@ -341,18 +341,18 @@ def test_upload_to_cloud(
 
     client.DEFAULT_TIMEOUT = 10  # The cloud may be slow.
 
-    result = client.execute_command(commands.ROBOCORP_IS_LOGIN_NEEDED_INTERNAL, [])[
+    result = client.execute_command(commands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL, [])[
         "result"
     ]
     assert result["result"], "Expected login to be needed."
 
     result = client.execute_command(
-        commands.ROBOCORP_CLOUD_LOGIN_INTERNAL, [{"credentials": "invalid"}]
+        commands.SEMA4AI_CLOUD_LOGIN_INTERNAL, [{"credentials": "invalid"}]
     )["result"]
     assert not result["success"], "Expected login to be unsuccessful."
 
     result = client.execute_command(
-        commands.ROBOCORP_CLOUD_LOGIN_INTERNAL, [{"credentials": ci_credentials}]
+        commands.SEMA4AI_CLOUD_LOGIN_INTERNAL, [{"credentials": ci_credentials}]
     )["result"]
     assert result["success"], "Expected login to be successful."
 
@@ -372,7 +372,7 @@ def test_upload_to_cloud(
 
     found_package: PackageInfoDict = found_packages[0]
     result = client.execute_command(
-        commands.ROBOCORP_CREATE_ROBOT_INTERNAL,
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         [{"directory": ws_root_path, "name": "example", "template": "01-python"}],
     )["result"]
     assert result["success"]
@@ -432,7 +432,7 @@ def test_logout_cloud(
     # package and we don't have an API to remove it.
     monkeypatch.setattr(Rcc, "_run_rcc", mock_run_rcc)
     monkeypatch.setattr(Rcc, "credentials_valid", mock_credentials_valid)
-    result = client.execute_command(commands.ROBOCORP_CLOUD_LOGOUT_INTERNAL, [])[
+    result = client.execute_command(commands.SEMA4AI_CLOUD_LOGOUT_INTERNAL, [])[
         "result"
     ]
     assert result["success"]
@@ -445,7 +445,7 @@ def test_lru_disk_commands(language_server_initialized: IRobocorpLanguageServerC
 
     def save_to_lru(name: str, entry: str, lru_size: int):
         result = client.execute_command(
-            commands.ROBOCORP_SAVE_IN_DISK_LRU,
+            commands.SEMA4AI_SAVE_IN_DISK_LRU,
             [{"name": name, "entry": entry, "lru_size": lru_size}],
         )["result"]
 
@@ -453,7 +453,7 @@ def test_lru_disk_commands(language_server_initialized: IRobocorpLanguageServerC
 
     def get_from_lru(name: str) -> list:
         result = client.execute_command(
-            commands.ROBOCORP_LOAD_FROM_DISK_LRU, [{"name": name}]
+            commands.SEMA4AI_LOAD_FROM_DISK_LRU, [{"name": name}]
         )
         return result["result"]
 
@@ -480,7 +480,7 @@ def _compute_robot_launch_from_robocorp_code_launch(
     args = {"robot": robot, "task": task, "name": "Launch Name", "request": "launch"}
     args.update(kwargs)
     result = client.execute_command(
-        commands.ROBOCORP_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, [args]
+        commands.SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, [args]
     )["result"]
     return result
 
@@ -815,7 +815,7 @@ def test_obtain_locator_info(
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.ROBOCORP_GET_LOCATORS_JSON_INFO, [{"robotYaml": str(robot_yaml)}]
+        commands.SEMA4AI_GET_LOCATORS_JSON_INFO, [{"robotYaml": str(robot_yaml)}]
     )["result"]
     assert result["success"]
     res = result["result"]
@@ -863,7 +863,7 @@ def test_remove_locator(
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.ROBOCORP_REMOVE_LOCATOR_FROM_JSON_INTERNAL,
+        commands.SEMA4AI_REMOVE_LOCATOR_FROM_JSON_INTERNAL,
         [{"robotYaml": str(robot_yaml), "name": "Browser.Locator.00"}],
     )["result"]
     locators_content = json.loads(locator_file.read())
@@ -919,12 +919,12 @@ def test_metric(language_server_initialized: IRobocorpLanguageServerClient) -> N
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.ROBOCORP_SEND_METRIC, [{"value": "foo"}]
+        commands.SEMA4AI_SEND_METRIC, [{"value": "foo"}]
     )["result"]
     assert not result["success"]
 
     result = language_server.execute_command(
-        commands.ROBOCORP_SEND_METRIC, [{"name": "bar", "value": "foo"}]
+        commands.SEMA4AI_SEND_METRIC, [{"name": "bar", "value": "foo"}]
     )["result"]
     assert result["success"]
 
@@ -1021,14 +1021,14 @@ def test_profile_import(
     from sema4ai_ls_core import uris
 
     from sema4ai_code.commands import (
-        ROBOCORP_GET_PY_PI_BASE_URLS_INTERNAL,
-        ROBOCORP_PROFILE_IMPORT_INTERNAL,
-        ROBOCORP_PROFILE_LIST_INTERNAL,
-        ROBOCORP_PROFILE_SWITCH_INTERNAL,
+        SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
+        SEMA4AI_PROFILE_IMPORT_INTERNAL,
+        SEMA4AI_PROFILE_LIST_INTERNAL,
+        SEMA4AI_PROFILE_SWITCH_INTERNAL,
     )
 
     result = language_server_initialized.execute_command(
-        ROBOCORP_GET_PY_PI_BASE_URLS_INTERNAL,
+        SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
         [],
     )["result"]
     assert result == ["https://pypi.org"]
@@ -1036,14 +1036,14 @@ def test_profile_import(
     # Import sample profile.
     sample_profile = datadir / "sample_profile.yml"
     result = language_server_initialized.execute_command(
-        ROBOCORP_PROFILE_IMPORT_INTERNAL,
+        SEMA4AI_PROFILE_IMPORT_INTERNAL,
         [{"profileUri": uris.from_fs_path(str(sample_profile))}],
     )["result"]
     assert result["success"]
 
     # List profiles
     result = language_server_initialized.execute_command(
-        ROBOCORP_PROFILE_LIST_INTERNAL,
+        SEMA4AI_PROFILE_LIST_INTERNAL,
         [],
     )["result"]
     assert result["success"]
@@ -1055,20 +1055,20 @@ def test_profile_import(
 
     try:
         result = language_server_initialized.execute_command(
-            ROBOCORP_PROFILE_SWITCH_INTERNAL,
+            SEMA4AI_PROFILE_SWITCH_INTERNAL,
             [{"profileName": "sample"}],
         )["result"]
         assert result["success"]
 
         result = language_server_initialized.execute_command(
-            ROBOCORP_GET_PY_PI_BASE_URLS_INTERNAL,
+            SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
             [],
         )["result"]
         assert result == ["https://test.pypi.org", "https://pypi.org"]
 
     finally:
         result = language_server_initialized.execute_command(
-            ROBOCORP_PROFILE_SWITCH_INTERNAL,
+            SEMA4AI_PROFILE_SWITCH_INTERNAL,
             [{"profileName": current}],
         )["result"]
         assert result["success"]

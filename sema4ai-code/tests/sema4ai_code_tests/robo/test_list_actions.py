@@ -16,7 +16,7 @@ def test_list_actions(
 
     language_server = language_server_initialized
     result = language_server.execute_command(
-        commands.ROBOCORP_LIST_ACTIONS_INTERNAL,
+        commands.SEMA4AI_LIST_ACTIONS_INTERNAL,
         [{"action_package": uris.from_fs_path(ws_root_path)}],
     )["result"]["result"]
     for entry in result:

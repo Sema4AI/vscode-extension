@@ -15,9 +15,9 @@ import * as roboConfig from "./robocorpSettings";
 import { OUTPUT_CHANNEL } from "./channel";
 import { resolveInterpreter } from "./activities";
 import {
-    ROBOCORP_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
-    ROBOCORP_UPDATE_LAUNCH_ENV,
-    ROBOCORP_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
+    SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
+    SEMA4AI_UPDATE_LAUNCH_ENV,
+    SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
 } from "./robocorpCommands";
 import { globalCachedPythonInfo } from "./extension";
 import { disablePythonTerminalActivateEnvironment } from "./pythonExtIntegration";
@@ -97,7 +97,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             // environment variables as well as work-items environment variables).
             try {
                 let newEnv: { [key: string]: string } | "cancelled" = await commands.executeCommand(
-                    ROBOCORP_UPDATE_LAUNCH_ENV,
+                    SEMA4AI_UPDATE_LAUNCH_ENV,
                     {
                         "targetRobot": debugConfiguration.robot,
                         "env": env,
@@ -122,7 +122,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
 
         let actionResult: ActionResult;
         if (isActionPackageLaunch) {
-            actionResult = await commands.executeCommand(ROBOCORP_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, {
+            actionResult = await commands.executeCommand(SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, {
                 "name": debugConfiguration.name,
                 "request": debugConfiguration.request,
                 "package": debugConfiguration.package,
@@ -135,7 +135,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
                 "noDebug": debugConfiguration.noDebug,
             });
         } else {
-            actionResult = await commands.executeCommand(ROBOCORP_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, {
+            actionResult = await commands.executeCommand(SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH, {
                 "name": debugConfiguration.name,
                 "request": debugConfiguration.request,
                 "robot": debugConfiguration.robot,
@@ -176,7 +176,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             // Also, in a Python run in noDebug mode we still run with RCC instead of falling
             // back to the run with the Python extension.
             let vaultInfoActionResult: ActionResult = await commands.executeCommand(
-                ROBOCORP_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
+                SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
             );
             if (vaultInfoActionResult?.success && vaultInfoActionResult.result) {
                 debugConfiguration.workspaceId = vaultInfoActionResult.result.workspaceId;

@@ -209,7 +209,7 @@ class Dev(object):
 
         new_content = re.sub(
             r"\(docs/",
-            rf"(https://github.com/Sema4AI/vscode-extension/tree/{tag}/sema4ai-code/docs/",
+            rf"(https://github.com/Sema4AI/vscode-extension/tree/{tag}/docs/",
             content,
         )
 

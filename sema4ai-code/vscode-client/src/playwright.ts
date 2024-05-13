@@ -3,7 +3,7 @@ import { RobotEntry, getSelectedRobot } from "./viewsCommon";
 import { listAndAskRobotSelection } from "./activities";
 import { logError } from "./channel";
 import { commands, ProgressLocation, Uri, window } from "vscode";
-import { ROBOCORP_OPEN_PLAYWRIGHT_RECORDER_INTERNAL } from "./robocorpCommands";
+import { SEMA4AI_OPEN_PLAYWRIGHT_RECORDER_INTERNAL } from "./robocorpCommands";
 
 export async function openPlaywrightRecorder(useTreeSelected: boolean = false): Promise<void> {
     let currentUri: Uri | undefined = undefined;
@@ -52,7 +52,7 @@ export async function openPlaywrightRecorder(useTreeSelected: boolean = false): 
 
     try {
         const actionResult: ActionResult<any> = await commands.executeCommand(
-            ROBOCORP_OPEN_PLAYWRIGHT_RECORDER_INTERNAL,
+            SEMA4AI_OPEN_PLAYWRIGHT_RECORDER_INTERNAL,
             {
                 "target_robot_uri": currentUri.toString(),
             }

@@ -33,7 +33,7 @@ class _Playwright(object):
         self._lsp_messages: LSPMessages = lsp_messages
 
     @playwright_command_dispatcher(
-        commands.ROBOCORP_OPEN_PLAYWRIGHT_RECORDER_INTERNAL,
+        commands.SEMA4AI_OPEN_PLAYWRIGHT_RECORDER_INTERNAL,
         object,
     )
     def _open_playwright_recorder(

@@ -363,7 +363,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_workspace__execute_command(self, command=None, arguments=()) -> Any:
         return command_dispatcher.dispatch(self, command, arguments)
 
-    @command_dispatcher(commands.ROBOCORP_CONFIGURATION_DIAGNOSTICS_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_CONFIGURATION_DIAGNOSTICS_INTERNAL)
     def _configuration_diagnostics_internal(
         self, params: ConfigurationDiagnosticsDict
     ) -> ActionResultDict:
@@ -376,7 +376,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             action_result = self._rcc.configuration_diagnostics(robot_yaml, json=False)
             return action_result.as_dict()
 
-    @command_dispatcher(commands.ROBOCORP_SAVE_IN_DISK_LRU)
+    @command_dispatcher(commands.SEMA4AI_SAVE_IN_DISK_LRU)
     def _save_in_disk_lru(self, params: dict) -> ActionResultDict:
         name = params["name"]
         entry = params["entry"]
@@ -402,7 +402,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self._dir_cache.store(name, cache_lru_list)
         return {"success": True, "message": "", "result": entry}
 
-    @command_dispatcher(commands.ROBOCORP_LOAD_FROM_DISK_LRU, list)
+    @command_dispatcher(commands.SEMA4AI_LOAD_FROM_DISK_LRU, list)
     def _load_from_disk_lru(self, params: dict) -> list:
         try:
             name = params["name"]
@@ -433,7 +433,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     ws_id_and_pack_id_to_lru_index[key] = i
         return ws_id_and_pack_id_to_lru_index
 
-    @command_dispatcher(commands.ROBOCORP_GET_LINKED_ACCOUNT_INFO_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_GET_LINKED_ACCOUNT_INFO_INTERNAL)
     def _get_linked_account_info(self, params=None) -> ActionResultDict:
         from sema4ai_code.rcc import AccountInfo
 
@@ -457,7 +457,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             },
         }
 
-    @command_dispatcher(commands.ROBOCORP_CLOUD_LIST_WORKSPACES_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_CLOUD_LIST_WORKSPACES_INTERNAL)
     def _cloud_list_workspaces(
         self, params: CloudListWorkspaceDict
     ) -> ListWorkspacesActionResultDict:
@@ -575,7 +575,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._dir_cache.store(self.CLOUD_LIST_WORKSPACE_CACHE_KEY, store)
         return {"success": True, "message": None, "result": ret}
 
-    @command_dispatcher(commands.ROBOCORP_CREATE_ROBOT_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_CREATE_ROBOT_INTERNAL)
     def _create_robot(self, params: CreateRobotParamsDict) -> ActionResultDict:
         self._feedback.metric("vscode.create.robot")
         directory = params["directory"]
@@ -591,7 +591,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             target_dir = directory
         return self._rcc.create_robot(template, target_dir, force=force).as_dict()
 
-    @command_dispatcher(commands.ROBOCORP_LIST_ROBOT_TEMPLATES_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL)
     def _list_activity_templates(self, params=None) -> ActionResultDict:
         result = self._rcc.get_template_names()
         return result.as_dict()
@@ -648,7 +648,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return None
 
-    @command_dispatcher(commands.ROBOCORP_RUN_IN_RCC_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_RUN_IN_RCC_INTERNAL)
     def _run_in_rcc_internal(self, params=RunInRccParamsDict) -> ActionResultDict:
         try:
             args = params["args"]
@@ -658,7 +658,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return dict(success=False, message=str(e), result=None)
         return ret.as_dict()
 
-    @command_dispatcher(commands.ROBOCORP_LIST_ACTIONS_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_LIST_ACTIONS_INTERNAL)
     def _local_list_actions_internal(self, params: Optional[ListActionsParams]):
         # i.e.: should not block.
         return partial(self._local_list_actions_internal_impl, params=params)
@@ -694,7 +694,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return dict(success=True, message=None, result=actions)
 
-    @command_dispatcher(commands.ROBOCORP_LIST_WORK_ITEMS_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_LIST_WORK_ITEMS_INTERNAL)
     def _local_list_work_items_internal(
         self, params: Optional[ListWorkItemsParams] = None
     ) -> ActionResultDictWorkItems:
@@ -703,7 +703,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if params is None:
             return dict(
                 success=False,
-                message=f"Parameters not passed for {commands.ROBOCORP_LIST_WORK_ITEMS_INTERNAL}.",
+                message=f"Parameters not passed for {commands.SEMA4AI_LIST_WORK_ITEMS_INTERNAL}.",
                 result=None,
             )
 
@@ -878,7 +878,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return find_robot_yaml.find_robot_yaml_path_from_path(path, stat)
 
-    @command_dispatcher(commands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL)
     def _local_list_robots(self, params=None) -> ActionResultDictLocalRobotMetadata:
         curr_cache = self._local_list_robots_cache
         new_cache: Dict[Path, CachedFileInfo[LocalRobotMetadataInfoDict]] = {}
@@ -952,7 +952,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         self._dir_cache.store(self.PACKAGE_ACCESS_LRU_CACHE_KEY, new_lst)
 
-    @command_dispatcher(commands.ROBOCORP_UPLOAD_TO_EXISTING_ROBOT_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_UPLOAD_TO_EXISTING_ROBOT_INTERNAL)
     def _upload_to_existing_activity(
         self, params: UploadRobotParamsDict
     ) -> ActionResultDict:
@@ -977,7 +977,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return result.as_dict()
 
-    @command_dispatcher(commands.ROBOCORP_UPLOAD_TO_NEW_ROBOT_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_UPLOAD_TO_NEW_ROBOT_INTERNAL)
     def _upload_to_new_robot(
         self, params: UploadNewRobotParamsDict
     ) -> ActionResultDict:
@@ -1016,13 +1016,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._add_package_info_to_access_lru(workspace_id, robot_id, directory)
         return result.as_dict()
 
-    @command_dispatcher(commands.ROBOCORP_GET_PLUGINS_DIR, str)
+    @command_dispatcher(commands.SEMA4AI_GET_PLUGINS_DIR, str)
     def _get_plugins_dir(self, params=None) -> str:
         return str(Path(__file__).parent / "plugins")
 
-    @command_dispatcher(
-        commands.ROBOCORP_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH
-    )
+    @command_dispatcher(commands.SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH)
     def _compute_robot_launch_from_robocorp_code_launch(
         self, params: dict
     ) -> ActionResultDictRobotLaunch:
@@ -1065,7 +1063,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def pm(self):
         return self._pm
 
-    @command_dispatcher(commands.ROBOCORP_RESOLVE_INTERPRETER, dict)
+    @command_dispatcher(commands.SEMA4AI_RESOLVE_INTERPRETER, dict)
     def _resolve_interpreter(self, params=None) -> ActionResultDict:
         from sema4ai_ls_core.ep_resolve_interpreter import (
             EPResolveInterpreter,
@@ -1104,7 +1102,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             "result": None,
         }
 
-    @command_dispatcher(commands.ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL)
     def _verify_library_version(self, params: dict) -> LibraryVersionInfoDict:
         from sema4ai_ls_core import yaml_wrapper
 
@@ -1179,7 +1177,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             "result": None,
         }
 
-    @command_dispatcher(commands.ROBOCORP_SEND_METRIC)
+    @command_dispatcher(commands.SEMA4AI_SEND_METRIC)
     def _send_metric(self, params: dict) -> ActionResultDict:
         name = params.get("name")
         value = params.get("value")
@@ -1357,7 +1355,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return {"success": False, "message": error, "result": None}
         return {"success": True, "message": None, "result": (db, locators_json)}
 
-    @command_dispatcher(commands.ROBOCORP_GET_LOCATORS_JSON_INFO)
+    @command_dispatcher(commands.SEMA4AI_GET_LOCATORS_JSON_INFO)
     def _get_locators_json_info(
         self, params: Optional[dict] = None
     ) -> ActionResultDictLocatorsJsonInfo:
@@ -1416,7 +1414,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return {"success": True, "message": None, "result": locators_json_info}
 
-    @command_dispatcher(commands.ROBOCORP_REMOVE_LOCATOR_FROM_JSON_INTERNAL)
+    @command_dispatcher(commands.SEMA4AI_REMOVE_LOCATOR_FROM_JSON_INTERNAL)
     def _remove_locator_from_json_internal(
         self, params: Optional[dict] = None
     ) -> ActionResultDict:

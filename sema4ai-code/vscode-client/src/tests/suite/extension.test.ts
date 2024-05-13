@@ -3,7 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { WorkspaceFolder } from "vscode";
 import { ActionResult, LocalRobotMetadataInfo } from "../../protocols";
-import { ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL } from "../../robocorpCommands";
+import { SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL } from "../../robocorpCommands";
 import { sleep } from "../../time";
 
 const testFolderLocation = "/resources/";
@@ -17,7 +17,7 @@ suite("Sema4.ai Code Extension Test Suite", () => {
         assert.strictEqual(workspaceFolders.length, 1);
 
         let actionResult: ActionResult<LocalRobotMetadataInfo[]>;
-        actionResult = await vscode.commands.executeCommand(ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL);
+        actionResult = await vscode.commands.executeCommand(SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL);
         assert.strictEqual(actionResult.success, true);
         let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
         // Check that we're able to load at least one robot.

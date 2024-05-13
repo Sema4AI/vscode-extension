@@ -14,9 +14,9 @@ import { commands, Uri, window } from "vscode";
 import { QuickPickItemWithAction, showSelectOneQuickPick } from "./ask";
 import { ActionResult } from "./protocols";
 import {
-    ROBOCORP_PROFILE_IMPORT_INTERNAL,
-    ROBOCORP_PROFILE_LIST_INTERNAL,
-    ROBOCORP_PROFILE_SWITCH_INTERNAL,
+    SEMA4AI_PROFILE_IMPORT_INTERNAL,
+    SEMA4AI_PROFILE_LIST_INTERNAL,
+    SEMA4AI_PROFILE_SWITCH_INTERNAL,
 } from "./robocorpCommands";
 
 async function selectProfileFile(): Promise<Uri | undefined> {
@@ -35,7 +35,7 @@ async function selectProfileFile(): Promise<Uri | undefined> {
 export async function profileImport() {
     const profileUri: Uri | undefined = await selectProfileFile();
     if (profileUri !== undefined) {
-        const actionResult: ActionResult<any> = await commands.executeCommand(ROBOCORP_PROFILE_IMPORT_INTERNAL, {
+        const actionResult: ActionResult<any> = await commands.executeCommand(SEMA4AI_PROFILE_IMPORT_INTERNAL, {
             "profileUri": profileUri.toString(),
         });
 
@@ -60,7 +60,7 @@ export async function profileImport() {
 }
 
 async function profileSwitchInternal(profileName: string) {
-    const actionResult: ActionResult<any> = await commands.executeCommand(ROBOCORP_PROFILE_SWITCH_INTERNAL, {
+    const actionResult: ActionResult<any> = await commands.executeCommand(SEMA4AI_PROFILE_SWITCH_INTERNAL, {
         "profileName": profileName,
     });
     if (!actionResult) {
@@ -78,7 +78,7 @@ async function profileSwitchInternal(profileName: string) {
 }
 
 export async function profileSwitch() {
-    const actionResult: ActionResult<any> = await commands.executeCommand(ROBOCORP_PROFILE_LIST_INTERNAL);
+    const actionResult: ActionResult<any> = await commands.executeCommand(SEMA4AI_PROFILE_LIST_INTERNAL);
 
     if (!actionResult.success) {
         await window.showErrorMessage(actionResult.message);

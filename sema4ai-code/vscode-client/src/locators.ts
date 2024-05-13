@@ -43,7 +43,7 @@ export async function removeLocator(locator?: LocatorEntry) {
     );
     if (result === DELETE) {
         const actionResult: ActionResult<any> = await commands.executeCommand(
-            roboCommands.ROBOCORP_REMOVE_LOCATOR_FROM_JSON_INTERNAL,
+            roboCommands.SEMA4AI_REMOVE_LOCATOR_FROM_JSON_INTERNAL,
             {
                 robotYaml: robot.filePath,
                 name: locatorSelected?.name,

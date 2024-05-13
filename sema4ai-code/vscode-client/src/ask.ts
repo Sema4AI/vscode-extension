@@ -72,7 +72,7 @@ export async function selectWorkspace(title: string, refresh: boolean): Promise<
         // Note that this may be cached from the last time it was asked,
         // so, we have an option to refresh it (and ask again).
         let actionResult: ListWorkspacesActionResult = await commands.executeCommand(
-            roboCommands.ROBOCORP_CLOUD_LIST_WORKSPACES_INTERNAL,
+            roboCommands.SEMA4AI_CLOUD_LIST_WORKSPACES_INTERNAL,
             { "refresh": refresh }
         );
 

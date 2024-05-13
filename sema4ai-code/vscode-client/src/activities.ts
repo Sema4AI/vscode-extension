@@ -71,7 +71,7 @@ export async function cloudLogin(): Promise<boolean> {
             continue;
         }
         let commandResult: ActionResult<any> = await commands.executeCommand(
-            roboCommands.ROBOCORP_CLOUD_LOGIN_INTERNAL,
+            roboCommands.SEMA4AI_CLOUD_LOGIN_INTERNAL,
             {
                 "credentials": credentials,
             }
@@ -110,7 +110,7 @@ export async function cloudLogout(): Promise<void> {
     let loggedOut: ActionResult<boolean>;
 
     let isLoginNeededActionResult: ActionResult<boolean> = await commands.executeCommand(
-        roboCommands.ROBOCORP_IS_LOGIN_NEEDED_INTERNAL
+        roboCommands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL
     );
     if (!isLoginNeededActionResult) {
         window.showInformationMessage("Error getting information if already linked in.");
@@ -133,7 +133,7 @@ export async function cloudLogout(): Promise<void> {
     if (result !== YES) {
         return;
     }
-    loggedOut = await commands.executeCommand(roboCommands.ROBOCORP_CLOUD_LOGOUT_INTERNAL);
+    loggedOut = await commands.executeCommand(roboCommands.SEMA4AI_CLOUD_LOGOUT_INTERNAL);
     if (!loggedOut) {
         window.showInformationMessage("Error unlinking and removing Control Room credentials.");
         return;
@@ -164,7 +164,7 @@ export async function resolveInterpreter(targetRobot: string): Promise<ActionRes
         // We couldn't resolve with the robotframework language server command, fallback to the robocorp code command.
         try {
             let interpreter: ActionResult<InterpreterInfo | undefined> = await commands.executeCommand(
-                roboCommands.ROBOCORP_RESOLVE_INTERPRETER,
+                roboCommands.SEMA4AI_RESOLVE_INTERPRETER,
                 {
                     "target_robot": targetRobot,
                 }
@@ -186,7 +186,7 @@ export async function listAndAskRobotSelection(
     opts: ListOpts
 ): Promise<LocalRobotMetadataInfo> {
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
     if (!actionResult.success) {
@@ -264,7 +264,7 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
     }
 
     let actionResult: ActionResult<any> = await commands.executeCommand(
-        roboCommands.ROBOCORP_UPLOAD_TO_NEW_ROBOT_INTERNAL,
+        roboCommands.SEMA4AI_UPLOAD_TO_NEW_ROBOT_INTERNAL,
         {
             "workspaceId": wsInfo.workspaceId,
             "directory": directory,
@@ -282,7 +282,7 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
 
 export async function setPythonInterpreterFromRobotYaml() {
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing existing packages: " + actionResult.message);
@@ -369,7 +369,7 @@ export async function setPythonInterpreterFromRobotYaml() {
 
 export async function rccConfigurationDiagnostics() {
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing robots: " + actionResult.message);
@@ -396,7 +396,7 @@ export async function rccConfigurationDiagnostics() {
     }
 
     let diagnosticsActionResult: ActionResult<string> = await commands.executeCommand(
-        roboCommands.ROBOCORP_CONFIGURATION_DIAGNOSTICS_INTERNAL,
+        roboCommands.SEMA4AI_CONFIGURATION_DIAGNOSTICS_INTERNAL,
         { "robotYaml": robot.filePath }
     );
     if (!diagnosticsActionResult.success) {
@@ -413,7 +413,7 @@ export async function rccConfigurationDiagnostics() {
 export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
     // Start this in parallel while we ask the user for info.
     let isLoginNeededPromise: Thenable<ActionResult<boolean>> = commands.executeCommand(
-        roboCommands.ROBOCORP_IS_LOGIN_NEEDED_INTERNAL
+        roboCommands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL
     );
 
     let currentUri: Uri;
@@ -421,7 +421,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
         currentUri = window.activeTextEditor.document.uri;
     }
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error submitting Task Package (Robot) to Control Room: " + actionResult.message);
@@ -591,7 +591,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
             }
             // selectedItem == yesOverride.
             let actionResult: ActionResult<any> = await commands.executeCommand(
-                roboCommands.ROBOCORP_UPLOAD_TO_EXISTING_ROBOT_INTERNAL,
+                roboCommands.SEMA4AI_UPLOAD_TO_EXISTING_ROBOT_INTERNAL,
                 { "workspaceId": robotInfo.workspaceId, "robotId": robotInfo.id, "directory": robot.directory }
             );
 
@@ -616,12 +616,12 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     }
 
     const RUN_IN_RCC_LRU_CACHE_NAME = "RUN_IN_RCC_LRU_CACHE";
-    let runLRU: string[] = await commands.executeCommand(roboCommands.ROBOCORP_LOAD_FROM_DISK_LRU, {
+    let runLRU: string[] = await commands.executeCommand(roboCommands.SEMA4AI_LOAD_FROM_DISK_LRU, {
         "name": RUN_IN_RCC_LRU_CACHE_NAME,
     });
 
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
-        roboCommands.ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Task Packages (Robots): " + actionResult.message);
@@ -689,7 +689,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         return;
     }
 
-    await commands.executeCommand(roboCommands.ROBOCORP_SAVE_IN_DISK_LRU, {
+    await commands.executeCommand(roboCommands.SEMA4AI_SAVE_IN_DISK_LRU, {
         "name": RUN_IN_RCC_LRU_CACHE_NAME,
         "entry": selectedItem.keyInLRU,
         "lru_size": 3,
@@ -715,7 +715,7 @@ export async function runRobotRCC(noDebug: boolean, robotYaml: string, taskName:
 export async function createRobot() {
     // Start up async calls.
     let asyncListRobotTemplates: Thenable<ActionResult<RobotTemplate[]>> = commands.executeCommand(
-        roboCommands.ROBOCORP_LIST_ROBOT_TEMPLATES_INTERNAL
+        roboCommands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL
     );
 
     const robotsInWorkspacePromise: Promise<boolean> = areThereRobotsInWorkspace();
@@ -828,7 +828,7 @@ export async function createRobot() {
 
     OUTPUT_CHANNEL.appendLine("Creating Task Package (Robot) at: " + targetDir);
     let createRobotResult: ActionResult<any> = await commands.executeCommand(
-        roboCommands.ROBOCORP_CREATE_ROBOT_INTERNAL,
+        roboCommands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         { "directory": targetDir, "template": selectedRobotTemplate.name, "force": force }
     );
 
@@ -863,7 +863,7 @@ export async function updateLaunchEnvironment(args): Promise<{ [key: string]: st
     if (newEnv !== "cancelled") {
         try {
             // Ok, also check for pre-run scripts.
-            const hasPreRunScripts = await commands.executeCommand(roboCommands.ROBOCORP_HAS_PRE_RUN_SCRIPTS_INTERNAL, {
+            const hasPreRunScripts = await commands.executeCommand(roboCommands.SEMA4AI_HAS_PRE_RUN_SCRIPTS_INTERNAL, {
                 "robot": args["targetRobot"],
             });
             if (hasPreRunScripts) {
@@ -880,7 +880,7 @@ export async function updateLaunchEnvironment(args): Promise<{ [key: string]: st
                             token: vscode.CancellationToken
                         ): Promise<void> => {
                             let result = await commands.executeCommand(
-                                roboCommands.ROBOCORP_RUN_PRE_RUN_SCRIPTS_INTERNAL,
+                                roboCommands.SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL,
                                 {
                                     "robot": args["targetRobot"],
                                     "env": newEnv,
@@ -939,14 +939,14 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     }
 
     let vaultInfoActionResult: ActionResult<IVaultInfo> = await commands.executeCommand(
-        roboCommands.ROBOCORP_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
+        roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
     );
     if (vaultInfoActionResult?.success) {
         const vaultInfo: IVaultInfo = vaultInfoActionResult.result;
         if (vaultInfo?.workspaceId) {
             // The workspace vault is connected, so, we must authorize it...
             let vaultInfoEnvActionResult: ActionResult<{ [key: string]: string }> = await commands.executeCommand(
-                roboCommands.ROBOCORP_UPDATE_LAUNCH_ENV_GET_VAULT_ENV_INTERNAL
+                roboCommands.SEMA4AI_UPDATE_LAUNCH_ENV_GET_VAULT_ENV_INTERNAL
             );
             if (!vaultInfoEnvActionResult.success) {
                 throw new Error(
@@ -964,7 +964,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     }
 
     let workItemsActionResult: ActionResultWorkItems = await commands.executeCommand(
-        roboCommands.ROBOCORP_LIST_WORK_ITEMS_INTERNAL,
+        roboCommands.SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
         { "robot": robot, "increment_output": true }
     );
 
@@ -982,7 +982,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     let libraryVersionInfoActionResult: LibraryVersionInfoDict;
     try {
         libraryVersionInfoActionResult = await commands.executeCommand(
-            roboCommands.ROBOCORP_VERIFY_LIBRARY_VERSION_INTERNAL,
+            roboCommands.SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
             {
                 "conda_prefix": condaPrefix,
                 "libs_and_version": [

@@ -11,7 +11,6 @@ from sema4ai_code import commands
 
 pre_run_scripts_command_dispatcher = _SubCommandDispatcher("_pre_run_scripts")
 
-
 log = get_logger(__name__)
 
 
@@ -113,11 +112,11 @@ class _PreRunScripts:
             # Ok, exclusions not found: use it.
             yield f
 
-    @pre_run_scripts_command_dispatcher(commands.ROBOCORP_HAS_PRE_RUN_SCRIPTS_INTERNAL)
+    @pre_run_scripts_command_dispatcher(commands.SEMA4AI_HAS_PRE_RUN_SCRIPTS_INTERNAL)
     def _has_pre_run_scripts_internal(self, params: dict) -> bool:
         return bool(self._get_pre_run_scripts(params["robot"]))
 
-    @pre_run_scripts_command_dispatcher(commands.ROBOCORP_RUN_PRE_RUN_SCRIPTS_INTERNAL)
+    @pre_run_scripts_command_dispatcher(commands.SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL)
     def _run_pre_run_scripts_internal(
         self, params: dict
     ) -> Optional[LaunchActionResultDict]:

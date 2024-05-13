@@ -1,1 +1,1 @@
-This folder contains the sourced for `Sema4.ai Code`.
+This folder contains the sources for `Sema4.ai Code`.

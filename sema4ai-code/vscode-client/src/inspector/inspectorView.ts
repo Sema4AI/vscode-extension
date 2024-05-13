@@ -27,7 +27,7 @@ import {
 } from "./protocols";
 import { langServer } from "../extension";
 import { ActionResult, LocalRobotMetadataInfo } from "../protocols";
-import { ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL } from "../robocorpCommands";
+import { SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL } from "../robocorpCommands";
 import { generateID } from "./utils";
 
 // singleton objects
@@ -74,7 +74,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
         directory = robot.robot.directory;
     } else {
         let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
-            ROBOCORP_LOCAL_LIST_ROBOTS_INTERNAL
+            SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
         );
         if (actionResult.success) {
             if (actionResult.result.length === 1) {

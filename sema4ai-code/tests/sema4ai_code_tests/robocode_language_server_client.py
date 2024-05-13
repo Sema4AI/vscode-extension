@@ -16,7 +16,7 @@ class RobocorpLanguageServerClient(LanguageServerClient):
         from sema4ai_code import commands
 
         result = self.execute_command(
-            commands.ROBOCORP_CLOUD_LIST_WORKSPACES_INTERNAL, [{"refresh": refresh}]
+            commands.SEMA4AI_CLOUD_LIST_WORKSPACES_INTERNAL, [{"refresh": refresh}]
         )["result"]
         return result
 
@@ -32,7 +32,7 @@ class RobocorpLanguageServerClient(LanguageServerClient):
             "directory": directory,
         }
         result = self.execute_command(
-            commands.ROBOCORP_UPLOAD_TO_EXISTING_ROBOT_INTERNAL, [params]
+            commands.SEMA4AI_UPLOAD_TO_EXISTING_ROBOT_INTERNAL, [params]
         )["result"]
         return result
 
@@ -48,14 +48,14 @@ class RobocorpLanguageServerClient(LanguageServerClient):
             "directory": directory,
         }
         result = self.execute_command(
-            commands.ROBOCORP_UPLOAD_TO_NEW_ROBOT_INTERNAL, [paramsNew]
+            commands.SEMA4AI_UPLOAD_TO_NEW_ROBOT_INTERNAL, [paramsNew]
         )["result"]
         return result
 
     def get_plugins_dir(self) -> str:
         from sema4ai_code import commands
 
-        result = self.execute_command(commands.ROBOCORP_GET_PLUGINS_DIR, [])["result"]
+        result = self.execute_command(commands.SEMA4AI_GET_PLUGINS_DIR, [])["result"]
         return result
 
     def __typecheckself__(self) -> None:
