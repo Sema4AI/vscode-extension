@@ -39,132 +39,130 @@ class Menu:
 
 TREE_VIEW_CONTAINERS = [
     TreeViewContainer(
-        id="robocorp-robots",
+        id="sem4ai-packages",
         title="Sema4.ai Code",
-        icon="images/robocorp-outline.svg",
+        icon="images/sema4ai-outline.svg",
         tree_views=[
             TreeView(
-                id="robocorp-task-packages-tree",
+                id="sema4ai-task-packages-tree",
                 name="Task/Action Packages",
                 contextual_title="Task/Action Packages",
                 menus={
                     # See: https://code.visualstudio.com/api/references/contribution-points#contributes.menus
                     # for targets
                     "view/title": [
-                        Menu("robocorp.refreshRobotsView", MenuGroup.NAVIGATION),
-                        Menu(
-                            "robocorp.createTaskOrActionPackage", MenuGroup.NAVIGATION
-                        ),
+                        Menu("sema4ai.refreshRobotsView", MenuGroup.NAVIGATION),
+                        Menu("sema4ai.createTaskOrActionPackage", MenuGroup.NAVIGATION),
                     ],
                     "view/item/context": [
                         # Task run as context menus
                         Menu(
-                            "robocorp.robotsViewTaskRun",
+                            "sema4ai.robotsViewTaskRun",
                             "inline@1",
                             "viewItem == taskItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewTaskDebug",
+                            "sema4ai.robotsViewTaskDebug",
                             "inline@2",
                             "viewItem == taskItem",
                         ),
                         # Action run as context menus
                         Menu(
-                            "robocorp.robotsViewActionOpen",
+                            "sema4ai.robotsViewActionOpen",
                             "inline@1",
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionEditInput",
+                            "sema4ai.robotsViewActionEditInput",
                             "inline@2",
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionRun",
+                            "sema4ai.robotsViewActionRun",
                             "inline@3",
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionDebug",
+                            "sema4ai.robotsViewActionDebug",
                             "inline@4",
                             "viewItem == actionItem",
                         ),
                         # Inline in actions
                         Menu(
-                            "robocorp.openRobotTreeSelection",
+                            "sema4ai.openRobotTreeSelection",
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
                         Menu(
-                            "robocorp.openRobotCondaTreeSelection",
+                            "sema4ai.openRobotCondaTreeSelection",
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
                         Menu(
-                            "robocorp.rccTerminalCreateRobotTreeSelection",
+                            "sema4ai.rccTerminalCreateRobotTreeSelection",
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
                         Menu(
-                            "robocorp.cloudUploadRobotTreeSelection",
+                            "sema4ai.cloudUploadRobotTreeSelection",
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
                         Menu(
-                            "robocorp.openFlowExplorerTreeSelection",
+                            "sema4ai.openFlowExplorerTreeSelection",
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
                         # Tasks: Needs right click (duplicating above + new actions)
                         Menu(
-                            "robocorp.robotsViewTaskRun",
+                            "sema4ai.robotsViewTaskRun",
                             MenuGroup.NAVIGATION,
                             "viewItem == taskItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewTaskDebug",
+                            "sema4ai.robotsViewTaskDebug",
                             MenuGroup.NAVIGATION,
                             "viewItem == taskItem",
                         ),
                         # Actions: Needs right click (duplicating above + new actions)
                         Menu(
-                            "robocorp.robotsViewActionRun",
+                            "sema4ai.robotsViewActionRun",
                             MenuGroup.NAVIGATION,
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionDebug",
+                            "sema4ai.robotsViewActionDebug",
                             MenuGroup.NAVIGATION,
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionEditInput",
+                            "sema4ai.robotsViewActionEditInput",
                             MenuGroup.NAVIGATION,
                             "viewItem == actionItem",
                         ),
                         Menu(
-                            "robocorp.robotsViewActionOpen",
+                            "sema4ai.robotsViewActionOpen",
                             MenuGroup.NAVIGATION,
                             "viewItem == actionItem",
                         ),
                         # New action: reveal in explorer.
                         Menu(
-                            "robocorp.revealRobotInExplorer",
+                            "sema4ai.revealRobotInExplorer",
                             MenuGroup.NAVIGATION,
                             when="viewItem == robotItem",
                         ),
                         Menu(
-                            "robocorp.openRobotTreeSelection",
+                            "sema4ai.openRobotTreeSelection",
                             MenuGroup.NAVIGATION,
                             when="viewItem == robotItem",
                         ),
                         Menu(
-                            "robocorp.rccTerminalCreateRobotTreeSelection",
+                            "sema4ai.rccTerminalCreateRobotTreeSelection",
                             MenuGroup.NAVIGATION,
                             when="viewItem == robotItem",
                         ),
                         Menu(
-                            "robocorp.cloudUploadRobotTreeSelection",
+                            "sema4ai.cloudUploadRobotTreeSelection",
                             MenuGroup.NAVIGATION,
                             when="viewItem == robotItem",
                         ),
@@ -172,56 +170,56 @@ TREE_VIEW_CONTAINERS = [
                 },
             ),
             TreeView(
-                id="robocorp-package-content-tree",
+                id="sema4ai-package-content-tree",
                 name="Package Content",
                 contextual_title="Package Content",
                 menus={
                     "view/title": [
                         Menu(
-                            "robocorp.newFileInRobotContentView",
+                            "sema4ai.newFileInRobotContentView",
                             MenuGroup.NAVIGATION,
                             when="sema4ai-code:single-robot-selected && viewItem == directoryItem",
                         ),
                         Menu(
-                            "robocorp.newFolderInRobotContentView",
+                            "sema4ai.newFolderInRobotContentView",
                             MenuGroup.NAVIGATION,
                             when="sema4ai-code:single-robot-selected && viewItem == directoryItem",
                         ),
-                        Menu("robocorp.refreshRobotContentView", MenuGroup.NAVIGATION),
+                        Menu("sema4ai.refreshRobotContentView", MenuGroup.NAVIGATION),
                     ],
                     "view/item/context": [
                         Menu(
-                            "robocorp.newFileInRobotContentView",
+                            "sema4ai.newFileInRobotContentView",
                             "0_new",
                             when="sema4ai-code:single-robot-selected && viewItem == directoryItem",
                         ),
                         Menu(
-                            "robocorp.newFolderInRobotContentView",
+                            "sema4ai.newFolderInRobotContentView",
                             "0_new",
                             when="sema4ai-code:single-robot-selected && viewItem == directoryItem",
                         ),
                         Menu(
-                            "robocorp.openExternally",
+                            "sema4ai.openExternally",
                             "1_open",
                             when="sema4ai-code:single-robot-selected && viewItem == fileItem",
                         ),
                         Menu(
-                            "robocorp.openInVSCode",
+                            "sema4ai.openInVSCode",
                             "1_open",
                             when="sema4ai-code:single-robot-selected && viewItem == fileItem",
                         ),
                         Menu(
-                            "robocorp.revealInExplorer",
+                            "sema4ai.revealInExplorer",
                             "1_open",
                             when="sema4ai-code:single-robot-selected",
                         ),
                         Menu(
-                            "robocorp.renameResourceInRobotContentView",
+                            "sema4ai.renameResourceInRobotContentView",
                             "2_change",
                             when="sema4ai-code:single-robot-selected",
                         ),
                         Menu(
-                            "robocorp.deleteResourceInRobotContentView",
+                            "sema4ai.deleteResourceInRobotContentView",
                             "2_change",
                             when="sema4ai-code:single-robot-selected",
                         ),
@@ -229,74 +227,74 @@ TREE_VIEW_CONTAINERS = [
                 },
             ),
             TreeView(
-                id="robocorp-package-resources-tree",
+                id="sema4ai-package-resources-tree",
                 name="Package Resources",
                 contextual_title="Package Resources",
                 menus={
                     "view/item/context": [
                         # Locators (root)
                         Menu(
-                            "robocorp.newRobocorpInspectorBrowser",
+                            "sema4ai.newRobocorpInspectorBrowser",
                             MenuGroup.INLINE,
                             "sema4ai-code:single-robot-selected && viewItem == newBrowserLocator",
                         ),
                         Menu(
-                            "robocorp.newRobocorpInspectorWindows",
+                            "sema4ai.newRobocorpInspectorWindows",
                             MenuGroup.INLINE,
                             "sema4ai-code:single-robot-selected && viewItem == newWindowsLocator",
                         ),
                         Menu(
-                            "robocorp.newRobocorpInspectorImage",
+                            "sema4ai.newRobocorpInspectorImage",
                             MenuGroup.INLINE,
                             "sema4ai-code:single-robot-selected && viewItem == newImageLocator",
                         ),
                         Menu(
-                            "robocorp.newRobocorpInspectorJava",
+                            "sema4ai.newRobocorpInspectorJava",
                             MenuGroup.INLINE,
                             "sema4ai-code:single-robot-selected && viewItem == newJavaLocator",
                         ),
                         # Locators (root)
                         Menu(
-                            "robocorp.openLocatorsJson",
+                            "sema4ai.openLocatorsJson",
                             MenuGroup.INLINE,
                             "viewItem == locatorsRoot",
                         ),
                         # Locators (entries)
                         Menu(
-                            "robocorp.editRobocorpInspectorLocator",
+                            "sema4ai.editRobocorpInspectorLocator",
                             MenuGroup.INLINE,
                             when="sema4ai-code:single-robot-selected && viewItem == locatorEntry",
                         ),
                         Menu(
-                            "robocorp.copyLocatorToClipboard.internal",
+                            "sema4ai.copyLocatorToClipboard.internal",
                             MenuGroup.INLINE,
                             when="sema4ai-code:single-robot-selected && viewItem == locatorEntry",
                         ),
                         Menu(
-                            "robocorp.removeLocatorFromJson",
+                            "sema4ai.removeLocatorFromJson",
                             MenuGroup.INLINE,
                             when="sema4ai-code:single-robot-selected && viewItem == locatorEntry",
                         ),
                         # Work items (root)
                         Menu(
-                            "robocorp.helpWorkItems",
+                            "sema4ai.helpWorkItems",
                             MenuGroup.INLINE,
                             when="sema4ai-code:single-robot-selected && viewItem == workItemsRoot",
                         ),
                         # Work items (new)
                         Menu(
-                            "robocorp.newWorkItemInWorkItemsView",
+                            "sema4ai.newWorkItemInWorkItemsView",
                             MenuGroup.INLINE,
                             when="sema4ai-code:single-robot-selected && viewItem == inputWorkItemDir",
                         ),
                         # Work items (entries)
                         Menu(
-                            "robocorp.deleteWorkItemInWorkItemsView",
+                            "sema4ai.deleteWorkItemInWorkItemsView",
                             MenuGroup.INLINE,
                             when="viewItem == outputWorkItem || viewItem == inputWorkItem",
                         ),
                         Menu(
-                            "robocorp.convertOutputWorkItemToInput",
+                            "sema4ai.convertOutputWorkItemToInput",
                             MenuGroup.INLINE,
                             when="viewItem == outputWorkItem",
                         ),
@@ -304,43 +302,43 @@ TREE_VIEW_CONTAINERS = [
                 },
             ),
             TreeView(
-                id="robocorp-cloud-tree",
-                name="Robocorp Cloud",
-                contextual_title="Robocorp",
+                id="sema4ai-cloud-tree",
+                name="Control Room",
+                contextual_title="Sema4.ai",
                 menus={
                     "view/item/context": [
                         Menu(
-                            "robocorp.cloudLogin",
+                            "sema4ai.cloudLogin",
                             MenuGroup.INLINE,
                             when="viewItem == cloudLoginItem",
                         ),
                         Menu(
-                            "robocorp.cloudLogout",
+                            "sema4ai.cloudLogout",
                             MenuGroup.INLINE,
                             when="viewItem == cloudLogoutItem",
                         ),
                         Menu(
-                            "robocorp.openCloudHome",
+                            "sema4ai.openCloudHome",
                             MenuGroup.INLINE,
                             when="viewItem == cloudLogoutItem",
                         ),
                         Menu(
-                            "robocorp.connectWorkspace",
+                            "sema4ai.connectWorkspace",
                             MenuGroup.INLINE,
                             when="viewItem == workspaceDisconnected",
                         ),
                         Menu(
-                            "robocorp.disconnectWorkspace",
+                            "sema4ai.disconnectWorkspace",
                             MenuGroup.INLINE,
                             when="viewItem == workspaceConnected",
                         ),
                         Menu(
-                            "robocorp.profileImport",
+                            "sema4ai.profileImport",
                             MenuGroup.INLINE,
                             when="viewItem == profileItem",
                         ),
                         Menu(
-                            "robocorp.profileSwitch",
+                            "sema4ai.profileSwitch",
                             MenuGroup.INLINE,
                             when="viewItem == profileItem",
                         ),
@@ -365,7 +363,7 @@ def get_views_containers():
         "activitybar": activity_bar_contents,
         "panel": [
             {
-                "id": "robocorp-python-view-output",
+                "id": "sema4ai-python-view-output",
                 "title": "Robo Tasks Output",
                 "icon": "$(output)",
             },
@@ -383,10 +381,10 @@ def get_tree_views_for_package_json():
             if tree.add_to_package_json
         ]
 
-    ret["robocorp-python-view-output"] = [
+    ret["sema4ai-python-view-output"] = [
         {
             "type": "webview",
-            "id": "robocorp.python.view.output",
+            "id": "sema4ai.python.view.output",
             "name": "Robo Tasks Output",
             "contextualTitle": "Robo Tasks Output",
         }

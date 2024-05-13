@@ -1,8 +1,8 @@
 import {
-    TREE_VIEW_ROBOCORP_CLOUD_TREE,
-    TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE,
-    TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE,
-    TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE,
+    TREE_VIEW_SEMA4AI_CLOUD_TREE,
+    TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
+    TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
+    TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE,
 } from "./robocorpViews";
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
@@ -215,19 +215,19 @@ async function onChangedRobotSelection(
 export function registerViews(context: ExtensionContext) {
     // Cloud data
     let cloudTreeDataProvider = new CloudTreeDataProvider();
-    let viewsCloudTree = vscode.window.createTreeView(TREE_VIEW_ROBOCORP_CLOUD_TREE, {
+    let viewsCloudTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_CLOUD_TREE, {
         "treeDataProvider": cloudTreeDataProvider,
     });
-    treeViewIdToTreeView.set(TREE_VIEW_ROBOCORP_CLOUD_TREE, viewsCloudTree);
-    treeViewIdToTreeDataProvider.set(TREE_VIEW_ROBOCORP_CLOUD_TREE, cloudTreeDataProvider);
+    treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, viewsCloudTree);
+    treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, cloudTreeDataProvider);
 
     // Robots (i.e.: list of robots, not its contents)
     let robotsTreeDataProvider = new RobotsTreeDataProvider();
-    let robotsTree = vscode.window.createTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE, {
+    let robotsTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, {
         "treeDataProvider": robotsTreeDataProvider,
     });
-    treeViewIdToTreeView.set(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE, robotsTree);
-    treeViewIdToTreeDataProvider.set(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE, robotsTreeDataProvider);
+    treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTree);
+    treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTreeDataProvider);
 
     context.subscriptions.push(
         robotsTree.onDidChangeSelection(
@@ -260,11 +260,11 @@ export function registerViews(context: ExtensionContext) {
 
     // The contents of a single robot (the one selected in the Robots tree).
     let robotContentTreeDataProvider = new RobotContentTreeDataProvider();
-    let robotContentTree = vscode.window.createTreeView(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE, {
+    let robotContentTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, {
         "treeDataProvider": robotContentTreeDataProvider,
     });
-    treeViewIdToTreeView.set(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE, robotContentTree);
-    treeViewIdToTreeDataProvider.set(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE, robotContentTreeDataProvider);
+    treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, robotContentTree);
+    treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, robotContentTreeDataProvider);
 
     context.subscriptions.push(
         onSelectedRobotChanged((e) => robotContentTreeDataProvider.onRobotsTreeSelectionChanged(e))
@@ -277,12 +277,12 @@ export function registerViews(context: ExtensionContext) {
 
     // Resources
     let resourcesDataProvider = new ResourcesTreeDataProvider();
-    let resourcesTree = vscode.window.createTreeView(TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE, {
+    let resourcesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE, {
         "treeDataProvider": resourcesDataProvider,
         "canSelectMany": true,
     });
-    treeViewIdToTreeView.set(TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE, resourcesTree);
-    treeViewIdToTreeDataProvider.set(TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE, resourcesDataProvider);
+    treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE, resourcesTree);
+    treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE, resourcesDataProvider);
 
     context.subscriptions.push(onSelectedRobotChanged((e) => resourcesDataProvider.onRobotsTreeSelectionChanged(e)));
 
@@ -291,7 +291,7 @@ export function registerViews(context: ExtensionContext) {
     let onChangeRobotsYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.
         // (https://github.com/microsoft/vscode/pull/110858)
-        refreshTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE);
+        refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
     }, 300);
 
     robotsWatcher.onDidChange(onChangeRobotsYaml);
@@ -303,7 +303,7 @@ export function registerViews(context: ExtensionContext) {
     let onChangeLocatorsJson = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.
         // (https://github.com/microsoft/vscode/pull/110858)
-        refreshTreeView(TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE);
+        refreshTreeView(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE);
     }, 300);
 
     locatorsWatcher.onDidChange(onChangeLocatorsJson);

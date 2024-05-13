@@ -10,7 +10,7 @@ import {
     RobotEntry,
     treeViewIdToTreeDataProvider,
 } from "./viewsCommon";
-import { TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE } from "./robocorpViews";
+import { TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE } from "./robocorpViews";
 import { getCurrRobotDir, RobotSelectionTreeDataProviderBase } from "./viewsRobotSelectionTreeBase";
 import { resolveInterpreter } from "./activities";
 import { feedback } from "./rcc";
@@ -44,7 +44,7 @@ export interface WorkItemFSEntry extends FSEntry {
 
 async function getWorkItemInfo(): Promise<WorkItemsInfo | null> {
     const resourcesTreeDataProvider: ResourcesTreeDataProvider = <ResourcesTreeDataProvider>(
-        treeViewIdToTreeDataProvider.get(TREE_VIEW_ROBOCORP_PACKAGE_RESOURCES_TREE)
+        treeViewIdToTreeDataProvider.get(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE)
     );
     const workItemsTreeDataProvider = resourcesTreeDataProvider.workItemsTreeDataProvider;
 

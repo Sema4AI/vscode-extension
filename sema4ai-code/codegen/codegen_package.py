@@ -42,7 +42,7 @@ def get_json_contents():
         "license": "SEE LICENSE IN LICENSE.txt",
         "version": __version__,
         "icon": "images/icon.png",
-        "publisher": "robocorp",
+        "publisher": "sema4ai",
         "engines": {"vscode": f"^1.65.0"},
         "categories": ["Debuggers"],
         "activationEvents": get_activation_events_for_json()
@@ -275,7 +275,7 @@ def write_py_settings():
 
     settings_template.append(
         """
-ALL_ROBOCORP_OPTIONS = frozenset(
+ALL_SEMA4AI_OPTIONS = frozenset(
     ("""
     )
 

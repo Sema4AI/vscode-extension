@@ -13,7 +13,7 @@ import { logError, OUTPUT_CHANNEL } from "./channel";
 import { handleProgressMessage } from "./progress";
 import { ActionResult, InterpreterInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
-import { TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE } from "./robocorpViews";
+import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
 
 const dirtyWorkspaceFiles = new Set<string>();
@@ -95,7 +95,7 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                 (isEnvironmentFile(docURI.fsPath) || isPythonFile(docURI.fsPath))
             ) {
                 // let's refresh the view each time we get a hit on the files that might impact the workspace
-                refreshTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE);
+                refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
                 dirtyWorkspaceFiles.delete(docURI.fsPath);
                 // if environment file has changed, let's ask the user if he wants to update the env
                 if (isEnvironmentFile(docURI.fsPath)) {

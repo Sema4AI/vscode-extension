@@ -33,10 +33,10 @@ export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
             debugConfiguration.env = interpreterInfo.environ;
             debugConfiguration.python = interpreterInfo.pythonExe;
         } else {
-            logError(result.message, undefined, "RESOLVE_INT_RUN_ROBOCORP_TASKS_1");
+            logError(result.message, undefined, "RESOLVE_INT_RUN_SEMA4AI_TASKS_1");
         }
     } catch (error) {
-        logError("Error resolving interpreter.", error, "RESOLVE_INT_RUN_ROBOCORP_TASKS_2");
+        logError("Error resolving interpreter.", error, "RESOLVE_INT_RUN_SEMA4AI_TASKS_2");
     }
 
     // Overridde env variables in the launch config.
