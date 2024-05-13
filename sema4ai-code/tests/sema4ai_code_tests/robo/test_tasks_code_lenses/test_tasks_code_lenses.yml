@@ -3,7 +3,7 @@
     - - filepath.py
       - -t
       - my_entry_point
-    command: robocorp.runRobocorpsPythonTask
+    command: sema4ai.runRobocorpsPythonTask
     title: Run Task
   data: null
   range:
@@ -18,7 +18,7 @@
     - - filepath.py
       - -t
       - my_entry_point
-    command: robocorp.debugRobocorpsPythonTask
+    command: sema4ai.debugRobocorpsPythonTask
     title: Debug Task
   data: null
   range:

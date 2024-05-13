@@ -1,4 +1,4 @@
-import { getActionserverLocation, setActionserverLocation } from "./robocorpSettings";
+import { SEMA4AI_ACTION_SERVER_LOCATION, getActionserverLocation, setActionserverLocation } from "./robocorpSettings";
 import { fileExists, makeDirs } from "./files";
 import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, workspace } from "vscode";
 import { createEnvWithRobocorpHome, download, getRobocorpHome } from "./rcc";
@@ -118,12 +118,17 @@ export const downloadOrGetActionServerLocation = async (): Promise<string | unde
 const internalDownloadOrGetActionServerLocation = async (): Promise<string | undefined> => {
     let actionServerLocationInSettings = getActionserverLocation();
     let message: string | undefined = undefined;
+    const configName = SEMA4AI_ACTION_SERVER_LOCATION;
     if (!actionServerLocationInSettings) {
         message =
-            "The action-server executable is not currently specified in the `robocorp.actionServerLocation` setting. How would you like to proceed?";
+            "The action-server executable is not currently specified in the `" +
+            configName +
+            "` setting. How would you like to proceed?";
     } else if (!(await fileExists(actionServerLocationInSettings))) {
         message =
-            "The action-server executable specified in the `robocorp.actionServerLocation` does not point to an existing file. How would you like to proceed?";
+            "The action-server executable specified in the `" +
+            configName +
+            "` does not point to an existing file. How would you like to proceed?";
     } else {
         // Ok, found in settings.
         return actionServerLocationInSettings;

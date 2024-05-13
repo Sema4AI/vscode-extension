@@ -192,7 +192,7 @@ const clientOptions: LanguageClientOptions = {
         { language: "yaml", pattern: "**/package.yaml" },
 
         // Needed to detect tasks decorated with @task (from robocorp.tasks).
-        // Needed to detect actions decorated with @action (from robocorp.actions).
+        // Needed to detect actions decorated with @action (from sema4ai.actions).
         { language: "python", pattern: "**/*.py" },
     ],
     synchronize: {

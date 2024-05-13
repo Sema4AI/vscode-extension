@@ -41,7 +41,7 @@ ACCOUNT_NAME = "sema4ai-code"
 
 
 def download_rcc(
-    location: str, force: bool = False, sys_platform: Optional[str] = None
+    location: str, force: bool=False, sys_platform: Optional[str]=None
 ) -> None:
     """
     Downloads rcc to the given location. Note that we don't overwrite it if it
@@ -135,6 +135,7 @@ def get_default_robocorp_home_location() -> Path:
 
 
 class RccRobotMetadata(object):
+
     def __init__(self, robot_id: str, robot_name: str):
         self._robot_id = robot_id
         self._robot_name = robot_name
@@ -152,6 +153,7 @@ class RccRobotMetadata(object):
 
 
 class RccWorkspace(object):
+
     def __init__(self, workspace_id: str, workspace_name: str, organization_name: str):
         self._workspace_id = workspace_id
         self._workspace_name = workspace_name
@@ -182,6 +184,7 @@ class AccountInfo:
 
 
 class RobotInfoEnv(object):
+
     def __init__(self, env: Dict[str, str], space_info: RCCSpaceInfo):
         self.env = env
         self.space_info = space_info
@@ -268,14 +271,14 @@ class Rcc(object):
     def _run_rcc(
         self,
         args: List[str],
-        timeout: float = 35,
-        error_msg: str = "",
+        timeout: float=35,
+        error_msg: str="",
         mutex_name=None,
-        cwd: Optional[str] = None,
+        cwd: Optional[str]=None,
         log_errors=True,
         stderr=Sentinel.SENTINEL,
-        show_interactive_output: bool = False,
-        hide_in_log: Optional[str] = None,
+        show_interactive_output: bool=False,
+        hide_in_log: Optional[str]=None,
     ) -> RCCActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed command.
@@ -310,7 +313,7 @@ class Rcc(object):
             env["ROBOCORP_HOME"] = robocorp_home
 
         kwargs: dict = build_subprocess_kwargs(cwd, env, stderr=stderr)
-        args = [rcc_location] + args + ["--controller", "RobocorpCode"]
+        args = [rcc_location] + args + ["--controller", "Sema4aiCode"]
         cmdline = list2cmdline([str(x) for x in args])
 
         try:
@@ -511,7 +514,7 @@ class Rcc(object):
 
     @implements(IRcc.create_robot)
     def create_robot(
-        self, template: str, directory: str, force: bool = False
+        self, template: str, directory: str, force: bool=False
     ) -> ActionResult:
         args = ["robot", "initialize", "-t", template, "-d", directory]
         if force:
@@ -1134,8 +1137,8 @@ class Rcc(object):
     def configuration_diagnostics(self, robot_yaml, json=True) -> ActionResult[str]:
         return self._run_rcc(
             ["configuration", "diagnostics"]
-            + (["--json"] if json else [])
-            + ["-r", robot_yaml],
+            +(["--json"] if json else [])
+            +["-r", robot_yaml],
             mutex_name=None,
             timeout=60,
         )
@@ -1191,9 +1194,9 @@ class Rcc(object):
 
 
 def make_numbered_in_temp(
-    keep: int = 10,
-    lock_timeout: float = -1,
-    tmpdir: Optional[Path] = None,
+    keep: int=10,
+    lock_timeout: float=-1,
+    tmpdir: Optional[Path]=None,
     register=None,
 ) -> Path:
     """

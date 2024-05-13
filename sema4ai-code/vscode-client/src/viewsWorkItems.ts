@@ -2,7 +2,11 @@ import * as vscode from "vscode";
 import { resolve, join, dirname, basename } from "path";
 
 import { logError } from "./channel";
-import { SEMA4AI_LIST_WORK_ITEMS_INTERNAL, SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL } from "./robocorpCommands";
+import {
+    SEMA4AI_LIST_WORK_ITEMS_INTERNAL,
+    SEMA4AI_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW,
+    SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
+} from "./robocorpCommands";
 import {
     FSEntry,
     getSelectedRobot,
@@ -429,7 +433,7 @@ export class WorkItemsTreeDataProvider extends RobotSelectionTreeDataProviderBas
                 treeItem.iconPath = new vscode.ThemeIcon("add");
                 treeItem.command = {
                     "title": "New Work Item",
-                    "command": "robocorp.newWorkItemInWorkItemsView",
+                    "command": SEMA4AI_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW,
                     "arguments": [],
                 };
             } else if (element.kind === "outputWorkItemDir") {

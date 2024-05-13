@@ -30,10 +30,10 @@ def compute_launch_robo_code_lens(
     if config_provider is not None:
         config = config_provider.config
         if config:
-            from sema4ai_code.settings import ROBOCORP_CODE_LENS_ROBO_LAUNCH
+            from sema4ai_code.settings import SEMA4AI_CODE_LENS_ROBO_LAUNCH
 
             compute_launch = config.get_setting(
-                ROBOCORP_CODE_LENS_ROBO_LAUNCH, bool, True
+                SEMA4AI_CODE_LENS_ROBO_LAUNCH, bool, True
             )
 
     if not compute_launch:
@@ -80,7 +80,7 @@ def _collect_tasks_in_thread(
                                     },
                                     "command": {
                                         "title": "Run Task",
-                                        "command": "robocorp.runRobocorpsPythonTask",
+                                        "command": "sema4ai.runRobocorpsPythonTask",
                                         "arguments": [
                                             [
                                                 document.path,
@@ -106,7 +106,7 @@ def _collect_tasks_in_thread(
                                     },
                                     "command": {
                                         "title": "Debug Task",
-                                        "command": "robocorp.debugRobocorpsPythonTask",
+                                        "command": "sema4ai.debugRobocorpsPythonTask",
                                         "arguments": [
                                             [
                                                 document.path,
