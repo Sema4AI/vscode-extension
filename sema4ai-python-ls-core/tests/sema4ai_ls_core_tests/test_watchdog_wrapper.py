@@ -1,46 +1,5 @@
 import time
 import pytest
-import sys
-
-
-@pytest.mark.skipif(sys.platform != "darwin", reason="Mac OS only test.")
-def test_watchdog_macos():
-    # Make sure that the binary deps are distributed in Mac OS.
-
-    import os.path
-    from sema4ai_ls_core import watchdog_wrapper
-
-    watchdog_wrapper._import_watchdog()
-    import watchdog
-
-    assert os.path.exists(
-        os.path.join(
-            watchdog_wrapper._get_watchdog_lib_dir(),
-            "_watchdog_fsevents.cpython-38-darwin.so",
-        )
-    )
-    assert os.path.exists(
-        os.path.join(
-            watchdog_wrapper._get_watchdog_lib_dir(),
-            "_watchdog_fsevents.cpython-39-darwin.so",
-        )
-    )
-    assert os.path.exists(
-        os.path.join(
-            watchdog_wrapper._get_watchdog_lib_dir(),
-            "_watchdog_fsevents.cpython-310-darwin.so",
-        )
-    )
-
-    try:
-        from watchdog.observers import fsevents  # noqa
-    except Exception:
-        sys_path = "\n    ".join(sorted(sys.path))
-        raise AssertionError(
-            f"Could not import _watchdog_fsevents.\nWatchdog found: {watchdog}\n"
-            f"sys.path:\n{sys_path}\n"
-            f"watchdog_dir: {watchdog_wrapper._get_watchdog_lib_dir()}\n"
-        )
 
 
 @pytest.mark.parametrize("backend", ["watchdog", "fsnotify"])

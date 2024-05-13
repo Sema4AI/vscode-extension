@@ -1,1 +1,0 @@
-Are you looking for: [config.md](../robotframework-ls/docs/config.md)?
