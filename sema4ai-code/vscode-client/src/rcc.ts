@@ -390,7 +390,7 @@ export async function runConfigDiagnostics(
         let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome });
         configureLongpathsOutput = await execFilePromise(
             rccLocation,
-            ["configure", "diagnostics", "-j", "--controller", "RobocorpCode"],
+            ["configure", "diagnostics", "-j", "--controller", "Sema4aiCode"],
             { env: env }
         );
         let outputAsJSON = JSON.parse(configureLongpathsOutput.stdout);
@@ -493,13 +493,13 @@ export async function collectIssueLogs(logPath: string): Promise<CollectedLogs> 
 }
 
 async function collectIssueBaseMetadata(): Promise<any> {
-    let version = extensions.getExtension("robocorp.sema4ai-code").packageJSON.version;
+    let version = extensions.getExtension("sema4ai.sema4ai-code").packageJSON.version;
     const metadata = {
         platform: os.platform(),
         osRelease: os.release(),
         nodeVersion: process.version,
         version: version,
-        controller: "rcc.robocorpcode",
+        controller: "rcc.sema4aicode",
     };
     return metadata;
 }
@@ -536,7 +536,7 @@ export async function submitIssue(
 
             const reportPath: string = path.join(os.tmpdir(), `robocode_issue_report_${Date.now()}.json`);
             fs.writeFileSync(reportPath, JSON.stringify(metadata, null, 4), { encoding: "utf-8" });
-            let args: string[] = ["feedback", "issue", "-r", reportPath, "--controller", "RobocorpCode"];
+            let args: string[] = ["feedback", "issue", "-r", reportPath, "--controller", "Sema4aiCode"];
             for (const file of files) {
                 args.push("-a");
                 args.push(file);
@@ -794,7 +794,7 @@ export async function collectBaseEnv(
             args.push(envFilename);
         }
         args.push("--controller");
-        args.push("RobocorpCode");
+        args.push("Sema4aiCode");
 
         let execFileReturn: ExecFileReturn = await execFilePromise(
             rccLocation,

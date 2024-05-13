@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from sema4ai_ls_core.basic import as_str, implements, is_process_alive
 from sema4ai_ls_core.constants import NULL
+from sema4ai_ls_core.core_log import get_log_level, get_logger
 from sema4ai_ls_core.protocols import (
     IConfig,
     IConfigProvider,
@@ -17,7 +18,6 @@ from sema4ai_ls_core.protocols import (
     Sentinel,
     check_implements,
 )
-from sema4ai_ls_core.core_log import get_log_level, get_logger
 
 from sema4ai_code.protocols import (
     ActionResult,
@@ -219,9 +219,9 @@ class Rcc(object):
         return None
 
     def get_robocorp_home_from_settings(self) -> Optional[str]:
-        from sema4ai_code.settings import ROBOCORP_HOME
+        from sema4ai_code.settings import SEMA4AI_HOME
 
-        return self._get_str_optional_setting(ROBOCORP_HOME)
+        return self._get_str_optional_setting(SEMA4AI_HOME)
 
     def get_robocorp_code_datadir(self) -> Path:
         robocorp_home_str = self.get_robocorp_home_from_settings()
@@ -241,7 +241,7 @@ class Rcc(object):
         # Can be set in tests to provide a different config location.
         from sema4ai_code import settings
 
-        return self._get_str_optional_setting(settings.ROBOCORP_RCC_CONFIG_LOCATION)
+        return self._get_str_optional_setting(settings.SEMA4AI_RCC_CONFIG_LOCATION)
 
     @property
     def endpoint(self) -> Optional[str]:
@@ -251,13 +251,13 @@ class Rcc(object):
         # Can be set in tests to provide a different endpoint.
         from sema4ai_code import settings
 
-        return self._get_str_optional_setting(settings.ROBOCORP_RCC_ENDPOINT)
+        return self._get_str_optional_setting(settings.SEMA4AI_RCC_ENDPOINT)
 
     @implements(IRcc.get_rcc_location)
     def get_rcc_location(self) -> str:
         from sema4ai_code import settings
 
-        rcc_location = self._get_str_optional_setting(settings.ROBOCORP_RCC_LOCATION)
+        rcc_location = self._get_str_optional_setting(settings.SEMA4AI_RCC_LOCATION)
         if not rcc_location:
             rcc_location = get_default_rcc_location()
 
@@ -310,7 +310,7 @@ class Rcc(object):
             env["ROBOCORP_HOME"] = robocorp_home
 
         kwargs: dict = build_subprocess_kwargs(cwd, env, stderr=stderr)
-        args = [rcc_location] + args + ["--controller", "RobocorpCode"]
+        args = [rcc_location] + args + ["--controller", "Sema4aiCode"]
         cmdline = list2cmdline([str(x) for x in args])
 
         try:
@@ -633,12 +633,10 @@ class Rcc(object):
         if config_provider is not None:
             config = config_provider.config
             if config:
-                from sema4ai_code.settings import (
-                    ROBOCORP_VAULT_TOKEN_TIMEOUT_IN_MINUTES,
-                )
+                from sema4ai_code.settings import SEMA4AI_VAULT_TOKEN_TIMEOUT_IN_MINUTES
 
                 timeout = config.get_setting(
-                    ROBOCORP_VAULT_TOKEN_TIMEOUT_IN_MINUTES, int, 30
+                    SEMA4AI_VAULT_TOKEN_TIMEOUT_IN_MINUTES, int, 30
                 )
 
         if timeout >= 60:

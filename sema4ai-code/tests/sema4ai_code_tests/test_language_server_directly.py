@@ -26,7 +26,7 @@ def test_cloud_list_workspaces_cache_invalidate(
     )
     language_server.m_workspace__did_change_configuration(
         {
-            "robocorp": {
+            "sema4ai": {
                 "rcc": {
                     "location": rcc_location,
                     "endpoint": ci_endpoint,

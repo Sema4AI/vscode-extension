@@ -11,7 +11,7 @@ interface IContents {
 }
 
 export class RobotOutputViewProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = "robocorp.python.view.output";
+    public static readonly viewType = "sema4ai.python.view.output";
 
     private view?: vscode.WebviewView;
     private loading?: { cts: vscode.CancellationTokenSource };

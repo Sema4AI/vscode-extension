@@ -165,7 +165,7 @@ def config_provider(
 
     config.update(
         {
-            "robocorp": {
+            "sema4ai": {
                 "home": robocorp_home,
                 "rcc": {
                     "location": rcc_location,
@@ -383,7 +383,7 @@ def language_server_initialized(
     language_server.settings(
         {
             "settings": {
-                "robocorp": {
+                "sema4ai": {
                     "rcc": {
                         "location": rcc_location,
                         "endpoint": ci_endpoint,

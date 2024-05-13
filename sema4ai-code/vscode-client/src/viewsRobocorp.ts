@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as roboCommands from "./robocorpCommands";
 import { CloudEntry, treeViewIdToTreeDataProvider } from "./viewsCommon";
 import { SEMA4AI_SUBMIT_ISSUE } from "./robocorpCommands";
-import { TREE_VIEW_ROBOCORP_CLOUD_TREE } from "./robocorpViews";
+import { TREE_VIEW_SEMA4AI_CLOUD_TREE } from "./robocorpViews";
 import { getWorkspaceDescription } from "./ask";
 import { logError } from "./channel";
 import { ActionResult, IAccountInfo, IVaultInfo } from "./protocols";
@@ -143,7 +143,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
 
 export function refreshCloudTreeView() {
     let dataProvider: CloudTreeDataProvider = <CloudTreeDataProvider>(
-        treeViewIdToTreeDataProvider.get(TREE_VIEW_ROBOCORP_CLOUD_TREE)
+        treeViewIdToTreeDataProvider.get(TREE_VIEW_SEMA4AI_CLOUD_TREE)
     );
     if (dataProvider) {
         dataProvider.refreshOnce = true;

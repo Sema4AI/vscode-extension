@@ -66,12 +66,12 @@ export class LocatorsTreeDataProvider
                     "arguments": [true],
                 };
             } else {
-                // Command: robocorp.newRobocorpInspectorBrowser
-                // Command: robocorp.newRobocorpInspectorImage
-                // Command: robocorp.newRobocorpInspectorWindows
-                // Command: robocorp.newRobocorpInspectorWebRecorder
+                // Command: sema4ai.newRobocorpInspectorBrowser
+                // Command: sema4ai.newRobocorpInspectorImage
+                // Command: sema4ai.newRobocorpInspectorWindows
+                // Command: sema4ai.newRobocorpInspectorWebRecorder
                 commandName =
-                    "robocorp.newRobocorpInspector" +
+                    "sema4ai.newRobocorpInspector" +
                     (node.locatorType.charAt(0).toUpperCase() + node.locatorType.substring(1)).replace("-r", "R");
                 treeItem.command = {
                     "title": node.caption,

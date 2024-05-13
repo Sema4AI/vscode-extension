@@ -1,6 +1,6 @@
 import { DebugConfiguration, DebugSessionOptions, commands, debug } from "vscode";
 import { OUTPUT_CHANNEL, logError } from "../channel";
-import { SEMA4AI_RESOLVE_INTERPRETER } from "../robocorpCommands";
+import { SEMA4AI_RESOLVE_INTERPRETER, SEMA4AI_UPDATE_LAUNCH_ENV } from "../robocorpCommands";
 import { ActionResult, InterpreterInfo } from "../protocols";
 import * as path from "path";
 
@@ -33,17 +33,17 @@ export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
             debugConfiguration.env = interpreterInfo.environ;
             debugConfiguration.python = interpreterInfo.pythonExe;
         } else {
-            logError(result.message, undefined, "RESOLVE_INT_RUN_ROBOCORP_TASKS_1");
+            logError(result.message, undefined, "RESOLVE_INT_RUN_SEMA4AI_TASKS_1");
         }
     } catch (error) {
-        logError("Error resolving interpreter.", error, "RESOLVE_INT_RUN_ROBOCORP_TASKS_2");
+        logError("Error resolving interpreter.", error, "RESOLVE_INT_RUN_SEMA4AI_TASKS_2");
     }
 
     // Overridde env variables in the launch config.
     if (interpreterInfo !== undefined) {
         try {
             let newEnv: { [key: string]: string } | "cancelled" = await commands.executeCommand(
-                "robocorp.updateLaunchEnv",
+                SEMA4AI_UPDATE_LAUNCH_ENV,
                 {
                     "targetRobot": targetPy,
                     "env": debugConfiguration.env,

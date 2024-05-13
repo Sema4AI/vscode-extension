@@ -333,7 +333,7 @@ class LaunchProcess(object):
                 cmdline.append(use_path)
 
             cmdline.append("--controller")
-            cmdline.append("RobocorpCode")
+            cmdline.append("Sema4aiCode")
 
         self._cmdline = cmdline
 

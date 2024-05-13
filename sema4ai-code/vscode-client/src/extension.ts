@@ -65,7 +65,7 @@ import {
     listAndAskRobotSelection,
 } from "./activities";
 import { handleProgressMessage, ProgressReport } from "./progress";
-import { TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE, TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE } from "./robocorpViews";
+import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE } from "./robocorpViews";
 import { askAndCreateRccTerminal } from "./rccTerminal";
 import {
     deleteResourceInRobotContentTree,
@@ -192,11 +192,11 @@ const clientOptions: LanguageClientOptions = {
         { language: "yaml", pattern: "**/package.yaml" },
 
         // Needed to detect tasks decorated with @task (from robocorp.tasks).
-        // Needed to detect actions decorated with @action (from robocorp.actions).
+        // Needed to detect actions decorated with @action (from sema4ai.actions).
         { language: "python", pattern: "**/*.py" },
     ],
     synchronize: {
-        configurationSection: "robocorp",
+        configurationSection: "sema4ai",
     },
     outputChannel: OUTPUT_CHANNEL,
 };
@@ -415,7 +415,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(true));
     C.register(SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
     C.register(SEMA4AI_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
-    C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_TASK_PACKAGES_TREE));
+    C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE));
     C.register(SEMA4AI_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
@@ -452,7 +452,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         views.createRccTerminalTreeSelection(robot)
     );
     C.register(SEMA4AI_RCC_TERMINAL_NEW, () => askAndCreateRccTerminal());
-    C.register(SEMA4AI_REFRESH_ROBOT_CONTENT_VIEW, () => refreshTreeView(TREE_VIEW_ROBOCORP_PACKAGE_CONTENT_TREE));
+    C.register(SEMA4AI_REFRESH_ROBOT_CONTENT_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE));
     C.register(SEMA4AI_NEW_FILE_IN_ROBOT_CONTENT_VIEW, newFileInRobotContentTree);
     C.register(SEMA4AI_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW, newFolderInRobotContentTree);
     C.register(SEMA4AI_DELETE_RESOURCE_IN_ROBOT_CONTENT_VIEW, deleteResourceInRobotContentTree);
@@ -781,9 +781,9 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
 
     workspace.onDidChangeConfiguration((event) => {
         for (let s of [
-            roboConfig.ROBOCORP_LANGUAGE_SERVER_ARGS,
-            roboConfig.ROBOCORP_LANGUAGE_SERVER_PYTHON,
-            roboConfig.ROBOCORP_LANGUAGE_SERVER_TCP_PORT,
+            roboConfig.SEMA4AI_LANGUAGE_SERVER_ARGS,
+            roboConfig.SEMA4AI_LANGUAGE_SERVER_PYTHON,
+            roboConfig.SEMA4AI_LANGUAGE_SERVER_TCP_PORT,
         ]) {
             if (event.affectsConfiguration(s)) {
                 window

@@ -372,7 +372,7 @@ export async function basicValidations(
         }
         if (rccDiagnostics.isRobocorpHomeOk()) {
             OUTPUT_CHANNEL.appendLine("Selected ROBOCORP_HOME: " + robocorpHome);
-            let config = workspace.getConfiguration("robocorp");
+            let config = workspace.getConfiguration("sema4ai");
             await config.update("home", robocorpHome, ConfigurationTarget.Global);
         }
     }
