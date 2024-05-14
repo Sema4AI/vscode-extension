@@ -196,7 +196,7 @@ const clientOptions: LanguageClientOptions = {
         { language: "python", pattern: "**/*.py" },
     ],
     synchronize: {
-        configurationSection: "robocorp",
+        configurationSection: "sema4ai",
     },
     outputChannel: OUTPUT_CHANNEL,
 };
