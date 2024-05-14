@@ -62,7 +62,6 @@ def _notify_on_exited_pid(on_exit, pid):
 
 
 class _DefaultConfigurationProvider(object):
-
     def __init__(self, config: IConfig):
         self.config = config
 
@@ -87,7 +86,7 @@ class LaunchProcess(object):
         "_on_exit_callbacks",
     ]
 
-    def __init__(# pylint: disable=return-in-init
+    def __init__(  # pylint: disable=return-in-init
         self,
         request,
         launch_response,
@@ -309,9 +308,9 @@ class LaunchProcess(object):
                     "--space",
                     space_name,
                 ]
-                +workspace_args
-                +task_args
-                +args
+                + workspace_args
+                + task_args
+                + args
             )
             if self._rcc_config_location:
                 cmdline.append("--config")
