@@ -330,38 +330,6 @@ class CommandRegistry {
     }
 }
 
-async function verifyRobotFrameworkInstalled() {
-    // No longer check whether robotframweork-lsp is installed.
-    //     if (!roboConfig.getVerifylsp()) {
-    //         return;
-    //     }
-    //     const ROBOT_EXTENSION_ID = "robocorp.robotframework-lsp";
-    //     let found = true;
-    //     try {
-    //         let extension = extensions.getExtension(ROBOT_EXTENSION_ID);
-    //         if (!extension) {
-    //             found = false;
-    //         }
-    //     } catch (error) {
-    //         found = false;
-    //     }
-    //     if (!found) {
-    //         // It seems it's not installed, install?
-    //         let install = "Install";
-    //         let dontAsk = "Don't ask again";
-    //         let chosen = await window.showInformationMessage(
-    //             "It seems that the Robot Framework Language Server extension is not installed to work with .robot Files.",
-    //             install,
-    //             dontAsk
-    //         );
-    //         if (chosen == install) {
-    //             await commands.executeCommand("workbench.extensions.search", ROBOT_EXTENSION_ID);
-    //         } else if (chosen == dontAsk) {
-    //             roboConfig.setVerifylsp(false);
-    //         }
-    //     }
-}
-
 async function cloudLoginShowConfirmationAndRefresh() {
     let loggedIn = await cloudLogin();
     if (loggedIn) {
@@ -870,7 +838,6 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     // regardless of it -- as it may call robot.resolveInterpreter, it may need to activate the language
     // server extension, which in turn requires robocorp code to be activated already).
     installWorkspaceWatcher(context);
-    verifyRobotFrameworkInstalled();
 }
 
 export function deactivate(): Thenable<void> | undefined {
