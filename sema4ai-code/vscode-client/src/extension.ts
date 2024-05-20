@@ -133,7 +133,6 @@ import {
     SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION,
     SEMA4AI_OPEN_LOCATORS_JSON,
     SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION,
-    SEMA4AI_CONVERT_PROJECT,
     SEMA4AI_PROFILE_IMPORT,
     SEMA4AI_PROFILE_SWITCH,
     SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK,
@@ -165,7 +164,6 @@ import { Mutex } from "./mutex";
 import { mergeEnviron } from "./subprocess";
 import { feedback } from "./rcc";
 import { showSubmitIssueUI } from "./submitIssue";
-import { showConvertUI } from "./conversionView";
 import { profileImport, profileSwitch } from "./profiles";
 import { registerLinkProviders } from "./robo/linkProvider";
 import { runRobocorpTasks } from "./robo/runRobocorpTasks";
@@ -415,7 +413,6 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION, (robot: RobotEntry) =>
         commands.executeCommand("robot.openFlowExplorer", Uri.file(robot.robot.directory).toString())
     );
-    C.register(SEMA4AI_CONVERT_PROJECT, async () => await showConvertUI(context));
     C.register(SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.createRccTerminalTreeSelection(robot)
     );

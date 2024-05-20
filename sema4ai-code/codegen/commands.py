@@ -695,13 +695,6 @@ COMMANDS = [
         icon="$(type-hierarchy-sub)",
     ),
     Command(
-        "sema4ai.convertProject",
-        "Conversion Accelerator from third party RPA to Robocorp Task Package (Robot)",
-        add_to_package_json=True,
-        server_handled=False,
-        hide_from_command_palette=False,
-    ),
-    Command(
         "sema4ai.profileImport",
         "Import Profile",
         add_to_package_json=True,
