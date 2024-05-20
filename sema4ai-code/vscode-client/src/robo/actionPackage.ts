@@ -297,8 +297,6 @@ export async function createActionPackage() {
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
 
-    const cwd = dirname(targetDir);
-    const useName = path.basename(targetDir);
     await makeDirs(targetDir);
 
     try {
