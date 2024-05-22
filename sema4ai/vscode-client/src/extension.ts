@@ -263,9 +263,7 @@ const serverOptions: ServerOptions = async function () {
             args = args.concat(["-v"]);
         }
 
-        OUTPUT_CHANNEL.appendLine(
-            "Starting Sema4.ai with args: " + executableAndEnv.pythonExe + " " + args.join(" ")
-        );
+        OUTPUT_CHANNEL.appendLine("Starting Sema4.ai with args: " + executableAndEnv.pythonExe + " " + args.join(" "));
 
         let src: string = path.resolve(__dirname, "../../src");
         let executableAndEnvEnviron = {};
