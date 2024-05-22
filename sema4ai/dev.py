@@ -241,15 +241,12 @@ class Dev(object):
         with urllib.request.urlopen(url) as response:
             content = response.read().decode('utf-8')
 
-        # Write the content to LICENSE.txt
         with open(readme, "w") as f:
             f.write(content)
 
         # Read the content back from LICENSE.txt for verification
         with open(readme, "r") as f:
             written_content = f.read()
-
-        # Verify that the content is correct
         assert "Sema4.ai End User License Agreement" in written_content
 
     def download_rcc(self, plat):
