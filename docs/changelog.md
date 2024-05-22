@@ -1,3 +1,25 @@
+Unreleased
+-----------------------------
+
+- Improvements when running actions:
+    - Logs will show local variables (ROBOT_ROOT is no longer set).
+    - ROBOT_ARTIFACTS set to a better place for the log.html.
+    - If using `sema4ai-actions 0.7.0` or newer, the results of running an action are printed to the terminal.
+
+
+New in 1.22.4 (2024-05-22)
+-----------------------------
+
+- First `Sema4.ai` VSCode Extension release
+
+
+
+
+
+Below is the changelog for what was `Robocorp Code`, the precursor of `Sema4.ai` 
+==================================================================================
+
+
 New in 1.22.2 (2024-05-20)
 -----------------------------
 
