@@ -436,7 +436,7 @@
             },
             {
                 "command": "sema4ai.refreshRobotsView",
-                "title": "Refresh Task Packages (Robots) view",
+                "title": "Refresh Task/Action Packages view",
                 "category": "Sema4.ai",
                 "icon": {
                     "light": "images/light/refresh.svg",
@@ -478,7 +478,7 @@
             },
             {
                 "command": "sema4ai.refreshCloudView",
-                "title": "Refresh Robocorp view",
+                "title": "Refresh Sema4.ai view",
                 "category": "Sema4.ai",
                 "icon": {
                     "light": "images/light/refresh.svg",
@@ -618,7 +618,7 @@
             },
             {
                 "command": "sema4ai.submitIssue",
-                "title": "Submit issue to Robocorp",
+                "title": "Submit issue to Sema4.ai",
                 "category": "Sema4.ai"
             },
             {
@@ -730,7 +730,7 @@
             },
             {
                 "command": "sema4ai.clearEnvAndRestart",
-                "title": "Clear Robocorp (RCC) environments and restart Sema4.ai",
+                "title": "Clear Sema4.ai (RCC) environments and restart Sema4.ai",
                 "category": "Sema4.ai"
             },
             {

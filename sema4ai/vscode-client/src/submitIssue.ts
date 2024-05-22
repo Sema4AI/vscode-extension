@@ -40,7 +40,7 @@ export async function showSubmitIssueUI(context: vscode.ExtensionContext) {
 
     const panel = vscode.window.createWebviewPanel(
         "robocorpCodeSubmitIssue",
-        "Submit Issue to Robocorp",
+        "Submit Issue to Sema4.ai",
         vscode.ViewColumn.One,
         {
             enableScripts: true,

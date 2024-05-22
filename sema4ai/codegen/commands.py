@@ -294,7 +294,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshRobotsView",
-        "Refresh Task Packages (Robots) view",
+        "Refresh Task/Action Packages view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
@@ -341,7 +341,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshCloudView",
-        "Refresh Robocorp view",
+        "Refresh Sema4.ai view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
@@ -527,7 +527,7 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=True,
     ),
-    Command("sema4ai.submitIssue", "Submit issue to Robocorp", server_handled=False),
+    Command("sema4ai.submitIssue", "Submit issue to Sema4.ai", server_handled=False),
     Command(
         "sema4ai.inspector.internal",
         "Inspector Manager (internal)",
@@ -669,7 +669,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.clearEnvAndRestart",
-        "Clear Robocorp (RCC) environments and restart Sema4.ai",
+        "Clear Sema4.ai (RCC) environments and restart Sema4.ai",
         add_to_package_json=True,
         server_handled=False,
     ),

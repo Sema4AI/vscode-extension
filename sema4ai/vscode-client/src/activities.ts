@@ -624,7 +624,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showErrorMessage("Error listing Task Packages (Robots): " + actionResult.message);
+        window.showErrorMessage("Error listing Task/Action Packages: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
