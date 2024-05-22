@@ -113,7 +113,6 @@
         "onCommand:sema4ai.showOutput",
         "onCommand:sema4ai.showInterpreterEnvError",
         "onCommand:sema4ai.openFlowExplorerTreeSelection",
-        "onCommand:sema4ai.convertProject",
         "onCommand:sema4ai.profileImport",
         "onCommand:sema4ai.profileImport.internal",
         "onCommand:sema4ai.profileSwitch",
@@ -749,11 +748,6 @@
                 "title": "Open Flow Explorer",
                 "category": "Sema4.ai",
                 "icon": "$(type-hierarchy-sub)"
-            },
-            {
-                "command": "sema4ai.convertProject",
-                "title": "Conversion Accelerator from third party RPA to Robocorp Task Package (Robot)",
-                "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.profileImport",

@@ -95,7 +95,6 @@ SEMA4AI_CLEAR_ENV_AND_RESTART = "sema4ai.clearEnvAndRestart"  # Clear Robocorp (
 SEMA4AI_SHOW_OUTPUT = "sema4ai.showOutput"  # Show Sema4.ai Code > Output logs
 SEMA4AI_SHOW_INTERPRETER_ENV_ERROR = "sema4ai.showInterpreterEnvError"  # Show error related to interpreter env creation
 SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION = "sema4ai.openFlowExplorerTreeSelection"  # Open Flow Explorer
-SEMA4AI_CONVERT_PROJECT = "sema4ai.convertProject"  # Conversion Accelerator from third party RPA to Robocorp Task Package (Robot)
 SEMA4AI_PROFILE_IMPORT = "sema4ai.profileImport"  # Import Profile
 SEMA4AI_PROFILE_IMPORT_INTERNAL = "sema4ai.profileImport.internal"  # Import Profile (internal)
 SEMA4AI_PROFILE_SWITCH = "sema4ai.profileSwitch"  # Switch Profile
