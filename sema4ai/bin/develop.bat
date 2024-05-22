@@ -30,6 +30,10 @@ echo Creating a clean environment...
 :: Activate the virtual environment and install dependencies everytime.
 call .\%venvDir%\Scripts\activate.bat
 python -m poetry install 
+
+cd sema4ai
+yarn
+
 :: Start VS Code over the repo to open the entire project for development.
 code .. || goto vscode_error
 goto end

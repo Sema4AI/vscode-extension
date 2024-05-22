@@ -49,6 +49,8 @@ fi
 . ./$venvDir/bin/activate  # environment already exists at this point
 # Install requirements all the time (due to updates).
 python -m poetry install
+cd sema4ai
+yarn
 
 # Start VS Code over the repo to open the entire project for development.
 code .. || echo "VSCode binary not available in PATH! (skip opening)"
