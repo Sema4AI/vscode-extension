@@ -76,7 +76,7 @@ jobs:
     - name: Publish pre-release to vscode marketplace
       run: vsce publish --packagePath ./sema4ai-code-win32-x64.vsix -p $VSCODE_VSCE_TOKEN --pre-release
       env:
-        VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
     # Deal with Linux --------------
     - name: Download rcc for linux
@@ -92,7 +92,7 @@ jobs:
     - name: Publish pre-release to vscode marketplace
       run: vsce publish --packagePath ./sema4ai-code-linux-x64.vsix -p $VSCODE_VSCE_TOKEN --pre-release
       env:
-        VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
     # Deal with Darwin x64 --------------
     - name: Download rcc for darwin
@@ -108,7 +108,7 @@ jobs:
     - name: Publish pre-release to vscode marketplace
       run: vsce publish --packagePath ./sema4ai-code-darwin-x64.vsix -p $VSCODE_VSCE_TOKEN --pre-release
       env:
-        VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
     # Deal with Darwin arm64 --------------
     - name: Download rcc for darwin
@@ -124,4 +124,4 @@ jobs:
     - name: Publish pre-release to vscode marketplace
       run: vsce publish --packagePath ./sema4ai-code-darwin-arm64.vsix -p $VSCODE_VSCE_TOKEN --pre-release
       env:
-        VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
