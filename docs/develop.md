@@ -10,14 +10,14 @@ Download the sources, head to the root directory (where `package.json` is locate
 and run: `yarn install`.
 
 After this step, it should be possible to open the `sema4ai_code` folder in VSCode and launch
-`Extension: Sema4.ai Code` to have a new instance of VSCode with the loaded extension.
+`Extension: Sema4.ai` to have a new instance of VSCode with the loaded extension.
 
 
 Creating a local environment for python development
 ----------------------------------------------------
 
 For local development, `poetry` should be used to install the libraries needed,
-so, head on to `/sema4ai-code` and do `poetry install` to get your python
+so, head on to `/sema4ai` and do `poetry install` to get your python
 environment setup.
 
 If everything went well, just pointing your IDE to use the python executable
@@ -36,12 +36,12 @@ To build a VSIX, follow the steps in https://code.visualstudio.com/api/working-w
 Adding a new command
 ---------------------
 
-To add a new command, add it at the `COMMANDS` in `/sema4ai-code/codegen/commands.py` and then execute
-(in a shell in the `/sema4ai-code` directory) `python -m dev codegen`.
+To add a new command, add it at the `COMMANDS` in `/sema4ai/codegen/commands.py` and then execute
+(in a shell in the `/sema4ai` directory) `python -m dev codegen`.
 
 This should add the command to the `package.json` as well as the files related to the constants.
 
-Then, you may handle the command either in `/sema4ai-code/vscode-client/src/extension.ts` if the
+Then, you may handle the command either in `/sema4ai/vscode-client/src/extension.ts` if the
 command requires some VSCode-only API or in the language server (which is ideal as less work would
 be required when porting the extension to a different client).
 
@@ -52,14 +52,14 @@ Note: the code in the extension side (in TypeScript) should be kept to a minimum
 redone if porting to a different client).
 
 Note: at least one integration test for each action must be added in
-`/sema4ai-code/tests/sema4ai_code_tests/test_vscode_integration.py`
+`/sema4ai/tests/sema4ai_code_tests/test_vscode_integration.py`
 
 
 Adding a new setting
 ---------------------
 
-To add a new setting, add it at the `SETTINGS` in `/sema4ai-code/codegen/settings.py` and then execute
-(in a shell in the `/sema4ai-code` directory) `python -m dev codegen`.
+To add a new setting, add it at the `SETTINGS` in `/sema4ai/codegen/settings.py` and then execute
+(in a shell in the `/sema4ai` directory) `python -m dev codegen`.
 
 
 Updating the dependencies needed
@@ -75,7 +75,7 @@ and run the related processes with `Run with input data`, passing the related
 
 After the runs are done, the file:
 
-`/sema4ai-code/vscode-client/src/rcc.ts`
+`/sema4ai/vscode-client/src/rcc.ts`
 
 needs to be updated to set the `BASENAME_PREBUILT_XXX` global variables based
 on the new paths.
@@ -87,7 +87,7 @@ is updated accordingly.
 Updating RCC
 --------------------
 
-- Open a shell at the proper place (something as `X:\vscode-robot\vscode-extension\sema4ai-code`)
+- Open a shell at the proper place (something as `X:\vscode-robot\vscode-extension\sema4ai`)
 
 - Update version (`python -m dev set-rcc-version v11.14.5`).
 

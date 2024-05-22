@@ -1,0 +1,12 @@
+# Note: when updated the pre-built environments must be updated
+# (run related robot in control-room and update values in getBaseAsZipBasename).
+channels:
+    - conda-forge
+
+dependencies:
+    - python=3.10.14
+    - pip=23.2.1
+    - poetry=1.8.3
+    - nodejs=20.12.2
+    - yarn=4.2.2
+    - robocorp-truststore=0.8.0 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
