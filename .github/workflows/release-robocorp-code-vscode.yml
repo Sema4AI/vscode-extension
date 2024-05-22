@@ -60,9 +60,9 @@ jobs:
         VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
         
     - name: Publish windows to open vsx marketplace 
-      run: npx ovsx publish sema4ai-code-win32-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
       env:
-        OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
                 
     # Deal with Linux --------------
     - name: Download rcc for linux
@@ -81,9 +81,9 @@ jobs:
         VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
         
     - name: Publish linux to open vsx marketplace 
-      run: npx ovsx publish sema4ai-code-linux-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
       env:
-        OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
         
     # Deal with Darwin x64 --------------
     - name: Download rcc for darwin
@@ -102,9 +102,9 @@ jobs:
         VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
         
     - name: Publish darwin to open vsx marketplace 
-      run: npx ovsx publish sema4ai-code-darwin-x64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
       env:
-        OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
         
     # Deal with Darwin arm64 --------------
     - name: Download rcc for darwin
@@ -123,6 +123,6 @@ jobs:
         VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
         
     - name: Publish darwin to open vsx marketplace 
-      run: npx ovsx publish sema4ai-code-darwin-arm64.vsix -p $OPEN_VSX_TOKEN
+      run: npx ovsx publish sema4ai-code-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN
       env:
-        OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
