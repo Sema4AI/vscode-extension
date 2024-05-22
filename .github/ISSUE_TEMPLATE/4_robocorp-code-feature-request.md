@@ -1,8 +1,8 @@
 ---
-name: Feature request - Sema4.ai Code
-about: Suggest an idea for Sema4.ai Code
+name: Feature request - Sema4.ai
+about: Suggest an idea for Sema4.ai
 title: ''
-labels: enhancement, sema4ai-code
+labels: enhancement, sema4ai
 assignees: ''
 
 ---

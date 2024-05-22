@@ -1,8 +1,8 @@
 ---
-name: Bug Report - Sema4.ai Code
-about: Create a report to help us improve Sema4.ai Code
+name: Bug Report - Sema4.ai
+about: Create a report to help us improve Sema4.ai
 title: ''
-labels: bug, sema4ai-code
+labels: bug, sema4ai
 assignees: ''
 
 ---

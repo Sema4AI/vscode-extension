@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>sema4ai</name>
+	<comment></comment>
+	<projects>
+		<project>sema4ai-python-ls-core</project>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.python.pydev.PyDevBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.python.pydev.pythonNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>README-root.md</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/README.md</locationURI>
+		</link>
+		<link>
+			<name>docs-root</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/docs</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

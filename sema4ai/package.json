@@ -1,0 +1,1331 @@
+{
+    "name": "sema4ai",
+    "displayName": "Sema4.ai",
+    "description": "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development",
+    "author": "Sema4.ai, Inc.",
+    "homepage": "https://github.com/Sema4AI/vscode-extension//blob/master/sema4ai/README.md",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Sema4AI/vscode-extension/.git"
+    },
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "version": "1.22.1",
+    "icon": "images/icon.png",
+    "publisher": "sema4ai",
+    "engines": {
+        "vscode": "^1.65.0"
+    },
+    "categories": [
+        "Debuggers"
+    ],
+    "activationEvents": [
+        "onCommand:sema4ai.getLanguageServerPython",
+        "onCommand:sema4ai.getLanguageServerPythonInfo",
+        "onCommand:sema4ai.getPluginsDir",
+        "onCommand:sema4ai.createRobot",
+        "onCommand:sema4ai.createActionPackage",
+        "onCommand:sema4ai.createTaskOrActionPackage",
+        "onCommand:sema4ai.listRobotTemplates.internal",
+        "onCommand:sema4ai.createRobot.internal",
+        "onCommand:sema4ai.uploadRobotToCloud",
+        "onCommand:sema4ai.localListRobots.internal",
+        "onCommand:sema4ai.isLoginNeeded.internal",
+        "onCommand:sema4ai.getLinkedAccountInfo.internal",
+        "onCommand:sema4ai.cloudLogin",
+        "onCommand:sema4ai.cloudLogin.internal",
+        "onCommand:sema4ai.cloudListWorkspaces.internal",
+        "onCommand:sema4ai.uploadToNewRobot.internal",
+        "onCommand:sema4ai.uploadToExistingRobot.internal",
+        "onCommand:sema4ai.runInRcc.internal",
+        "onCommand:sema4ai.runRobotRcc",
+        "onCommand:sema4ai.runActionFromActionPackage",
+        "onCommand:sema4ai.debugRobotRcc",
+        "onCommand:sema4ai.debugActionFromActionPackage",
+        "onCommand:sema4ai.robotsViewTaskRun",
+        "onCommand:sema4ai.robotsViewTaskDebug",
+        "onCommand:sema4ai.robotsViewActionRun",
+        "onCommand:sema4ai.robotsViewActionDebug",
+        "onCommand:sema4ai.robotsViewActionEditInput",
+        "onCommand:sema4ai.robotsViewActionOpen",
+        "onCommand:sema4ai.runRobocorpsPythonTask",
+        "onCommand:sema4ai.debugRobocorpsPythonTask",
+        "onCommand:sema4ai.saveInDiskLRU",
+        "onCommand:sema4ai.loadFromDiskLRU",
+        "onCommand:sema4ai.computeRobotLaunchFromRobocorpCodeLaunch",
+        "onCommand:sema4ai.setPythonInterpreter",
+        "onCommand:sema4ai.resolveInterpreter",
+        "onCommand:sema4ai.cloudLogout",
+        "onCommand:sema4ai.cloudLogout.internal",
+        "onCommand:sema4ai.refreshRobotsView",
+        "onCommand:sema4ai.refreshRobotContentView",
+        "onCommand:sema4ai.newFileInRobotContentView",
+        "onCommand:sema4ai.newFolderInRobotContentView",
+        "onCommand:sema4ai.deleteResourceInRobotContentView",
+        "onCommand:sema4ai.renameResourceInRobotContentView",
+        "onCommand:sema4ai.refreshCloudView",
+        "onCommand:sema4ai.getLocatorsJsonInfo",
+        "onCommand:sema4ai.removeLocatorFromJson.internal",
+        "onCommand:sema4ai.removeLocatorFromJson",
+        "onCommand:sema4ai.openLocatorsJson",
+        "onCommand:sema4ai.openCloudHome",
+        "onCommand:sema4ai.newRobocorpInspectorBrowser",
+        "onCommand:sema4ai.newRobocorpInspectorWindows",
+        "onCommand:sema4ai.newRobocorpInspectorImage",
+        "onCommand:sema4ai.newRobocorpInspectorJava",
+        "onCommand:sema4ai.openPlaywrightRecorder",
+        "onCommand:sema4ai.openPlaywrightRecorder.internal",
+        "onCommand:sema4ai.editRobocorpInspectorLocator",
+        "onCommand:sema4ai.copyLocatorToClipboard.internal",
+        "onCommand:sema4ai.openRobotTreeSelection",
+        "onCommand:sema4ai.openRobotCondaTreeSelection",
+        "onCommand:sema4ai.openPackageYamlTreeSelection",
+        "onCommand:sema4ai.openExternally",
+        "onCommand:sema4ai.openInVSCode",
+        "onCommand:sema4ai.revealInExplorer",
+        "onCommand:sema4ai.revealRobotInExplorer",
+        "onCommand:sema4ai.cloudUploadRobotTreeSelection",
+        "onCommand:sema4ai.rccTerminalCreateRobotTreeSelection",
+        "onCommand:sema4ai.sendMetric",
+        "onCommand:sema4ai.submitIssue.internal",
+        "onCommand:sema4ai.submitIssue",
+        "onCommand:sema4ai.inspector.internal",
+        "onCommand:sema4ai.inspector",
+        "onCommand:sema4ai.inspector.duplicate",
+        "onCommand:sema4ai.errorFeedback.internal",
+        "onCommand:sema4ai.feedback.internal",
+        "onCommand:sema4ai.configuration.diagnostics.internal",
+        "onCommand:sema4ai.configuration.diagnostics",
+        "onCommand:sema4ai.rccTerminalNew",
+        "onCommand:sema4ai.listWorkItems.internal",
+        "onCommand:sema4ai.updateLaunchEnv",
+        "onCommand:sema4ai.updateLaunchEnv.getVaultEnv.internal",
+        "onCommand:sema4ai.newWorkItemInWorkItemsView",
+        "onCommand:sema4ai.deleteWorkItemInWorkItemsView",
+        "onCommand:sema4ai.helpWorkItems",
+        "onCommand:sema4ai.convertOutputWorkItemToInput",
+        "onCommand:sema4ai.verifyLibraryVersion.internal",
+        "onCommand:sema4ai.connectWorkspace",
+        "onCommand:sema4ai.disconnectWorkspace",
+        "onCommand:sema4ai.getConnectedVaultWorkspace.internal",
+        "onCommand:sema4ai.setConnectedVaultWorkspace.internal",
+        "onCommand:sema4ai.openVaultHelp",
+        "onCommand:sema4ai.clearEnvAndRestart",
+        "onCommand:sema4ai.showOutput",
+        "onCommand:sema4ai.showInterpreterEnvError",
+        "onCommand:sema4ai.openFlowExplorerTreeSelection",
+        "onCommand:sema4ai.profileImport",
+        "onCommand:sema4ai.profileImport.internal",
+        "onCommand:sema4ai.profileSwitch",
+        "onCommand:sema4ai.profileSwitch.internal",
+        "onCommand:sema4ai.profileList.internal",
+        "onCommand:sema4ai.hasPreRunScripts.internal",
+        "onCommand:sema4ai.runPreRunScripts.internal",
+        "onCommand:sema4ai.getPyPiBaseUrls.internal",
+        "onCommand:sema4ai.startActionServer",
+        "onCommand:sema4ai.downloadActionServer",
+        "onCommand:sema4ai.startActionServer.internal",
+        "onCommand:sema4ai.listActions.internal",
+        "onCommand:sema4ai.packageEnvironmentRebuild",
+        "onDebugInitialConfigurations",
+        "onDebugResolve:sema4ai",
+        "onView:sema4ai-task-packages-tree",
+        "onView:sema4ai-package-content-tree",
+        "onView:sema4ai-package-resources-tree",
+        "onView:sema4ai-cloud-tree",
+        "onLanguage:json",
+        "onLanguage:yaml",
+        "onLanguage:python"
+    ],
+    "contributes": {
+        "configuration": {
+            "title": "Sema4.ai Language Server Configuration",
+            "type": "object",
+            "properties": {
+                "sema4ai.language-server.tcp-port": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "If the port is specified, connect to the language server previously started at the given port. Requires a VSCode restart to take effect."
+                },
+                "sema4ai.language-server.args": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Specifies the arguments to be passed to the Sema4.ai language server (i.e.: [\"-vv\", \"--log-file=~/sema4ai_code.log\"]). Requires a VSCode restart to take effect."
+                },
+                "sema4ai.language-server.python": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the path to the python executable to be used for the Sema4.ai Language Server (the default is searching python on the PATH). Requires a VSCode restart to take effect."
+                },
+                "sema4ai.rcc.location": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the location of the rcc tool."
+                },
+                "sema4ai.rcc.endpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Can be used to specify a different endpoint for rcc."
+                },
+                "sema4ai.rcc.config_location": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the config location used by rcc."
+                },
+                "sema4ai.home": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the value for ROBOCORP_HOME (where the conda environments will be downloaded). Must point to a directory without spaces in it."
+                },
+                "sema4ai.verifyLSP": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Verify if the Robot Framework Language Server is installed?"
+                },
+                "sema4ai.autoSetPythonExtensionInterpreter": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If a file in a Robot is opened, the python extension interpreter is automatically set to match the Robot interpreter."
+                },
+                "sema4ai.autoSetPythonExtensionDisableActivateTerminal": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically sets the value of \"python.terminal.activateEnvironment\" to false to avoid wrong auto-activation when Robot terminal is created."
+                },
+                "sema4ai.proceedWithLongPathsDisabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables Sema4.ai to be started even with long paths disabled."
+                },
+                "sema4ai.vaultTokenTimeoutInMinutes": {
+                    "type": "number",
+                    "default": 30,
+                    "description": "Specifies the timeout in minutes for the token generated to access the vault when a launch is made. Note: max 60, min 5, additional timeout may be added internally to reuse the token in future runs (please use Robocorp Control Room or Robocorp Assistant for longer runs)."
+                },
+                "sema4ai.codeLens.roboLaunch": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown."
+                },
+                "sema4ai.actionServer.location": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the location of the action-server executable."
+                }
+            }
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "sem4ai-packages",
+                    "title": "Sema4.ai",
+                    "icon": "images/sema4ai-outline.svg"
+                }
+            ],
+            "panel": [
+                {
+                    "id": "sema4ai-python-view-output",
+                    "title": "Robo Tasks Output",
+                    "icon": "$(output)"
+                }
+            ]
+        },
+        "views": {
+            "sem4ai-packages": [
+                {
+                    "id": "sema4ai-task-packages-tree",
+                    "name": "Task/Action Packages",
+                    "contextualTitle": "Task/Action Packages"
+                },
+                {
+                    "id": "sema4ai-package-content-tree",
+                    "name": "Package Content",
+                    "contextualTitle": "Package Content"
+                },
+                {
+                    "id": "sema4ai-package-resources-tree",
+                    "name": "Package Resources",
+                    "contextualTitle": "Package Resources"
+                },
+                {
+                    "id": "sema4ai-cloud-tree",
+                    "name": "Control Room",
+                    "contextualTitle": "Sema4.ai"
+                }
+            ],
+            "sema4ai-python-view-output": [
+                {
+                    "type": "webview",
+                    "id": "sema4ai.python.view.output",
+                    "name": "Robo Tasks Output",
+                    "contextualTitle": "Robo Tasks Output"
+                }
+            ]
+        },
+        "languages": [],
+        "grammars": [],
+        "debuggers": [
+            {
+                "type": "sema4ai",
+                "label": "Sema4.ai",
+                "languages": [],
+                "configurationAttributes": {
+                    "launch": {
+                        "properties": {
+                            "robot": {
+                                "type": "string",
+                                "description": "The robot.yaml file with the task to be launched.",
+                                "default": "${file}"
+                            },
+                            "task": {
+                                "type": "string",
+                                "description": "The task name from the robot to be run."
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Additional command line arguments for running the robot."
+                            },
+                            "env": {
+                                "type": "object",
+                                "description": "Environment variables to be added to the launch."
+                            }
+                        }
+                    }
+                },
+                "configurationSnippets": [
+                    {
+                        "label": "Sema4.ai: Launch task from robot.yaml",
+                        "description": "Add a new configuration for launching tasks from a robot.yaml.",
+                        "body": {
+                            "type": "sema4ai",
+                            "name": "Sema4.ai: Launch task from robot.yaml",
+                            "request": "launch",
+                            "robot": "^\"\\${file}\"",
+                            "task": ""
+                        }
+                    }
+                ]
+            }
+        ],
+        "keybindings": [],
+        "commands": [
+            {
+                "command": "sema4ai.createRobot",
+                "title": "Create Task Package (Robot)",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.createActionPackage",
+                "title": "Create Action Package",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.createTaskOrActionPackage",
+                "title": "Create Action Package",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.uploadRobotToCloud",
+                "title": "Upload Task Package (Robot) to Control Room",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.cloudLogin",
+                "title": "Link to Control Room",
+                "category": "Sema4.ai",
+                "icon": "$(link)"
+            },
+            {
+                "command": "sema4ai.runRobotRcc",
+                "title": "Run Task Package (Robot)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.runActionFromActionPackage",
+                "title": "Run Action (from Action Package)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.debugRobotRcc",
+                "title": "Debug Task Package (Robot)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.debugActionFromActionPackage",
+                "title": "Debug Action (from Action Package)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.robotsViewTaskRun",
+                "title": "Launch Task",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/run.svg",
+                    "dark": "images/dark/run.svg"
+                }
+            },
+            {
+                "command": "sema4ai.robotsViewTaskDebug",
+                "title": "Debug Task",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/debug.svg",
+                    "dark": "images/dark/debug.svg"
+                }
+            },
+            {
+                "command": "sema4ai.robotsViewActionRun",
+                "title": "Launch Action",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/run.svg",
+                    "dark": "images/dark/run.svg"
+                }
+            },
+            {
+                "command": "sema4ai.robotsViewActionDebug",
+                "title": "Debug Action",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/debug.svg",
+                    "dark": "images/dark/debug.svg"
+                }
+            },
+            {
+                "command": "sema4ai.robotsViewActionEditInput",
+                "title": "Configure Action Input",
+                "category": "Sema4.ai",
+                "icon": "$(symbol-variable)"
+            },
+            {
+                "command": "sema4ai.robotsViewActionOpen",
+                "title": "Open Action",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "sema4ai.runRobocorpsPythonTask",
+                "title": "Run Robocorp's Python Task",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/run.svg",
+                    "dark": "images/dark/run.svg"
+                }
+            },
+            {
+                "command": "sema4ai.debugRobocorpsPythonTask",
+                "title": "Debug Robocorp's Python Task",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/debug.svg",
+                    "dark": "images/dark/debug.svg"
+                }
+            },
+            {
+                "command": "sema4ai.setPythonInterpreter",
+                "title": "Set python executable based on robot.yaml",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.cloudLogout",
+                "title": "Unlink and remove credentials from Control Room",
+                "category": "Sema4.ai",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "sema4ai.refreshRobotsView",
+                "title": "Refresh Task Packages (Robots) view",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/refresh.svg",
+                    "dark": "images/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "sema4ai.refreshRobotContentView",
+                "title": "Refresh Task Package (Robot) Content view",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/refresh.svg",
+                    "dark": "images/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "sema4ai.newFileInRobotContentView",
+                "title": "New File",
+                "category": "Sema4.ai",
+                "icon": "$(new-file)"
+            },
+            {
+                "command": "sema4ai.newFolderInRobotContentView",
+                "title": "New Folder",
+                "category": "Sema4.ai",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "sema4ai.deleteResourceInRobotContentView",
+                "title": "Delete",
+                "category": "Sema4.ai",
+                "icon": "$(close)"
+            },
+            {
+                "command": "sema4ai.renameResourceInRobotContentView",
+                "title": "Rename",
+                "category": "Sema4.ai",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "sema4ai.refreshCloudView",
+                "title": "Refresh Robocorp view",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/refresh.svg",
+                    "dark": "images/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "sema4ai.removeLocatorFromJson",
+                "title": "Remove Locator",
+                "category": "Sema4.ai",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "sema4ai.openLocatorsJson",
+                "title": "Open locators.json",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "sema4ai.openCloudHome",
+                "title": "Open cloud home",
+                "category": "Sema4.ai",
+                "icon": "$(cloud)"
+            },
+            {
+                "command": "sema4ai.newRobocorpInspectorBrowser",
+                "title": "Add Web Locator",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.newRobocorpInspectorWindows",
+                "title": "Add Windows Locator",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.newRobocorpInspectorImage",
+                "title": "Add Image Locator",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.newRobocorpInspectorJava",
+                "title": "Add Java Locator",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.openPlaywrightRecorder",
+                "title": "Open Playwright Recorder",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/run.svg",
+                    "dark": "images/dark/run.svg"
+                }
+            },
+            {
+                "command": "sema4ai.openPlaywrightRecorder.internal",
+                "title": "Open Playwright Recorder Internal",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/run.svg",
+                    "dark": "images/dark/run.svg"
+                }
+            },
+            {
+                "command": "sema4ai.editRobocorpInspectorLocator",
+                "title": "Edit locator",
+                "category": "Sema4.ai",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "sema4ai.copyLocatorToClipboard.internal",
+                "title": "Copy locator name to clipboard",
+                "category": "Sema4.ai",
+                "icon": "$(clippy)"
+            },
+            {
+                "command": "sema4ai.openRobotTreeSelection",
+                "title": "Configure Task Package (Robot) (robot.yaml)",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "sema4ai.openRobotCondaTreeSelection",
+                "title": "Configure Dependencies (conda.yaml)",
+                "category": "Sema4.ai",
+                "icon": "$(list-tree)"
+            },
+            {
+                "command": "sema4ai.openPackageYamlTreeSelection",
+                "title": "Configure Action Package (package.yaml)",
+                "category": "Sema4.ai",
+                "icon": "$(list-tree)"
+            },
+            {
+                "command": "sema4ai.openExternally",
+                "title": "Open externally",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "sema4ai.openInVSCode",
+                "title": "Open in VSCode",
+                "category": "Sema4.ai",
+                "icon": "$(file)"
+            },
+            {
+                "command": "sema4ai.revealInExplorer",
+                "title": "Reveal in File Explorer",
+                "category": "Sema4.ai",
+                "icon": "$(file-submodule)"
+            },
+            {
+                "command": "sema4ai.revealRobotInExplorer",
+                "title": "Reveal robot.yaml in File Explorer",
+                "category": "Sema4.ai",
+                "icon": "$(file-submodule)"
+            },
+            {
+                "command": "sema4ai.cloudUploadRobotTreeSelection",
+                "title": "Upload Task Package (Robot) to Control Room",
+                "category": "Sema4.ai",
+                "icon": "$(cloud-upload)"
+            },
+            {
+                "command": "sema4ai.rccTerminalCreateRobotTreeSelection",
+                "title": "Open terminal with Package Python environment",
+                "category": "Sema4.ai",
+                "icon": "$(terminal)"
+            },
+            {
+                "command": "sema4ai.submitIssue.internal",
+                "title": "Submit issue (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.submitIssue",
+                "title": "Submit issue to Robocorp",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.inspector.internal",
+                "title": "Inspector Manager (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.inspector",
+                "title": "Open Inspector",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.inspector.duplicate",
+                "title": "Create & manage locators",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.errorFeedback.internal",
+                "title": "Error feedback (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.feedback.internal",
+                "title": "Feedback (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.configuration.diagnostics.internal",
+                "title": "Task Package (Robot) Configuration Diagnostics (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.configuration.diagnostics",
+                "title": "Task Package (Robot) Configuration Diagnostics",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.rccTerminalNew",
+                "title": "Terminal with Task Package (Robot) environment",
+                "category": "Sema4.ai",
+                "icon": "$(terminal)"
+            },
+            {
+                "command": "sema4ai.listWorkItems.internal",
+                "title": "Lists the work items available for a Task Package (Robot)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.updateLaunchEnv",
+                "title": "Updates the environment variables used for some launch (given a Task Package (Robot))",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.updateLaunchEnv.getVaultEnv.internal",
+                "title": "Provides the environment variables related to the vault.",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.newWorkItemInWorkItemsView",
+                "title": "New Work Item",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.deleteWorkItemInWorkItemsView",
+                "title": "Delete Work Item",
+                "category": "Sema4.ai",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "sema4ai.helpWorkItems",
+                "title": "Work Items Help",
+                "category": "Sema4.ai",
+                "icon": "$(question)"
+            },
+            {
+                "command": "sema4ai.convertOutputWorkItemToInput",
+                "title": "Convert output work item to input",
+                "category": "Sema4.ai",
+                "icon": "$(fold-up)"
+            },
+            {
+                "command": "sema4ai.connectWorkspace",
+                "title": "Connect to Control Room Workspace (vault, storage, ...)",
+                "category": "Sema4.ai",
+                "icon": "$(lock)"
+            },
+            {
+                "command": "sema4ai.disconnectWorkspace",
+                "title": "Disconnect from Control Room Workspace",
+                "category": "Sema4.ai",
+                "icon": "$(unlock)"
+            },
+            {
+                "command": "sema4ai.getConnectedVaultWorkspace.internal",
+                "title": "Gets workspace id currently connected",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.setConnectedVaultWorkspace.internal",
+                "title": "Sets the currently connected Control Room Workspace",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.openVaultHelp",
+                "title": "Open vault help",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.clearEnvAndRestart",
+                "title": "Clear Robocorp (RCC) environments and restart Sema4.ai",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.showOutput",
+                "title": "Show Sema4.ai > Output logs",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.showInterpreterEnvError",
+                "title": "Show error related to interpreter env creation",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.openFlowExplorerTreeSelection",
+                "title": "Open Flow Explorer",
+                "category": "Sema4.ai",
+                "icon": "$(type-hierarchy-sub)"
+            },
+            {
+                "command": "sema4ai.profileImport",
+                "title": "Import Profile",
+                "category": "Sema4.ai",
+                "icon": "$(file-symlink-file)"
+            },
+            {
+                "command": "sema4ai.profileImport.internal",
+                "title": "Import Profile (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.profileSwitch",
+                "title": "Switch Profile",
+                "category": "Sema4.ai",
+                "icon": "$(git-pull-request)"
+            },
+            {
+                "command": "sema4ai.profileSwitch.internal",
+                "title": "Switch Profile",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.profileList.internal",
+                "title": "List Profiles",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.hasPreRunScripts.internal",
+                "title": "Has Pre Run Scripts",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.runPreRunScripts.internal",
+                "title": "Run Pre Run Scripts",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.getPyPiBaseUrls.internal",
+                "title": "Get PyPi base urls",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.startActionServer",
+                "title": "Start Action Server",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.downloadActionServer",
+                "title": "Download Action Server",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.startActionServer.internal",
+                "title": "Start Action Server (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.listActions.internal",
+                "title": "Lists the actions available in an action package given a root dir (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.packageEnvironmentRebuild",
+                "title": "Rebuild Package Environment",
+                "category": "Sema4.ai"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "sema4ai.refreshRobotsView",
+                    "when": "view == sema4ai-task-packages-tree",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.createTaskOrActionPackage",
+                    "when": "view == sema4ai-task-packages-tree",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.newFileInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == directoryItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.newFolderInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == directoryItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.refreshRobotContentView",
+                    "when": "view == sema4ai-package-content-tree",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "sema4ai.robotsViewTaskRun",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "sema4ai.robotsViewTaskDebug",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionOpen",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionEditInput",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionRun",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "inline@3"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionDebug",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "inline@4"
+                },
+                {
+                    "command": "sema4ai.openRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.openRobotCondaTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.rccTerminalCreateRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.cloudUploadRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.openFlowExplorerTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.robotsViewTaskRun",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.robotsViewTaskDebug",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionRun",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionDebug",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionEditInput",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionOpen",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.revealRobotInExplorer",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.openRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.rccTerminalCreateRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.cloudUploadRobotTreeSelection",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.newFileInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == directoryItem",
+                    "group": "0_new"
+                },
+                {
+                    "command": "sema4ai.newFolderInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == directoryItem",
+                    "group": "0_new"
+                },
+                {
+                    "command": "sema4ai.openExternally",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == fileItem",
+                    "group": "1_open"
+                },
+                {
+                    "command": "sema4ai.openInVSCode",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected && viewItem == fileItem",
+                    "group": "1_open"
+                },
+                {
+                    "command": "sema4ai.revealInExplorer",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected",
+                    "group": "1_open"
+                },
+                {
+                    "command": "sema4ai.renameResourceInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected",
+                    "group": "2_change"
+                },
+                {
+                    "command": "sema4ai.deleteResourceInRobotContentView",
+                    "when": "view == sema4ai-package-content-tree && sema4ai:single-robot-selected",
+                    "group": "2_change"
+                },
+                {
+                    "command": "sema4ai.newRobocorpInspectorBrowser",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == newBrowserLocator",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.newRobocorpInspectorWindows",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == newWindowsLocator",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.newRobocorpInspectorImage",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == newImageLocator",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.newRobocorpInspectorJava",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == newJavaLocator",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.openLocatorsJson",
+                    "when": "view == sema4ai-package-resources-tree && viewItem == locatorsRoot",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.editRobocorpInspectorLocator",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == locatorEntry",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.copyLocatorToClipboard.internal",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == locatorEntry",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.removeLocatorFromJson",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == locatorEntry",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.helpWorkItems",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == workItemsRoot",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.newWorkItemInWorkItemsView",
+                    "when": "view == sema4ai-package-resources-tree && sema4ai:single-robot-selected && viewItem == inputWorkItemDir",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.deleteWorkItemInWorkItemsView",
+                    "when": "view == sema4ai-package-resources-tree && viewItem == outputWorkItem || viewItem == inputWorkItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.convertOutputWorkItemToInput",
+                    "when": "view == sema4ai-package-resources-tree && viewItem == outputWorkItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.cloudLogin",
+                    "when": "view == sema4ai-cloud-tree && viewItem == cloudLoginItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.cloudLogout",
+                    "when": "view == sema4ai-cloud-tree && viewItem == cloudLogoutItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.openCloudHome",
+                    "when": "view == sema4ai-cloud-tree && viewItem == cloudLogoutItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.connectWorkspace",
+                    "when": "view == sema4ai-cloud-tree && viewItem == workspaceDisconnected",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.disconnectWorkspace",
+                    "when": "view == sema4ai-cloud-tree && viewItem == workspaceConnected",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.profileImport",
+                    "when": "view == sema4ai-cloud-tree && viewItem == profileItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.profileSwitch",
+                    "when": "view == sema4ai-cloud-tree && viewItem == profileItem",
+                    "group": "inline"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "sema4ai.createTaskOrActionPackage",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewTaskRun",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewTaskDebug",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionRun",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionDebug",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionEditInput",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.robotsViewActionOpen",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.runRobocorpsPythonTask",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.debugRobocorpsPythonTask",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.refreshRobotContentView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.newFileInRobotContentView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.newFolderInRobotContentView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.deleteResourceInRobotContentView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.renameResourceInRobotContentView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.removeLocatorFromJson",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openLocatorsJson",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openCloudHome",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openPlaywrightRecorder.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.editRobocorpInspectorLocator",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.copyLocatorToClipboard.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openRobotTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openRobotCondaTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openPackageYamlTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openExternally",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openInVSCode",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.revealInExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.revealRobotInExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.cloudUploadRobotTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.submitIssue.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.inspector.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.errorFeedback.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.feedback.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.configuration.diagnostics.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.listWorkItems.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.updateLaunchEnv",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.updateLaunchEnv.getVaultEnv.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.deleteWorkItemInWorkItemsView",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.helpWorkItems",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.convertOutputWorkItemToInput",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.getConnectedVaultWorkspace.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.setConnectedVaultWorkspace.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openVaultHelp",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.showInterpreterEnvError",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openFlowExplorerTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.profileImport.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.profileSwitch.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.profileList.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.hasPreRunScripts.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.runPreRunScripts.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.getPyPiBaseUrls.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.startActionServer.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.listActions.internal",
+                    "when": "false"
+                }
+            ]
+        }
+    },
+    "main": "./vscode-client/out/extension",
+    "prettier": {
+        "tabWidth": 4,
+        "printWidth": 120,
+        "quoteProps": "preserve"
+    },
+    "scripts": {
+        "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
+        "compile": "cd vscode-client && tsc -p ./ && cd ..",
+        "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
+        "pretest": "cd vscode-client && tsc -p ./ && cd ..",
+        "test": "node ./vscode-client/out/tests/runTests.js",
+        "prettier": "npx prettier -c vscode-client/**/*.ts",
+        "prettier-fix": "npx prettier -w vscode-client/**/*.ts"
+    },
+    "devDependencies": {
+        "@types/adm-zip": "^0.5.0",
+        "@types/mocha": "^2.2.32",
+        "@types/node": "^15.0.00",
+        "@types/rimraf": "^3.0.2",
+        "@types/vscode": "1.65.0",
+        "prettier": "2.4.1",
+        "typescript": "^4.5.4",
+        "vscode-test": "1.5.1"
+    },
+    "dependencies": {
+        "adm-zip": "^0.5.9",
+        "http-proxy-agent": "^2.1.0",
+        "https-proxy-agent": "^2.2.4",
+        "path-exists": "^4.0.0",
+        "rimraf": "^3.0.2",
+        "vscode-languageclient": "^7.0.0",
+        "vscode-nls": "^4.1.2"
+    }
+}

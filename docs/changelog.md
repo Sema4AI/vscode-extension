@@ -52,7 +52,7 @@ New in 1.20.1 (2024-04-12)
 New in 1.19.0 (2024-03-12)
 -----------------------------
 
-- New action: `Sema4.ai Code: Download Action Server` (downloads the latest version of the Action Server).
+- New action: `Sema4.ai: Download Action Server` (downloads the latest version of the Action Server).
 
 New in 1.18.0 (2024-02-29)
 -----------------------------
@@ -132,7 +132,7 @@ New in 1.11.0 (2023-09-07)
 
 - When hovering over conda dependencies in `conda.yaml`, information from conda-forge is shown.
 - Warning if the versions for conda-forge in `conda.yaml` have updates.
-- RCC is now distributed along with `Sema4.ai Code` (so, it'll no longer be downloaded in the first activation).
+- RCC is now distributed along with `Sema4.ai` (so, it'll no longer be downloaded in the first activation).
 - A warning is no longer shown if a pre-release is available in pypi and the latest version is actually being used already.
 - Fixed issue where a parse exception was shown when a git url was used to install a pip dependency.
 - Fixed issue where a method decorated with `@task_cache` would have code lenses which should only appear to `@task`.
@@ -248,7 +248,7 @@ New in 1.2.0 (2023-03-17)
 New in 1.1.3 (2023-02-13)
 -----------------------------
 
-- `environmentConfigs` is now properly used in `Sema4.ai Code` (so, it's possible to use conda freeze files).
+- `environmentConfigs` is now properly used in `Sema4.ai` (so, it's possible to use conda freeze files).
 
 
 New in 1.1.0 (2023-02-03)
@@ -418,7 +418,7 @@ New in 0.29.0 (2022-04-04)
 New in 0.28.0 (2022-03-14)
 -----------------------------
 
-- Created action: `Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai Code`.
+- Created action: `Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai`.
 - RCC updated to v11.6.6.
 - New Windows locator integrated.
 - Properly notify of timeouts executing RCC.
@@ -462,7 +462,7 @@ New in 0.24.0 (2022-01-17)
 -----------------------------
 
 - RCC updated to v11.6.3
-- The extension now runs with `-v` by default (to show info level messages on `OUTPUT > Sema4.ai Code`).
+- The extension now runs with `-v` by default (to show info level messages on `OUTPUT > Sema4.ai`).
 
 
 New in 0.23.0 (2021-12-22)
@@ -680,7 +680,7 @@ New in 0.8.0 (2021-02-24)
 New in 0.7.1 (2021-01-22)
 -----------------------------
 
-- Fixed issue starting Sema4.ai Code on Mac OS and Linux.
+- Fixed issue starting Sema4.ai on Mac OS and Linux.
 
 New in 0.7.0 (2021-01-20)
 -----------------------------
@@ -690,8 +690,8 @@ New in 0.7.0 (2021-01-20)
   - Unlink credentials.
   - Refresh.
   - Workspaces/Robots available.
-- Cloud credentials not entered in Sema4.ai Code are no longer used as a fallback. #230
-- Credentials now stored as `sema4ai-code` instead of `--sema4ai-code`.
+- Cloud credentials not entered in Sema4.ai are no longer used as a fallback. #230
+- Credentials now stored as `sema4ai` instead of `--sema4ai`.
 - Upload Robot selected in Robots tree to the cloud.
 - Check that the Windows Long Path support is enabled. #235
 - Metrics for feature usage. #234
@@ -743,7 +743,7 @@ New in 0.5.0 (2020-11-25)
 - New Robots view (lists robots and allows launching/debugging them). #183
 - New action to set the pythonPath to be used by the Python extension based on the `robot.yaml`. #185
 - Templates available now have a description. #181
-- The account used to login is now tied to Sema4.ai Code. #189
+- The account used to login is now tied to Sema4.ai. #189
 - Initial debug configurations are now provided. #184
 - Upgraded to use RCC v6.1.3. #194
 
@@ -817,7 +817,7 @@ New in 0.0.5 (2020-09-23)
 New in 0.0.4 (2020-09-02)
 -----------------------------
 
-- The extension name changed to Sema4.ai Code (so, if upgrading from 0.0.3, please
+- The extension name changed to Sema4.ai (so, if upgrading from 0.0.3, please
   remove the previous version manually).
 - When a package.yaml is found, it's used to provide a different python environment
   when running/debugging `.robot` files using the RobotFramework Language Server.
