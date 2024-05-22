@@ -239,7 +239,7 @@ class Dev(object):
 
         # Fetch the file from the URL
         with urllib.request.urlopen(url) as response:
-            content = response.read().decode('utf-8')
+            content = response.read().decode("utf-8")
 
         with open(readme, "w") as f:
             f.write(content)
