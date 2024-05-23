@@ -641,7 +641,7 @@ class Rcc(object):
 
         if timeout >= 60:
             log.info(
-                "Timeout changed from %s to %s (in minutes). Please use Robocorp Control Room or Robocorp Assistant for longer runs.",
+                "Timeout changed from %s to %s (in minutes). Please use Sema4.ai Control Room for longer runs.",
                 timeout,
                 60,
             )

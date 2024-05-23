@@ -108,10 +108,10 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                 });
             }
             ret.push({
-                "label": "Submit issue to Robocorp",
+                "label": "Submit issue to Sema4.ai",
                 "iconPath": "report",
                 "command": {
-                    "title": "Submit issue to Robocorp",
+                    "title": "Submit issue to Sema4.ai",
                     "command": SEMA4AI_SUBMIT_ISSUE,
                 },
             });

@@ -44,7 +44,7 @@ else
 fi
 
 if $newEnv; then
-    ./bin/rcc venv developer.yaml --space robocorp-development --force
+    ./bin/rcc venv developer.yaml --space sema4ai-development --force
 fi
 . ./$venvDir/bin/activate  # environment already exists at this point
 # Install requirements all the time (due to updates).

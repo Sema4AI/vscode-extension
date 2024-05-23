@@ -424,7 +424,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showInformationMessage("Error submitting Task Package (Robot) to Control Room: " + actionResult.message);
+        window.showInformationMessage("Error submitting Task Package to Control Room: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
@@ -436,7 +436,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
-            "Unable to submit Task Package (Robot) to Control Room (no Task Package detected in the Workspace)."
+            "Unable to submit Task Package to Control Room (no Task Package detected in the Workspace)."
         );
         return;
     }
@@ -455,10 +455,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
     }
 
     if (!robot) {
-        robot = await askRobotSelection(
-            robotsInfo,
-            "Please select the Task Package (Robot) to upload to the Control Room."
-        );
+        robot = await askRobotSelection(robotsInfo, "Please select the Task Package to upload to the Control Room.");
         if (!robot) {
             return;
         }
@@ -624,7 +621,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showErrorMessage("Error listing Task Packages (Robots): " + actionResult.message);
+        window.showErrorMessage("Error listing Task/Action Packages: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
@@ -635,9 +632,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     }
 
     if (!robotsInfo || robotsInfo.length == 0) {
-        window.showInformationMessage(
-            "Unable to run Task Package (Robot) (no Task Package detected in the Workspace)."
-        );
+        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
         return;
     }
 
@@ -668,9 +663,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     }
 
     if (!items) {
-        window.showInformationMessage(
-            "Unable to run Task Package (Robot) (no Task Package detected in the Workspace)."
-        );
+        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
         return;
     }
 
@@ -680,7 +673,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     } else {
         selectedItem = await window.showQuickPick(items, {
             "canPickMany": false,
-            "placeHolder": "Please select the Task Package (Robot) and Task to run.",
+            "placeHolder": "Please select the Task Package and Task to run.",
             "ignoreFocusOut": true,
         });
     }
@@ -800,7 +793,7 @@ export async function createRobot() {
     if (!useWorkspaceFolder) {
         let name: string = await window.showInputBox({
             "value": "Example",
-            "prompt": "Please provide the name for the Task Package (Robot) folder name.",
+            "prompt": "Please provide the name for the Task Package folder name.",
             "ignoreFocusOut": true,
         });
         if (!name) {
@@ -826,7 +819,7 @@ export async function createRobot() {
             throw Error("Unexpected result: " + op);
     }
 
-    OUTPUT_CHANNEL.appendLine("Creating Task Package (Robot) at: " + targetDir);
+    OUTPUT_CHANNEL.appendLine("Creating Task Package at: " + targetDir);
     let createRobotResult: ActionResult<any> = await commands.executeCommand(
         roboCommands.SEMA4AI_CREATE_ROBOT_INTERNAL,
         { "directory": targetDir, "template": selectedRobotTemplate.name, "force": force }
@@ -838,9 +831,9 @@ export async function createRobot() {
         } catch (error) {
             logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
         }
-        window.showInformationMessage("Task Package (Robot) successfully created in:\n" + targetDir);
+        window.showInformationMessage("Task Package successfully created in:\n" + targetDir);
     } else {
-        OUTPUT_CHANNEL.appendLine("Error creating Task Package (Robot) at: " + targetDir);
+        OUTPUT_CHANNEL.appendLine("Error creating Task Package at: " + targetDir);
         window.showErrorMessage(createRobotResult.message);
     }
 }

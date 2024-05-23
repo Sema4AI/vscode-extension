@@ -87,7 +87,7 @@ def main(
     args=None,
     after_bind=lambda server: None,
     language_server_class=None,
-    log_prefix="robocorp code",
+    log_prefix="sema4ai",
 ):
     original_args = args if args is not None else sys.argv[1:]
 

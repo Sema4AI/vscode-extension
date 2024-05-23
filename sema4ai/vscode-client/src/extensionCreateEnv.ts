@@ -217,7 +217,7 @@ async function verifyLongPathSupportOnWindows(
                         "modal": true,
                         "detail":
                             "Note: it's possible to  proceed without enabling long paths, but keep in mind that may " +
-                            "result in failures creating environments or running Robots if a dependency has long paths.",
+                            "result in failures creating environments or running Tasks/Actions if a dependency has long paths.",
                     },
                     YES,
                     MANUALLY,

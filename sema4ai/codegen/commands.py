@@ -69,7 +69,7 @@ COMMANDS = [
     # and the proceeds to ask for the server for the actual implementation.
     Command(
         "sema4ai.createRobot",
-        "Create Task Package (Robot)",
+        "Create Task Package",
         server_handled=False,
         icon="$(add)",
     ),
@@ -89,20 +89,20 @@ COMMANDS = [
     # Internal commands for sema4ai.createRobot.
     Command(
         "sema4ai.listRobotTemplates.internal",
-        "Provides a list with the available Task Package (Robot) templates",
+        "Provides a list with the available Task Package templates",
         add_to_package_json=False,
         server_handled=True,
     ),
     Command(
         "sema4ai.createRobot.internal",
-        "Actually calls rcc to create the Task Package (Robot)",
+        "Actually calls rcc to create the Task Package",
         add_to_package_json=False,
         server_handled=True,
     ),
     # Started from the client due to needing UI actions.
     Command(
         "sema4ai.uploadRobotToCloud",
-        "Upload Task Package (Robot) to Control Room",
+        "Upload Task Package to Control Room",
         add_to_package_json=True,
         server_handled=False,
     ),
@@ -145,13 +145,13 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.uploadToNewRobot.internal",
-        "Uploads a Task Package (Robot) as a new Task Package (Robot) in the Control Room",
+        "Uploads a Task Package as a new Task Package in the Control Room",
         add_to_package_json=False,
         server_handled=True,
     ),
     Command(
         "sema4ai.uploadToExistingRobot.internal",
-        "Uploads a Task Package (Robot) as an existing Task Package (Robot) in the Control Room",
+        "Uploads a Task Package as an existing Task Package in the Control Room",
         add_to_package_json=False,
         server_handled=True,
     ),
@@ -163,7 +163,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.runRobotRcc",
-        "Run Task Package (Robot)",
+        "Run Task Package",
         add_to_package_json=True,
         server_handled=False,
     ),
@@ -175,7 +175,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.debugRobotRcc",
-        "Debug Task Package (Robot)",
+        "Debug Task Package",
         add_to_package_json=True,
         server_handled=False,
     ),
@@ -235,7 +235,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.runRobocorpsPythonTask",
-        "Run Robocorp's Python Task",
+        "Run Sema4.ai's Python Task",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -243,7 +243,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.debugRobocorpsPythonTask",
-        "Debug Robocorp's Python Task",
+        "Debug Sema4.ai's Python Task",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -263,7 +263,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.computeRobotLaunchFromRobocorpCodeLaunch",
-        "Computes a Task Package (Robot) launch debug configuration based on the robocorp code launch debug configuration",
+        "Computes a Task Package launch debug configuration based on the Sema4.ai launch debug configuration",
         add_to_package_json=False,
         server_handled=True,
     ),
@@ -294,14 +294,14 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshRobotsView",
-        "Refresh Task Packages (Robots) view",
+        "Refresh Task/Action Packages view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
     ),
     Command(
         "sema4ai.refreshRobotContentView",
-        "Refresh Task Package (Robot) Content view",
+        "Refresh Task Package Content view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
@@ -341,7 +341,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshCloudView",
-        "Refresh Robocorp view",
+        "Refresh Sema4.ai view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
@@ -445,7 +445,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.openRobotTreeSelection",
-        "Configure Task Package (Robot) (robot.yaml)",
+        "Configure Task Package (robot.yaml)",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -501,7 +501,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.cloudUploadRobotTreeSelection",
-        "Upload Task Package (Robot) to Control Room",
+        "Upload Task Package to Control Room",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -527,7 +527,7 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=True,
     ),
-    Command("sema4ai.submitIssue", "Submit issue to Robocorp", server_handled=False),
+    Command("sema4ai.submitIssue", "Submit issue to Sema4.ai", server_handled=False),
     Command(
         "sema4ai.inspector.internal",
         "Inspector Manager (internal)",
@@ -560,30 +560,30 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.configuration.diagnostics.internal",
-        "Task Package (Robot) Configuration Diagnostics (internal)",
+        "Task Package Configuration Diagnostics (internal)",
         server_handled=True,
         hide_from_command_palette=True,
     ),
     Command(
         "sema4ai.configuration.diagnostics",
-        "Task Package (Robot) Configuration Diagnostics",
+        "Task Package Configuration Diagnostics",
         server_handled=False,
     ),
     Command(
         "sema4ai.rccTerminalNew",
-        "Terminal with Task Package (Robot) environment",
+        "Terminal with Task Package environment",
         server_handled=False,
         icon="$(terminal)",
     ),
     Command(
         "sema4ai.listWorkItems.internal",
-        "Lists the work items available for a Task Package (Robot)",
+        "Lists the work items available for a Task Package",
         server_handled=True,
         hide_from_command_palette=True,
     ),
     Command(
         "sema4ai.updateLaunchEnv",
-        "Updates the environment variables used for some launch (given a Task Package (Robot))",
+        "Updates the environment variables used for some launch (given a Task Package",
         server_handled=False,
         hide_from_command_palette=True,
     ),
@@ -669,7 +669,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.clearEnvAndRestart",
-        "Clear Robocorp (RCC) environments and restart Sema4.ai",
+        "Clear Sema4.ai (RCC) environments and restart Sema4.ai",
         add_to_package_json=True,
         server_handled=False,
     ),

@@ -38,7 +38,7 @@ let ROBOT_DIRECTORY: string | undefined = undefined;
 // showInspectorUI - registered function for opening the Inspector while calling VSCode commands
 export async function showInspectorUI(context: vscode.ExtensionContext, route?: IAppRoutes) {
     if (ROBOCORP_INSPECTOR_PANEL !== undefined) {
-        OUTPUT_CHANNEL.appendLine("# Robocorp Inspector is already opened! Thank you!");
+        OUTPUT_CHANNEL.appendLine("# Sema4.ai Inspector is already opened! Thank you!");
         OUTPUT_CHANNEL.appendLine(`# Switching to the commanded Route: ${route}`);
         const response: IEventMessage = {
             id: "",
@@ -54,11 +54,11 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
         ROBOCORP_INSPECTOR_PANEL.reveal();
         return;
     }
-    OUTPUT_CHANNEL.appendLine(`# Robocorp Inspector is ROBOCORP_INSPECTOR_PANEL: ${ROBOCORP_INSPECTOR_PANEL}`);
+    OUTPUT_CHANNEL.appendLine(`# Sema4.ai Inspector is ROBOCORP_INSPECTOR_PANEL: ${ROBOCORP_INSPECTOR_PANEL}`);
 
     const panel = vscode.window.createWebviewPanel(
         "robocorpCodeInspector",
-        "Robocorp Inspector",
+        "Sema4.ai Inspector",
         vscode.ViewColumn.Active,
         {
             enableScripts: true,
