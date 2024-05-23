@@ -455,10 +455,7 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
     }
 
     if (!robot) {
-        robot = await askRobotSelection(
-            robotsInfo,
-            "Please select the Task Package to upload to the Control Room."
-        );
+        robot = await askRobotSelection(robotsInfo, "Please select the Task Package to upload to the Control Room.");
         if (!robot) {
             return;
         }
@@ -635,9 +632,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     }
 
     if (!robotsInfo || robotsInfo.length == 0) {
-        window.showInformationMessage(
-            "Unable to run Task Package (no Task Package detected in the Workspace)."
-        );
+        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
         return;
     }
 
@@ -668,9 +663,7 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
     }
 
     if (!items) {
-        window.showInformationMessage(
-            "Unable to run Task Package (no Task Package detected in the Workspace)."
-        );
+        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
         return;
     }
 

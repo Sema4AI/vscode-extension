@@ -451,7 +451,12 @@ export async function collectIssueLogs(logPath: string): Promise<CollectedLogs> 
             return false;
         }
         // Whitelist what we want so that we don't gather unwanted info.
-        if (lower.includes("robocorp code") || lower.includes("robot framework") || lower.includes("exthost") || lower.includes("sema4ai")) {
+        if (
+            lower.includes("robocorp code") ||
+            lower.includes("robot framework") ||
+            lower.includes("exthost") ||
+            lower.includes("sema4ai")
+        ) {
             return true;
         }
         return false;
