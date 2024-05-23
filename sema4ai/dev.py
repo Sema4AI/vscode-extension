@@ -237,9 +237,9 @@ class Dev(object):
         url = "https://sema4.ai/cdn/downloads/legal/Sema4ai-EULA-v1.0.txt"
         readme = os.path.join(os.path.dirname(__file__), "LICENSE.txt")
 
-        # Fetch the file from the URL
-        with urllib.request.urlopen(url) as response:
-            content = response.read().decode("utf-8")
+        request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(request) as response:
+            content = response.read().decode('utf-8')
 
         with open(readme, "w") as f:
             f.write(content)
