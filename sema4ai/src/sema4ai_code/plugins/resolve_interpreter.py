@@ -122,7 +122,7 @@ class _CachedInterpreterInfo(object):
             # Note: called only on environment creation (not on all failures).
             endpoint: IEndPoint = endpoint_provider.endpoint
             with tempfile.NamedTemporaryFile(
-                delete=False, suffix=".log", prefix="robocorp_code_env_error_"
+                delete=False, suffix=".log", prefix="sema4ai_code_env_error_"
             ) as f:
                 if progress_reporter is not None and progress_reporter.cancelled:
                     file_contents = f"""
@@ -148,7 +148,7 @@ If the environment file should be already correct, chose one of the options belo
 - Clear all environments and restart Sema4.ai (advised if you suspect
   that some environment was partially created and is corrupt):
 
-  "Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai"
+  "Sema4.ai: Clear Sema4.ai (RCC) environments and restart Sema4.ai"
 
 Full error message
 ====================
@@ -182,14 +182,14 @@ The most common reasons and fixes for this failure are:
 
       "Developer: Reload Window"
 
-    - Clear all environments and restart Robocorp code (advised if you suspect
+    - Clear all environments and restart Sema4.ai code (advised if you suspect
       that some environment was partially created and is corrupt):
 
-      "Robocorp: Clear Robocorp (RCC) environments and restart Sema4.ai"
+      "Sema4.ai: Clear Sema4.ai (RCC) environments and restart Sema4.ai"
 
-If you still can't get it to work, please submit an issue to Robocorp using the command:
+If you still can't get it to work, please submit an issue to Sema4.ai using the command:
 
-  "Robocorp: Submit issue to Robocorp".
+  "Sema4.ai: Submit issue to Sema4.ai".
 
 
 Full error message

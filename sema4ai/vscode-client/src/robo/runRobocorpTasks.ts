@@ -10,7 +10,7 @@ export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
     const targetPy = args[0];
 
     let debugConfiguration: DebugConfiguration = {
-        "name": "Python: Robocorp Tasks",
+        "name": "Python: Sema4.ai Tasks",
         "type": "python",
         "request": "launch",
         "module": "robocorp.tasks",

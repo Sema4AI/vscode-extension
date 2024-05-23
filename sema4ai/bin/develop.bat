@@ -24,13 +24,13 @@ IF EXIST ".\%venvDir%" (
 
 :venv_new
 echo Creating a clean environment...
-.\bin\rcc.exe venv .\bin\developer.yaml --space robocorp-development --force
+.\bin\rcc.exe venv .\bin\developer.yaml --space sema4ai-development --force
 
 :venv_setup
 :: Activate the virtual environment and install dependencies everytime.
 call .\%venvDir%\Scripts\activate.bat
 cd ..
-python -m poetry install 
+python -m poetry install
 cd sema4-ai
 yarn
 

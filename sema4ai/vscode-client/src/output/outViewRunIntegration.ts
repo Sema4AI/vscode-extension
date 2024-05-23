@@ -230,6 +230,6 @@ export async function setupDebugSessionOutViewIntegration(context: vscode.Extens
             );
         });
     } catch (err) {
-        logError("Error creating socket for Robocorp Tasks Output integration.", err, "ROBO_TASKS_SOCKET");
+        logError("Error creating socket for Sema4.ai Tasks Output integration.", err, "ROBO_TASKS_SOCKET");
     }
 }

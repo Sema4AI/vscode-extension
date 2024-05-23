@@ -223,7 +223,7 @@ const shutdownExistingActionServer = async (port) => {
 
 const port = 8082;
 
-const ACTION_SERVER_TERMINAL_NAME = "Robocorp: Action Server";
+const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
 
 const getActionServerTerminal = (): undefined | Terminal => {
     for (const terminal of window.terminals) {
@@ -282,7 +282,7 @@ export const startActionServer = async (directory: Uri) => {
     env["RC_ADD_SHUTDOWN_API"] = "1";
 
     actionServerTerminal = window.createTerminal({
-        name: "Robocorp: Action Server",
+        name: "Sema4.ai: Action Server",
         env: env,
         cwd: directory,
     });

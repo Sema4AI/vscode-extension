@@ -235,7 +235,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.runRobocorpsPythonTask",
-        "Run Robocorp's Python Task",
+        "Run Sema4.ai's Python Task",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -243,7 +243,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.debugRobocorpsPythonTask",
-        "Debug Robocorp's Python Task",
+        "Debug Sema4.ai's Python Task",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -263,7 +263,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.computeRobotLaunchFromRobocorpCodeLaunch",
-        "Computes a Task Package (Robot) launch debug configuration based on the robocorp code launch debug configuration",
+        "Computes a Task Package launch debug configuration based on the Sema4.ai launch debug configuration",
         add_to_package_json=False,
         server_handled=True,
     ),
