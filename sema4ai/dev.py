@@ -223,7 +223,7 @@ class Dev(object):
 
         new_content = new_content.replace(
             "Apache 2.0",
-            "[Robocorp License Agreement (pdf)](https://cdn.robocorp.com/legal/Robocorp-EULA-v1.0.pdf)",
+            "[Sema4.ai License Agreement (pdf)](https://sema4.ai/cdn/downloads/legal/Sema4ai-EULA-v1.0.pdf)",
         )
 
         assert "apache" not in new_content.lower()
@@ -231,28 +231,23 @@ class Dev(object):
             f.write(new_content)
 
     def generate_license_file(self):
-        import subprocess
-        import tempfile
-        import time
+        import os
+        import urllib.request
 
-        from sema4ai_code.rcc import download_rcc
-
-        rcc_location = os.path.join(tempfile.mkdtemp(), "rcc.exe")
-        download_rcc(rcc_location)
-        time.sleep(0.2)
-        print(f"Downloaded rcc to: {rcc_location}")
-        assert os.path.exists(rcc_location)
-
+        url = "https://sema4.ai/cdn/downloads/legal/Sema4ai-EULA-v1.0.txt"
         readme = os.path.join(os.path.dirname(__file__), "LICENSE.txt")
+
+        # Fetch the file from the URL
+        with urllib.request.urlopen(url) as response:
+            content = response.read().decode("utf-8")
+
         with open(readme, "w") as f:
-            output = subprocess.check_output([rcc_location, "man", "license"])
-            decoded = output.decode("utf-8")
-            assert "Robocorp End User License Agreement" in decoded
-            assert (
-                "This EULA is the final, complete and exclusive agreement of the parties"
-                in decoded
-            )
-            f.write(decoded)
+            f.write(content)
+
+        # Read the content back from LICENSE.txt for verification
+        with open(readme, "r") as f:
+            written_content = f.read()
+        assert "Sema4.ai End User License Agreement" in written_content
 
     def download_rcc(self, plat):
         assert plat in ("win32", "linux", "darwin")

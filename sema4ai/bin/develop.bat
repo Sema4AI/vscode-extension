@@ -29,13 +29,14 @@ echo Creating a clean environment...
 :venv_setup
 :: Activate the virtual environment and install dependencies everytime.
 call .\%venvDir%\Scripts\activate.bat
+cd ..
 python -m poetry install 
-
-cd sema4ai
+cd sema4-ai
 yarn
 
+:vscode
 :: Start VS Code over the repo to open the entire project for development.
-code .. || goto vscode_error
+code . || goto vscode_error
 goto end
 
 :venv_error
