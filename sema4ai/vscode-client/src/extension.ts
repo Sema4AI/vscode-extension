@@ -607,10 +607,31 @@ export let globalCachedPythonInfo: InterpreterInfo;
 const langServerMutex: Mutex = new Mutex();
 export let GLOBAL_STATE: undefined | vscode.Memento = undefined;
 
+function checkDeprecatedRobocorpCoreExtension() {
+    const robocorpExtensionId = "Robocorp.robocorp-code";
+    const robocorpExtension = vscode.extensions.getExtension(robocorpExtensionId);
+    if (robocorpExtension) {
+        OUTPUT_CHANNEL.appendLine(`Found deprecated ${robocorpExtension.packageJSON.displayName} extension.`);
+        vscode.window
+            .showWarningMessage(
+                `The deprecated "${robocorpExtension.packageJSON.displayName}" extension found. It may cause conflicts with the rebranded Sema4ai extension.`,
+                "Open Extensions"
+            )
+            .then((selection) => {
+                if (selection === "Open Extensions") {
+                    vscode.commands.executeCommand("workbench.view.extensions");
+                }
+            });
+    }
+}
+
 export async function activate(context: ExtensionContext) {
     GLOBAL_STATE = context.globalState;
     let timing = new Timing();
     OUTPUT_CHANNEL.appendLine("Activating Sema4.ai extension.");
+
+    checkDeprecatedRobocorpCoreExtension();
+
     registerLinkProviders(context);
 
     C = new CommandRegistry(context);
