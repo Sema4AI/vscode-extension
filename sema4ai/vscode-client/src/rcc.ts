@@ -25,7 +25,7 @@ export async function getRobocorpHome(): Promise<string> {
     let robocorpHome: string = roboConfig.getHome();
 
     if (!robocorpHome || robocorpHome.length == 0) {
-        const sema4aiHome =  process.env["SEMA4AI_HOME"]
+        const sema4aiHome = process.env["SEMA4AI_HOME"];
         if (sema4aiHome) {
             if (lastPrintedRobocorpHome != sema4aiHome) {
                 lastPrintedRobocorpHome = sema4aiHome;
@@ -397,7 +397,7 @@ export async function runConfigDiagnostics(
     let configureLongpathsOutput: ExecFileReturn | undefined = undefined;
     let timing = new Timing();
     try {
-        let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome});
+        let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome });
         configureLongpathsOutput = await execFilePromise(
             rccLocation,
             ["configure", "diagnostics", "-j", "--controller", "Sema4aiCode"],
