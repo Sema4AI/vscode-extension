@@ -126,6 +126,7 @@
         "onCommand:sema4ai.startActionServer.internal",
         "onCommand:sema4ai.listActions.internal",
         "onCommand:sema4ai.packageEnvironmentRebuild",
+        "onCommand:sema4ai.packagePublishToDesktopApp",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -814,6 +815,11 @@
             {
                 "command": "sema4ai.packageEnvironmentRebuild",
                 "title": "Rebuild Package Environment",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.packagePublishToDesktopApp",
+                "title": "Publish Package to Sema4.ai Desktop",
                 "category": "Sema4.ai"
             }
         ],
