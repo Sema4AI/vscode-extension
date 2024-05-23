@@ -71,7 +71,7 @@ SETTINGS = [
     Setting(
         "sema4ai.home",
         "",
-        "Specifies the value for ROBOCORP_HOME (where the conda environments will be downloaded). Must point to a directory without spaces in it.",
+        "Specifies the value for SEMA4AI_HOME (where the conda environments will be downloaded). Must point to a directory without spaces in it.",
         setting_type="string",
     ),
     Setting(

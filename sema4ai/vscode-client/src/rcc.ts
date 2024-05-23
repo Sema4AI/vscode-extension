@@ -23,7 +23,17 @@ export enum Metrics {
 
 export async function getRobocorpHome(): Promise<string> {
     let robocorpHome: string = roboConfig.getHome();
+
     if (!robocorpHome || robocorpHome.length == 0) {
+        const sema4aiHome =  process.env["SEMA4AI_HOME"]
+        if (sema4aiHome) {
+            if (lastPrintedRobocorpHome != sema4aiHome) {
+                lastPrintedRobocorpHome = sema4aiHome;
+                OUTPUT_CHANNEL.appendLine("SEMA4AI_HOME: " + sema4aiHome);
+            }
+            return sema4aiHome;
+        }
+
         robocorpHome = process.env["ROBOCORP_HOME"];
         if (!robocorpHome) {
             // Default from RCC (maybe it should provide an API to get it before creating an env?)
@@ -42,7 +52,7 @@ export async function getRobocorpHome(): Promise<string> {
 }
 
 export function createEnvWithRobocorpHome(robocorpHome: string): { [key: string]: string | null } {
-    const base = { "ROBOCORP_HOME": robocorpHome };
+    const base = { "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome };
     if (getProceedwithlongpathsdisabled()) {
         base["ROBOCORP_OVERRIDE_SYSTEM_REQUIREMENTS"] = "1";
     }
@@ -387,7 +397,7 @@ export async function runConfigDiagnostics(
     let configureLongpathsOutput: ExecFileReturn | undefined = undefined;
     let timing = new Timing();
     try {
-        let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome });
+        let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome});
         configureLongpathsOutput = await execFilePromise(
             rccLocation,
             ["configure", "diagnostics", "-j", "--controller", "Sema4aiCode"],

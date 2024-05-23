@@ -313,15 +313,15 @@ export async function basicValidations(
         return { success: false, message: "", result: rccDiagnostics };
     }
     while (!rccDiagnostics.isRobocorpHomeOk()) {
-        const SELECT_ROBOCORP_HOME = "Set new ROBOCORP_HOME";
+        const SELECT_ROBOCORP_HOME = "Set new SEMA4AI_HOME";
         const CANCEL = "Cancel";
         let result = await window.showInformationMessage(
-            "The current ROBOCORP_HOME is invalid (paths with spaces/non ascii chars are not supported).",
+            "The current SEMA4AI_HOME is invalid (paths with spaces/non ascii chars are not supported).",
             SELECT_ROBOCORP_HOME,
             CANCEL
         );
         if (!result || result == CANCEL) {
-            OUTPUT_CHANNEL.appendLine("Cancelled setting new ROBOCORP_HOME.");
+            OUTPUT_CHANNEL.appendLine("Cancelled setting new SEMA4AI_HOME.");
             feedbackRobocorpCodeError("INIT_INVALID_ROBOCORP_HOME");
             if (failsPreventStartup) {
                 return { success: false, message: "", result: rccDiagnostics };
@@ -334,10 +334,10 @@ export async function basicValidations(
             "canSelectFolders": true,
             "canSelectFiles": false,
             "canSelectMany": false,
-            "openLabel": "Set as ROBOCORP_HOME",
+            "openLabel": "Set as SEMA4AI_HOME",
         });
         if (!uriResult) {
-            OUTPUT_CHANNEL.appendLine("Cancelled getting ROBOCORP_HOME path.");
+            OUTPUT_CHANNEL.appendLine("Cancelled getting SEMA4AI_HOME path.");
             feedbackRobocorpCodeError("INIT_CANCELLED_ROBOCORP_HOME");
             if (failsPreventStartup) {
                 return { success: false, message: "", result: rccDiagnostics };
@@ -346,7 +346,7 @@ export async function basicValidations(
             }
         }
         if (uriResult.length != 1) {
-            OUTPUT_CHANNEL.appendLine("Expected 1 path to set as ROBOCORP_HOME. Found: " + uriResult.length);
+            OUTPUT_CHANNEL.appendLine("Expected 1 path to set as SEMA4AI_HOME. Found: " + uriResult.length);
             feedbackRobocorpCodeError("INIT_ROBOCORP_HOME_NO_PATH");
             if (failsPreventStartup) {
                 return { success: false, message: "", result: rccDiagnostics };
@@ -371,7 +371,7 @@ export async function basicValidations(
             }
         }
         if (rccDiagnostics.isRobocorpHomeOk()) {
-            OUTPUT_CHANNEL.appendLine("Selected ROBOCORP_HOME: " + robocorpHome);
+            OUTPUT_CHANNEL.appendLine("Selected SEMA4AI_HOME: " + robocorpHome);
             let config = workspace.getConfiguration("sema4ai");
             await config.update("home", robocorpHome, ConfigurationTarget.Global);
         }
@@ -717,6 +717,7 @@ function extractInfoFromJsonContents(initialJsonContents: string): ActionResult<
         OUTPUT_CHANNEL.appendLine("    ROBOT_ARTIFACTS: " + env["ROBOT_ARTIFACTS"]);
         OUTPUT_CHANNEL.appendLine("    RCC_INSTALLATION_ID: " + env["RCC_INSTALLATION_ID"]);
         OUTPUT_CHANNEL.appendLine("    ROBOCORP_HOME: " + env["ROBOCORP_HOME"]);
+        OUTPUT_CHANNEL.appendLine("    SEMA4AI_HOME: " + env["SEMA4AI_HOME"]);
         OUTPUT_CHANNEL.appendLine("    PROCESSOR_ARCHITECTURE: " + env["PROCESSOR_ARCHITECTURE"]);
         OUTPUT_CHANNEL.appendLine("    OS: " + env["OS"]);
         OUTPUT_CHANNEL.appendLine("    PATH: " + env["PATH"]);
