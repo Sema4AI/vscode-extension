@@ -310,7 +310,7 @@
         "commands": [
             {
                 "command": "sema4ai.createRobot",
-                "title": "Create Task Package (Robot)",
+                "title": "Create Task Package",
                 "category": "Sema4.ai",
                 "icon": "$(add)"
             },
@@ -328,7 +328,7 @@
             },
             {
                 "command": "sema4ai.uploadRobotToCloud",
-                "title": "Upload Task Package (Robot) to Control Room",
+                "title": "Upload Task Package to Control Room",
                 "category": "Sema4.ai"
             },
             {
@@ -339,7 +339,7 @@
             },
             {
                 "command": "sema4ai.runRobotRcc",
-                "title": "Run Task Package (Robot)",
+                "title": "Run Task Package",
                 "category": "Sema4.ai"
             },
             {
@@ -349,7 +349,7 @@
             },
             {
                 "command": "sema4ai.debugRobotRcc",
-                "title": "Debug Task Package (Robot)",
+                "title": "Debug Task Package",
                 "category": "Sema4.ai"
             },
             {
@@ -445,7 +445,7 @@
             },
             {
                 "command": "sema4ai.refreshRobotContentView",
-                "title": "Refresh Task Package (Robot) Content view",
+                "title": "Refresh Task Package Content view",
                 "category": "Sema4.ai",
                 "icon": {
                     "light": "images/light/refresh.svg",
@@ -559,7 +559,7 @@
             },
             {
                 "command": "sema4ai.openRobotTreeSelection",
-                "title": "Configure Task Package (Robot) (robot.yaml)",
+                "title": "Configure Task Package (robot.yaml)",
                 "category": "Sema4.ai",
                 "icon": "$(go-to-file)"
             },
@@ -601,7 +601,7 @@
             },
             {
                 "command": "sema4ai.cloudUploadRobotTreeSelection",
-                "title": "Upload Task Package (Robot) to Control Room",
+                "title": "Upload Task Package to Control Room",
                 "category": "Sema4.ai",
                 "icon": "$(cloud-upload)"
             },
@@ -648,28 +648,28 @@
             },
             {
                 "command": "sema4ai.configuration.diagnostics.internal",
-                "title": "Task Package (Robot) Configuration Diagnostics (internal)",
+                "title": "Task Package Configuration Diagnostics (internal)",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.configuration.diagnostics",
-                "title": "Task Package (Robot) Configuration Diagnostics",
+                "title": "Task Package Configuration Diagnostics",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.rccTerminalNew",
-                "title": "Terminal with Task Package (Robot) environment",
+                "title": "Terminal with Task Package environment",
                 "category": "Sema4.ai",
                 "icon": "$(terminal)"
             },
             {
                 "command": "sema4ai.listWorkItems.internal",
-                "title": "Lists the work items available for a Task Package (Robot)",
+                "title": "Lists the work items available for a Task Package",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.updateLaunchEnv",
-                "title": "Updates the environment variables used for some launch (given a Task Package (Robot))",
+                "title": "Updates the environment variables used for some launch (given a Task Package",
                 "category": "Sema4.ai"
             },
             {
