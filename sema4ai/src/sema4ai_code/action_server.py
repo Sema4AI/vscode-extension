@@ -216,13 +216,11 @@ class ActionServer:
 
         # Action Server < v10 does not support templates handling, therefore we skip the parameter.
         if minor_version < 10:
-            command_result = self._run_action_server_command(
-                ["new", f"--name={directory}"]
-            )
+            args = ["new", f"--name={directory}"]
         else:
-            command_result = self._run_action_server_command(
-                ["new", f"--name={directory}", f"--template={template}"]
-            )
+            args = ["new", f"--name={directory}", f"--template={template}"]
+
+        command_result = self._run_action_server_command(args)
 
         if command_result.success:
             return ActionResult(success=True, message=None)
