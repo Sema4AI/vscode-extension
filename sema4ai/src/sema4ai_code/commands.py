@@ -108,6 +108,7 @@ SEMA4AI_DOWNLOAD_ACTION_SERVER = "sema4ai.downloadActionServer"  # Download Acti
 SEMA4AI_START_ACTION_SERVER_INTERNAL = "sema4ai.startActionServer.internal"  # Start Action Server (internal)
 SEMA4AI_LIST_ACTIONS_INTERNAL = "sema4ai.listActions.internal"  # Lists the actions available in an action package given a root dir (internal)
 SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD = "sema4ai.packageEnvironmentRebuild"  # Rebuild Package Environment
+SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP = "sema4ai.packagePublishToDesktopApp"  # Publish Package to Sema4.ai Desktop
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
