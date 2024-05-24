@@ -1447,7 +1447,8 @@ def test_list_action_templates(
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL, [{ "action_server_location": action_server_location }]
+        commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
+        [{"action_server_location": action_server_location}],
     )["result"]
 
     assert result["success"]
@@ -1461,7 +1462,7 @@ def test_list_action_templates(
 def test_create_action_package(
     language_server_initialized: IRobocorpLanguageServerClient,
     action_server_location: str,
-    tmpdir: str
+    tmpdir: str,
 ) -> None:
     from sema4ai_code import commands
 
@@ -1508,7 +1509,7 @@ def test_create_action_package(
 def test_create_action_package_without_templates_handling(
     language_server_initialized: IRobocorpLanguageServerClient,
     action_server_location_without_templates_handling: str,
-    tmpdir: str
+    tmpdir: str,
 ) -> None:
     from sema4ai_code import commands
 
@@ -1525,7 +1526,7 @@ def test_create_action_package_without_templates_handling(
             {
                 "action_server_location": action_server_location_without_templates_handling,
                 "directory": target,
-                "template": ""
+                "template": "",
             }
         ],
     )["result"]

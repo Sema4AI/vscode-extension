@@ -12,10 +12,10 @@ log = get_logger(__name__)
 
 
 def download_action_server(
-        location: str,
-        force: bool = False,
-        sys_platform: Optional[str] = None,
-        action_server_version="0.11.0",
+    location: str,
+    force: bool = False,
+    sys_platform: Optional[str] = None,
+    action_server_version="0.11.0",
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -40,7 +40,9 @@ def download_action_server(
                 import urllib.request
                 from sema4ai_code import get_release_artifact_relative_path
 
-                relative_path = get_release_artifact_relative_path(sys_platform, "action-server")
+                relative_path = get_release_artifact_relative_path(
+                    sys_platform, "action-server"
+                )
 
                 prefix = f"https://downloads.robocorp.com/action-server/releases/{action_server_version}"
                 url = prefix + relative_path
@@ -91,9 +93,9 @@ class ActionServer:
         self._action_server_location = action_server_location
 
     def _run_action_server_command(
-            self,
-            args: list[str],
-            timeout: float = 35,
+        self,
+        args: list[str],
+        timeout: float = 35,
     ) -> ActionServerResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Action Server command.
@@ -118,7 +120,9 @@ class ActionServer:
             stdout = as_str(e.stdout)
             stderr = as_str(e.stderr)
 
-            error_message = f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
+            error_message = (
+                f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
+            )
             log.exception(error_message)
 
             return ActionServerResult(cmdline, success=False, message=error_message)
@@ -137,7 +141,9 @@ class ActionServer:
 
         stdout_output = output.stdout.decode("utf-8", "replace")
 
-        return ActionServerResult(cmdline, success=True, message=None, result=stdout_output)
+        return ActionServerResult(
+            cmdline, success=True, message=None, result=stdout_output
+        )
 
     def get_version(self) -> ActionResult[str]:
         """
@@ -156,7 +162,9 @@ class ActionServer:
         """
         import json
 
-        command_result = self._run_action_server_command(["new", "list-templates", "--json"])
+        command_result = self._run_action_server_command(
+            ["new", "list-templates", "--json"]
+        )
 
         if not command_result.success:
             return ActionResult(success=False, message=command_result.message)
@@ -172,11 +180,17 @@ class ActionServer:
         templates: list[ActionTemplate] = []
 
         for template in json_data:
-            templates.append(ActionTemplate(name=template["name"], description=template["description"]))
+            templates.append(
+                ActionTemplate(
+                    name=template["name"], description=template["description"]
+                )
+            )
 
         return ActionResult(success=True, message=None, result=templates)
 
-    def create_action_package(self, directory: str, template: Optional[str]) -> ActionResult:
+    def create_action_package(
+        self, directory: str, template: Optional[str]
+    ) -> ActionResult:
         """
         Creates a new Action package under given directory, using specified template.
 
@@ -184,6 +198,7 @@ class ActionServer:
             directory: The directory to create the Action package in.
             template: The template to use for the new Action package.
         """
+
         def get_error_message(result_message: str) -> str:
             return f"Error creating Action package.\n{result_message}"
 
@@ -191,7 +206,9 @@ class ActionServer:
         if not version_result.result:
             return ActionResult(
                 success=False,
-                message=get_error_message("Action Server version could not be determined.")
+                message=get_error_message(
+                    "Action Server version could not be determined."
+                ),
             )
 
         version_tuple = version_result.result.strip().split(".")
@@ -199,11 +216,17 @@ class ActionServer:
 
         # Action Server < v10 does not support templates handling, therefore we skip the parameter.
         if minor_version < 10:
-            command_result = self._run_action_server_command(["new", f"--name={directory}"])
+            command_result = self._run_action_server_command(
+                ["new", f"--name={directory}"]
+            )
         else:
-            command_result = self._run_action_server_command(["new", f"--name={directory}", f"--template={template}"])
+            command_result = self._run_action_server_command(
+                ["new", f"--name={directory}", f"--template={template}"]
+            )
 
         if command_result.success:
             return ActionResult(success=True, message=None)
         else:
-            return ActionResult(success=False, message=get_error_message(command_result.message or ""))
+            return ActionResult(
+                success=False, message=get_error_message(command_result.message or "")
+            )

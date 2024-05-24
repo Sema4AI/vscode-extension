@@ -1458,7 +1458,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": None}
 
     @command_dispatcher(commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL)
-    def _list_action_templates(self, params: ListActionTemplatesParamsDict) -> ActionResultDict:
+    def _list_action_templates(
+        self, params: ListActionTemplatesParamsDict
+    ) -> ActionResultDict:
         from sema4ai_code.action_server import ActionServer
 
         action_server_location = params["action_server_location"]
@@ -1468,7 +1470,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return action_server.get_action_templates().as_dict()
 
     @command_dispatcher(commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL)
-    def _create_action_package(self, params: CreateActionPackageParamsDict) -> ActionResultDict:
+    def _create_action_package(
+        self, params: CreateActionPackageParamsDict
+    ) -> ActionResultDict:
         from sema4ai_code.action_server import ActionServer
 
         action_server_location = params["action_server_location"]
