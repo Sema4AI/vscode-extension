@@ -60,26 +60,10 @@ def download_rcc(
     if not os.path.exists(location) or force:
         with timed_acquire_mutex("robocorp_get_rcc", timeout=120):
             if not os.path.exists(location) or force:
-                import platform
                 import urllib.request
+                from sema4ai_code import get_release_artifact_relative_path
 
-                machine = platform.machine()
-                is_64 = not machine or "64" in machine
-
-                if sys_platform == "win32":
-                    if is_64:
-                        relative_path = "/windows64/rcc.exe"
-                    else:
-                        relative_path = "/windows32/rcc.exe"
-
-                elif sys_platform == "darwin":
-                    relative_path = "/macos64/rcc"
-
-                else:
-                    if is_64:
-                        relative_path = "/linux64/rcc"
-                    else:
-                        relative_path = "/linux32/rcc"
+                relative_path = get_release_artifact_relative_path(sys_platform, "rcc")
 
                 RCC_VERSION = "v17.28.4"
                 prefix = f"https://downloads.robocorp.com/rcc/releases/{RCC_VERSION}"

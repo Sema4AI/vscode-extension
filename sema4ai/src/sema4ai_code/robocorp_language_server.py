@@ -45,6 +45,8 @@ from sema4ai_code.protocols import (
     UploadRobotParamsDict,
     WorkItem,
     WorkspaceInfoDict,
+    ListActionTemplatesParamsDict,
+    CreateActionPackageParamsDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -1454,6 +1456,28 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return {"success": False, "message": str(e), "result": None}
 
         return {"success": True, "message": None, "result": None}
+
+    @command_dispatcher(commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL)
+    def _list_action_templates(self, params: ListActionTemplatesParamsDict) -> ActionResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.get_action_templates().as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL)
+    def _create_action_package(self, params: CreateActionPackageParamsDict) -> ActionResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        directory = params["directory"]
+        template = params["template"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.create_action_package(directory, template).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

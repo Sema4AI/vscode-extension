@@ -8,7 +8,6 @@ import {
     DebugConfiguration,
     DebugSessionOptions,
     env,
-    FileType,
 } from "vscode";
 import { join, dirname } from "path";
 import { logError, OUTPUT_CHANNEL } from "./channel";

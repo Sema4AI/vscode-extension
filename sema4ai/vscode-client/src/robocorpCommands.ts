@@ -108,3 +108,5 @@ export const SEMA4AI_START_ACTION_SERVER_INTERNAL = "sema4ai.startActionServer.i
 export const SEMA4AI_LIST_ACTIONS_INTERNAL = "sema4ai.listActions.internal";  // Lists the actions available in an action package given a root dir (internal)
 export const SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD = "sema4ai.packageEnvironmentRebuild";  // Rebuild Package Environment
 export const SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP = "sema4ai.packagePublishToDesktopApp";  // Publish Package to Sema4.ai Desktop
+export const SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL = "sema4ai.listActionTemplates.internal";  // Provides a list with the available Action templates
+export const SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL = "sema4ai.createActionPackage.internal";  // Actually calls Action Server to create the Action Package

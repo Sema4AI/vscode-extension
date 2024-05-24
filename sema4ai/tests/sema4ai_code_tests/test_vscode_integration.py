@@ -1434,3 +1434,102 @@ def test_windows_inspector_integrated(
 
     result = api_client.m_windows_inspector_stop_highlight()
     assert result["success"]
+
+
+def test_list_action_templates(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL, [{ "action_server_location": action_server_location }]
+    )["result"]
+
+    assert result["success"]
+    template_names = [template["name"] for template in result["result"]]
+
+    assert "minimal" in template_names
+    assert "basic" in template_names
+    assert "advanced" in template_names
+
+
+def test_create_action_package(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+    tmpdir: str
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    target = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "directory": target,
+                "template": "minimal",
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert not result["message"]
+    assert os.path.exists(target + "/package.yaml")
+
+    # When creating a package in a directory that is not empty,
+    # we expect an error to be returned.
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "directory": target,
+                "template": "minimal",
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert "Error creating Action package" in result["message"]
+    assert "not empty" in result["message"]
+
+
+def test_create_action_package_without_templates_handling(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location_without_templates_handling: str,
+    tmpdir: str
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location_without_templates_handling)
+
+    language_server = language_server_initialized
+
+    target = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location_without_templates_handling,
+                "directory": target,
+                "template": ""
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert not result["message"]
+    assert os.path.exists(target + "/package.yaml")

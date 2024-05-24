@@ -26,6 +26,28 @@ def get_bin_folder() -> str:
     return get_extension_relative_path("bin")
 
 
+def get_release_artifact_relative_path(sys_platform: str, executable_name: str) -> str:
+    import platform
+
+    machine = platform.machine()
+    is_64 = not machine or "64" in machine
+
+    if sys_platform == "win32":
+        if is_64:
+            return f"/windows64/{executable_name}.exe"
+        else:
+            return f"/windows32/{executable_name}.exe"
+
+    elif sys_platform == "darwin":
+        return f"/macos64/{executable_name}"
+
+    else:
+        if is_64:
+            return f"/linux64/{executable_name}"
+        else:
+            return f"/linux32/{executable_name}"
+
+
 def import_robocorp_ls_core() -> None:
     """
     Helper function to make sure that sema4ai_ls_core is imported properly
