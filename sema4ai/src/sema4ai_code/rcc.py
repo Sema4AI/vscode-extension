@@ -308,6 +308,7 @@ class Rcc(object):
         robocorp_home = self.get_robocorp_home_from_settings()
         if robocorp_home:
             env["ROBOCORP_HOME"] = robocorp_home
+            env["SEMA4AI_HOME"] = robocorp_home
 
         kwargs: dict = build_subprocess_kwargs(cwd, env, stderr=stderr)
         args = [rcc_location] + args + ["--controller", "Sema4aiCode"]

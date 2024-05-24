@@ -75,7 +75,7 @@ class HolotreeManager:
             info.
 
             Usually it should not be passed and it defaults to something
-            as ROBOCORP_HOME/.vscode (but a different path can be used for
+            as SEMA4AI_HOME/.vscode (but a different path can be used for
             tests).
         """
         self._rcc = rcc
