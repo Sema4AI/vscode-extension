@@ -176,6 +176,7 @@ import { downloadLatestActionServer, startActionServer } from "./actionServer";
 import { askAndRunRobocorpActionFromActionPackage, createActionPackage } from "./robo/actionPackage";
 import { showSelectOneStrQuickPick } from "./ask";
 import { btoa } from "buffer";
+import { getSema4DesktopURLForFolderPath } from "./deepLink";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -709,15 +710,13 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
 
     C.register(SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP, async () => {
         const selected = await listAndAskRobotSelection(
-            "Please select the Task/Action Package for which you'd like to rebuild the environment",
+            "Please select the Task/Action Package that you'd like to be published to the Sema4.ai Desktop",
             "Unable to continue because no Action Package was found in the workspace.",
             { showActionPackages: true, showTaskPackages: false }
         );
 
         if (selected) {
-            const sema4aiDestopAPIPath = `sema4.ai.desktop://vscode.sema4.ai/import-package/folder-path/${btoa(
-                selected.filePath
-            )}`;
+            const sema4aiDestopAPIPath = getSema4DesktopURLForFolderPath(selected.filePath);
             const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiDestopAPIPath));
             if (opened) {
                 vscode.window.showInformationMessage(`Publishing to Sema4.ai Desktop succeeded`);
