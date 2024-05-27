@@ -33,7 +33,7 @@ def download_action_server(
         sys_platform = sys.platform
 
     if not os.path.exists(location) or force:
-        with timed_acquire_mutex("robocorp_get_action_server", timeout=120):
+        with timed_acquire_mutex("sema4ai-get-action-server", timeout=120):
             # if other call is already in progress, we need to check it again,
             # as to not overwrite it when force was equal to False.
             if not os.path.exists(location) or force:
@@ -211,11 +211,10 @@ class ActionServer:
                 ),
             )
 
-        version_tuple = version_result.result.strip().split(".")
-        minor_version = int(version_tuple[1])
+        version_tuple = tuple(int(x) for x in version_result.result.strip().split(".")[:2])
 
         # Action Server < v10 does not support templates handling, therefore we skip the parameter.
-        if minor_version < 10:
+        if version_tuple <= (0, 10):
             args = ["new", f"--name={directory}"]
         else:
             args = ["new", f"--name={directory}", f"--template={template}"]
