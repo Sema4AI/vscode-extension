@@ -47,6 +47,16 @@ from sema4ai_code.protocols import (
     WorkspaceInfoDict,
     ListActionTemplatesParamsDict,
     CreateActionPackageParamsDict,
+    ActionServerLoginDict,
+    ActionServerVerifyLoginResultDict,
+    ActionServerAccessCredentialsDict,
+    ActionServerListOrgsResultDict,
+    ActionServerPackageUploadDict,
+    ActionServerPackageBuildDict,
+    ActionServerPackageBuildResultDict,
+    ActionServerPackageUploadStatusDict,
+    ActionServerPackageStatusDict,
+    ActionServerPackageSetChangelogDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -1482,6 +1492,123 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         action_server = ActionServer(action_server_location)
 
         return action_server.create_action_package(directory, template).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL)
+    def _action_server_login(self, params: ActionServerLoginDict) -> ActionResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        access_credentials = params["access_credentials"]
+        hostname = params["hostname"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.cloud_login(access_credentials, hostname).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL)
+    def _action_server_verify_login(
+        self, params: ActionServerAccessCredentialsDict
+    ) -> ActionServerVerifyLoginResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.verify_login().as_dict()
+
+    @command_dispatcher(
+        commands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL
+    )
+    def _action_server_list_organizations(
+        self, params: ActionServerAccessCredentialsDict
+    ) -> ActionServerListOrgsResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        access_credentials = (
+            params["access_credentials"] if "access_credentials" in params else None
+        )
+        hostname = params["hostname"] if "hostname" in params else None
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.list_organizations(access_credentials, hostname).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL)
+    def _action_server_package_build(
+        self, params: ActionServerPackageBuildDict
+    ) -> ActionServerPackageBuildResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        workspace_dir = params["workspace_dir"]
+        output_dir = params["output_dir"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.package_build(workspace_dir, output_dir).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL)
+    def _action_server_package_upload(
+        self, params: ActionServerPackageUploadDict
+    ) -> ActionServerPackageUploadStatusDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        package_path = params["package_path"]
+        organization_id = params["organization_id"]
+        access_credentials = (
+            params["access_credentials"] if "access_credentials" in params else None
+        )
+        hostname = params["hostname"] if "hostname" in params else None
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.package_upload(
+            package_path, organization_id, access_credentials, hostname
+        ).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL)
+    def _action_server_package_status(
+        self, params: ActionServerPackageStatusDict
+    ) -> ActionServerPackageUploadStatusDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        package_id = params["package_id"]
+        organization_id = params["organization_id"]
+        access_credentials = (
+            params["access_credentials"] if "access_credentials" in params else None
+        )
+        hostname = params["hostname"] if "hostname" in params else None
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.package_status(
+            package_id, organization_id, access_credentials, hostname
+        ).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL)
+    def _action_server_package_set_changelog(
+        self, params: ActionServerPackageSetChangelogDict
+    ) -> ActionResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        package_id = params["package_id"]
+        organization_id = params["organization_id"]
+        changelog_input = params["changelog_input"]
+        access_credentials = (
+            params["access_credentials"] if "access_credentials" in params else None
+        )
+        hostname = params["hostname"] if "hostname" in params else None
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.package_set_changelog(
+            package_id, organization_id, changelog_input, access_credentials, hostname
+        ).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

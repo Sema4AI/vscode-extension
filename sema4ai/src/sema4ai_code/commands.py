@@ -111,6 +111,15 @@ SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD = "sema4ai.packageEnvironmentRebuild"  # Reb
 SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP = "sema4ai.packagePublishToDesktopApp"  # Publish Package to Sema4.ai Desktop
 SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL = "sema4ai.listActionTemplates.internal"  # Provides a list with the available Action templates
 SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL = "sema4ai.createActionPackage.internal"  # Actually calls Action Server to create the Action Package
+SEMA4AI_ACTION_SERVER_CLOUD_LOGIN = "sema4ai.actionServerCloudLogin"  # Authenticate the Action Server to Control Room
+SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL = "sema4ai.actionServerCloudLogin.internal"  # Authenticate the Action Server to Control Room (internal)
+SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL = "sema4ai.actionServerCloudVerifyLogin.internal"  # Verify that the action server Control Room credentials are saved (internal)
+SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL = "sema4ai.actionServerCloudListOrganizations.internal"  # List Action Server authenticated organizations (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL = "sema4ai.actionServerPackageBuild.internal"  # Build action package file (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL = "sema4ai.actionServerPackageUpload.internal"  # Upload action package to the Control Room (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL = "sema4ai.actionServerPackageStatus.internal"  # Get action package upload status from the Control Room (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL = "sema4ai.actionServerPackageSetChangelog.internal"  # Set action package changelog entry in the Control Room (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH = "sema4ai.actionServerPackagePublish"  # Publish Action Package to Control Room
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -149,6 +158,13 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_LIST_ACTIONS_INTERNAL,
     SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
     SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+    SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL,
+    SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
+    SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
+    SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
+    SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
+    SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
+    SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
 ]
 
 # fmt: on

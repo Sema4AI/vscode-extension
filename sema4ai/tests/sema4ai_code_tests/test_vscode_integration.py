@@ -1136,7 +1136,7 @@ def test_lint_action_package_integration_deps(
     conda_yaml = tmpdir.join("package.yaml")
     conda_yaml_text = """
 # Bad: missing
-# documentation: 
+# documentation:
 # version:
 # description:
 
@@ -1534,3 +1534,198 @@ def test_create_action_package_without_templates_handling(
     assert result["success"]
     assert not result["message"]
     assert os.path.exists(target + "/package.yaml")
+
+
+def test_verify_login(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
+        [{"action_server_location": action_server_location}],
+    )["result"]
+
+    assert result["success"]
+    logged_id = result["result"]["logged_in"]
+    assert isinstance(logged_id, bool), "Expected boolean type for logged_in variable"
+
+
+def test_list_organizations(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    access_credentials = os.environ.get("ACTION_SERVER_TEST_ACCESS_CREDENTIALS")
+    hostname = os.environ.get("ACTION_SERVER_TEST_HOSTNAME", "https://ci.robocorp.dev")
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "access_credentials": access_credentials,
+                "hostname": hostname,
+            },
+        ],
+    )["result"]
+
+    assert result["success"]
+    organizations = result["result"]
+    assert len(organizations) == 4
+    assert organizations[0]["name"] == "Action Server"
+
+
+def test_package_build(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+    cases: CasesFixture,
+) -> None:
+    import tempfile
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    action_package_path = Path(cases.get_path("action_packages"), "action_package1")
+    assert Path(action_package_path, "package.yaml").exists()
+
+    language_server = language_server_initialized
+
+    with tempfile.TemporaryDirectory() as output_dir:
+        result = language_server.execute_command(
+            commands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
+            [
+                {
+                    "action_server_location": action_server_location,
+                    "workspace_dir": str(action_package_path),
+                    "output_dir": output_dir,
+                },
+            ],
+        )["result"]
+
+        assert result["success"]
+        package_path = Path(result["result"]["package_path"])
+        assert package_path.exists()
+        assert package_path.is_file()
+        assert package_path == Path(output_dir, "test_action.zip")
+
+
+@pytest.mark.timeout(60)
+def test_package_upload(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+    cases: CasesFixture,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    built_package_path = Path(
+        cases.get_path("action_packages"), "action_package1", "saved_action.zip"
+    )
+    assert built_package_path.exists()
+
+    language_server = language_server_initialized
+
+    organization_id = "6e49f3b9-9d25-4904-b22d-3b5e672f4d7b"
+    access_credentials = os.environ.get("ACTION_SERVER_TEST_ACCESS_CREDENTIALS")
+    hostname = os.environ.get("ACTION_SERVER_TEST_HOSTNAME", "https://ci.robocorp.dev")
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "package_path": str(built_package_path),
+                "organization_id": organization_id,
+                "access_credentials": access_credentials,
+                "hostname": hostname,
+            },
+        ],
+    )["result"]
+
+    assert result["success"]
+    package_status = result["result"]
+    assert package_status["id"] is not None
+    assert package_status["error"] is None
+
+
+@pytest.mark.timeout(60)
+def test_package_status(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    package_id = "21a4a0ea-7ada-4754-8a62-ed9d17dedb1d"
+    organization_id = "6e49f3b9-9d25-4904-b22d-3b5e672f4d7b"
+    access_credentials = os.environ.get("ACTION_SERVER_TEST_ACCESS_CREDENTIALS")
+    hostname = os.environ.get("ACTION_SERVER_TEST_HOSTNAME", "https://ci.robocorp.dev")
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "package_id": package_id,
+                "organization_id": organization_id,
+                "access_credentials": access_credentials,
+                "hostname": hostname,
+            },
+        ],
+    )["result"]
+
+    assert result["success"]
+    package_status = result["result"]
+    assert package_status["id"] == "21a4a0ea-7ada-4754-8a62-ed9d17dedb1d"
+    assert package_status["error"] is None
+
+
+@pytest.mark.timeout(60)
+def test_package_set_changelog(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+
+    package_id = "9749f9e5-b3c3-4eb8-8007-2b6337901529"
+    organization_id = "6e49f3b9-9d25-4904-b22d-3b5e672f4d7b"
+    access_credentials = os.environ.get("ACTION_SERVER_TEST_ACCESS_CREDENTIALS")
+    hostname = os.environ.get("ACTION_SERVER_TEST_HOSTNAME", "https://ci.robocorp.dev")
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "package_id": package_id,
+                "organization_id": organization_id,
+                "changelog_input": "Testing",
+                "access_credentials": access_credentials,
+                "hostname": hostname,
+            },
+        ],
+    )["result"]
+
+    assert result["success"]
+    package_status = result["result"]
+    assert package_status["id"] == "9749f9e5-b3c3-4eb8-8007-2b6337901529"
+    assert package_status["error"] is None

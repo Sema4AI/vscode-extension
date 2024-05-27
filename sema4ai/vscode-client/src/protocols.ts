@@ -140,3 +140,32 @@ export interface Options {
 export interface Progress {
     (amount: number, message: string): void;
 }
+
+export interface ActionServerVerifyLoginOutput {
+    logged_in: boolean;
+    hostname: string;
+}
+
+export interface ActionServerOrganization {
+    id: string;
+    name: string;
+}
+
+export interface ActionServerListOrganizationsOutput extends Array<ActionServerOrganization> {}
+
+export interface ActionServerPackageBuildOutput {
+    package_path: string;
+}
+
+export interface ActionServerPackageUploadStatusOutput {
+    id: string;
+    name: string;
+    url: string;
+    version?: string;
+    changes?: string;
+    status: "unknown" | "pending" | "validating" | "failed" | "completed" | "published";
+    error?: {
+        code: string;
+        message: string;
+    };
+}

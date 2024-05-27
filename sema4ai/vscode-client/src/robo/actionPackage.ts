@@ -1,8 +1,28 @@
-import { QuickPickItem, WorkspaceFolder, commands, window } from "vscode";
+import * as os from "os";
+import * as fs from "fs";
+
+import {
+    QuickPickItem,
+    WorkspaceFolder,
+    commands,
+    window,
+    ProgressLocation,
+    Progress,
+    CancellationToken,
+} from "vscode";
 import * as vscode from "vscode";
 import { join } from "path";
 import * as roboCommands from "../robocorpCommands";
-import { ActionResult, ActionTemplate, IActionInfo, LocalRobotMetadataInfo } from "../protocols";
+import {
+    ActionResult,
+    ActionTemplate,
+    IActionInfo,
+    LocalRobotMetadataInfo,
+    ActionServerListOrganizationsOutput,
+    ActionServerOrganization,
+    ActionServerPackageBuildOutput,
+    ActionServerPackageUploadStatusOutput,
+} from "../protocols";
 import {
     areThereRobotsInWorkspace,
     compareVersions,
@@ -15,7 +35,12 @@ import { fileExists, makeDirs } from "../files";
 import { QuickPickItemWithAction, askForWs, showSelectOneQuickPick } from "../ask";
 import * as path from "path";
 import { OUTPUT_CHANNEL, logError } from "../channel";
-import { downloadOrGetActionServerLocation, getActionServerVersion } from "../actionServer";
+import {
+    downloadOrGetActionServerLocation,
+    getActionServerVersion,
+    verifyLogin,
+    listOrganizations,
+} from "../actionServer";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
 
 export interface QuickPickItemAction extends QuickPickItem {
@@ -384,3 +409,242 @@ async function getTemplate(actionServerLocation: string) {
     const selectedTemplate = templates.find((template) => template.description === selectedItem);
     return selectedTemplate?.name;
 }
+
+const chooseOrganization = async (
+    organizations: ActionServerListOrganizationsOutput
+): Promise<ActionServerOrganization> => {
+    const organization = await window.showQuickPick(
+        organizations.map((organization) => organization.name),
+        {
+            "canPickMany": false,
+            "placeHolder": "Select the organization to publish package to",
+            "ignoreFocusOut": true,
+        }
+    );
+
+    return organizations.find((org) => org.name == organization);
+};
+
+const buildPackage = async (actionServerLocation: string, workspaceDir: string, outputDir: string): Promise<string> => {
+    const result: ActionResult<ActionServerPackageBuildOutput> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+            workspace_dir: workspaceDir,
+            output_dir: outputDir,
+        }
+    );
+    if (!result.success) {
+        window.showErrorMessage(`Failed to upload action package: ${result.message}`);
+        return;
+    }
+
+    return result.result.package_path;
+};
+
+const askUserForChangelogInput = async (): Promise<string> => {
+    return window.showInputBox({
+        "placeHolder": "Changelog update...",
+        "prompt": "Please provide the changelog update for the package.",
+        "ignoreFocusOut": true,
+        "validateInput": (changelog: string): string | Thenable<string> => {
+            if (!changelog) {
+                return "No value added";
+            }
+        },
+    });
+};
+
+const uploadActionPackage = async (
+    actionServerLocation: string,
+    packagePath: string,
+    organizationId: string
+): Promise<ActionServerPackageUploadStatusOutput | undefined> => {
+    const result: ActionResult<ActionServerPackageUploadStatusOutput> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+            package_path: packagePath,
+            organization_id: organizationId,
+        }
+    );
+    if (!result.success) {
+        window.showErrorMessage(`Failed to upload action package: ${result.message}`);
+        return;
+    }
+
+    return result.result;
+};
+
+const getActionPackageStatus = async (
+    actionServerLocation: string,
+    actionPackageId: string,
+    organizationId: string
+): Promise<ActionServerPackageUploadStatusOutput> => {
+    const result: ActionResult<ActionServerPackageUploadStatusOutput> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+            package_id: actionPackageId,
+            organization_id: organizationId,
+        }
+    );
+    if (!result.success) {
+        window.showErrorMessage(`Failed to get action package status: ${result.message}`);
+        return;
+    }
+
+    return result.result;
+};
+
+const waitUntilPackageVerified = async (
+    actionServerLocation: string,
+    actionPackage: ActionServerPackageUploadStatusOutput,
+    organizationId: string,
+    progress: Progress<{ message?: string; increment?: number }>
+): Promise<boolean> => {
+    let status = "unknown";
+    let timedOut = false;
+
+    const timeout = setTimeout(() => {
+        timedOut = true;
+    }, 1000 * 60 * 15); // fifteen minutes
+
+    while (status !== "published" && status !== "completed" && !timedOut) {
+        const packageStatus = await getActionPackageStatus(actionServerLocation, actionPackage.id, organizationId);
+        status = packageStatus.status;
+        progress.report({ message: `Status: ${status}` });
+
+        if (status === "failed") {
+            window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
+            clearTimeout(timeout);
+            return false;
+        }
+    }
+
+    if (timedOut) {
+        window.showErrorMessage(`Action package verification timed out, see status from: ${actionPackage.url}`);
+        return false;
+    }
+
+    clearTimeout(timeout);
+    return true;
+};
+
+const updateChangelog = async (
+    actionServerLocation: string,
+    packageId: string,
+    organizationId: string,
+    changelogInput: string
+): Promise<boolean> => {
+    const result: ActionResult<void> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+            package_id: packageId,
+            organization_id: organizationId,
+            changelog_input: changelogInput,
+        }
+    );
+
+    if (!result.success) {
+        window.showErrorMessage(`Failed to update the changelog: ${result.message}`);
+        return false;
+    }
+
+    return true;
+};
+
+export const publishActionPackage = async () => {
+    const workspaceDir = await askForWs();
+
+    await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Publishing Action Package",
+            cancellable: false,
+        },
+        async (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ): Promise<void> => {
+            progress.report({ message: "Validating action server" });
+            const actionServerLocation = await downloadOrGetActionServerLocation();
+            if (!actionServerLocation) {
+                return;
+            }
+
+            progress.report({ message: "Validating authentication" });
+            const verifyLoginOutput = await verifyLogin(actionServerLocation);
+            if (!verifyLoginOutput || !verifyLoginOutput.logged_in) {
+                window.showErrorMessage(
+                    "Action Server Not authenticated to Control Room, run: Sema4ai: Authenticate the Action Server to Control Room"
+                );
+                return;
+            }
+
+            progress.report({ message: "Finding organizations" });
+            const organizations = await listOrganizations(actionServerLocation);
+            if (organizations.length === 0) {
+                return;
+            }
+
+            progress.report({ message: "Choose organization" });
+            const organization = await chooseOrganization(organizations);
+            if (!organization) {
+                return;
+            }
+
+            const tempDir = path.join(os.tmpdir(), "vscode-extension", Date.now().toString());
+            fs.mkdirSync(tempDir, { recursive: true });
+            try {
+                progress.report({ message: "Building package" });
+                const packagePath = await buildPackage(actionServerLocation, workspaceDir.uri.fsPath, tempDir);
+                if (!packagePath) {
+                    return;
+                }
+
+                progress.report({ message: "Uploading package to Control Room" });
+                const actionPackage = await uploadActionPackage(actionServerLocation, packagePath, organization.id);
+                if (!actionPackage) {
+                    return;
+                }
+
+                progress.report({ message: "Waiting for package to be verified" });
+                const verified = await waitUntilPackageVerified(
+                    actionServerLocation,
+                    actionPackage,
+                    organization.id,
+                    progress
+                );
+                if (!verified) {
+                    return;
+                }
+
+                progress.report({ message: "Getting changelog input" });
+                const changelogInput = await askUserForChangelogInput();
+                if (!changelogInput) {
+                    return;
+                }
+
+                progress.report({ message: "Updating the package changelog to Control Room" });
+                const updated = await updateChangelog(
+                    actionServerLocation,
+                    actionPackage.id,
+                    organization.id,
+                    changelogInput
+                );
+                if (!updated) {
+                    return;
+                }
+            } finally {
+                try {
+                    fs.rmSync(tempDir, { recursive: true, force: true });
+                } catch (error) {
+                    // pass the warning, the OS will handle the temp dir deletion if it cannot be deleted here for some reason
+                }
+            }
+            window.showInformationMessage("package published successfully!");
+        }
+    );
+};

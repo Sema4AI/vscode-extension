@@ -802,6 +802,60 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.actionServerCloudLogin",
+        "Authenticate the Action Server to Control Room",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
+    Command(
+        "sema4ai.actionServerCloudLogin.internal",
+        "Authenticate the Action Server to Control Room (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerCloudVerifyLogin.internal",
+        "Verify that the action server Control Room credentials are saved (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerCloudListOrganizations.internal",
+        "List Action Server authenticated organizations (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerPackageBuild.internal",
+        "Build action package file (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerPackageUpload.internal",
+        "Upload action package to the Control Room (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerPackageStatus.internal",
+        "Get action package upload status from the Control Room (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerPackageSetChangelog.internal",
+        "Set action package changelog entry in the Control Room (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.actionServerPackagePublish",
+        "Publish Action Package to Control Room",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 
