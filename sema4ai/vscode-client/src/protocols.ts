@@ -70,6 +70,11 @@ export interface RobotTemplate {
     description: string;
 }
 
+export interface ActionTemplate {
+    name: string;
+    description: string;
+}
+
 export interface WorkItem {
     name: string;
     json_path: string;

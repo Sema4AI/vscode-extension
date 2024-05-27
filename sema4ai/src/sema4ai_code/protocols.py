@@ -142,6 +142,11 @@ class RobotTemplate(TypedDict):
     description: str
 
 
+class ActionTemplate(TypedDict):
+    name: str
+    description: str
+
+
 class CloudLoginParamsDict(TypedDict):
     credentials: str
 
@@ -163,6 +168,16 @@ class CreateRobotParamsDict(TypedDict):
     directory: str
     template: str
     name: str
+
+
+class ListActionTemplatesParamsDict(TypedDict):
+    action_server_location: str
+
+
+class CreateActionPackageParamsDict(TypedDict):
+    action_server_location: str
+    directory: str
+    template: str
 
 
 class RunInRccParamsDict(TypedDict):
@@ -396,3 +411,18 @@ class IRcc(Protocol):
         self, robot_yaml: Path, space_name: str, no_build: bool
     ) -> ActionResult[str]:
         pass
+
+
+class ActionServerResult(ActionResult[str]):
+    # A string-representation of the command line.
+    command_line: str
+
+    def __init__(
+        self,
+        command_line: str,
+        success: bool,
+        message: Optional[str] = None,
+        result: Optional[str] = None,
+    ):
+        ActionResult.__init__(self, success, message, result)
+        self.command_line = command_line

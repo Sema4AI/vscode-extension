@@ -790,6 +790,18 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=False,
     ),
+    Command(
+        "sema4ai.listActionTemplates.internal",
+        "Provides a list with the available Action templates",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
+    Command(
+        "sema4ai.createActionPackage.internal",
+        "Actually calls Action Server to create the Action Package",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 

@@ -127,6 +127,8 @@
         "onCommand:sema4ai.listActions.internal",
         "onCommand:sema4ai.packageEnvironmentRebuild",
         "onCommand:sema4ai.packagePublishToDesktopApp",
+        "onCommand:sema4ai.listActionTemplates.internal",
+        "onCommand:sema4ai.createActionPackage.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",

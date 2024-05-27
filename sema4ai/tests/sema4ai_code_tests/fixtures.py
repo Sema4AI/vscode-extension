@@ -468,6 +468,31 @@ def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     )
 
 
+@pytest.fixture
+def action_server_location() -> str:
+    from sema4ai_code.action_server import (
+        download_action_server,
+        get_default_action_server_location,
+    )
+
+    location = get_default_action_server_location()
+    download_action_server(location, force=False)
+    return location
+
+
+@pytest.fixture
+def action_server_location_without_templates_handling() -> str:
+    from sema4ai_code.action_server import (
+        download_action_server,
+        get_default_action_server_location,
+    )
+
+    version = "0.9.0"
+    location = get_default_action_server_location(version)
+    download_action_server(location, force=False, action_server_version=version)
+    return location
+
+
 def fix_locator(locator: "PickedLocatorTypedDict") -> "PickedLocatorTypedDict":
     """
     Utility to convert a locator into a format that's suitable to be
