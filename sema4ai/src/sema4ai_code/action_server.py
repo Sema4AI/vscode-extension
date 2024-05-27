@@ -211,7 +211,9 @@ class ActionServer:
                 ),
             )
 
-        version_tuple = tuple(int(x) for x in version_result.result.strip().split(".")[:2])
+        version_tuple = tuple(
+            int(x) for x in version_result.result.strip().split(".")[:2]
+        )
 
         # Action Server < v10 does not support templates handling, therefore we skip the parameter.
         if version_tuple <= (0, 10):
