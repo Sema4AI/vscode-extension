@@ -22,6 +22,7 @@ import {
 import { globalCachedPythonInfo } from "./extension";
 import { disablePythonTerminalActivateEnvironment } from "./pythonExtIntegration";
 import { InterpreterInfo } from "./protocols";
+import { envVarsForOutViewIntegration } from "./output/outViewRunIntegration";
 
 interface ActionResult {
     success: boolean;
@@ -91,6 +92,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         let env = interpreter.environ;
 
         if (isActionPackageLaunch) {
+            env["S4_ACTIONS_LOG_LISTENER_PORT"] = envVarsForOutViewIntegration.get("S4_ACTIONS_LOG_LISTENER_PORT");
             // Vault/work-items features not available in action server at this point.
         } else {
             // Resolve environment (updates the environment to add vault

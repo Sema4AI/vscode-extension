@@ -225,6 +225,8 @@ export async function setupDebugSessionOutViewIntegration(context: vscode.Extens
 
         server.listen(0, () => {
             envVarsForOutViewIntegration.set("ROBOCORP_TASKS_LOG_LISTENER_PORT", `${server.address()["port"]}`);
+            envVarsForOutViewIntegration.set("S4_ACTIONS_LOG_LISTENER_PORT", `${server.address()["port"]}`);
+
             OUTPUT_CHANNEL.appendLine(
                 `Listening for Robo Tasks Output connections on: ${JSON.stringify(server.address())}`
             );
