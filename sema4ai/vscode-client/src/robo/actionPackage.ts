@@ -1,48 +1,22 @@
-import {
-    QuickPickItem,
-    WorkspaceFolder,
-    commands,
-    window
-} from "vscode";
+import { QuickPickItem, WorkspaceFolder, commands, window } from "vscode";
 import * as vscode from "vscode";
 import { join } from "path";
 import * as roboCommands from "../robocorpCommands";
-import {
-    ActionResult,
-    ActionTemplate,
-    IActionInfo,
-    LocalRobotMetadataInfo
-} from "../protocols";
+import { ActionResult, ActionTemplate, IActionInfo, LocalRobotMetadataInfo } from "../protocols";
 import {
     areThereRobotsInWorkspace,
     compareVersions,
     isActionPackage,
     isDirectoryAPackageDirectory,
-    verifyIfPathOkToCreatePackage
+    verifyIfPathOkToCreatePackage,
 } from "../common";
 import { slugify } from "../slugify";
-import {
-    fileExists,
-    makeDirs
-} from "../files";
-import {
-    QuickPickItemWithAction,
-    askForWs,
-    showSelectOneQuickPick
-} from "../ask";
+import { fileExists, makeDirs } from "../files";
+import { QuickPickItemWithAction, askForWs, showSelectOneQuickPick } from "../ask";
 import * as path from "path";
-import {
-    OUTPUT_CHANNEL,
-    logError
-} from "../channel";
-import {
-    downloadOrGetActionServerLocation,
-    getActionServerVersion
-} from "../actionServer";
-import {
-    createEnvWithRobocorpHome,
-    getRobocorpHome
-} from "../rcc";
+import { OUTPUT_CHANNEL, logError } from "../channel";
+import { downloadOrGetActionServerLocation, getActionServerVersion } from "../actionServer";
+import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -72,7 +46,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
 
     const RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE = "RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE";
     let runLRU: string[] = await commands.executeCommand(roboCommands.SEMA4AI_LOAD_FROM_DISK_LRU, {
-        "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE
+        "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
     });
 
     let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
@@ -103,7 +77,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
             let result: ActionResult<undefined> = await vscode.commands.executeCommand(
                 roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
                 {
-                    "action_package": actionPackageUri.toString()
+                    "action_package": actionPackageUri.toString(),
                 }
             );
             if (result.success) {
@@ -118,7 +92,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
                         "actionPackageYamlDirectory": robotInfo.directory,
                         "actionPackageUri": actionPackageUri,
                         "packageYaml": robotInfo.filePath,
-                        "keyInLRU": action.name
+                        "keyInLRU": action.name,
                     };
                     if (runLRU && runLRU.length > 0 && keyInLRU == runLRU[0]) {
                         // Note that although we have an LRU we just consider the last one for now.
@@ -350,11 +324,14 @@ export async function createActionPackage() {
             }
         }
 
-        const result: ActionResult<unknown> = await commands.executeCommand(roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL, {
-            "action_server_location": actionServerLocation,
-            "directory": targetDir,
-            "template": template
-        });
+        const result: ActionResult<unknown> = await commands.executeCommand(
+            roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+            {
+                "action_server_location": actionServerLocation,
+                "directory": targetDir,
+                "template": template,
+            }
+        );
 
         if (!result.success) {
             throw new Error(result.message || "Unkown error");
@@ -376,14 +353,15 @@ export async function createActionPackage() {
 }
 
 async function getTemplate(actionServerLocation: string) {
-    const listActionTemplatesResult: ActionResult<ActionTemplate[]> = await commands.executeCommand(roboCommands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL, {
-        "action_server_location": actionServerLocation
-    });
+    const listActionTemplatesResult: ActionResult<ActionTemplate[]> = await commands.executeCommand(
+        roboCommands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
+        {
+            "action_server_location": actionServerLocation,
+        }
+    );
 
     if (!listActionTemplatesResult.success) {
-        window.showErrorMessage(
-            "Unable to list Action Package templates: " + listActionTemplatesResult.message
-        );
+        window.showErrorMessage("Unable to list Action Package templates: " + listActionTemplatesResult.message);
 
         return null;
     }
@@ -395,7 +373,7 @@ async function getTemplate(actionServerLocation: string) {
     }
 
     const selectedItem = await window.showQuickPick(
-        templates.map(template => template.description),
+        templates.map((template) => template.description),
         {
             canPickMany: false,
             "placeHolder": "Please select the template for the Action Package.",
@@ -403,6 +381,6 @@ async function getTemplate(actionServerLocation: string) {
         }
     );
 
-    const selectedTemplate = templates.find(template => template.description === selectedItem);
+    const selectedTemplate = templates.find((template) => template.description === selectedItem);
     return selectedTemplate?.name;
 }

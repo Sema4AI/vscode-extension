@@ -38,9 +38,7 @@ import {
     WorkItemsInfo,
     WorkspaceInfo,
 } from "./protocols";
-import {
-    applyOutViewIntegrationEnvVars,
-} from "./output/outViewRunIntegration";
+import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
     areThereRobotsInWorkspace,

@@ -22,9 +22,7 @@ import {
 import { globalCachedPythonInfo } from "./extension";
 import { disablePythonTerminalActivateEnvironment } from "./pythonExtIntegration";
 import { InterpreterInfo } from "./protocols";
-import {
-    applyOutViewIntegrationEnvVars,
-} from "./output/outViewRunIntegration";
+import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 
 interface ActionResult {
     success: boolean;
