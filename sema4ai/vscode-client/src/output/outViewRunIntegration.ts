@@ -235,3 +235,11 @@ export async function setupDebugSessionOutViewIntegration(context: vscode.Extens
         logError("Error creating socket for Sema4.ai Tasks Output integration.", err, "ROBO_TASKS_SOCKET");
     }
 }
+
+export function applyOutViewIntegrationEnvVars(targetEnv: Record<string, string>) {
+    for (const [key, val] of envVarsForOutViewIntegration) {
+        targetEnv[key] = val;
+    }
+
+    return targetEnv;
+}
