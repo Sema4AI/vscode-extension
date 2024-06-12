@@ -227,7 +227,7 @@
             "panel": [
                 {
                     "id": "sema4ai-python-view-output",
-                    "title": "Task/Action Output",
+                    "title": "Robo Tasks Output",
                     "icon": "$(output)"
                 }
             ]
@@ -259,8 +259,8 @@
                 {
                     "type": "webview",
                     "id": "sema4ai.python.view.output",
-                    "name": "Task/Action Output",
-                    "contextualTitle": "Task/Action Output"
+                    "name": "Robo Tasks Output",
+                    "contextualTitle": "Robo Tasks Output"
                 }
             ]
         },
