@@ -6,6 +6,7 @@ Unreleased
     - ROBOT_ARTIFACTS set to a better place for the log.html.
     - If using `sema4ai-actions 0.7.0` or newer, the results of running an action are printed to the terminal.
 - `Sema4.ai: Create Action Package` allows to specify a template to use now (for Action Server v0.10.0 or newer)
+- `Robo Tasks Output` tab has been renamed to `Task/Action Output`, and it now shows logs from Action runs
 
 New in 1.22.4 (2024-05-22)
 -----------------------------
