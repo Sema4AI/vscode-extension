@@ -38,7 +38,7 @@ import {
     WorkItemsInfo,
     WorkspaceInfo,
 } from "./protocols";
-import { envVarsForOutViewIntegration } from "./output/outViewRunIntegration";
+import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
     areThereRobotsInWorkspace,
@@ -925,10 +925,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     // - Vault
     // - Work items
 
-    let newEnv: { [key: string]: string } = { ...environment };
-    for (const [key, val] of envVarsForOutViewIntegration) {
-        newEnv[key] = val;
-    }
+    const newEnv = applyOutViewIntegrationEnvVars(environment);
 
     let vaultInfoActionResult: ActionResult<IVaultInfo> = await commands.executeCommand(
         roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL

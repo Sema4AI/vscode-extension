@@ -364,7 +364,7 @@ def get_views_containers():
         "panel": [
             {
                 "id": "sema4ai-python-view-output",
-                "title": "Robo Tasks Output",
+                "title": "Task/Action Output",
                 "icon": "$(output)",
             },
         ],
@@ -385,8 +385,8 @@ def get_tree_views_for_package_json():
         {
             "type": "webview",
             "id": "sema4ai.python.view.output",
-            "name": "Robo Tasks Output",
-            "contextualTitle": "Robo Tasks Output",
+            "name": "Task/Action Output",
+            "contextualTitle": "Task/Action Output",
         }
     ]
 
