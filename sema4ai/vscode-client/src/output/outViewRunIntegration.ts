@@ -236,10 +236,12 @@ export async function setupDebugSessionOutViewIntegration(context: vscode.Extens
     }
 }
 
-export function applyOutViewIntegrationEnvVars(targetEnv: Record<string, string>) {
+export function applyOutViewIntegrationEnvVars(baseEnv: Record<string, string>) {
+    const newEnv = { ...baseEnv };
+
     for (const [key, val] of envVarsForOutViewIntegration) {
-        targetEnv[key] = val;
+        newEnv[key] = val;
     }
 
-    return targetEnv;
+    return newEnv;
 }
