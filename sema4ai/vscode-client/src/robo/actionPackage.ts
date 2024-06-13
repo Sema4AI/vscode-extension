@@ -517,7 +517,9 @@ const waitUntilPackageVerified = async (
 
         if (status === "failed") {
             window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
-            clearTimeout(timeout);
+            if (timeout) {
+                clearTimeout(timeout);
+            }
             return false;
         }
     }
@@ -527,7 +529,10 @@ const waitUntilPackageVerified = async (
         return false;
     }
 
-    clearTimeout(timeout);
+    if (timeout) {
+        clearTimeout(timeout);
+    }
+
     return true;
 };
 
@@ -596,8 +601,9 @@ export const publishActionPackage = async () => {
             }
 
             const tempDir = path.join(os.tmpdir(), "vscode-extension", Date.now().toString());
-            fs.mkdirSync(tempDir, { recursive: true });
             try {
+                fs.mkdirSync(tempDir, { recursive: true });
+
                 progress.report({ message: "Building package" });
                 const packagePath = await buildPackage(actionServerLocation, workspaceDir.uri.fsPath, tempDir);
                 if (!packagePath) {
@@ -637,6 +643,8 @@ export const publishActionPackage = async () => {
                 if (!updated) {
                     return;
                 }
+            } catch (error) {
+                window.showErrorMessage(`Failed to publish action package: ${error.message}`);
             } finally {
                 try {
                     fs.rmSync(tempDir, { recursive: true, force: true });
