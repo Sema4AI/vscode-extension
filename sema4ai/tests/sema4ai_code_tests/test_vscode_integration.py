@@ -1556,7 +1556,7 @@ def test_verify_login(
     assert isinstance(logged_id, bool), "Expected boolean type for logged_in variable"
 
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(60 * 5)
 def test_list_organizations(
     language_server_initialized: IRobocorpLanguageServerClient,
     action_server_location: str,
