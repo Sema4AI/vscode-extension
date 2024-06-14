@@ -567,7 +567,9 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
             0-based col.
         """
 
-    def execute_command(self, command: str, arguments: list) -> Mapping[str, Any]:
+    def execute_command(
+        self, command: str, arguments: list, timeout=None
+    ) -> Mapping[str, Any]:
         pass
 
     def execute_command_async(
