@@ -482,14 +482,17 @@ class LanguageServerClient(LanguageServerClientBase):
         )
 
     @implements(ILanguageServerClient.execute_command)
-    def execute_command(self, command: str, arguments: list) -> Mapping[str, Any]:
+    def execute_command(
+        self, command: str, arguments: list, timeout=None
+    ) -> Mapping[str, Any]:
         return self.request(
             {
                 "jsonrpc": "2.0",
                 "id": self.next_id(),
                 "method": "workspace/executeCommand",
                 "params": {"command": command, "arguments": arguments},
-            }
+            },
+            timeout,
         )
 
     @implements(ILanguageServerClient.execute_command_async)

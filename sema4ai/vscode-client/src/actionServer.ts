@@ -305,7 +305,7 @@ const askForAccessCredentials = async (): Promise<string | undefined> => {
         "password": true,
         "validateInput": (access_credentials: string): string | Thenable<string> => {
             const regex = /^\d{1,}:.{11,}$/;
-            if (!regex.test(access_credentials)) {
+            if (!access_credentials || !regex.test(access_credentials)) {
                 return "Invalid access credentials: use form 1234:xxx...x";
             }
         },

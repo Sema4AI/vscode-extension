@@ -258,11 +258,11 @@ class ActionServer:
 
         if command_result.success:
             return ActionResult(success=True, message=None)
-        else:
-            return ActionResult(
-                success=False,
-                message=f"Error login to Control Room.\n{command_result.message or ''}",
-            )
+
+        return ActionResult(
+            success=False,
+            message=f"Error login to Control Room.\n{command_result.message or ''}",
+        )
 
     def verify_login(self) -> ActionResult[ActionServerVerifyLoginResultDict]:
         """
@@ -287,11 +287,11 @@ class ActionServer:
                     message=f"Error parsing output.\n{command_result.result}",
                 )
             return ActionResult(success=True, message=None, result=result)
-        else:
-            return ActionResult(
-                success=False,
-                message=f"Error verifying Control Room authentication.\n{command_result.message or ''}",
-            )
+
+        return ActionResult(
+            success=False,
+            message=f"Error verifying Control Room authentication.\n{command_result.message or ''}",
+        )
 
     def list_organizations(
         self, access_credentials: Optional[str], hostname: Optional[str]
@@ -364,11 +364,11 @@ class ActionServer:
                     message=f"Error parsing output.\n{command_result.result}",
                 )
             return ActionResult(success=True, message=None, result=result)
-        else:
-            return ActionResult(
-                success=False,
-                message=f"Error building action package.\n{command_result.message or ''}",
-            )
+
+        return ActionResult(
+            success=False,
+            message=f"Error building action package.\n{command_result.message or ''}",
+        )
 
     def package_upload(
         self,
@@ -417,11 +417,11 @@ class ActionServer:
                     message=f"Error parsing output.\n{command_result.result}",
                 )
             return ActionResult(success=True, message=None, result=result)
-        else:
-            return ActionResult(
-                success=False,
-                message=f"Error uploading package to Control Room.\n{command_result.message or ''}",
-            )
+
+        return ActionResult(
+            success=False,
+            message=f"Error uploading package to Control Room.\n{command_result.message or ''}",
+        )
 
     def package_status(
         self,
@@ -510,8 +510,8 @@ class ActionServer:
 
         if command_result.success:
             return ActionResult(success=True, message=None)
-        else:
-            return ActionResult(
-                success=False,
-                message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
-            )
+
+        return ActionResult(
+            success=False,
+            message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
+        )

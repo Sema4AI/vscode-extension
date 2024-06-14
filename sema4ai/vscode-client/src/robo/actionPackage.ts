@@ -510,27 +510,29 @@ const waitUntilPackageVerified = async (
         timedOut = true;
     }, 1000 * 60 * 15); // fifteen minutes
 
-    while (status !== "published" && status !== "completed" && !timedOut) {
-        const packageStatus = await getActionPackageStatus(actionServerLocation, actionPackage.id, organizationId);
-        status = packageStatus.status;
-        progress.report({ message: `Status: ${status}` });
+    try {
+        while (status !== "published" && status !== "completed" && !timedOut) {
+            const packageStatus = await getActionPackageStatus(actionServerLocation, actionPackage.id, organizationId);
+            status = packageStatus.status;
+            progress.report({ message: `Status: ${status}` });
 
-        if (status === "failed") {
-            window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
-            if (timeout) {
-                clearTimeout(timeout);
+            if (status === "failed") {
+                window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
+                if (timeout) {
+                    clearTimeout(timeout);
+                }
+                return false;
             }
+        }
+
+        if (timedOut) {
+            window.showErrorMessage(`Action package verification timed out, see status from: ${actionPackage.url}`);
             return false;
         }
-    }
-
-    if (timedOut) {
-        window.showErrorMessage(`Action package verification timed out, see status from: ${actionPackage.url}`);
-        return false;
-    }
-
-    if (timeout) {
-        clearTimeout(timeout);
+    } finally {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
     }
 
     return true;
@@ -600,6 +602,12 @@ export const publishActionPackage = async () => {
                 return;
             }
 
+            progress.report({ message: "Input changelog entry" });
+            const changelogInput = await askUserForChangelogInput();
+            if (!changelogInput) {
+                return;
+            }
+
             const tempDir = path.join(os.tmpdir(), "vscode-extension", Date.now().toString());
             try {
                 fs.mkdirSync(tempDir, { recursive: true });
@@ -627,12 +635,6 @@ export const publishActionPackage = async () => {
                     return;
                 }
 
-                progress.report({ message: "Getting changelog input" });
-                const changelogInput = await askUserForChangelogInput();
-                if (!changelogInput) {
-                    return;
-                }
-
                 progress.report({ message: "Updating the package changelog to Control Room" });
                 const updated = await updateChangelog(
                     actionServerLocation,
@@ -645,6 +647,7 @@ export const publishActionPackage = async () => {
                 }
             } catch (error) {
                 window.showErrorMessage(`Failed to publish action package: ${error.message}`);
+                return;
             } finally {
                 try {
                     fs.rmSync(tempDir, { recursive: true, force: true });
