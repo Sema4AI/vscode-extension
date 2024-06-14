@@ -514,7 +514,7 @@ const waitUntilPackageVerified = async (
         while (status !== "published" && status !== "completed" && !timedOut) {
             const packageStatus = await getActionPackageStatus(actionServerLocation, actionPackage.id, organizationId);
             status = packageStatus.status;
-            progress.report({ message: `Status: ${status}` });
+            progress.report({ message: `Status - ${status}` });
 
             if (status === "failed") {
                 window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
@@ -655,7 +655,7 @@ export const publishActionPackage = async () => {
                     // pass the warning, the OS will handle the temp dir deletion if it cannot be deleted here for some reason
                 }
             }
-            window.showInformationMessage("package published successfully!");
+            window.showInformationMessage("Package published successfully!");
         }
     );
 };
