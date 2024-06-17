@@ -1,6 +1,7 @@
 import { SEMA4AI_ACTION_SERVER_LOCATION, getActionserverLocation, setActionserverLocation } from "./robocorpSettings";
 import { fileExists, makeDirs } from "./files";
-import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, workspace } from "vscode";
+import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, workspace, commands } from "vscode";
+import * as roboCommands from "./robocorpCommands";
 import { createEnvWithRobocorpHome, download, getRobocorpHome } from "./rcc";
 import path = require("path");
 import { OUTPUT_CHANNEL, logError } from "./channel";
@@ -10,6 +11,7 @@ import { ExecFileReturn, execFilePromise } from "./subprocess";
 import { compareVersions } from "./common";
 import { showSelectOneStrQuickPick } from "./ask";
 import { sleep } from "./time";
+import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
 
 //Default: Linux
 let DOWNLOAD_URL = "https://downloads.robocorp.com/action-server/releases/latest/linux64/action-server";
@@ -20,7 +22,7 @@ if (process.platform === "win32") {
 }
 
 // Update so that Sema4.ai requests the latest version of the action server.
-const LATEST_ACTION_SERVER_VERSION = "0.3.2";
+const LATEST_ACTION_SERVER_VERSION = "0.14.0";
 
 async function downloadActionServer(internalActionServerLocation: string) {
     await window.withProgress(
@@ -293,4 +295,126 @@ export const startActionServer = async (directory: Uri) => {
     actionServerTerminal.sendText(""); // Just add a new line in case something is there already.
     actionServerTerminal.sendText(`cd ${directory.fsPath}`);
     actionServerTerminal.sendText(`${location} start --port=${port}`);
+};
+
+const askForAccessCredentials = async (): Promise<string | undefined> => {
+    const access_credentials: string = await window.showInputBox({
+        "placeHolder": "Control Room Access Credentials",
+        "prompt": "Please provide the Control Room access credentials.",
+        "ignoreFocusOut": true,
+        "password": true,
+        "validateInput": (access_credentials: string): string | Thenable<string> => {
+            const regex = /^\d{1,}:.{11,}$/;
+            if (!access_credentials || !regex.test(access_credentials)) {
+                return "Invalid access credentials: use form 1234:xxx...x";
+            }
+        },
+    });
+
+    return access_credentials;
+};
+
+export const verifyLogin = async (actionServerLocation: string): Promise<ActionServerVerifyLoginOutput | undefined> => {
+    const result: ActionResult<ActionServerVerifyLoginOutput> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+        }
+    );
+
+    if (!result.success) {
+        window.showErrorMessage(`Failed to verify login: ${result.message}`);
+        return;
+    }
+
+    return result.result;
+};
+
+const askUserForHostname = async (
+    actionServerLocation: string,
+    progress: Progress<{ message?: string; increment?: number }>
+): Promise<string | undefined> => {
+    let defaultHostname = "https://us1.robocorp.com";
+
+    progress.report({ message: "Getting default hostname" });
+    const loginOutput = await verifyLogin(actionServerLocation);
+    if (loginOutput && loginOutput.logged_in) {
+        defaultHostname = loginOutput.hostname;
+    }
+
+    progress.report({ message: "Input hostname" });
+    const hostname: string = await window.showInputBox({
+        "value": defaultHostname,
+        "prompt": "Please provide the Control Room hostname.",
+        "ignoreFocusOut": true,
+        "validateInput": (hostname: string): string | Thenable<string> => {
+            if (!hostname) {
+                return "Provide valid hostname";
+            }
+        },
+    });
+
+    return hostname;
+};
+
+export const actionServerCloudLogin = async () => {
+    await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Action Server Login",
+            cancellable: false,
+        },
+        async (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ): Promise<void> => {
+            progress.report({ message: "Validating action server" });
+            const actionServerLocation = await downloadOrGetActionServerLocation();
+            if (!actionServerLocation) {
+                return;
+            }
+
+            progress.report({ message: "Input access credentials" });
+            const accessCredentials = await askForAccessCredentials();
+            if (!accessCredentials) {
+                return;
+            }
+
+            const hostname = await askUserForHostname(actionServerLocation, progress);
+            if (!hostname) {
+                return;
+            }
+
+            progress.report({ message: "Logging in" });
+            const result: ActionResult<undefined> = await commands.executeCommand(
+                roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL,
+                {
+                    action_server_location: actionServerLocation,
+                    access_credentials: accessCredentials,
+                    hostname,
+                }
+            );
+
+            if (result.success) {
+                window.showInformationMessage("Action Server Control Room login successful.");
+            } else {
+                window.showErrorMessage(`Action Server Control Room login failed: ${result.message}`);
+            }
+        }
+    );
+};
+
+export const listOrganizations = async (actionServerLocation: string): Promise<ActionServerListOrganizationsOutput> => {
+    const result: ActionResult<ActionServerListOrganizationsOutput> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+        }
+    );
+    if (!result.success) {
+        window.showErrorMessage("No organizations found");
+        return [];
+    }
+
+    return result.result;
 };

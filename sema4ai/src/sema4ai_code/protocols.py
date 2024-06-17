@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, ContextManager, Dict, List, Optional, Tuple, TypeVar, Literal
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -56,6 +56,11 @@ class WorkspaceInfoDict(TypedDict):
     packages: List[PackageInfoDict]
 
 
+class ActionServerVerifyLoginInfoDict(TypedDict):
+    logged_in: bool
+    hostname: str
+
+
 T = TypeVar("T")
 
 
@@ -89,6 +94,64 @@ class ActionResultDictLocalRobotMetadata(TypedDict):
         str
     ]  # if success == False, this can be some message to show to the user
     result: Optional[List[LocalRobotMetadataInfoDict]]
+
+
+class ActionServerVerifyLoginResultDict(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: Optional[ActionServerVerifyLoginInfoDict]
+
+
+class ActionServerListOrgsResultDict(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: Optional[List[str]]
+
+
+class ActionServerPackageBuildInfo(TypedDict):
+    package_path: str
+
+
+class ActionServerPackageBuildResultDict(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: ActionServerPackageBuildInfo
+
+
+class ActionPackageUploadStatusError(TypedDict):
+    code: str
+    message: str
+
+
+class ActionServerPackageUploadStatus(TypedDict):
+    id: str
+    name: str
+    url: str
+    version: Optional[str]
+    changes: Optional[str]
+    status: (
+        Literal["unknown"]
+        | Literal["pending"]
+        | Literal["validating"]
+        | Literal["failed"]
+        | Literal["completed"]
+        | Literal["published"]
+    )
+    error: Optional[ActionPackageUploadStatusError]
+
+
+class ActionServerPackageUploadStatusDict(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: ActionServerPackageUploadStatus
 
 
 class WorkItem(TypedDict):
@@ -207,6 +270,49 @@ class ProfileSwitchParamsDict(TypedDict):
 class ProfileListResultTypedDict(TypedDict):
     current: str
     profiles: dict  # name to description
+
+
+class ActionServerLoginDict(TypedDict):
+    action_server_location: str
+    access_credentials: str
+    hostname: str
+
+
+class ActionServerAccessCredentialsDict(TypedDict):
+    action_server_location: str
+    access_credentials: Optional[str]
+    hostname: Optional[str]
+
+
+class ActionServerPackageBuildDict(TypedDict):
+    action_server_location: str
+    workspace_dir: str
+    output_dir: str
+
+
+class ActionServerPackageUploadDict(TypedDict):
+    action_server_location: str
+    package_path: str
+    organization_id: str
+    access_credentials: Optional[str]
+    hostname: Optional[str]
+
+
+class ActionServerPackageStatusDict(TypedDict):
+    action_server_location: str
+    package_id: str
+    organization_id: str
+    access_credentials: Optional[str]
+    hostname: Optional[str]
+
+
+class ActionServerPackageSetChangelogDict(TypedDict):
+    action_server_location: str
+    package_id: str
+    organization_id: str
+    changelog_input: str
+    access_credentials: Optional[str]
+    hostname: Optional[str]
 
 
 class IRccWorkspace(Protocol):

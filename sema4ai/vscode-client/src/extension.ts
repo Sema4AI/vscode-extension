@@ -154,6 +154,8 @@ import {
     SEMA4AI_DOWNLOAD_ACTION_SERVER,
     SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
     SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP,
+    SEMA4AI_ACTION_SERVER_CLOUD_LOGIN,
+    SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -172,10 +174,13 @@ import { RobotOutputViewProvider } from "./output/outView";
 import { setupDebugSessionOutViewIntegration } from "./output/outViewRunIntegration";
 import { showInspectorUI } from "./inspector/inspectorView";
 import { IAppRoutes } from "./inspector/protocols";
-import { downloadLatestActionServer, startActionServer } from "./actionServer";
-import { askAndRunRobocorpActionFromActionPackage, createActionPackage } from "./robo/actionPackage";
+import { actionServerCloudLogin, downloadLatestActionServer, startActionServer } from "./actionServer";
+import {
+    askAndRunRobocorpActionFromActionPackage,
+    createActionPackage,
+    publishActionPackage,
+} from "./robo/actionPackage";
 import { showSelectOneStrQuickPick } from "./ask";
-import { btoa } from "buffer";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
 
 interface InterpreterInfo {
@@ -481,6 +486,8 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_HELP_WORK_ITEMS, openWorkItemHelp);
     C.register(SEMA4AI_PROFILE_IMPORT, async () => await profileImport());
     C.register(SEMA4AI_PROFILE_SWITCH, async () => await profileSwitch());
+    C.register(SEMA4AI_ACTION_SERVER_CLOUD_LOGIN, async () => await actionServerCloudLogin());
+    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH, async () => await publishActionPackage());
 }
 
 async function clearEnvAndRestart() {

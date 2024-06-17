@@ -12,11 +12,11 @@ on:
     - sema4ai/**
     - sema4ai-python-ls-core/**
     - .github/**
-      
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -25,7 +25,7 @@ jobs:
           "windows-py310",
 #           "mac-py310", mac disabled because it takes too long for runners to pick the mac job up.
         ]
-        
+
         include:
           - name: "ubuntu-py310"
             python: "3.10"
@@ -62,6 +62,8 @@ jobs:
         CI_ENDPOINT: ${{ secrets.CI_ENDPOINT }}
         # Big timeout to create environment in windows.
         RUN_TESTS_TIMEOUT: 3000
+        ACTION_SERVER_TEST_ACCESS_CREDENTIALS: ${{ secrets.ACTION_SERVER_TEST_ACCESS_CREDENTIALS }}
+
       run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv .
     - uses: actions/upload-artifact@v4
       if: always()

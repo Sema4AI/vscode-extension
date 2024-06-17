@@ -1,21 +1,28 @@
 import sys
 import os
 from typing import Optional
+import json
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_code.protocols import (
     ActionResult,
     ActionServerResult,
     ActionTemplate,
+    ActionServerVerifyLoginResultDict,
+    ActionServerListOrgsResultDict,
+    ActionServerPackageBuildResultDict,
+    ActionServerPackageUploadStatusDict,
 )
 
 log = get_logger(__name__)
+
+ONE_MINUTE_S = 60
 
 
 def download_action_server(
     location: str,
     force: bool = False,
     sys_platform: Optional[str] = None,
-    action_server_version="0.11.0",
+    action_server_version="0.14.0",
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -229,3 +236,282 @@ class ActionServer:
             return ActionResult(
                 success=False, message=get_error_message(command_result.message or "")
             )
+
+    def cloud_login(self, access_credentials: str, hostname: str) -> ActionResult:
+        """
+        Set authentication information to the Control Room for action server.
+
+        Args:
+            access_credentials: Control Room access credentials.
+            hostname: Control Room hostname.
+        """
+        args = [
+            "cloud",
+            "login",
+            "--access-credentials",
+            access_credentials,
+            "--hostname",
+            hostname,
+        ]
+
+        command_result = self._run_action_server_command(args)
+
+        if command_result.success:
+            return ActionResult(success=True, message=None)
+
+        return ActionResult(
+            success=False,
+            message=f"Error login to Control Room.\n{command_result.message or ''}",
+        )
+
+    def verify_login(self) -> ActionResult[ActionServerVerifyLoginResultDict]:
+        """
+        Verify authentication information from the Control Room for action server.
+        """
+        args = ["cloud", "verify-login", "--json"]
+
+        command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S)
+
+        if command_result.success:
+            try:
+                if command_result.result:
+                    result = json.loads(command_result.result)
+                else:
+                    return ActionResult(
+                        success=False,
+                        message=f"Error empty output.\n{command_result.message}",
+                    )
+            except Exception:
+                return ActionResult(
+                    success=False,
+                    message=f"Error parsing output.\n{command_result.result}",
+                )
+            return ActionResult(success=True, message=None, result=result)
+
+        return ActionResult(
+            success=False,
+            message=f"Error verifying Control Room authentication.\n{command_result.message or ''}",
+        )
+
+    def list_organizations(
+        self, access_credentials: Optional[str], hostname: Optional[str]
+    ) -> ActionResult[ActionServerListOrgsResultDict]:
+        """
+        List available organizations with access credentials used at login.
+        """
+        args = ["cloud", "list-organizations", "--json"]
+
+        if access_credentials and hostname:
+            args.extend(
+                ["--access-credentials", access_credentials, "--hostname", hostname]
+            )
+
+        command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S * 5)
+
+        if command_result.success:
+            try:
+                result = (
+                    json.loads(command_result.result) if command_result.result else None
+                )
+            except Exception:
+                return ActionResult(
+                    success=False,
+                    message=f"Error parsing output.\n{command_result.result}",
+                )
+            return ActionResult(success=True, message=None, result=result)
+        else:
+            return ActionResult(
+                success=False,
+                message=f"Error listing Control Room organizations.\n{command_result.message or ''}",
+            )
+
+    def package_build(
+        self, workspace_dir: str, output_dir: str
+    ) -> ActionResult[ActionServerPackageBuildResultDict]:
+        """
+        Build action package.
+
+        Args:
+            workspace_dir, path to the current workspace.
+            output_dir, path to the directory where the package will be built.
+        """
+        args = [
+            "package",
+            "build",
+            "--input-dir",
+            workspace_dir,
+            "--output-dir",
+            output_dir,
+            "--override",
+            "--json",
+        ]
+
+        command_result = self._run_action_server_command(
+            args, timeout=ONE_MINUTE_S * 10
+        )
+
+        if command_result.success:
+            try:
+                if not command_result.result:
+                    return ActionResult(
+                        success=False,
+                        message="Error not output from action server.",
+                    )
+                result = json.loads(command_result.result)
+            except Exception:
+                return ActionResult(
+                    success=False,
+                    message=f"Error parsing output.\n{command_result.result}",
+                )
+            return ActionResult(success=True, message=None, result=result)
+
+        return ActionResult(
+            success=False,
+            message=f"Error building action package.\n{command_result.message or ''}",
+        )
+
+    def package_upload(
+        self,
+        package_path: str,
+        organization_id: str,
+        access_credentials: Optional[str],
+        hostname: Optional[str],
+    ) -> ActionResult[ActionServerPackageUploadStatusDict]:
+        """
+        Upload action package to Control Room.
+
+        Args:
+            package_path, path tot he package to upload.
+            organization_id, Control Room organization id.
+        """
+        args = [
+            "package",
+            "upload",
+            "--package-path",
+            package_path,
+            "--organization-id",
+            organization_id,
+            "--json",
+        ]
+
+        if access_credentials and hostname:
+            args.extend(
+                ["--access-credentials", access_credentials, "--hostname", hostname]
+            )
+
+        command_result = self._run_action_server_command(
+            args, timeout=ONE_MINUTE_S * 10
+        )
+
+        if command_result.success:
+            try:
+                if not command_result.result:
+                    return ActionResult(
+                        success=False,
+                        message="Error not output from action server.",
+                    )
+                result = json.loads(command_result.result)
+            except Exception:
+                return ActionResult(
+                    success=False,
+                    message=f"Error parsing output.\n{command_result.result}",
+                )
+            return ActionResult(success=True, message=None, result=result)
+
+        return ActionResult(
+            success=False,
+            message=f"Error uploading package to Control Room.\n{command_result.message or ''}",
+        )
+
+    def package_status(
+        self,
+        package_id: str,
+        organization_id: str,
+        access_credentials: Optional[str],
+        hostname: Optional[str],
+    ) -> ActionResult[ActionServerPackageUploadStatusDict]:
+        """
+        Get uploaded action package status from Control Room.
+
+        Args:
+            package_id, uploaded package id.
+            organization_id, Control Room organization id.
+        """
+        args = [
+            "package",
+            "status",
+            "--package-id",
+            package_id,
+            "--organization-id",
+            organization_id,
+            "--json",
+        ]
+
+        if access_credentials and hostname:
+            args.extend(
+                ["--access-credentials", access_credentials, "--hostname", hostname]
+            )
+
+        command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S * 5)
+
+        if command_result.success:
+            try:
+                if not command_result.result:
+                    return ActionResult(
+                        success=False,
+                        message="Error not output from action server.",
+                    )
+                result = json.loads(command_result.result)
+            except Exception:
+                return ActionResult(
+                    success=False,
+                    message=f"Error parsing output.\n{command_result.result}",
+                )
+            return ActionResult(success=True, message=None, result=result)
+        else:
+            return ActionResult(
+                success=False,
+                message=f"Error getting package status from Control Room.\n{command_result.message or ''}",
+            )
+
+    def package_set_changelog(
+        self,
+        package_id: str,
+        organization_id: str,
+        changelog_input: str,
+        access_credentials: Optional[str],
+        hostname: Optional[str],
+    ) -> ActionResult:
+        """
+        Update the changelog for package in Control Room.
+
+        Args:
+            package_id, uploaded package id.
+            organization_id, Control Room organization id.
+            changelog_input, line to the package changelog.
+        """
+        args = [
+            "package",
+            "set-changelog",
+            "--package-id",
+            package_id,
+            "--organization-id",
+            organization_id,
+            "--change-log",
+            changelog_input,
+        ]
+
+        if access_credentials and hostname:
+            args.extend(
+                ["--access-credentials", access_credentials, "--hostname", hostname]
+            )
+
+        command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S * 5)
+
+        if command_result.success:
+            return ActionResult(success=True, message=None)
+
+        return ActionResult(
+            success=False,
+            message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
+        )

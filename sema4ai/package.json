@@ -129,6 +129,15 @@
         "onCommand:sema4ai.packagePublishToDesktopApp",
         "onCommand:sema4ai.listActionTemplates.internal",
         "onCommand:sema4ai.createActionPackage.internal",
+        "onCommand:sema4ai.actionServerCloudLogin",
+        "onCommand:sema4ai.actionServerCloudLogin.internal",
+        "onCommand:sema4ai.actionServerCloudVerifyLogin.internal",
+        "onCommand:sema4ai.actionServerCloudListOrganizations.internal",
+        "onCommand:sema4ai.actionServerPackageBuild.internal",
+        "onCommand:sema4ai.actionServerPackageUpload.internal",
+        "onCommand:sema4ai.actionServerPackageStatus.internal",
+        "onCommand:sema4ai.actionServerPackageSetChangelog.internal",
+        "onCommand:sema4ai.actionServerPackagePublish",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -823,6 +832,51 @@
                 "command": "sema4ai.packagePublishToDesktopApp",
                 "title": "Publish Package to Sema4.ai Desktop",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerCloudLogin",
+                "title": "Authenticate the Action Server to Control Room",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerCloudLogin.internal",
+                "title": "Authenticate the Action Server to Control Room (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerCloudVerifyLogin.internal",
+                "title": "Verify that the action server Control Room credentials are saved (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerCloudListOrganizations.internal",
+                "title": "List Action Server authenticated organizations (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageBuild.internal",
+                "title": "Build action package file (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageUpload.internal",
+                "title": "Upload action package to the Control Room (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageStatus.internal",
+                "title": "Get action package upload status from the Control Room (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageSetChangelog.internal",
+                "title": "Set action package changelog entry in the Control Room (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackagePublish",
+                "title": "Publish Action Package to Control Room",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {
@@ -1297,6 +1351,34 @@
                 },
                 {
                     "command": "sema4ai.listActions.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerCloudLogin.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerCloudVerifyLogin.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerCloudListOrganizations.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackageBuild.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackageUpload.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackageStatus.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackageSetChangelog.internal",
                     "when": "false"
                 }
             ]
