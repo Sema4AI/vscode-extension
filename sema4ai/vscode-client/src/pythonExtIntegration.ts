@@ -7,6 +7,8 @@ import {
     Uri,
     window,
     workspace,
+    Terminal,
+    TerminalOptions,
 } from "vscode";
 import { resolveInterpreter } from "./activities";
 import { logError, OUTPUT_CHANNEL } from "./channel";
@@ -15,6 +17,11 @@ import { ActionResult, InterpreterInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
+import {
+    getActionServerTerminal,
+    isActionServerAlive,
+    restartActionServer
+} from './actionServer';
 
 const dirtyWorkspaceFiles = new Set<string>();
 
@@ -117,6 +124,26 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                                 }
                             }
                         });
+                }
+
+                const actionServerTerminal: Terminal = getActionServerTerminal();
+                const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
+                const terminalCwdUri = terminalOptions?.cwd as Uri;
+                const terminalCwd = terminalCwdUri?.path;
+
+                /* If the Python file changed, and Action Server is running, ask the user if they want to restart it. */
+                if (isPythonFile(docURI.fsPath) && await isActionServerAlive() && (terminalCwd && docURI.fsPath.includes(terminalCwd))) {
+                    window
+                        .showInformationMessage(
+                            "Changes were detected in the Action files. Would you like to restart the Action Server?",
+                            "Yes",
+                            "No"
+                        )
+                      .then(async (selection) => {
+                          if (selection === "Yes") {
+                              await restartActionServer(terminalCwdUri);
+                          }
+                      })
                 }
             }
         } catch (error) {
