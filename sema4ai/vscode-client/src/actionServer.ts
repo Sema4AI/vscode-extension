@@ -24,6 +24,9 @@ if (process.platform === "win32") {
 // Update so that Sema4.ai requests the latest version of the action server.
 const LATEST_ACTION_SERVER_VERSION = "0.14.0";
 
+const ACTION_SERVER_DEFAULT_PORT = 8082;
+const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
+
 async function downloadActionServer(internalActionServerLocation: string) {
     await window.withProgress(
         {
@@ -166,7 +169,7 @@ const internalDownloadOrGetActionServerLocation = async (): Promise<string | und
     return undefined;
 };
 
-const isActionServerAlive = async (port) => {
+export const isActionServerAlive = async (port: number = ACTION_SERVER_DEFAULT_PORT) => {
     try {
         await fetchData(port, "/openapi.json", "GET");
         return true;
@@ -223,11 +226,7 @@ const shutdownExistingActionServer = async (port) => {
     await fetchData(port, "/api/shutdown", "POST");
 };
 
-const port = 8082;
-
-const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
-
-const getActionServerTerminal = (): undefined | Terminal => {
+export const getActionServerTerminal = (): undefined | Terminal => {
     for (const terminal of window.terminals) {
         if (terminal.name === ACTION_SERVER_TERMINAL_NAME) {
             return terminal;
@@ -236,45 +235,26 @@ const getActionServerTerminal = (): undefined | Terminal => {
     return undefined;
 };
 
-export const startActionServer = async (directory: Uri) => {
-    if (!directory) {
-        // Need to list the action packages available to decide
-        // which one to use for the action server.
-        const selected = await listAndAskRobotSelection(
-            "Please select the Action Package from which the Action Server should load actions.",
-            "Unable to start Action Server because no Action Package was found in the workspace.",
-            { showActionPackages: true, showTaskPackages: false }
-        );
-        if (!selected) {
-            return;
-        }
-        directory = Uri.file(selected.directory);
-    }
+const disposeActionServerTerminal = (terminal: Terminal) => {
+    terminal.dispose();
+    /**
+     * @TODO:
+     * Verify whether unsetting the reference is necessary.
+     * If not, this function can be removed in favour of calling terminal.dispose() in the caller.
+     */
+    terminal = undefined;
+};
 
+const stopActionServer = async () => {
     let actionServerTerminal: Terminal = getActionServerTerminal();
-    if (actionServerTerminal !== undefined) {
-        if (await isActionServerAlive(port)) {
-            const RESTART = "Restart action server";
-            const option = await window.showWarningMessage(
-                "The action server seems to be running already. How do you want to proceed?",
-                RESTART,
-                "Cancel"
-            );
-            if (option !== RESTART) {
-                return;
-            }
-            await shutdownExistingActionServer(port);
-            actionServerTerminal.dispose();
-            actionServerTerminal = undefined;
-        } else {
-            OUTPUT_CHANNEL.appendLine("Action server not alive.");
-            actionServerTerminal.dispose();
-            actionServerTerminal = undefined;
-        }
-    }
 
-    // We need to:
-    // Get action server executable (download if not there)
+    await shutdownExistingActionServer(ACTION_SERVER_DEFAULT_PORT);
+    disposeActionServerTerminal(actionServerTerminal);
+};
+
+const startActionServerInternal = async (directory: Uri) => {
+    let actionServerTerminal: Terminal = getActionServerTerminal();
+
     const location = await downloadOrGetActionServerLocation();
     if (!location) {
         return;
@@ -294,7 +274,52 @@ export const startActionServer = async (directory: Uri) => {
 
     actionServerTerminal.sendText(""); // Just add a new line in case something is there already.
     actionServerTerminal.sendText(`cd ${directory.fsPath}`);
-    actionServerTerminal.sendText(`${location} start --port=${port}`);
+    actionServerTerminal.sendText(`${location} start --port=${ACTION_SERVER_DEFAULT_PORT}`);
+};
+
+export const startActionServer = async (directory: Uri) => {
+    if (!directory) {
+        // Need to list the action packages available to decide
+        // which one to use for the action server.
+        const selected = await listAndAskRobotSelection(
+            "Please select the Action Package from which the Action Server should load actions.",
+            "Unable to start Action Server because no Action Package was found in the workspace.",
+            { showActionPackages: true, showTaskPackages: false }
+        );
+        if (!selected) {
+            return;
+        }
+        directory = Uri.file(selected.directory);
+    }
+
+    let actionServerTerminal: Terminal = getActionServerTerminal();
+    if (actionServerTerminal !== undefined) {
+        if (await isActionServerAlive(ACTION_SERVER_DEFAULT_PORT)) {
+            const RESTART = "Restart action server";
+            const option = await window.showWarningMessage(
+                "The action server seems to be running already. How do you want to proceed?",
+                RESTART,
+                "Cancel"
+            );
+            if (option !== RESTART) {
+                return;
+            }
+
+            await stopActionServer();
+        } else {
+            OUTPUT_CHANNEL.appendLine("Action server not alive.");
+
+            /* Called just in case to ensure ActionServer terminal is not active. */
+            disposeActionServerTerminal(actionServerTerminal);
+        }
+    }
+
+    await startActionServerInternal(directory);
+};
+
+export const restartActionServer = async (directory: Uri) => {
+    await stopActionServer();
+    await startActionServerInternal(directory);
 };
 
 const askForAccessCredentials = async (): Promise<string | undefined> => {

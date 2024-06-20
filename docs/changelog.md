@@ -5,8 +5,9 @@ Unreleased
     - Logs will show local variables (ROBOT_ROOT is no longer set).
     - ROBOT_ARTIFACTS set to a better place for the log.html.
     - If using `sema4ai-actions 0.7.0` or newer, the results of running an action are printed to the terminal.
-- `Sema4.ai: Create Action Package` allows to specify a template to use now (for Action Server v0.10.0 or newer)
-- `Robo Tasks Output` tab has been renamed to `Task/Action Output`, and it now shows logs from Action runs
+- `Sema4.ai: Create Action Package` allows to specify a template to use now (for Action Server v0.10.0 or newer).
+- `Robo Tasks Output` tab has been renamed to `Task/Action Output`, and it now shows logs from Action runs.
+- A prompt allowing to restart the Action Server will appear now, when a Python file is modified in an Action package with active Action Server.
 
 New in 1.22.4 (2024-05-22)
 -----------------------------

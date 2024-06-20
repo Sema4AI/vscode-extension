@@ -7,6 +7,8 @@ import {
     Uri,
     window,
     workspace,
+    Terminal,
+    TerminalOptions,
 } from "vscode";
 import { resolveInterpreter } from "./activities";
 import { logError, OUTPUT_CHANNEL } from "./channel";
@@ -15,6 +17,7 @@ import { ActionResult, InterpreterInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
+import { getActionServerTerminal, isActionServerAlive, restartActionServer } from "./actionServer";
 
 const dirtyWorkspaceFiles = new Set<string>();
 
@@ -115,6 +118,30 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                                 } else {
                                     window.showErrorMessage(`Failed to Auto Update the Python Interpreter`);
                                 }
+                            }
+                        });
+                }
+
+                const actionServerTerminal: Terminal = getActionServerTerminal();
+                const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
+                const terminalCwd = terminalOptions?.cwd as Uri;
+
+                /* If the Python file changed, and Action Server is running, ask the user if they want to restart it. */
+                if (
+                    isPythonFile(docURI.fsPath) &&
+                    terminalCwd?.fsPath &&
+                    docURI.fsPath.includes(terminalCwd.fsPath) &&
+                    (await isActionServerAlive())
+                ) {
+                    window
+                        .showInformationMessage(
+                            "Changes were detected in the Action files. Would you like to restart the Action Server?",
+                            "Yes",
+                            "No"
+                        )
+                        .then(async (selection) => {
+                            if (selection === "Yes") {
+                                await restartActionServer(terminalCwd);
                             }
                         });
                 }
