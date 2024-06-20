@@ -124,15 +124,14 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
 
                 const actionServerTerminal: Terminal = getActionServerTerminal();
                 const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
-                const terminalCwdUri = terminalOptions?.cwd as Uri;
-                const terminalCwd = terminalCwdUri?.path;
+                const terminalCwd = terminalOptions?.cwd as Uri;
 
                 /* If the Python file changed, and Action Server is running, ask the user if they want to restart it. */
                 if (
                     isPythonFile(docURI.fsPath) &&
-                    (await isActionServerAlive()) &&
-                    terminalCwd &&
-                    docURI.fsPath.includes(terminalCwd)
+                    terminalCwd?.fsPath &&
+                    docURI.fsPath.includes(terminalCwd.fsPath) &&
+                    (await isActionServerAlive())
                 ) {
                     window
                         .showInformationMessage(
@@ -142,7 +141,7 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                         )
                         .then(async (selection) => {
                             if (selection === "Yes") {
-                                await restartActionServer(terminalCwdUri);
+                                await restartActionServer(terminalCwd);
                             }
                         });
                 }
