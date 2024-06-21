@@ -2,6 +2,7 @@ Unreleased
 -----------------------------
 
 - Add command and UI element to create metadata file for Action Package
+- A prompt allowing to restart the Action Server will appear now when an environment file is modified in an Action package with active Action Server.
 
 New in 2.1.0 (2024-06-25)
 
