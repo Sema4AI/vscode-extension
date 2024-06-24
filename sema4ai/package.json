@@ -1354,6 +1354,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "sema4ai.actionServerCloudLogin",
+                    "when": "false"
+                },
+                {
                     "command": "sema4ai.actionServerCloudLogin.internal",
                     "when": "false"
                 },
@@ -1379,6 +1383,10 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageSetChangelog.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackagePublish",
                     "when": "false"
                 }
             ]

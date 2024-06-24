@@ -806,7 +806,7 @@ COMMANDS = [
         "sema4ai.actionServerCloudLogin",
         "Authenticate the Action Server to Control Room",
         server_handled=False,
-        hide_from_command_palette=False,
+        hide_from_command_palette=True,
     ),
     Command(
         "sema4ai.actionServerCloudLogin.internal",
@@ -854,7 +854,7 @@ COMMANDS = [
         "sema4ai.actionServerPackagePublish",
         "Publish Action Package to Control Room",
         server_handled=False,
-        hide_from_command_palette=False,
+        hide_from_command_palette=True,
     ),
 ]
 
