@@ -133,6 +133,7 @@
         "onCommand:sema4ai.actionServerCloudLogin.internal",
         "onCommand:sema4ai.actionServerCloudVerifyLogin.internal",
         "onCommand:sema4ai.actionServerCloudListOrganizations.internal",
+        "onCommand:sema4ai.actionServerPackageBuild",
         "onCommand:sema4ai.actionServerPackageBuild.internal",
         "onCommand:sema4ai.actionServerPackageUpload.internal",
         "onCommand:sema4ai.actionServerPackageStatus.internal",
@@ -854,8 +855,13 @@
                 "category": "Sema4.ai"
             },
             {
+                "command": "sema4ai.actionServerPackageBuild",
+                "title": "Build Action Package to Workspace",
+                "category": "Sema4.ai"
+            },
+            {
                 "command": "sema4ai.actionServerPackageBuild.internal",
-                "title": "Build action package file (internal)",
+                "title": "Build Action Package (internal)",
                 "category": "Sema4.ai"
             },
             {

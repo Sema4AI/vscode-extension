@@ -659,3 +659,33 @@ export const publishActionPackage = async () => {
         }
     );
 };
+
+export const buildActionPackage = async() => {
+    const workspaceDir = await askForWs();
+
+    await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Build Action Package",
+            cancellable: false,
+        },
+        async (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ): Promise<void> => {
+            progress.report({ message: "Validating action server" });
+            const actionServerLocation = await downloadOrGetActionServerLocation();
+            if (!actionServerLocation) {
+                return;
+            }
+
+            progress.report({ message: "Building package" });
+            const packagePath = await buildPackage(actionServerLocation, workspaceDir.uri.fsPath, workspaceDir.uri.fsPath);
+            if (!packagePath) {
+                return;
+            }
+
+            window.showInformationMessage("Action Package built successfully to the workspace.");
+        }
+    );
+};
