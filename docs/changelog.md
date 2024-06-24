@@ -8,6 +8,8 @@ Unreleased
 - `Sema4.ai: Create Action Package` allows to specify a template to use now (for Action Server v0.10.0 or newer).
 - `Robo Tasks Output` tab has been renamed to `Task/Action Output`, and it now shows logs from Action runs.
 - A prompt allowing to restart the Action Server will appear now, when a Python file is modified in an Action package with active Action Server.
+- Hide command to authenticate the Action Server to Control Room
+- Hide command for publishing Action Package to Control Room
 
 New in 1.22.4 (2024-05-22)
 -----------------------------
@@ -18,7 +20,7 @@ New in 1.22.4 (2024-05-22)
 
 
 
-Below is the changelog for what was `Robocorp Code`, the precursor of `Sema4.ai` 
+Below is the changelog for what was `Robocorp Code`, the precursor of `Sema4.ai`
 ==================================================================================
 
 
@@ -36,13 +38,13 @@ New in 1.22.1 (2024-05-04)
 New in 1.22.0 (2024-05-03)
 -----------------------------
 
-- Updated RCC to `v17.28.4`. 
+- Updated RCC to `v17.28.4`.
 
-- Fixed issue in the Caching system for the RCC Python Env. 
+- Fixed issue in the Caching system for the RCC Python Env.
 
-- Added command for rebuilding the rcc environment. 
+- Added command for rebuilding the rcc environment.
 
-- Added shortcut to the Activities for the task/action package. 
+- Added shortcut to the Activities for the task/action package.
 
 - Added listeners for workspace files that trigger question for user to rebuild env or refresh view
 
