@@ -12,8 +12,52 @@ import itertools
 import os.path
 import sys
 
-from sema4ai_ls_core.progress_report import get_current_progress_reporter
-from sema4ai_ls_core.protocols import RCCActionResult
+try:
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.basic import implements
+    from sema4ai_ls_core.core_log import get_logger
+    from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
+    from sema4ai_ls_core.ep_resolve_interpreter import (
+        DefaultInterpreterInfo,
+        EPResolveInterpreter,
+        IInterpreterInfo,
+    )
+    from sema4ai_ls_core.lsp import LSPMessages
+    from sema4ai_ls_core.pluginmanager import PluginManager
+    from sema4ai_ls_core.progress_report import (
+        get_current_progress_reporter,
+        progress_context,
+    )
+    from sema4ai_ls_core.protocols import IEndPoint, RCCActionResult, check_implements
+
+    from sema4ai_code.protocols import IRobotYamlEnvInfo
+
+except ImportError:
+    from robocorp_ls_core import uris  # type: ignore
+    from robocorp_ls_core.basic import implements  # type: ignore
+
+    # type: ignore
+    from robocorp_ls_core.ep_providers import (  # type: ignore
+        EPConfigurationProvider,
+        EPEndPointProvider,
+    )
+    from robocorp_ls_core.ep_resolve_interpreter import (  # type: ignore
+        DefaultInterpreterInfo,
+        EPResolveInterpreter,
+        IInterpreterInfo,
+    )
+    from robocorp_ls_core.lsp import LSPMessages  # type: ignore
+    from robocorp_ls_core.pluginmanager import PluginManager  # type: ignore
+    from robocorp_ls_core.progress_report import (  # type: ignore
+        get_current_progress_reporter,
+        progress_context,
+    )
+    from robocorp_ls_core.protocols import (  # type: ignore
+        IEndPoint,
+        RCCActionResult,
+        check_implements,
+    )
+    from robocorp_ls_core.robotframework_log import get_logger  # type: ignore
 
 try:
     from sema4ai_code.rcc import Rcc  # noqa
@@ -24,6 +68,8 @@ except ImportError:
     )
     import sema4ai_code  # @UnusedImport
 
+    sema4ai_code.import_robocorp_ls_core()
+
     from sema4ai_code.rcc import Rcc  # noqa
 
 import time
@@ -31,18 +77,6 @@ import weakref
 from collections import namedtuple
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
-from sema4ai_ls_core import uris
-from sema4ai_ls_core.basic import implements
-from sema4ai_ls_core.core_log import get_logger
-from sema4ai_ls_core.ep_resolve_interpreter import (
-    DefaultInterpreterInfo,
-    EPResolveInterpreter,
-    IInterpreterInfo,
-)
-from sema4ai_ls_core.pluginmanager import PluginManager
-
-from sema4ai_code.protocols import IRobotYamlEnvInfo
 
 log = get_logger(__name__)
 
@@ -79,7 +113,10 @@ class _CachedFileInfo(object):
         if yaml_contents is None:
             from io import StringIO
 
-            from sema4ai_ls_core import yaml_wrapper
+            try:
+                from sema4ai_ls_core import yaml_wrapper
+            except ImportError:
+                from robocorp_ls_core import yaml_wrapper  # type: ignore
 
             s = StringIO(self.contents)
             yaml_contents = self._yaml_contents = yaml_wrapper.load(s)
@@ -97,13 +134,6 @@ class _CachedInterpreterInfo(object):
         env_json_path_file_info: Optional[_CachedFileInfo],
         pm: PluginManager,
     ):
-        from sema4ai_ls_core.ep_providers import (
-            EPConfigurationProvider,
-            EPEndPointProvider,
-        )
-        from sema4ai_ls_core.lsp import LSPMessages
-        from sema4ai_ls_core.protocols import IEndPoint
-
         from sema4ai_code.commands import SEMA4AI_SHOW_INTERPRETER_ENV_ERROR
 
         self._mtime: _CachedInterpreterMTime = self._obtain_mtime(
@@ -336,9 +366,6 @@ class _CacheInfo(object):
                     _touch_temp(interpreter_info.info)
                     return interpreter_info.info
 
-        from sema4ai_ls_core.ep_providers import EPEndPointProvider
-        from sema4ai_ls_core.progress_report import progress_context
-
         endpoint = pm[EPEndPointProvider].endpoint
 
         basename = os.path.basename(robot_yaml_file_info.file_path)
@@ -536,7 +563,6 @@ class RobocorpResolveInterpreter(object):
         cache: _CachePackage = _cache_package,
     ) -> Optional[Tuple[Path, Path]]:
         import yaml
-        from sema4ai_ls_core.ep_providers import EPConfigurationProvider
 
         from sema4ai_code.vendored_deps.action_package_handling import (
             create_conda_contents_from_package_yaml_contents,
@@ -624,11 +650,6 @@ environmentConfigs:
             if pm is None:
                 log.critical("Did not expect PluginManager to be None at this point.")
                 return None
-
-            from sema4ai_ls_core.ep_providers import (
-                EPConfigurationProvider,
-                EPEndPointProvider,
-            )
 
             # Check that our requirements are there.
             pm[EPConfigurationProvider]
@@ -718,8 +739,6 @@ environmentConfigs:
         return None
 
     def __typecheckself__(self) -> None:
-        from sema4ai_ls_core.protocols import check_implements
-
         _: EPResolveInterpreter = check_implements(self)
 
 
