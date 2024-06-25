@@ -506,8 +506,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "command": roboCommands.SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        }
-        else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
+        } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
             treeItem.command = {
                 "title": "Build Package to Workspace",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,

@@ -517,7 +517,9 @@ const waitUntilPackageVerified = async (
             progress.report({ message: `Status - ${status}` });
 
             if (status === "failed") {
-                window.showErrorMessage(`Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`);
+                window.showErrorMessage(
+                    `Action package failed to be uploaded: ${packageStatus.error || "unknown error"}`
+                );
                 if (timeout) {
                     clearTimeout(timeout);
                 }
@@ -660,7 +662,7 @@ export const publishActionPackage = async () => {
     );
 };
 
-export const buildActionPackage = async() => {
+export const buildActionPackage = async () => {
     const workspaceDir = await askForWs();
 
     await window.withProgress(
@@ -680,7 +682,11 @@ export const buildActionPackage = async() => {
             }
 
             progress.report({ message: "Building package" });
-            const packagePath = await buildPackage(actionServerLocation, workspaceDir.uri.fsPath, workspaceDir.uri.fsPath);
+            const packagePath = await buildPackage(
+                actionServerLocation,
+                workspaceDir.uri.fsPath,
+                workspaceDir.uri.fsPath
+            );
             if (!packagePath) {
                 return;
             }
