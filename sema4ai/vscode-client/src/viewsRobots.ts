@@ -282,7 +282,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "iconPath": "archive",
                         "type": RobotEntryType.PackageBuildToWorkspace,
                         "parent": element,
-                        "tooltip": "Build the Action Package .zip file to the workspace folder",
+                        "tooltip": "Create the Action Package .zip file to the workspace folder",
                     },
                 ];
             } else if (element.type === RobotEntryType.Robot) {
@@ -508,7 +508,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
             treeItem.command = {
-                "title": "Build Package to Workspace",
+                "title": "Create Action Package to Workspace",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
