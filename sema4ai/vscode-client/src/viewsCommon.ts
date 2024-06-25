@@ -37,6 +37,7 @@ export enum RobotEntryType {
     StartActionServer,
     PackageRebuildEnvironment,
     PackagePublishToDesktopApp,
+    PackageBuildToWorkspace,
 }
 
 export interface CloudEntry {
