@@ -11,6 +11,7 @@ Unreleased
 - Hide command to authenticate the Action Server to Control Room
 - Hide command for publishing Action Package to Control Room
 - Add command to build Action Package to current workspace
+- Add UI element under activities to build Action Package to current workspace
 
 New in 1.22.4 (2024-05-22)
 -----------------------------

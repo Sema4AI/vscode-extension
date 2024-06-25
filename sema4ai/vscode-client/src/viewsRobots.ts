@@ -275,6 +275,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Publishes the Action Package to the Sema4.ai Desktop application",
                     },
+                    {
+                        "label": "Create Action Package",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "archive",
+                        "type": RobotEntryType.PackageBuildToWorkspace,
+                        "parent": element,
+                        "tooltip": "Create the Action Package .zip file to the workspace folder",
+                    },
                 ];
             } else if (element.type === RobotEntryType.Robot) {
                 let yamlContents = element.robot.yamlContents;
@@ -495,6 +504,12 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Publish Package to Sema4.ai Desktop",
                 "command": roboCommands.SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP,
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
+            treeItem.command = {
+                "title": "Create Action Package to Workspace",
+                "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         }
