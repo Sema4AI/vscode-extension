@@ -1,6 +1,9 @@
 Unreleased
 -----------------------------
 
+
+New in 2.1.0 (2024-06-25)
+
 - Improvements when running actions:
     - Logs will show local variables (ROBOT_ROOT is no longer set).
     - ROBOT_ARTIFACTS set to a better place for the log.html.
@@ -8,10 +11,24 @@ Unreleased
 - `Sema4.ai: Create Action Package` allows to specify a template to use now (for Action Server v0.10.0 or newer).
 - `Robo Tasks Output` tab has been renamed to `Task/Action Output`, and it now shows logs from Action runs.
 - A prompt allowing to restart the Action Server will appear now, when a Python file is modified in an Action package with active Action Server.
+- Add command to authenticate Action Server to Control Room
+- Add command to publish Action Package to Control Room
 - Hide command to authenticate the Action Server to Control Room
 - Hide command for publishing Action Package to Control Room
 - Add command to build Action Package to current workspace
 - Add UI element under activities to build Action Package to current workspace
+
+
+New in 2.0.1 (2024-05-24)
+
+- Add functionality to publish Action Package to Sema4 Desktop Application
+
+
+New in 2.0.0 (2024-05-23)
+-----------------------------
+
+- Rename Robocorp references to Sema4.ai
+
 
 New in 1.22.4 (2024-05-22)
 -----------------------------
