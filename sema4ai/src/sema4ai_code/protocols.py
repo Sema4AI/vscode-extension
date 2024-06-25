@@ -413,7 +413,7 @@ class IRcc(Protocol):
         """
         Provides the directory to store info for robocorp code.
 
-        Usually ROBOCORP_HOME/.sema4ai_code
+        Usually SEMA4AI_HOME/.sema4ai_code
         """
 
     def get_template_names(self) -> ActionResult[List[RobotTemplate]]:

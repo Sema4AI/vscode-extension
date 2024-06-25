@@ -141,7 +141,7 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v17.28.4";
+    const RCC_VERSION = "v18.0.5";
     const prefix = "https://downloads.robocorp.com/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await download(url, progress, token, location);
@@ -400,7 +400,7 @@ export async function runConfigDiagnostics(
         let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome });
         configureLongpathsOutput = await execFilePromise(
             rccLocation,
-            ["configure", "diagnostics", "-j", "--controller", "Sema4aiCode"],
+            ["configure", "diagnostics", "-j", "--bundled", "--sema4ai", "--controller", "Sema4aiCode"],
             { env: env }
         );
         let outputAsJSON = JSON.parse(configureLongpathsOutput.stdout);
@@ -551,7 +551,16 @@ export async function submitIssue(
 
             const reportPath: string = path.join(os.tmpdir(), `robocode_issue_report_${Date.now()}.json`);
             fs.writeFileSync(reportPath, JSON.stringify(metadata, null, 4), { encoding: "utf-8" });
-            let args: string[] = ["feedback", "issue", "-r", reportPath, "--controller", "Sema4aiCode"];
+            let args: string[] = [
+                "feedback",
+                "issue",
+                "-r",
+                reportPath,
+                "--bundled",
+                "--sema4ai",
+                "--controller",
+                "Sema4aiCode",
+            ];
             for (const file of files) {
                 args.push("-a");
                 args.push(file);
@@ -584,7 +593,7 @@ interface IEnvInfo {
 
 export async function feedback(name: string, value: string = "+1") {
     const rccLocation = await getRccLocation();
-    let args: string[] = ["feedback", "metric", "-t", "vscode", "-n", name, "-v", value];
+    let args: string[] = ["feedback", "metric", "--bundled", "--sema4ai", "-t", "vscode", "-n", name, "-v", value];
 
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
@@ -616,7 +625,18 @@ export async function feedbackAnyError(errorType: string, errorCode: string) {
     reportedErrorCodes.add(errorCodeKey);
 
     const rccLocation = await getRccLocation();
-    let args: string[] = ["feedback", "metric", "-t", "vscode", "-n", errorType, "-v", errorCode];
+    let args: string[] = [
+        "feedback",
+        "metric",
+        "-t",
+        "vscode",
+        "-n",
+        errorType,
+        "-v",
+        errorCode,
+        "--bundled",
+        "--sema4ai",
+    ];
 
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
@@ -637,7 +657,7 @@ async function enableHolotreeShared(rccLocation: string, env) {
         try {
             const execFileReturn: ExecFileReturn = await execFilePromise(
                 rccLocation,
-                ["holotree", "shared", "--enable", "--once"],
+                ["holotree", "shared", "--enable", "--once", "--bundled", "--sema4ai"],
                 { "env": env },
                 { "showOutputInteractively": true }
             );
@@ -674,7 +694,7 @@ async function initHolotree(rccLocation: string, env): Promise<boolean> {
     try {
         const execFileReturn = await execFilePromise(
             rccLocation,
-            ["holotree", "init"],
+            ["holotree", "init", "--bundled", "--sema4ai"],
             { "env": env },
             { "showOutputInteractively": true }
         );
@@ -751,7 +771,7 @@ export async function collectBaseEnv(
                         let timing = new Timing();
                         execFileReturn = await execFilePromise(
                             rccLocation,
-                            ["holotree", "import", zipDownloadLocation],
+                            ["holotree", "import", zipDownloadLocation, "--bundled", "--sema4ai"],
                             { "env": env },
                             { "showOutputInteractively": true }
                         );
@@ -808,6 +828,8 @@ export async function collectBaseEnv(
             args.push("-e");
             args.push(envFilename);
         }
+        args.push("--sema4ai");
+        args.push("--bundled");
         args.push("--controller");
         args.push("Sema4aiCode");
 
@@ -870,7 +892,7 @@ export async function getEndpointUrl(baseUrl): Promise<string> {
         const env = createEnvWithRobocorpHome(robocorpHome);
 
         const rccLocation = await getRccLocation();
-        let args: string[] = ["config", "settings", "--json"];
+        let args: string[] = ["config", "settings", "--bundled", "--sema4ai", "--json"];
         const execReturn: ExecFileReturn = await execFilePromise(
             rccLocation,
             args,
