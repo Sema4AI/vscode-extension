@@ -827,8 +827,14 @@ COMMANDS = [
         hide_from_command_palette=True,
     ),
     Command(
+        "sema4ai.actionServerPackageBuild",
+        "Build Action Package to Workspace",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
+    Command(
         "sema4ai.actionServerPackageBuild.internal",
-        "Build action package file (internal)",
+        "Build Action Package (internal)",
         server_handled=True,
         hide_from_command_palette=True,
     ),

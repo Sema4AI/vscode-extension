@@ -156,6 +156,7 @@ import {
     SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP,
     SEMA4AI_ACTION_SERVER_CLOUD_LOGIN,
     SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH,
+    SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -179,6 +180,7 @@ import {
     askAndRunRobocorpActionFromActionPackage,
     createActionPackage,
     publishActionPackage,
+    buildActionPackage,
 } from "./robo/actionPackage";
 import { showSelectOneStrQuickPick } from "./ask";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
@@ -488,6 +490,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_PROFILE_SWITCH, async () => await profileSwitch());
     C.register(SEMA4AI_ACTION_SERVER_CLOUD_LOGIN, async () => await actionServerCloudLogin());
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH, async () => await publishActionPackage());
+    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_BUILD, async () => await buildActionPackage());
 }
 
 async function clearEnvAndRestart() {

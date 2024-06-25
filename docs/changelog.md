@@ -10,6 +10,7 @@ Unreleased
 - A prompt allowing to restart the Action Server will appear now, when a Python file is modified in an Action package with active Action Server.
 - Hide command to authenticate the Action Server to Control Room
 - Hide command for publishing Action Package to Control Room
+- Add command to build Action Package to current workspace
 
 New in 1.22.4 (2024-05-22)
 -----------------------------
