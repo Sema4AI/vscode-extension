@@ -276,7 +276,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Publishes the Action Package to the Sema4.ai Desktop application",
                     },
                     {
-                        "label": "Build Package to Workspace",
+                        "label": "Create Action Package",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "archive",
