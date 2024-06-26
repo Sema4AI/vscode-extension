@@ -66,7 +66,7 @@ def download_rcc(
 
                 relative_path = get_release_artifact_relative_path(sys_platform, "rcc")
 
-                RCC_VERSION = "v18.0.5"
+                RCC_VERSION = "v18.1.1"
                 prefix = f"https://downloads.robocorp.com/rcc/releases/{RCC_VERSION}"
                 url = prefix + relative_path
 
