@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Optional, Tuple, TypeVar, Literal
+from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -407,7 +407,7 @@ class IRcc(Protocol):
         """
         Provides the directory to store info for robocorp code.
 
-        Usually ROBOCORP_HOME/.sema4ai_code
+        Usually SEMA4AI_HOME/.sema4ai_code
         """
 
     def get_template_names(self) -> ActionResult[List[RobotTemplate]]:
