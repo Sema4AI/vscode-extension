@@ -8,10 +8,10 @@ from sema4ai_ls_core.core_log import get_logger
 log = get_logger(__name__)
 
 
-def collect_py_files(root_path: Path) -> Iterator[Path]:
+def _collect_py_files(root_path: Path) -> Iterator[Path]:
     for item in root_path.iterdir():
         if item.is_dir():
-            yield from collect_py_files(item)
+            yield from _collect_py_files(item)
         elif item.suffix == ".py":
             yield item
 
@@ -116,8 +116,13 @@ def _make_action_info(uri: str, node: ast_module.FunctionDef) -> ActionInfoTyped
 
 
 def iter_actions(root_directory: Path) -> Iterator[ActionInfoTypedDict]:
+    """
+    Iterates over the actions just by using the AST (this means that it doesn't
+    give complete information, rather, it is a fast way to provide just simple
+    metadata such as the action name and location).
+    """
     f: Path
-    for f in collect_py_files(root_directory):
+    for f in _collect_py_files(root_directory):
         if "action" in f.name:
             try:
                 for funcdef in _collect_actions_from_file(f):
