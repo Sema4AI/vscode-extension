@@ -315,6 +315,12 @@ class ActionServerPackageSetChangelogDict(TypedDict):
     hostname: Optional[str]
 
 
+class ActionServerPackageMetadataDict(TypedDict):
+    action_server_location: str
+    input_dir: str
+    output_dir: str
+
+
 class IRccWorkspace(Protocol):
     @property
     def workspace_id(self) -> str:

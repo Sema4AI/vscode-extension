@@ -139,6 +139,8 @@
         "onCommand:sema4ai.actionServerPackageStatus.internal",
         "onCommand:sema4ai.actionServerPackageSetChangelog.internal",
         "onCommand:sema4ai.actionServerPackagePublish",
+        "onCommand:sema4ai.actionServerPackageMetadata",
+        "onCommand:sema4ai.actionServerPackageMetadata.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -883,6 +885,16 @@
                 "command": "sema4ai.actionServerPackagePublish",
                 "title": "Publish Action Package to Control Room",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageMetadata",
+                "title": "Create Action Package metadata file",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.actionServerPackageMetadata.internal",
+                "title": "Create Action Package metadata file (internal)",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {
@@ -1393,6 +1405,10 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackagePublish",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.actionServerPackageMetadata.internal",
                     "when": "false"
                 }
             ]

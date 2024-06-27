@@ -5,6 +5,7 @@ import time
 import typing
 from pathlib import Path
 from typing import Dict, List, Optional
+import json
 
 import pytest
 from sema4ai_code_tests.fixtures import RccPatch
@@ -1732,3 +1733,47 @@ def test_package_set_changelog(
     package_status = result["result"]
     assert package_status["id"] == "9749f9e5-b3c3-4eb8-8007-2b6337901529"
     assert package_status["error"] is None
+
+
+@pytest.mark.timeout(60)
+def test_package_metadata(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    action_server_location: str,
+    cases: CasesFixture,
+    data_regression,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(action_server_location)
+
+    language_server = language_server_initialized
+    action_package_path = Path(cases.get_path("action_packages"), "action_package1")
+    assert Path(action_package_path, "package.yaml").exists()
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
+        [
+            {
+                "action_server_location": action_server_location,
+                "input_dir": str(action_package_path),
+                "output_dir": str(action_package_path),
+            },
+        ],
+    )["result"]
+
+    assert result["success"]
+
+    action_package_metadata_path = Path(action_package_path, "metadata.json")
+    assert action_package_metadata_path.exists()
+
+    with open(action_package_metadata_path, "r") as f:
+        data = json.loads(f.read())
+    static_data = {
+        "metadata": data["metadata"],
+        "openapi.json": {
+            "components": data["openapi.json"]["components"],
+            "paths": data["openapi.json"]["paths"],
+            "servers": data["openapi.json"]["servers"],
+        },
+    }
+    data_regression.check(static_data)

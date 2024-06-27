@@ -1,7 +1,8 @@
 import sys
 import os
-from typing import Optional
+from typing import Optional, List
 import json
+from pathlib import Path
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_code.protocols import (
     ActionResult,
@@ -101,7 +102,7 @@ class ActionServer:
 
     def _run_action_server_command(
         self,
-        args: list[str],
+        args: List[str],
         timeout: float = 35,
     ) -> ActionServerResult:
         """
@@ -116,13 +117,16 @@ class ActionServer:
             timeout: The timeout for running the command (in seconds).
         """
         from subprocess import list2cmdline, run, CalledProcessError, TimeoutExpired
-        from sema4ai_ls_core.basic import as_str
+        from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
 
+        kwargs = build_subprocess_kwargs(None, env=os.environ.copy())
         args = [self._action_server_location] + args
         cmdline = list2cmdline([str(x) for x in args])
 
         try:
-            output = run(args, timeout=timeout, check=True, capture_output=True)
+            output = run(
+                args, timeout=timeout, check=True, capture_output=True, **kwargs
+            )
         except CalledProcessError as e:
             stdout = as_str(e.stdout)
             stderr = as_str(e.stderr)
@@ -130,6 +134,7 @@ class ActionServer:
             error_message = (
                 f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
             )
+
             log.exception(error_message)
 
             return ActionServerResult(cmdline, success=False, message=error_message)
@@ -163,7 +168,7 @@ class ActionServer:
 
         return ActionResult(success=True, message=None, result=command_result.result)
 
-    def get_action_templates(self) -> ActionResult[list[ActionTemplate]]:
+    def get_action_templates(self) -> ActionResult[List[ActionTemplate]]:
         """
         Returns the list of available Action templates.
         """
@@ -514,4 +519,35 @@ class ActionServer:
         return ActionResult(
             success=False,
             message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
+        )
+
+    def package_metadata(self, input_dir: str, output_dir) -> ActionResult:
+        """
+        Create the Action Package metadata.json.
+
+        Args:
+            input_dir, directory to find the package.json from.
+            output_dir, directory where to create the metadata.json file.
+        """
+        output_file_path = Path(output_dir, "metadata.json")
+
+        args = [
+            "package",
+            "metadata",
+            "--input-dir",
+            input_dir,
+            "--output-file",
+            str(output_file_path),
+        ]
+
+        command_result = self._run_action_server_command(
+            args, timeout=ONE_MINUTE_S * 15
+        )
+
+        if command_result.success:
+            return ActionResult(success=True, message=None)
+
+        return ActionResult(
+            success=False,
+            message=f"Error creating the metadata file.\n{command_result.message or ''}",
         )

@@ -24,17 +24,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as cp from "child_process";
 
-import {
-    workspace,
-    Disposable,
-    ExtensionContext,
-    window,
-    commands,
-    extensions,
-    env,
-    Uri,
-    WorkspaceFolder,
-} from "vscode";
+import { workspace, Disposable, ExtensionContext, window, commands, extensions, env, Uri } from "vscode";
 import { LanguageClientOptions, State } from "vscode-languageclient";
 import { LanguageClient, ServerOptions } from "vscode-languageclient/node";
 import * as playwright from "./playwright";
@@ -157,6 +147,7 @@ import {
     SEMA4AI_ACTION_SERVER_CLOUD_LOGIN,
     SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH,
     SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
+    SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -181,6 +172,7 @@ import {
     createActionPackage,
     publishActionPackage,
     buildActionPackage,
+    createMetadata,
 } from "./robo/actionPackage";
 import { showSelectOneStrQuickPick } from "./ask";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
@@ -491,6 +483,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ACTION_SERVER_CLOUD_LOGIN, async () => await actionServerCloudLogin());
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH, async () => await publishActionPackage());
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_BUILD, async () => await buildActionPackage());
+    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, createMetadata);
 }
 
 async function clearEnvAndRestart() {

@@ -284,6 +284,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Create the Action Package .zip file to the workspace folder",
                     },
+                    {
+                        "label": "Create Metadata File",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "json",
+                        "type": RobotEntryType.PackageMetadataToWorkspace,
+                        "parent": element,
+                        "tooltip": "Create metadata.json file to the Action Package folder",
+                    },
                 ];
             } else if (element.type === RobotEntryType.Robot) {
                 let yamlContents = element.robot.yamlContents;
@@ -510,6 +519,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Create Action Package to Workspace",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.PackageMetadataToWorkspace) {
+            treeItem.command = {
+                "title": "Create Metadata File to Workspace",
+                "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
+                "arguments": [vscode.Uri.file(element.robot.directory)],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         }

@@ -57,6 +57,7 @@ from sema4ai_code.protocols import (
     ActionServerPackageUploadStatusDict,
     ActionServerPackageStatusDict,
     ActionServerPackageSetChangelogDict,
+    ActionServerPackageMetadataDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -1609,6 +1610,20 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return action_server.package_set_changelog(
             package_id, organization_id, changelog_input, access_credentials, hostname
         ).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL)
+    def _action_server_package_metadata(
+        self, params: ActionServerPackageMetadataDict
+    ) -> ActionResultDict:
+        from sema4ai_code.action_server import ActionServer
+
+        action_server_location = params["action_server_location"]
+        input_dir = params["input_dir"]
+        output_dir = params["output_dir"]
+
+        action_server = ActionServer(action_server_location)
+
+        return action_server.package_metadata(input_dir, output_dir).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

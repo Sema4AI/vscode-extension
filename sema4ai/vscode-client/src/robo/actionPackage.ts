@@ -1,6 +1,6 @@
 import * as os from "os";
-import * as fs from "fs";
 
+import * as fs from "fs";
 import {
     QuickPickItem,
     WorkspaceFolder,
@@ -40,6 +40,7 @@ import {
     getActionServerVersion,
     verifyLogin,
     listOrganizations,
+    findActionPackagePath,
 } from "../actionServer";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
 
@@ -564,6 +565,24 @@ const updateChangelog = async (
     return true;
 };
 
+const createMetadataFile = async (actionServerLocation: string, actionPackagePath: string): Promise<boolean> => {
+    const result: ActionResult<void> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
+        {
+            action_server_location: actionServerLocation,
+            input_dir: actionPackagePath,
+            output_dir: actionPackagePath,
+        }
+    );
+
+    if (!result.success) {
+        window.showErrorMessage(`Failed to create the metadata file: ${result.message}`);
+        return false;
+    }
+
+    return true;
+};
+
 export const publishActionPackage = async () => {
     const workspaceDir = await askForWs();
 
@@ -692,6 +711,42 @@ export const buildActionPackage = async () => {
             }
 
             window.showInformationMessage("Action Package built successfully to the workspace.");
+        }
+    );
+};
+
+export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
+    await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Create Metadata",
+            cancellable: false,
+        },
+        async (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ): Promise<void> => {
+            if (!actionPackagePath) {
+                progress.report({ message: "Choose action package" });
+                actionPackagePath = await findActionPackagePath();
+                if (!actionPackagePath) {
+                    return;
+                }
+            }
+
+            progress.report({ message: "Validating action server" });
+            const actionServerLocation = await downloadOrGetActionServerLocation();
+            if (!actionServerLocation) {
+                return;
+            }
+
+            progress.report({ message: "Creating metadata.json (please wait, this can take a long time)" });
+            const ok = await createMetadataFile(actionServerLocation, actionPackagePath.fsPath);
+            if (!ok) {
+                return;
+            }
+
+            window.showInformationMessage("Metadata file created successfully.");
         }
     );
 };
