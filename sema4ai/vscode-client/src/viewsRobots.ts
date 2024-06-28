@@ -1,5 +1,4 @@
 import * as path from "path";
-import * as vscode from "vscode";
 import { OUTPUT_CHANNEL, logError } from "./channel";
 import { uriExists } from "./files";
 import { LocalRobotMetadataInfo, ActionResult, IActionInfo } from "./protocols";

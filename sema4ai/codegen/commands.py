@@ -878,7 +878,7 @@ COMMANDS = [
         "sema4ai.openActionPackageMetadata",
         "Open the Action Package Metadata (metadata.json)",
         server_handled=False,
-        hide_from_command_palette=True,
+        hide_from_command_palette=False,
     ),
 ]
 
