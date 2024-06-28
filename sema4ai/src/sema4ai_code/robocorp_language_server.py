@@ -1618,12 +1618,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code.action_server import ActionServer
 
         action_server_location = params["action_server_location"]
-        input_dir = params["input_dir"]
-        output_dir = params["output_dir"]
+        action_package_path = params["action_package_path"]
+        output_file_path = params["output_file_path"]
 
         action_server = ActionServer(action_server_location)
 
-        return action_server.package_metadata(input_dir, output_dir).as_dict()
+        return action_server.package_metadata(
+            action_package_path, output_file_path
+        ).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]
