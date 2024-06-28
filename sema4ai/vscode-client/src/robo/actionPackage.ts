@@ -583,9 +583,7 @@ const createMetadataFile = async (actionServerLocation: string, actionPackagePat
     return true;
 };
 
-export const publishActionPackage = async () => {
-    const workspaceDir = await askForWs();
-
+export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
     await window.withProgress(
         {
             location: ProgressLocation.Notification,
@@ -596,6 +594,14 @@ export const publishActionPackage = async () => {
             progress: Progress<{ message?: string; increment?: number }>,
             token: CancellationToken
         ): Promise<void> => {
+            if (!actionPackagePath) {
+                progress.report({ message: "Choose action package" });
+                actionPackagePath = await findActionPackagePath();
+                if (!actionPackagePath) {
+                    return;
+                }
+            }
+
             progress.report({ message: "Validating action server" });
             const actionServerLocation = await downloadOrGetActionServerLocation();
             if (!actionServerLocation) {
@@ -634,7 +640,7 @@ export const publishActionPackage = async () => {
                 fs.mkdirSync(tempDir, { recursive: true });
 
                 progress.report({ message: "Building package" });
-                const packagePath = await buildPackage(actionServerLocation, workspaceDir.uri.fsPath, tempDir);
+                const packagePath = await buildPackage(actionServerLocation, actionPackagePath.fsPath, tempDir);
                 if (!packagePath) {
                     return;
                 }
@@ -681,9 +687,7 @@ export const publishActionPackage = async () => {
     );
 };
 
-export const buildActionPackage = async () => {
-    const workspaceDir = await askForWs();
-
+export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
     await window.withProgress(
         {
             location: ProgressLocation.Notification,
@@ -694,6 +698,14 @@ export const buildActionPackage = async () => {
             progress: Progress<{ message?: string; increment?: number }>,
             token: CancellationToken
         ): Promise<void> => {
+            if (!actionPackagePath) {
+                progress.report({ message: "Choose action package" });
+                actionPackagePath = await findActionPackagePath();
+                if (!actionPackagePath) {
+                    return;
+                }
+            }
+
             progress.report({ message: "Validating action server" });
             const actionServerLocation = await downloadOrGetActionServerLocation();
             if (!actionServerLocation) {
@@ -703,8 +715,8 @@ export const buildActionPackage = async () => {
             progress.report({ message: "Building package" });
             const packagePath = await buildPackage(
                 actionServerLocation,
-                workspaceDir.uri.fsPath,
-                workspaceDir.uri.fsPath
+                actionPackagePath.fsPath,
+                actionPackagePath.fsPath
             );
             if (!packagePath) {
                 return;
@@ -749,4 +761,26 @@ export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
             window.showInformationMessage("Metadata file created successfully.");
         }
     );
+};
+
+export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
+    if (!actionPackagePath) {
+        actionPackagePath = await findActionPackagePath();
+        if (!actionPackagePath) {
+            return;
+        }
+    }
+
+    try {
+        const metadataFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
+
+        if (!fs.existsSync(metadataFilePath)) {
+            await createMetadata(actionPackagePath);
+        }
+
+        const document = await vscode.workspace.openTextDocument(metadataFilePath);
+        window.showTextDocument(document);
+    } catch (error) {
+        window.showErrorMessage(`Failed to open metadata.json: ${error.message}`);
+    }
 };
