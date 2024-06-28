@@ -565,13 +565,17 @@ const updateChangelog = async (
     return true;
 };
 
-const createMetadataFile = async (actionServerLocation: string, actionPackagePath: string): Promise<boolean> => {
+const createMetadataFile = async (
+    actionServerLocation: string,
+    actionPackagePath: string,
+    outputFilePath: string
+): Promise<boolean> => {
     const result: ActionResult<void> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
         {
             action_server_location: actionServerLocation,
-            input_dir: actionPackagePath,
-            output_dir: actionPackagePath,
+            action_package_path: actionPackagePath,
+            output_file_path: outputFilePath,
         }
     );
 
@@ -753,7 +757,8 @@ export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
             }
 
             progress.report({ message: "Creating metadata.json (please wait, this can take a long time)" });
-            const ok = await createMetadataFile(actionServerLocation, actionPackagePath.fsPath);
+            const outputFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
+            const ok = await createMetadataFile(actionServerLocation, actionPackagePath.fsPath, outputFilePath);
             if (!ok) {
                 return;
             }
