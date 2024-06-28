@@ -141,6 +141,7 @@
         "onCommand:sema4ai.actionServerPackagePublish",
         "onCommand:sema4ai.actionServerPackageMetadata",
         "onCommand:sema4ai.actionServerPackageMetadata.internal",
+        "onCommand:sema4ai.openActionPackageMetadata",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -888,12 +889,17 @@
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata",
-                "title": "Create Action Package metadata file",
+                "title": "Create Action Package metadata (metadata.json)",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata.internal",
-                "title": "Create Action Package metadata file (internal)",
+                "title": "Create Action Package metadata file (metadata.json) (internal)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.openActionPackageMetadata",
+                "title": "Open the Action Package Metadata (metadata.json)",
                 "category": "Sema4.ai"
             }
         ],
@@ -1409,6 +1415,10 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageMetadata.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openActionPackageMetadata",
                     "when": "false"
                 }
             ]

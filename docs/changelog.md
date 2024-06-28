@@ -2,6 +2,8 @@ Unreleased
 -----------------------------
 
 - Add command and UI element to create metadata file for Action Package
+- Add UI element to open the metadata file for Action Package
+- Fix build Action Package command to add selection step to select the Action Package in case there are multiple in workspace
 
 New in 2.1.0 (2024-06-25)
 
