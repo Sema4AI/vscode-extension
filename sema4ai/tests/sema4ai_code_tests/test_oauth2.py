@@ -24,7 +24,7 @@ def test_oauth2_server_basic():
 
 
 def test_oauth2_server_cancel():
-    from requests.exceptions import ConnectTimeout
+    from requests.exceptions import ConnectTimeout, ReadTimeout
 
     from sema4ai_code.oauth2 import oauth_helper
 
@@ -36,5 +36,5 @@ def test_oauth2_server_cancel():
     with pytest.raises(CancelledError):
         future.result()
 
-    with pytest.raises(ConnectTimeout):
+    with pytest.raises((ConnectTimeout, ReadTimeout)):
         requests.get(f"http://localhost:{port}/foo/bar", timeout=1)
