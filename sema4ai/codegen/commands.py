@@ -862,6 +862,18 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=True,
     ),
+    Command(
+        "sema4ai.actionServerPackageMetadata",
+        "Create Action Package metadata file",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
+    Command(
+        "sema4ai.actionServerPackageMetadata.internal",
+        "Create Action Package metadata file (internal)",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
 ]
 
 

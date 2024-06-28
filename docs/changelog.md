@@ -1,6 +1,7 @@
 Unreleased
 -----------------------------
 
+- Add command and UI element to create metadata file for Action Package
 
 New in 2.1.0 (2024-06-25)
 

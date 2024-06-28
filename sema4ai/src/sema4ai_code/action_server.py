@@ -2,6 +2,7 @@ import sys
 import os
 from typing import Optional
 import json
+from pathlib import Path
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_code.protocols import (
     ActionResult,
@@ -116,13 +117,28 @@ class ActionServer:
             timeout: The timeout for running the command (in seconds).
         """
         from subprocess import list2cmdline, run, CalledProcessError, TimeoutExpired
-        from sema4ai_ls_core.basic import as_str
+        from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
 
+        kwargs = build_subprocess_kwargs(None, env=os.environ.copy())
         args = [self._action_server_location] + args
         cmdline = list2cmdline([str(x) for x in args])
 
+        # Not sure why, but (just when running in VSCode) something as:
+        # launching sys.executable actually got stuck unless a \n was written
+        # (even if stdin was closed it wasn't enough).
+        # -- note: this issue seems to be particular to Windows
+        # (VSCode + Windows Defender + python).
+        input_data = "\n".encode("utf-8")
+
         try:
-            output = run(args, timeout=timeout, check=True, capture_output=True)
+            output = run(
+                args,
+                timeout=timeout,
+                check=True,
+                capture_output=True,
+                input=input_data,
+                **kwargs,
+            )
         except CalledProcessError as e:
             stdout = as_str(e.stdout)
             stderr = as_str(e.stderr)
@@ -130,6 +146,7 @@ class ActionServer:
             error_message = (
                 f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
             )
+
             log.exception(error_message)
 
             return ActionServerResult(cmdline, success=False, message=error_message)
@@ -514,4 +531,35 @@ class ActionServer:
         return ActionResult(
             success=False,
             message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
+        )
+
+    def package_metadata(self, input_dir: str, output_dir: str) -> ActionResult:
+        """
+        Create the Action Package metadata.json.
+
+        Args:
+            input_dir, directory to find the package.json from.
+            output_dir, directory where to create the metadata.json file.
+        """
+        output_file_path = Path(output_dir, "metadata.json")
+
+        args = [
+            "package",
+            "metadata",
+            "--input-dir",
+            input_dir,
+            "--output-file",
+            str(output_file_path),
+        ]
+
+        command_result = self._run_action_server_command(
+            args, timeout=ONE_MINUTE_S * 60
+        )
+
+        if command_result.success:
+            return ActionResult(success=True, message=None)
+
+        return ActionResult(
+            success=False,
+            message=f"Error creating the metadata file.\n{command_result.message or ''}",
         )

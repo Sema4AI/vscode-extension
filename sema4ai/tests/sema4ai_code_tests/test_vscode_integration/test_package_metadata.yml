@@ -1,0 +1,74 @@
+metadata:
+  description: used for testing only
+  name: test_action
+  secrets: {}
+  version: 1
+openapi.json:
+  components:
+    schemas:
+      HTTPValidationError:
+        properties:
+          errors:
+            items:
+              $ref: '#/components/schemas/ValidationError'
+            title: Errors
+            type: array
+        title: HTTPValidationError
+        type: object
+      ValidationError:
+        properties:
+          loc:
+            items:
+              anyOf:
+              - type: string
+              - type: integer
+            title: Location
+            type: array
+          msg:
+            title: Message
+            type: string
+          type:
+            title: Error Type
+            type: string
+        required:
+        - loc
+        - msg
+        - type
+        title: ValidationError
+        type: object
+  paths:
+    /api/actions/test-action/my-action/run:
+      post:
+        description: My docstring
+        operationId: my_action
+        requestBody:
+          content:
+            application/json:
+              schema:
+                properties:
+                  arg1:
+                    description: this is argument...
+                    title: Arg1
+                    type: string
+                required:
+                - arg1
+                type: object
+          required: true
+        responses:
+          '200':
+            content:
+              application/json:
+                schema:
+                  description: ''
+                  title: Response for My Action
+                  type: string
+            description: Successful Response
+          '422':
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HTTPValidationError'
+            description: Validation Error
+        summary: My Action
+  servers:
+  - url: http://localhost:8080
