@@ -291,7 +291,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "iconPath": "json",
                         "type": RobotEntryType.PackageMetadataToWorkspace,
                         "parent": element,
-                        "tooltip": "Create metadata.json file to the Action Package folder",
+                        "tooltip": "Create metadata.json file in Action Package folder",
                     },
                 ];
             } else if (element.type === RobotEntryType.Robot) {

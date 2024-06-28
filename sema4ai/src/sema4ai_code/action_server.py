@@ -1,6 +1,6 @@
 import sys
 import os
-from typing import Optional, List
+from typing import Optional
 import json
 from pathlib import Path
 from sema4ai_ls_core.core_log import get_logger
@@ -102,7 +102,7 @@ class ActionServer:
 
     def _run_action_server_command(
         self,
-        args: List[str],
+        args: list[str],
         timeout: float = 35,
     ) -> ActionServerResult:
         """
@@ -123,9 +123,21 @@ class ActionServer:
         args = [self._action_server_location] + args
         cmdline = list2cmdline([str(x) for x in args])
 
+        # Not sure why, but (just when running in VSCode) something as:
+        # launching sys.executable actually got stuck unless a \n was written
+        # (even if stdin was closed it wasn't enough).
+        # -- note: this issue seems to be particular to Windows
+        # (VSCode + Windows Defender + python).
+        input_data = "\n".encode("utf-8")
+
         try:
             output = run(
-                args, timeout=timeout, check=True, capture_output=True, **kwargs
+                args,
+                timeout=timeout,
+                check=True,
+                capture_output=True,
+                input=input_data,
+                **kwargs,
             )
         except CalledProcessError as e:
             stdout = as_str(e.stdout)
@@ -168,7 +180,7 @@ class ActionServer:
 
         return ActionResult(success=True, message=None, result=command_result.result)
 
-    def get_action_templates(self) -> ActionResult[List[ActionTemplate]]:
+    def get_action_templates(self) -> ActionResult[list[ActionTemplate]]:
         """
         Returns the list of available Action templates.
         """
@@ -521,7 +533,7 @@ class ActionServer:
             message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
         )
 
-    def package_metadata(self, input_dir: str, output_dir) -> ActionResult:
+    def package_metadata(self, input_dir: str, output_dir: str) -> ActionResult:
         """
         Create the Action Package metadata.json.
 
@@ -541,7 +553,7 @@ class ActionServer:
         ]
 
         command_result = self._run_action_server_command(
-            args, timeout=ONE_MINUTE_S * 15
+            args, timeout=ONE_MINUTE_S * 60
         )
 
         if command_result.success:
