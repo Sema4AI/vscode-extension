@@ -97,6 +97,10 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                 dirtyWorkspaceFiles.has(docURI.fsPath) &&
                 (isEnvironmentFile(docURI.fsPath) || isPythonFile(docURI.fsPath))
             ) {
+                const actionServerTerminal: Terminal = getActionServerTerminal();
+                const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
+                const terminalCwd = terminalOptions?.cwd as Uri;
+
                 // let's refresh the view each time we get a hit on the files that might impact the workspace
                 refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
                 dirtyWorkspaceFiles.delete(docURI.fsPath);
@@ -122,13 +126,8 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                         });
                 }
 
-                const actionServerTerminal: Terminal = getActionServerTerminal();
-                const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
-                const terminalCwd = terminalOptions?.cwd as Uri;
-
-                /* If the Python file changed, and Action Server is running, ask the user if they want to restart it. */
+                /* If Action Server is running in the package the file was modified in, ask the user if they want to restart it. */
                 if (
-                    isPythonFile(docURI.fsPath) &&
                     terminalCwd?.fsPath &&
                     docURI.fsPath.includes(terminalCwd.fsPath) &&
                     (await isActionServerAlive())
