@@ -870,7 +870,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.actionServerPackageMetadata.internal",
-        "Create Action Package metadata file (metadata.json) (internal)",
+        "Create Action Package OpenAPI Spec (metadata.json) (internal)",
         server_handled=True,
         hide_from_command_palette=True,
     ),
