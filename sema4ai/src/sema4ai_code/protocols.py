@@ -317,8 +317,8 @@ class ActionServerPackageSetChangelogDict(TypedDict):
 
 class ActionServerPackageMetadataDict(TypedDict):
     action_server_location: str
-    input_dir: str
-    output_dir: str
+    action_package_path: str
+    output_file_path: str
 
 
 class IRccWorkspace(Protocol):

@@ -533,7 +533,9 @@ class ActionServer:
             message=f"Error updating the changelog for package to Control Room.\n{command_result.message or ''}",
         )
 
-    def package_metadata(self, input_dir: str, output_dir: str) -> ActionResult:
+    def package_metadata(
+        self, action_package_path: str, output_file_path: str
+    ) -> ActionResult:
         """
         Create the Action Package metadata.json.
 
@@ -541,15 +543,13 @@ class ActionServer:
             input_dir, directory to find the package.json from.
             output_dir, directory where to create the metadata.json file.
         """
-        output_file_path = Path(output_dir, "metadata.json")
-
         args = [
             "package",
             "metadata",
             "--input-dir",
-            input_dir,
+            action_package_path,
             "--output-file",
-            str(output_file_path),
+            output_file_path,
         ]
 
         command_result = self._run_action_server_command(

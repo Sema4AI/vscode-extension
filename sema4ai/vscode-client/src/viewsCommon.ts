@@ -39,6 +39,7 @@ export enum RobotEntryType {
     PackagePublishToDesktopApp,
     PackageBuildToWorkspace,
     PackageMetadataToWorkspace,
+    OpenMetadataFileToWorkspace,
 }
 
 export interface CloudEntry {

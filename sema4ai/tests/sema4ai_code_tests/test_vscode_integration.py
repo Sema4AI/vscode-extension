@@ -1750,13 +1750,15 @@ def test_package_metadata(
     action_package_path = Path(cases.get_path("action_packages"), "action_package1")
     assert Path(action_package_path, "package.yaml").exists()
 
+    output_file_path = Path(action_package_path, "metadata.json")
+
     result = language_server.execute_command(
         commands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
         [
             {
                 "action_server_location": action_server_location,
-                "input_dir": str(action_package_path),
-                "output_dir": str(action_package_path),
+                "action_package_path": str(action_package_path),
+                "output_file_path": str(output_file_path),
             },
         ],
     )["result"]

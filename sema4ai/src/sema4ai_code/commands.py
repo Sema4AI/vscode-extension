@@ -121,8 +121,9 @@ SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL = "sema4ai.actionServerPackageUplo
 SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL = "sema4ai.actionServerPackageStatus.internal"  # Get action package upload status from the Control Room (internal)
 SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL = "sema4ai.actionServerPackageSetChangelog.internal"  # Set action package changelog entry in the Control Room (internal)
 SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH = "sema4ai.actionServerPackagePublish"  # Publish Action Package to Control Room
-SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata"  # Create Action Package metadata file
-SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal"  # Create Action Package metadata file (internal)
+SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata"  # Create Action Package OpenAPI Spec (metadata.json)
+SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal"  # Create Action Package OpenAPI Spec (metadata.json) (internal)
+SEMA4AI_OPEN_ACTION_PACKAGE_METADATA = "sema4ai.openActionPackageMetadata"  # Open the Action Package OpenAPI Spec (metadata.json)
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
