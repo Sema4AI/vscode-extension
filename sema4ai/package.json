@@ -889,17 +889,17 @@
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata",
-                "title": "Create Action Package metadata (metadata.json)",
+                "title": "Create Action Package OpenAPI Spec (metadata.json)",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata.internal",
-                "title": "Create Action Package metadata file (metadata.json) (internal)",
+                "title": "Create Action Package OpenAPI Spec (metadata.json) (internal)",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.openActionPackageMetadata",
-                "title": "Open the Action Package Metadata (metadata.json)",
+                "title": "Open the Action Package OpenAPI Spec (metadata.json)",
                 "category": "Sema4.ai"
             }
         ],
@@ -1415,10 +1415,6 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageMetadata.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.openActionPackageMetadata",
                     "when": "false"
                 }
             ]
