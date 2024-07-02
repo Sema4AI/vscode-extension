@@ -285,7 +285,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Create the Action Package .zip file to the workspace folder",
                     },
                     {
-                        "label": "Create Package Metadata (metadata.json)",
+                        "label": "Create Package OpenAPI Spec (metadata.json)",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "new-file",
@@ -294,7 +294,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Create metadata.json file in Action Package folder",
                     },
                     {
-                        "label": "View Package Metadata (metadata.json)",
+                        "label": "View Package OpenAPI Spec (metadata.json)",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "go-to-file",
@@ -532,14 +532,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageMetadataToWorkspace) {
             treeItem.command = {
-                "title": "Create Metadata File to Workspace",
+                "title": "Create Package OpenAPI Spec File to Workspace (metadata.json)",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
                 "arguments": [vscode.Uri.file(element.robot.directory)],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenMetadataFileToWorkspace) {
             treeItem.command = {
-                "title": "Open Metadata File to Workspace (metadata.json)",
+                "title": "Open Package OpenAPI Spec File to Workspace (metadata.json)",
                 "command": roboCommands.SEMA4AI_OPEN_ACTION_PACKAGE_METADATA,
                 "arguments": [vscode.Uri.file(element.robot.directory)],
             };

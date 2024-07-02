@@ -780,7 +780,16 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
         const metadataFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
 
         if (!fs.existsSync(metadataFilePath)) {
-            await createMetadata(actionPackagePath);
+            const selection = await window.showInformationMessage(
+                "OpenAPI spec file (metadata.json) not found. Would you like to create it?",
+                "Yes",
+                "No"
+            );
+            if (selection === "Yes") {
+                await createMetadata(actionPackagePath);
+            } else {
+                return;
+            }
         }
 
         const document = await vscode.workspace.openTextDocument(metadataFilePath);
