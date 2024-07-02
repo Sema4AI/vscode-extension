@@ -44,6 +44,8 @@ import {
 } from "../actionServer";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
 
+export const METADATA_FILE_NAME = "metadata.json";
+
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
     actionFileUri: vscode.Uri;
@@ -756,8 +758,8 @@ export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
                 return;
             }
 
-            progress.report({ message: "Creating metadata.json (please wait, this can take a long time)" });
-            const outputFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
+            progress.report({ message: `Creating ${METADATA_FILE_NAME} (please wait, this can take a long time)` });
+            const outputFilePath = path.join(actionPackagePath.fsPath, METADATA_FILE_NAME);
             const ok = await createMetadataFile(actionServerLocation, actionPackagePath.fsPath, outputFilePath);
             if (!ok) {
                 return;
@@ -777,11 +779,11 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
     }
 
     try {
-        const metadataFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
+        const metadataFilePath = path.join(actionPackagePath.fsPath, METADATA_FILE_NAME);
 
         if (!fs.existsSync(metadataFilePath)) {
             const selection = await window.showInformationMessage(
-                "OpenAPI spec file (metadata.json) not found. Would you like to create it?",
+                `OpenAPI spec file (${METADATA_FILE_NAME}) not found. Would you like to create it?`,
                 "Yes",
                 "No"
             );
@@ -795,6 +797,50 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
         const document = await vscode.workspace.openTextDocument(metadataFilePath);
         window.showTextDocument(document);
     } catch (error) {
-        window.showErrorMessage(`Failed to open metadata.json: ${error.message}`);
+        window.showErrorMessage(`Failed to open ${METADATA_FILE_NAME}: ${error.message}`);
+    }
+};
+
+export const listActionPackages = async (): Promise<LocalRobotMetadataInfo[]> => {
+    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
+    );
+
+    if (!actionResult.success) {
+        return [];
+    }
+
+    const robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+
+    if (!robotsInfo || robotsInfo.length == 0) {
+        return [];
+    }
+
+    const filter = (entry: LocalRobotMetadataInfo) => {
+        if (!isActionPackage(entry)) {
+            return false;
+        }
+        return true;
+    };
+
+    return robotsInfo.filter(filter);
+};
+
+export const findMetadataFilePath = async (actionPackageRoot: vscode.Uri): Promise<vscode.Uri | undefined> => {
+    const metadataFilePath = vscode.Uri.file(path.join(actionPackageRoot.fsPath, METADATA_FILE_NAME));
+
+    try {
+        await vscode.workspace.fs.stat(metadataFilePath);
+        return metadataFilePath;
+    } catch (error) {
+        // Do not raise just return unknown if file is not available
+    }
+};
+
+export const removeMetadataFile = async (actionPathPath: vscode.Uri): Promise<void> => {
+    try {
+        await vscode.workspace.fs.delete(actionPathPath);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to delete file ${actionPathPath.fsPath}: ${error.message}`);
     }
 };

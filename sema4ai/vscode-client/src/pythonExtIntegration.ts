@@ -1,3 +1,5 @@
+import * as path from "path";
+
 import {
     commands,
     ConfigurationTarget,
@@ -13,11 +15,12 @@ import {
 import { resolveInterpreter } from "./activities";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import { handleProgressMessage } from "./progress";
-import { ActionResult, InterpreterInfo } from "./protocols";
+import { ActionResult, InterpreterInfo, LocalRobotMetadataInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
 import { getActionServerTerminal, isActionServerAlive, restartActionServer } from "./actionServer";
+import { findMetadataFilePath, createMetadata, removeMetadataFile, listActionPackages } from "./robo/actionPackage";
 
 const dirtyWorkspaceFiles = new Set<string>();
 
@@ -32,6 +35,16 @@ export function isEnvironmentFile(fsPath: string): boolean {
 
 export function isPythonFile(fsPath: string): boolean {
     return fsPath.endsWith(".py");
+}
+
+function matchActionPackageToFile(actionPackages: LocalRobotMetadataInfo[], filePath: Uri): Uri | undefined {
+    const filteredPaths = actionPackages
+        .filter((actionPackage: LocalRobotMetadataInfo) => filePath.fsPath.includes(actionPackage.directory))
+        .map((actionPackage: LocalRobotMetadataInfo) => Uri.file(actionPackage.directory));
+
+    if (filteredPaths.length > 0) {
+        return filteredPaths[0];
+    }
 }
 
 export async function autoUpdateInterpreter(docUri: Uri): Promise<boolean> {
@@ -143,6 +156,29 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                                 await restartActionServer(terminalCwd);
                             }
                         });
+                }
+
+                const actionPackages = await listActionPackages();
+                const actionPackageRoot = matchActionPackageToFile(actionPackages, docURI);
+                if (actionPackageRoot) {
+                    const metadataFilePath = await findMetadataFilePath(actionPackageRoot);
+
+                    /* If the Python file changed, and the metadata.json is present, ask the user if they want to update or delete it. */
+                    if ((docURI.fsPath.endsWith("package.yaml") || isPythonFile(docURI.fsPath)) && metadataFilePath) {
+                        window
+                            .showInformationMessage(
+                                `Changes were detected in the Action files. Would you like to update or remove the existing OpenAPI spec file (${metadataFilePath.fsPath})?`,
+                                "Update",
+                                "Remove"
+                            )
+                            .then(async (selection) => {
+                                if (selection === "Update") {
+                                    await createMetadata(Uri.file(path.dirname(metadataFilePath.fsPath)));
+                                } else if (selection === "Remove") {
+                                    await removeMetadataFile(metadataFilePath);
+                                }
+                            });
+                    }
                 }
             }
         } catch (error) {
