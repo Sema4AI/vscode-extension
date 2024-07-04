@@ -149,6 +149,7 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
             logError("Error auto-updating Python interpreter.", error, "PYTHON_SET_INTERPRETER");
         }
     });
+
     // create the appropriate subscriptions
     context.subscriptions.push(checkEditorSwitch, checkIfFilesHaveChanged, checkIfFilesWillBeSaved);
 

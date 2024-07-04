@@ -552,6 +552,9 @@ class ActionServer:
             output_file_path,
         ]
 
+        # Make sure the path is created
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+
         command_result = self._run_action_server_command(
             args, timeout=ONE_MINUTE_S * 60
         )
