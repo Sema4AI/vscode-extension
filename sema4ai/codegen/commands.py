@@ -864,21 +864,15 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.actionServerPackageMetadata",
-        "Create Action Package OpenAPI Spec (metadata.json)",
+        "Open the Action Package OpenAPI Spec (metadata.json)",
         server_handled=False,
         hide_from_command_palette=False,
     ),
     Command(
         "sema4ai.actionServerPackageMetadata.internal",
-        "Create Action Package OpenAPI Spec (metadata.json) (internal)",
+        "Open the Action Package OpenAPI Spec (metadata.json) (internal)",
         server_handled=True,
         hide_from_command_palette=True,
-    ),
-    Command(
-        "sema4ai.openActionPackageMetadata",
-        "Open the Action Package OpenAPI Spec (metadata.json)",
-        server_handled=False,
-        hide_from_command_palette=False,
     ),
 ]
 

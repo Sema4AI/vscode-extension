@@ -731,8 +731,8 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
     );
 };
 
-export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
-    await window.withProgress(
+const createMetadata = async (actionPackagePath: string, outputFilePath: string): Promise<boolean> => {
+    return window.withProgress<boolean>(
         {
             location: ProgressLocation.Notification,
             title: "Create Metadata",
@@ -741,29 +741,20 @@ export const createMetadata = async (actionPackagePath?: vscode.Uri) => {
         async (
             progress: Progress<{ message?: string; increment?: number }>,
             token: CancellationToken
-        ): Promise<void> => {
-            if (!actionPackagePath) {
-                progress.report({ message: "Choose action package" });
-                actionPackagePath = await findActionPackagePath();
-                if (!actionPackagePath) {
-                    return;
-                }
-            }
-
+        ): Promise<boolean> => {
             progress.report({ message: "Validating action server" });
             const actionServerLocation = await downloadOrGetActionServerLocation();
             if (!actionServerLocation) {
-                return;
+                return false;
             }
 
             progress.report({ message: "Creating metadata.json (please wait, this can take a long time)" });
-            const outputFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
-            const ok = await createMetadataFile(actionServerLocation, actionPackagePath.fsPath, outputFilePath);
+            const ok = await createMetadataFile(actionServerLocation, actionPackagePath, outputFilePath);
             if (!ok) {
-                return;
+                return false;
             }
 
-            window.showInformationMessage("Metadata file created successfully.");
+            return true;
         }
     );
 };
@@ -777,23 +768,13 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
     }
 
     try {
-        const metadataFilePath = path.join(actionPackagePath.fsPath, "metadata.json");
-
-        if (!fs.existsSync(metadataFilePath)) {
-            const selection = await window.showInformationMessage(
-                "OpenAPI spec file (metadata.json) not found. Would you like to create it?",
-                "Yes",
-                "No"
-            );
-            if (selection === "Yes") {
-                await createMetadata(actionPackagePath);
-            } else {
-                return;
-            }
-        }
-
-        const document = await vscode.workspace.openTextDocument(metadataFilePath);
-        window.showTextDocument(document);
+        const package_folder = path.basename(actionPackagePath.fsPath);
+        const metadataFilePath = path.join(os.tmpdir(), package_folder, `metadata.json`);
+        const created = await createMetadata(actionPackagePath.fsPath, metadataFilePath);
+        if (created) {
+            const document = await vscode.workspace.openTextDocument(metadataFilePath);
+            await window.showTextDocument(document, { preview: false });
+        } // Error handled in the createMetadata function
     } catch (error) {
         window.showErrorMessage(`Failed to open metadata.json: ${error.message}`);
     }
