@@ -1,6 +1,6 @@
 import { btoa } from "buffer";
 
-export const DL_APP_PROTOCOL_URI = "sema4.ai.desktop";
+export const DL_APP_PROTOCOL_URI = "sema4.ai.agent.studio";
 export const DL_APP_PROTOCOL_URI_FULL = `${DL_APP_PROTOCOL_URI}://`;
 
 export const DL_APP_CONTROLLER_VSCODE = "vscode.sema4.ai";
