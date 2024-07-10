@@ -224,8 +224,6 @@ export async function runActionFromActionPackage(
         return;
     }
 
-    await loginToAuth2WhereRequired(targetInput)
-
     // Ok, input available. Let's create the launch and run it.
     let debugConfiguration: vscode.DebugConfiguration = {
         "name": "Config",
@@ -238,6 +236,12 @@ export async function runActionFromActionPackage(
         "args": [],
         "noDebug": noDebug,
     };
+    const xActionContext = await loginToAuth2WhereRequired(targetInput);
+    if (xActionContext) {
+        const xActionServerHeader = Buffer.from(JSON.stringify(xActionContext), "utf-8").toString("base64");
+
+        debugConfiguration.baseEnv = { "SEMA4AI-VSCODE-X-ACTION-CONTEXT": xActionServerHeader };
+    }
     let debugSessionOptions: vscode.DebugSessionOptions = {};
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }

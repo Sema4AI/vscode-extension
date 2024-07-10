@@ -90,6 +90,10 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         }
 
         let env = interpreter.environ;
+        const baseEnv = debugConfiguration.baseEnv;
+        if (baseEnv) {
+            env = { ...env, ...baseEnv };
+        }
 
         if (isActionPackageLaunch) {
             env = applyOutViewIntegrationEnvVars(env);

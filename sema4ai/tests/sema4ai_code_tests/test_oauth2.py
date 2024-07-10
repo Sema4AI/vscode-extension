@@ -1,15 +1,8 @@
-import socket
 import time
 from concurrent.futures import CancelledError
 
 import pytest
 import requests
-
-
-def find_free_port():
-    with socket.socket() as s:
-        s.bind(("", 0))
-        return s.getsockname()[1]
 
 
 def test_oauth2_server_basic():

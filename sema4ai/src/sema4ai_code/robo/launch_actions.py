@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 def create_and_rotate_directories(
@@ -141,6 +142,33 @@ def _delete_old(dir_path: str, existing_dirs: list[str], max_count: int):
         rm_rf(Path(dir_path) / oldest)
 
 
+def create_pm():
+    x_action_context = os.environ.get("SEMA4AI-VSCODE-X-ACTION-CONTEXT")
+    if not x_action_context:
+        return None
+
+    try:
+        from sema4ai.actions._customization._extension_points import EPManagedParameters
+        from sema4ai.actions._customization._plugin_manager import PluginManager
+        from sema4ai.actions._managed_parameters import ManagedParameters
+        from sema4ai.actions._request import Request
+    except ImportError:
+        return None
+
+    pm = PluginManager()
+    pm.set_instance(
+        EPManagedParameters,
+        ManagedParameters(
+            {
+                "request": Request.model_validate(
+                    {"headers": {"x-action-context": x_action_context}}
+                )
+            }
+        ),
+    )
+    return pm
+
+
 def main():
     from tempfile import gettempdir
 
@@ -173,7 +201,17 @@ def main():
             # Only available on newer versions of sema4ai-actions.
             args.append("--print-result")
 
-    return cli.main(args, exit=True)
+    print(
+        f'Running with sema4ai.actions version: {".".join(str(x) for x in actions.version_info)}'
+    )
+    kwargs = {}
+    if actions.version_info >= [0, 9, 0]:
+        # Add managed arguments based on env variables.
+        pm = create_pm()
+        if pm is not None:
+            kwargs["plugin_manager"] = pm
+
+    return cli.main(args, exit=True, **kwargs)
 
 
 if __name__ == "__main__":
