@@ -43,6 +43,7 @@ import {
     findActionPackagePath,
 } from "../actionServer";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
+import { loginToAuth2WhereRequired } from "./oauth2InInput";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -222,6 +223,8 @@ export async function runActionFromActionPackage(
         // (so that the user can customize it).
         return;
     }
+
+    await loginToAuth2WhereRequired(targetInput)
 
     // Ok, input available. Let's create the launch and run it.
     let debugConfiguration: vscode.DebugConfiguration = {

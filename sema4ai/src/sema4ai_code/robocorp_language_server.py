@@ -11,11 +11,11 @@ from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.command_dispatcher import _CommandDispatcher
+from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.endpoint import require_monitor
 from sema4ai_ls_core.lsp import HoverTypedDict
 from sema4ai_ls_core.protocols import IConfig, IMonitor, LibraryVersionInfoDict
 from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
-from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
@@ -27,12 +27,25 @@ from sema4ai_code.protocols import (
     ActionResultDictLocatorsJsonInfo,
     ActionResultDictRobotLaunch,
     ActionResultDictWorkItems,
+    ActionServerAccessCredentialsDict,
+    ActionServerListOrgsResultDict,
+    ActionServerLoginDict,
+    ActionServerPackageBuildDict,
+    ActionServerPackageBuildResultDict,
+    ActionServerPackageMetadataDict,
+    ActionServerPackageSetChangelogDict,
+    ActionServerPackageStatusDict,
+    ActionServerPackageUploadDict,
+    ActionServerPackageUploadStatusDict,
+    ActionServerVerifyLoginResultDict,
     CloudListWorkspaceDict,
     ConfigurationDiagnosticsDict,
+    CreateActionPackageParamsDict,
     CreateRobotParamsDict,
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
+    ListActionTemplatesParamsDict,
     ListWorkItemsParams,
     ListWorkspacesActionResultDict,
     LocalRobotMetadataInfoDict,
@@ -45,19 +58,6 @@ from sema4ai_code.protocols import (
     UploadRobotParamsDict,
     WorkItem,
     WorkspaceInfoDict,
-    ListActionTemplatesParamsDict,
-    CreateActionPackageParamsDict,
-    ActionServerLoginDict,
-    ActionServerVerifyLoginResultDict,
-    ActionServerAccessCredentialsDict,
-    ActionServerListOrgsResultDict,
-    ActionServerPackageUploadDict,
-    ActionServerPackageBuildDict,
-    ActionServerPackageBuildResultDict,
-    ActionServerPackageUploadStatusDict,
-    ActionServerPackageStatusDict,
-    ActionServerPackageSetChangelogDict,
-    ActionServerPackageMetadataDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -679,7 +679,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _local_list_actions_internal_impl(
         self, params: Optional[ListActionsParams]
     ) -> ActionResultDict:
-        from sema4ai_code.robo.collect_actions import iter_actions
+        from sema4ai_code.robo.collect_actions_ast import iter_actions
 
         # TODO: We should move this code somewhere else and have a cache of
         # things so that when the user changes anything the client is notified
