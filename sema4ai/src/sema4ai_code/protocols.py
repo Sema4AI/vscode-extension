@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Optional, Tuple, TypeVar, Literal
+from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -319,6 +319,12 @@ class ActionServerPackageMetadataDict(TypedDict):
     action_server_location: str
     action_package_path: str
     output_file_path: str
+
+
+class ActionServerOauth2LoginParams(TypedDict):
+    action_server_location: str
+    provider: str
+    scopes: list[str]
 
 
 class IRccWorkspace(Protocol):

@@ -874,6 +874,22 @@ COMMANDS = [
         server_handled=True,
         hide_from_command_palette=True,
     ),
+    # Login receives as an argument:
+    # interface IRequiredLogins {
+    #     provider: string;
+    #     scopes: string[];
+    # }
+    Command(
+        "sema4ai.oauth2.login.internal",
+        "Makes an OAuth2 login",
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.oauth2.logout",
+        "OAuth2 logout",
+        server_handled=False,
+    ),
 ]
 
 

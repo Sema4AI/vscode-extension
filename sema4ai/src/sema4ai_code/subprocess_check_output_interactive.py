@@ -1,8 +1,8 @@
 import threading
 from typing import List, Optional
 
-from sema4ai_ls_core.protocols import IProgressReporter
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IProgressReporter
 
 log = get_logger(__name__)
 
@@ -59,7 +59,7 @@ def check_output_interactive(
             while process.poll() is None:
                 try:
                     process.wait(1)
-                except:
+                except Exception:
                     if progress_reporter.cancelled:
                         retcode = process.poll()
                         if retcode is None:
@@ -70,7 +70,7 @@ def check_output_interactive(
                             stderr_contents.append(msg)
                             on_stderr(msg)
                             kill_process_and_subprocesses(process.pid)
-        except:
+        except Exception:
             log.exception("Error checking that progress was cancelled.")
 
     with subprocess.Popen(*popenargs, **kwargs) as process:
@@ -109,7 +109,7 @@ def check_output_interactive(
                     # It still hasn't completed: kill it.
                     try:
                         kill_process_and_subprocesses(process.pid)
-                    except:
+                    except Exception:
                         log.exception("Error killing pid: %s" % (process.pid,))
 
                     retcode = process.wait()

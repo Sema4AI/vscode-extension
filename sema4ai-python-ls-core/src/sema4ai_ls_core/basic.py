@@ -26,6 +26,7 @@ from typing import TypeVar, Any, Callable, Tuple
 from sema4ai_ls_core.jsonrpc.exceptions import JsonRpcRequestCancelled
 from functools import lru_cache
 from dataclasses import dataclass
+from concurrent.futures import Future
 
 
 PARENT_PROCESS_WATCH_INTERVAL = 3  # 3 s
@@ -129,7 +130,7 @@ else:
                     process = subprocess.Popen(
                         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                     )
-                except:
+                except Exception:
                     log.exception("Error calling: %s.", " ".join(cmd))
                 else:
                     stdout, _ = process.communicate()
@@ -138,7 +139,7 @@ else:
                     if len(lines) > 1:
                         if lines[1].startswith("Z"):
                             return False  # It's a zombie
-            except:
+            except Exception:
                 log.exception("Error checking if process is alive.")
 
             return True
@@ -150,7 +151,7 @@ def _popen(cmdline, **kwargs):
 
     try:
         return subprocess.Popen(cmdline, **kwargs)
-    except:
+    except Exception:
         log.exception("Error running: %s", (" ".join(cmdline)))
         return None
 
@@ -160,7 +161,7 @@ def _call(cmdline, **kwargs):
 
     try:
         subprocess.check_call(cmdline, **kwargs)
-    except:
+    except Exception:
         log.exception("Error running: %s", (" ".join(cmdline)))
         return None
 
@@ -311,7 +312,7 @@ def log_and_silence_errors(logger, return_on_error=None):
             except JsonRpcRequestCancelled:
                 logger.info("Cancelled handling: %s", func)
                 raise  # Don't silence cancelled exceptions
-            except:
+            except Exception:
                 logger.exception("Error calling: %s", func)
                 return return_on_error
 
@@ -385,7 +386,7 @@ def check_min_version(version: str, min_version: Tuple[int, int]) -> bool:
     """
     try:
         v = tuple(int(x) for x in version.split("."))
-    except:
+    except Exception:
         return False
 
     return v >= min_version
@@ -560,9 +561,6 @@ class ProcessRunResult:
     stdout: str
     stderr: str
     returncode: int
-
-
-from concurrent.futures import Future
 
 
 def launch_and_return_future(

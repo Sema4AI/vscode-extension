@@ -1,29 +1,68 @@
-import sys
-import os
-from typing import Optional
 import json
+import os
+import sys
+import typing
+from concurrent.futures import Future
 from pathlib import Path
+from typing import Optional
+
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.options import DEFAULT_TIMEOUT
+
 from sema4ai_code.protocols import (
     ActionResult,
-    ActionServerResult,
-    ActionTemplate,
-    ActionServerVerifyLoginResultDict,
     ActionServerListOrgsResultDict,
     ActionServerPackageBuildResultDict,
     ActionServerPackageUploadStatusDict,
+    ActionServerResult,
+    ActionServerVerifyLoginResultDict,
+    ActionTemplate,
 )
 
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
 
+if typing.TYPE_CHECKING:
+    from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
+
+
+def is_debugger_active() -> bool:
+    try:
+        import pydevd  # type:ignore
+    except ImportError:
+        return False
+
+    return bool(pydevd.get_global_debugger())
+
+
+def is_port_free(port: int) -> bool:
+    """
+    Checks if a port is free (in localhost)
+
+    Args:
+        port: The port number to check.
+
+    Returns:
+        True if the port is free, False otherwise.
+    """
+    import socket
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.bind(("localhost", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
+
 
 def download_action_server(
     location: str,
     force: bool = False,
     sys_platform: Optional[str] = None,
-    action_server_version="0.14.0",
+    action_server_version="0.16.1",
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -46,6 +85,7 @@ def download_action_server(
             # as to not overwrite it when force was equal to False.
             if not os.path.exists(location) or force:
                 import urllib.request
+
                 from sema4ai_code import get_release_artifact_relative_path
 
                 relative_path = get_release_artifact_relative_path(
@@ -96,6 +136,221 @@ def get_default_action_server_location(version: str = "") -> str:
         return get_extension_relative_path("bin", f"action-server{version_suffix}")
 
 
+if typing.TYPE_CHECKING:
+    from sema4ai_ls_core.process import Process
+
+
+def get_default_sema4ai_home() -> Path:
+    if sys.platform == "win32":
+        path = r"$LOCALAPPDATA\sema4ai"
+    else:
+        path = r"$HOME/.sema4ai"
+    robocorp_home_str = os.path.expandvars(path)
+    return Path(robocorp_home_str)
+
+
+def get_default_action_server_settings_dir() -> Path:
+    return get_default_sema4ai_home() / "action-server"
+
+
+def get_default_oauth2_settings_file() -> Path:
+    return get_default_action_server_settings_dir() / "oauth2-settings.yaml"
+
+
+class ActionServerAsService:
+    _process: Optional["Process"] = None
+
+    def __init__(
+        self,
+        action_server_location: str,
+        port: int,
+        *,
+        cwd: str,
+        datadir: str = "",
+        use_https: bool = False,
+        ssl_self_signed: bool = False,
+        ssl_keyfile: str = "",
+        ssl_certfile: str = "",
+    ):
+        self.action_server_location = action_server_location
+        self.port = port
+
+        self._action_server_location = action_server_location
+        self._port = port
+        self._datadir = datadir
+        self._cwd = cwd
+        assert os.path.exists(cwd)
+
+        self._use_https = use_https
+        self._ssl_self_signed = ssl_self_signed
+        self._ssl_keyfile = ssl_keyfile
+        self._ssl_certfile = ssl_certfile
+
+        protocol = "https" if use_https else "http"
+        self._base_url = f"{protocol}://localhost:{port}"
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    def start_for_oauth2(self) -> None:
+        if self._port != 0:
+            if not is_port_free(self._port):
+                raise RuntimeError(f"Port: {self._port} is already taken.")
+
+        assert self._process is None, "A process is already started"
+
+        from sema4ai_ls_core.process import Process
+
+        args: list[str] = [
+            self._action_server_location,
+            "start",
+            "--port",
+            str(self._port),
+        ]
+        args.append(f"--parent-pid={os.getpid()}")
+
+        args.append("--actions-sync=false")
+        args.append(f"--datadir={self._datadir}")
+
+        if self._use_https:
+            args.append("--https")
+
+        if self._ssl_self_signed:
+            args.append("--ssl-self-signed")
+
+        if self._ssl_keyfile:
+            args.append(f"--ssl-keyfile={self._ssl_keyfile}")
+
+        if self._ssl_certfile:
+            args.append(f"--ssl-cerfile={self._ssl_certfile}")
+
+        self._process = Process(args, cwd=self._cwd)
+        self._process.on_stderr.register(self._on_stderr)
+        self._process.on_stdout.register(self._on_stdout)
+        self._process.start()
+
+    def requests_kwargs(self, **kwargs) -> dict:
+        """
+        Provides the default kwargs that should be used for a requests call.
+        """
+        if is_debugger_active():
+            kwargs["timeout"] = None
+
+        elif "timeout" not in kwargs:
+            kwargs["timeout"] = DEFAULT_TIMEOUT
+
+        if self._use_https:
+            if self._ssl_certfile:
+                kwargs["verify"] = str(self._ssl_certfile)
+            else:
+                kwargs["verify"] = str(
+                    get_default_action_server_settings_dir()
+                    / "action-server-public-certfile.pem"
+                )
+
+        return kwargs
+
+    def build_full_url(self, url: str) -> str:
+        if url.startswith("/"):
+            url = url[1:]
+        return f"{self.base_url}/{url}"
+
+    def get_str(
+        self,
+        url,
+        params: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        cookies: Optional[dict] = None,
+        timeout: Optional[int] = DEFAULT_TIMEOUT,
+    ) -> str:
+        import requests
+
+        result = requests.get(
+            self.build_full_url(url),
+            params=(params or {}),
+            headers=headers,
+            cookies=cookies,
+            **self.requests_kwargs(timeout=timeout),
+        )
+        result.raise_for_status()
+        return result.text
+
+    def get_json(self, *args, **kwargs):
+        contents = self.get_str(*args, **kwargs)
+        try:
+            return json.loads(contents)
+        except Exception:
+            raise AssertionError(f"Unable to load: {contents!r}")
+
+    def get_config(self, timeout: Optional[int] = DEFAULT_TIMEOUT) -> dict:
+        return self.get_json("config", timeout=timeout)
+
+    def _on_stderr(self, line):
+        sys.stderr.write(f"{line.rstrip()}\n")
+
+    def _on_stdout(self, line):
+        sys.stderr.write(f"{line.rstrip()}\n")
+
+    def oauth2_login(
+        self, provider: str, scopes: list[str]
+    ) -> Future["LastRequestInfoTypedDict"]:
+        """
+        Args:
+            provider: The provider for the oauth2 login.
+            scopes: The scopes requested.
+
+        Returns:
+            A future where resulting dict has a `body` which is a json string with:
+                'provider'
+                'reference_id'
+                'access_token'
+                'expires_at'
+                'token_type'
+                'scopes'
+        """
+        import webbrowser
+
+        from sema4ai_code.vendored_deps.url_callback_server import (
+            start_server_in_thread,
+        )
+
+        fut_uri, fut_address = start_server_in_thread(port=0)
+        scopes_str = " ".join(scopes)
+        reference_id = self.create_reference_id()
+
+        callback_url = fut_address.result(DEFAULT_TIMEOUT)
+        assert callback_url
+
+        # Needs to open the /oauth2/login in the browser as the cookie
+        # related to the session id will be set at this point.
+        webbrowser.open(
+            self.build_full_url(
+                "/oauth2/login?"
+                f"provider={provider}&"
+                f"scopes={scopes_str}&"
+                f"reference_id={reference_id}"
+                f"&callback_url={callback_url}"
+            ),
+            new=1,
+        )
+
+        # The fut_uri will resolve when the user does the login.
+        # request_info = fut_uri.result(60 * 5)
+        # loaded = json.loads(request_info["body"])
+        return fut_uri
+
+    def stop(self) -> None:
+        if self._process is not None:
+            self._process.stop()
+            self._process = None
+
+    def create_reference_id(self) -> str:
+        result = self.get_json("/oauth2/create-reference-id")
+
+        return result["reference_id"]
+
+
 class ActionServer:
     def __init__(self, action_server_location: str):
         self._action_server_location = action_server_location
@@ -116,7 +371,8 @@ class ActionServer:
             args: The list of arguments to be passed to the command.
             timeout: The timeout for running the command (in seconds).
         """
-        from subprocess import list2cmdline, run, CalledProcessError, TimeoutExpired
+        from subprocess import CalledProcessError, TimeoutExpired, list2cmdline, run
+
         from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
 
         kwargs = build_subprocess_kwargs(None, env=os.environ.copy())

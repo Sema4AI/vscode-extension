@@ -935,6 +935,14 @@ class ActionResult(Generic[T]):
 
     __repr__ = __str__
 
+    @classmethod
+    def make_failure(cls, message: str):
+        return ActionResult(success=False, message=message, result=None)
+
+    @classmethod
+    def make_success(cls, result: T):
+        return ActionResult(success=True, message=None, result=result)
+
 
 class RCCActionResult(ActionResult[str]):
     # A string-representation of the command line.
