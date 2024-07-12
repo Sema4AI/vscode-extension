@@ -3,7 +3,7 @@ Helper main which starts a server which listens in a socket.
 
 This makes it easier to start it under a debugger.
 
-The extension must have the "robocorp.language-server.tcp-port" setting set to 1456.
+The extension must have the "sema4ai.language-server.tcp-port" setting set to 1456.
 """
 import sys
 

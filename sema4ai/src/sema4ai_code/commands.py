@@ -124,7 +124,9 @@ SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH = "sema4ai.actionServerPackagePublish"  # 
 SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata"  # Open the Action Package OpenAPI Spec (metadata.json)
 SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal"  # Open the Action Package OpenAPI Spec (metadata.json) (internal)
 SEMA4AI_OAUTH2_LOGIN_INTERNAL = "sema4ai.oauth2.login.internal"  # Makes an OAuth2 login
+SEMA4AI_OAUTH2_STATUS_INTERNAL = "sema4ai.oauth2.status.internal"  # Provides the status on the currently loaded data
 SEMA4AI_OAUTH2_LOGOUT = "sema4ai.oauth2.logout"  # OAuth2 logout
+SEMA4AI_OAUTH2_OPEN_SETTINGS = "sema4ai.oauth2.open_settings"  # Open Oauth2 Settings
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -172,6 +174,8 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
     SEMA4AI_OAUTH2_LOGIN_INTERNAL,
+    SEMA4AI_OAUTH2_STATUS_INTERNAL,
+    SEMA4AI_OAUTH2_OPEN_SETTINGS,
 ]
 
 # fmt: on

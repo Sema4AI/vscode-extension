@@ -123,4 +123,6 @@ export const SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH = "sema4ai.actionServerPackag
 export const SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata";  // Open the Action Package OpenAPI Spec (metadata.json)
 export const SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal";  // Open the Action Package OpenAPI Spec (metadata.json) (internal)
 export const SEMA4AI_OAUTH2_LOGIN_INTERNAL = "sema4ai.oauth2.login.internal";  // Makes an OAuth2 login
+export const SEMA4AI_OAUTH2_STATUS_INTERNAL = "sema4ai.oauth2.status.internal";  // Provides the status on the currently loaded data
 export const SEMA4AI_OAUTH2_LOGOUT = "sema4ai.oauth2.logout";  // OAuth2 logout
+export const SEMA4AI_OAUTH2_OPEN_SETTINGS = "sema4ai.oauth2.open_settings";  // Open Oauth2 Settings

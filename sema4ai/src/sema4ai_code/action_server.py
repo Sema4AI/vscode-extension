@@ -4,7 +4,7 @@ import sys
 import typing
 from concurrent.futures import Future
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional, TypedDict
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
@@ -25,6 +25,13 @@ ONE_MINUTE_S = 60
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
+
+
+class StatusTypedDict(TypedDict):
+    scopes: Optional[list[str]]
+    expires_at: str  # iso-formatted datetime or empty string
+    access_token: Optional[str]  # Only available if not an automatic id
+    metadata: Optional[dict]  # Metadata which may be available
 
 
 def is_debugger_active() -> bool:
@@ -230,9 +237,9 @@ class ActionServerAsService:
         self._process.on_stdout.register(self._on_stdout)
         self._process.start()
 
-    def requests_kwargs(self, **kwargs) -> dict:
+    def _urlopen_kwargs(self, **kwargs) -> dict:
         """
-        Provides the default kwargs that should be used for a requests call.
+        Provides the default kwargs that should be used for a urlopen call.
         """
         if is_debugger_active():
             kwargs["timeout"] = None
@@ -241,14 +248,41 @@ class ActionServerAsService:
             kwargs["timeout"] = DEFAULT_TIMEOUT
 
         if self._use_https:
+            import ssl
+
             if self._ssl_certfile:
-                kwargs["verify"] = str(self._ssl_certfile)
+                cert_file_path = str(self._ssl_certfile)
             else:
-                kwargs["verify"] = str(
+                cert_file_path = str(
                     get_default_action_server_settings_dir()
                     / "action-server-public-certfile.pem"
                 )
 
+            if not os.path.exists(cert_file_path):
+                raise RuntimeError(
+                    f"Expected: {cert_file_path} to exist (it should've been created "
+                    "when the action server is started with the option to use a self-signed certificate)."
+                )
+            # Create a context with certificate verification
+            try:
+                import truststore
+
+                truststore.extract_from_ssl()
+            except Exception:
+                pass
+
+            from ssl import Purpose
+
+            ctx = ssl.create_default_context(Purpose.SERVER_AUTH)
+            ctx.load_verify_locations(cert_file_path)
+            kwargs["context"] = ctx
+
+            try:
+                import truststore
+
+                truststore.inject_into_ssl()
+            except Exception:
+                pass
         return kwargs
 
     def build_full_url(self, url: str) -> str:
@@ -261,20 +295,42 @@ class ActionServerAsService:
         url,
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
-        cookies: Optional[dict] = None,
         timeout: Optional[int] = DEFAULT_TIMEOUT,
-    ) -> str:
-        import requests
+    ):
+        """Fetches the URL using urllib and handles basic request parameters.
+        Note: requests is not a dependency so it cannot be used.
 
-        result = requests.get(
-            self.build_full_url(url),
-            params=(params or {}),
-            headers=headers,
-            cookies=cookies,
-            **self.requests_kwargs(timeout=timeout),
+        Args:
+          url: The URL to fetch.
+          params: A dictionary of query parameters. (Optional)
+          headers: A dictionary of headers to send with the request. (Optional)
+          timeout: The timeout in seconds for the request. (Optional)
+        """
+        import urllib.parse
+        import urllib.request
+
+        url = self.build_full_url(url)
+        # Build the full URL with query parameters
+        if params:
+            encoded_params = urllib.parse.urlencode(params)
+            url = f"{url}?{encoded_params}"
+
+        use_headers = {"User-Agent": "Mozilla"}
+        if headers:
+            use_headers.update(headers)
+        kwargs = self._urlopen_kwargs(timeout=timeout)
+
+        response = urllib.request.urlopen(
+            urllib.request.Request(url, headers=use_headers),
+            **kwargs,
         )
-        result.raise_for_status()
-        return result.text
+        if response.status != 200:
+            raise RuntimeError(
+                f"Error. Found status: {response.status} ({response.msg}) when accessing: {url}."
+            )
+
+        data = response.read()
+        return data.decode("utf-8")
 
     def get_json(self, *args, **kwargs):
         contents = self.get_str(*args, **kwargs)
@@ -293,7 +349,7 @@ class ActionServerAsService:
         sys.stderr.write(f"{line.rstrip()}\n")
 
     def oauth2_login(
-        self, provider: str, scopes: list[str]
+        self, provider: str, scopes: list[str], reference_id: str
     ) -> Future["LastRequestInfoTypedDict"]:
         """
         Args:
@@ -317,7 +373,6 @@ class ActionServerAsService:
 
         fut_uri, fut_address = start_server_in_thread(port=0)
         scopes_str = " ".join(scopes)
-        reference_id = self.create_reference_id()
 
         callback_url = fut_address.result(DEFAULT_TIMEOUT)
         assert callback_url
@@ -340,6 +395,18 @@ class ActionServerAsService:
         # loaded = json.loads(request_info["body"])
         return fut_uri
 
+    def oauth2_status(self, reference_id: str) -> dict[str, StatusTypedDict]:
+        provider_to_status = self.get_json(
+            "/oauth2/status",
+            params={
+                "reference_id": reference_id,
+                "provide_access_token": True,
+                "refresh_tokens": True,
+                "force_refresh": True,
+            },
+        )
+        return provider_to_status
+
     def stop(self) -> None:
         if self._process is not None:
             self._process.stop()
@@ -349,6 +416,40 @@ class ActionServerAsService:
         result = self.get_json("/oauth2/create-reference-id")
 
         return result["reference_id"]
+
+    def is_alive(self) -> bool:
+        process = self._process
+        if process is None:
+            return False
+
+        return process.is_alive()
+
+    def process_finished_future(self) -> Future[Literal[True]]:
+        from sema4ai_ls_core.python_ls import run_in_new_thread
+
+        fut: Future[Literal[True]] = Future()
+        if self._process is None:
+            fut.set_result(True)
+
+        else:
+
+            def wait_for_not_alive():
+                try:
+                    while not fut.cancelled() and self.is_alive():
+                        try:
+                            process = self._process
+                            if process is not None:
+                                process.join(2)
+                            else:
+                                break
+                        except Exception:
+                            pass
+                finally:
+                    fut.set_result(True)
+
+            run_in_new_thread(wait_for_not_alive, "Wait for process")
+
+        return fut
 
 
 class ActionServer:
@@ -822,3 +923,20 @@ class ActionServer:
             success=False,
             message=f"Error creating the metadata file.\n{command_result.message or ''}",
         )
+
+
+if __name__ == "__main__":
+    import truststore
+
+    truststore.extract_from_ssl()
+
+    s = ActionServerAsService(
+        "", cwd=".", port=4567, use_https=True, ssl_self_signed=True
+    )
+    print(s.get_config(timeout=10))
+
+    truststore.inject_into_ssl()
+    s = ActionServerAsService(
+        "", cwd=".", port=4567, use_https=True, ssl_self_signed=True
+    )
+    print(s.get_config(timeout=10))

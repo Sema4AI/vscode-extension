@@ -1,7 +1,8 @@
 import { CancellationToken, Progress, ProgressLocation, commands, window } from "vscode";
 import { readFromFile } from "../files";
-import { SEMA4AI_OAUTH2_LOGIN_INTERNAL } from "../robocorpCommands";
+import { SEMA4AI_OAUTH2_LOGIN_INTERNAL, SEMA4AI_OAUTH2_STATUS_INTERNAL } from "../robocorpCommands";
 import { OUTPUT_CHANNEL } from "../channel";
+import { downloadOrGetActionServerLocation } from "../actionServer";
 
 export interface ITokenInfo {
     provider?: string;
@@ -64,6 +65,17 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
                     token: CancellationToken
                 ): Promise<void> => {
                     const steps = requiredLogins.length + 1;
+                    const actionServerLocation = await downloadOrGetActionServerLocation();
+                    if (!actionServerLocation) {
+                        return;
+                    }
+                
+                    const providerToStatus: IProviderToTokenInfo = await commands.executeCommand(
+                        SEMA4AI_OAUTH2_STATUS_INTERNAL, {action_server_location: actionServerLocation}
+                    );
+
+                    console.log(providerToStatus);
+
 
                     for (const requiredLogin of requiredLogins) {
                         const msg = `Waiting for login to: ${requiredLogin.provider}`;

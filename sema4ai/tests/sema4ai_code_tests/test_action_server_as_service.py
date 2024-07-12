@@ -20,7 +20,7 @@ def manual_test_action_server_as_service(action_server_location: str, tmpdir) ->
 
     try:
         action_server.start_for_oauth2()
-        # A bit higher timeout on 1st request
+        # Higher timeout on 1st request
         assert action_server.get_config(timeout=30) == {
             "expose_url": False,
             "auth_enabled": False,

@@ -30,7 +30,6 @@ from sema4ai_code.protocols import (
     ActionServerAccessCredentialsDict,
     ActionServerListOrgsResultDict,
     ActionServerLoginDict,
-    ActionServerOauth2LoginParams,
     ActionServerPackageBuildDict,
     ActionServerPackageBuildResultDict,
     ActionServerPackageMetadataDict,
@@ -121,6 +120,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         from sema4ai_code._language_server_feedback import _Feedback
         from sema4ai_code._language_server_login import _Login
+        from sema4ai_code._language_server_oauth2 import _OAuth2
         from sema4ai_code._language_server_playwright import _Playwright
         from sema4ai_code._language_server_pre_run_scripts import _PreRunScripts
         from sema4ai_code._language_server_profile import _Profile
@@ -210,6 +210,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             command_dispatcher,
             self._rcc,
             self._feedback,
+        )
+
+        self._oauth2 = _OAuth2(
+            self._endpoint,
+            command_dispatcher,
+            self._rcc,
+            self._feedback,
+            lsp_messages=self._lsp_messages,
         )
 
         self._pm = PluginManager()
@@ -1631,89 +1639,3 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]
         self._endpoint.notify(method, msg["params"])
-
-    @command_dispatcher(commands.SEMA4AI_OAUTH2_LOGIN_INTERNAL)
-    def _oauth2_login(self, params: ActionServerOauth2LoginParams):
-        return partial(self._oauth2_login_in_thread, params=params)
-
-    def _oauth2_login_in_thread(
-        self, params: ActionServerOauth2LoginParams
-    ) -> ActionResultDict:
-        from urllib.parse import urlparse
-
-        from sema4ai_ls_core.protocols import ActionResult
-
-        from sema4ai_code.action_server import (
-            ActionServerAsService,
-            get_default_oauth2_settings_file,
-        )
-        from sema4ai_code.vendored_deps.oauth2_settings import (
-            get_oauthlib2_global_settings,
-            get_oauthlib2_provider_settings,
-        )
-
-        action_server_location = params["action_server_location"]
-        provider = params["provider"]
-        scopes = params["scopes"]
-
-        oauth2_settings_file = get_default_oauth2_settings_file()
-        try:
-            # Raises an error if it worked
-            oauth2_global_contents = get_oauthlib2_global_settings(
-                str(oauth2_settings_file)
-            )
-            get_oauthlib2_provider_settings(provider, str(oauth2_settings_file))
-        except Exception as e:
-            msg = f"Bad configuration in {oauth2_settings_file} for provider: {provider}.\nDetails: {e}"
-            log.exception(msg)
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        # If we got here the settings seem ok, so, proceed to call the action server
-        dev_server_info = oauth2_global_contents.get("devServerInfo")
-        if not dev_server_info:
-            msg = (
-                f"'devServerInfo' is not properly configured in {oauth2_settings_file}."
-            )
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        if not isinstance(dev_server_info, dict):
-            msg = f"'devServerInfo' is expected to be a dict in {oauth2_settings_file}."
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        redirect_uri = dev_server_info.get("redirectUri")
-        if not isinstance(redirect_uri, str):
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) is not properly configured in {oauth2_settings_file}."
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        parsed_url = urlparse(redirect_uri)
-        protocol = parsed_url.scheme
-        port = parsed_url.port
-
-        if protocol not in ("http", "https"):
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must start with 'http' or 'https' {oauth2_settings_file}."
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        if not port:
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must specify the port (something as http://localhost:port) {oauth2_settings_file}."
-            return ActionResult.make_failure(message=msg).as_dict()
-
-        ssl_self_signed = dev_server_info.get("sslSelfSigned", False)
-        ssl_keyfile = dev_server_info.get("sslKeyfile", "")
-        ssl_certfile = dev_server_info.get("sslCertfile", "")
-
-        extension_datadir = self._rcc.get_robocorp_code_datadir()
-        cwd = extension_datadir / "oauth2" / "cwd"
-        datadir = extension_datadir / "oauth2" / "datadir"
-        cwd.mkdir(parents=True, exist_ok=True)
-        datadir.mkdir(parents=True, exist_ok=True)
-
-        action_server = ActionServerAsService(
-            action_server_location,
-            port=port,
-            cwd=str(cwd),
-            use_https=protocol == "https",
-            datadir=str(datadir),
-            ssl_self_signed=ssl_self_signed,
-            ssl_keyfile=ssl_keyfile,
-            ssl_certfile=ssl_certfile,
-        )

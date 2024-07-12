@@ -106,12 +106,12 @@ class Process:
             )
         return self._proc.poll()
 
-    def join(self):
+    def join(self, timeout: Optional[int] = None):
         if self._proc is None:
             raise RuntimeError(
                 "Process is still None (start() not called before join)."
             )
-        self._proc.wait()
+        self._proc.wait(timeout=timeout)
 
     def start(
         self, read_stderr: bool = True, read_stdout: bool = True, **kwargs
@@ -120,13 +120,13 @@ class Process:
             self._cwd, self._env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         new_kwargs.update(kwargs)
-        log.debug(
+        log.info(
             "Subprocess start [args=%s,cwd=%s,uid=%d]", self._args, self._cwd, self._uid
         )
         proc = self._proc = _run_in_thread_and_get_result(
             partial(_popen_raise, self._args, **new_kwargs)
         )
-        log.debug("Subprocess started [pid=%s,uid=%d]", proc.pid, self._uid)
+        log.info("Subprocess started [pid=%s,uid=%d]", proc.pid, self._uid)
         on_stdout = None
         if read_stdout:
             on_stdout = self._on_stdout
