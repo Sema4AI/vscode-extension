@@ -944,11 +944,11 @@ class ActionResult(Generic[T]):
     __repr__ = __str__
 
     @classmethod
-    def make_failure(cls, message: str):
+    def make_failure(cls, message: str) -> "ActionResult[T]":
         return ActionResult(success=False, message=message, result=None)
 
     @classmethod
-    def make_success(cls, result: T):
+    def make_success(cls, result: T) -> "ActionResult[T]":
         return ActionResult(success=True, message=None, result=result)
 
 

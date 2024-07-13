@@ -165,6 +165,12 @@ def get_default_oauth2_settings_file() -> Path:
 
 
 class ActionServerAsService:
+    """
+    This class is meant to be used in the use-case where the action server
+    is started as a service and then there's communication with it through
+    http requests.
+    """
+
     _process: Optional["Process"] = None
 
     def __init__(
@@ -440,6 +446,11 @@ class ActionServerAsService:
         return process.is_alive()
 
     def process_finished_future(self) -> Future[Literal[True]]:
+        """
+        Returns:
+            A Future which will have its result set to `True` when
+            the process is finished.
+        """
         from sema4ai_ls_core.python_ls import run_in_new_thread
 
         fut: Future[Literal[True]] = Future()
@@ -949,6 +960,9 @@ class ActionServer:
 if __name__ == "__main__":
     import truststore
 
+    # It seems that if trustore is installed we can't use a self-signed
+    # certificate to access the action server unless it's actually installed
+    # in the computer.
     truststore.extract_from_ssl()
 
     s = ActionServerAsService(

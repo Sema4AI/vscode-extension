@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 
 def create_and_rotate_directories(
@@ -143,6 +142,9 @@ def _delete_old(dir_path: str, existing_dirs: list[str], max_count: int):
 
 
 def create_pm():
+    # The X-Action-Context header may be provided through an environment
+    # variable when launching in VSCode (and it needs to be passed on
+    # to sema4ai-actions).
     x_action_context = os.environ.get("SEMA4AI-VSCODE-X-ACTION-CONTEXT")
     if not x_action_context:
         return None
