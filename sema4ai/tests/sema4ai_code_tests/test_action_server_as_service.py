@@ -1,7 +1,7 @@
 import json
 
 
-def manual_test_action_server_as_service(action_server_location: str, tmpdir) -> None:
+def test_action_server_as_service(action_server_location: str, tmpdir) -> None:
     from sema4ai_code.action_server import ActionServerAsService
 
     port = 8080  # Needs to match the port in the redirectUri.
@@ -26,7 +26,7 @@ def manual_test_action_server_as_service(action_server_location: str, tmpdir) ->
             "auth_enabled": False,
         }
 
-        action_server.create_reference_id()
+        reference_id = action_server.create_reference_id()
         future = action_server.oauth2_login(
             provider="google",
             scopes=[
@@ -34,14 +34,16 @@ def manual_test_action_server_as_service(action_server_location: str, tmpdir) ->
                 "https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile",
             ],
+            reference_id=reference_id,
         )
 
         result = future.result(60 * 5)
         body = result["body"]
         assert body
         loaded = json.loads(body)
-        print(loaded)
-        print(json.loads(loaded["scopes"]))
+        assert loaded["provider"]
+        assert loaded["access_token"]
+        assert isinstance(json.loads(loaded["scopes"]), list)
 
     finally:
         action_server.stop()
