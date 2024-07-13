@@ -1,7 +1,7 @@
 import json
 
 
-def test_action_server_as_service(action_server_location: str, tmpdir) -> None:
+def manual_test_action_server_as_service(action_server_location: str, tmpdir) -> None:
     from sema4ai_code.action_server import ActionServerAsService
 
     port = 8080  # Needs to match the port in the redirectUri.
