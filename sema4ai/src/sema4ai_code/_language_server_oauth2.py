@@ -1,7 +1,6 @@
 import threading
 import typing
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 from typing import Any, Optional
 
@@ -9,19 +8,17 @@ from sema4ai_ls_core import uris
 from sema4ai_ls_core.command_dispatcher import _SubCommandDispatcher
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.lsp import LSPMessages
-from sema4ai_ls_core.protocols import ActionResultDict, IEndPoint
+from sema4ai_ls_core.protocols import ActionResultDict, IEndPoint, IMonitor
 
 from sema4ai_code import commands
-from sema4ai_code.protocols import (
-    ActionServerOauth2LoginParams,
-    ActionServerOauth2StatusParams,
-    IRcc,
-)
+from sema4ai_code.protocols import IRcc
 
 log = get_logger(__name__)
 oauth2_command_dispatcher = _SubCommandDispatcher("_oauth2")
 
 if typing.TYPE_CHECKING:
+    from concurrent.futures import Future
+
     from sema4ai_code.action_server import ActionServerAsService
 
 _DEFAULT_OAUTH2_YAML_SETTINGS_FILE_CONTENTS = """
@@ -34,7 +31,7 @@ _DEFAULT_OAUTH2_YAML_SETTINGS_FILE_CONTENTS = """
 # server is manually started it'll use host/port provided when
 # it was initialized.
 devServerInfo:
-  redirectUri: "http://localhost:4567"
+  redirectUri: "http://localhost:4567/oauth2/redirect/"
   # If the redirectUri starts with `https`, ssl information is
   # needed. In this case it's possible to either set `sslSelfSigned`
   # to true to automatically create a self-signed certificate or
@@ -43,7 +40,10 @@ devServerInfo:
   #
   # Note: the redirectUri needs to be specified here and in the service.
   # Keep in mind that the port must not be used by any other service
-  # in the machine.
+  # in the machine and it must match the format below (where only
+  # <protocol> and <port> can be configured, the remainder must be kept as is):
+  #
+  # <protocol>://localhost:<port>/oauth2/redirect/
   #
   # Disclaimer: if using a self-signed certificate, the browser may complain
   # and an exception needs to be accepted to proceed to the site unless
@@ -102,6 +102,42 @@ class _Data:
     ssl_certfile: str
 
 
+def create_monitor_cancelled_future(monitor: IMonitor) -> "Future[Any]":
+    from concurrent.futures import Future
+
+    f: Future[Any] = Future()
+
+    monitor.add_listener(f.cancel)
+
+    return f
+
+
+def wait_first_future_completed(
+    futures: list["Future[Any]"], timeout: Optional[int] = None
+) -> set["Future[Any]"]:
+    """
+    Args:
+        futures: the futures to wait for
+        timeout: the time to wait for
+
+    Returns:
+        A set with the futures done (may be empty if it times out
+        and no features are completed).
+    """
+    done = set()
+    ev = threading.Event()
+
+    def on_done(f):
+        done.add(f)
+        ev.set()
+
+    for f in futures:
+        f.add_done_callback(on_done)
+
+    ev.wait(timeout)
+    return done
+
+
 class _OAuth2(object):
     def __init__(
         self,
@@ -126,12 +162,8 @@ class _OAuth2(object):
             oauth2_command_dispatcher
         )
 
-    @oauth2_command_dispatcher(commands.SEMA4AI_OAUTH2_STATUS_INTERNAL)
-    def _oauth2_status(self, params: ActionServerOauth2StatusParams):
-        return partial(self._oauth2_status_in_thread, params=params)
-
-    def _oauth2_status_in_thread(
-        self, params: ActionServerOauth2StatusParams
+    def oauth2_status(
+        self, action_server_location: str, monitor: IMonitor
     ) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
@@ -139,8 +171,6 @@ class _OAuth2(object):
         from sema4ai_code.vendored_deps.oauth2_settings import (
             get_oauthlib2_global_settings,
         )
-
-        action_server_location = params["action_server_location"]
 
         oauth2_settings_file = get_default_oauth2_settings_file()
         try:
@@ -185,27 +215,38 @@ class _OAuth2(object):
             msg = (
                 f"'devServerInfo' is not properly configured in {oauth2_settings_file}."
             )
+            self.open_oauth2_settings()
             raise RuntimeError(msg)
 
         if not isinstance(dev_server_info, dict):
             msg = f"'devServerInfo' is expected to be a dict in {oauth2_settings_file}."
+            self.open_oauth2_settings()
             raise RuntimeError(msg)
 
         redirect_uri = dev_server_info.get("redirectUri")
         if not isinstance(redirect_uri, str):
             msg = f"'devServerInfo/redirectUri' ({redirect_uri}) is not properly configured in {oauth2_settings_file}."
+            self.open_oauth2_settings()
             raise RuntimeError(msg)
 
         parsed_url = urlparse(redirect_uri)
         protocol = parsed_url.scheme
         port = parsed_url.port
+        path = parsed_url.path
 
         if protocol not in ("http", "https"):
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must start with 'http' or 'https' {oauth2_settings_file}."
+            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must start with 'http' or 'https' in {oauth2_settings_file}."
+            self.open_oauth2_settings()
             raise RuntimeError(msg)
 
         if not port:
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must specify the port (something as http://localhost:port) {oauth2_settings_file}."
+            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must specify the port (something as http://localhost:port/oauth2/redirect/) {oauth2_settings_file}."
+            self.open_oauth2_settings()
+            raise RuntimeError(msg)
+
+        if path != "/oauth2/redirect/":
+            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must end with '/oauth2/redirect/' in {oauth2_settings_file}."
+            self.open_oauth2_settings()
             raise RuntimeError(msg)
 
         ssl_self_signed = dev_server_info.get("sslSelfSigned", False)
@@ -229,7 +270,7 @@ class _OAuth2(object):
         )
 
     @oauth2_command_dispatcher(commands.SEMA4AI_OAUTH2_OPEN_SETTINGS)
-    def _oauth2_settings(self, *args, **kwargs) -> None:
+    def open_oauth2_settings(self, *args, **kwargs) -> None:
         from sema4ai_code.action_server import get_default_oauth2_settings_file
 
         oauth_2_settings_file = get_default_oauth2_settings_file()
@@ -247,16 +288,14 @@ class _OAuth2(object):
             }
         )
 
-    @oauth2_command_dispatcher(commands.SEMA4AI_OAUTH2_LOGIN_INTERNAL)
-    def _oauth2_login(self, params: ActionServerOauth2LoginParams):
-        return partial(self._oauth2_login_in_thread, params=params)
-
-    def _oauth2_login_in_thread(
-        self, params: ActionServerOauth2LoginParams
+    def oauth2_login(
+        self,
+        action_server_location: str,
+        provider: str,
+        scopes: list[str],
+        monitor: IMonitor,
     ) -> ActionResultDict:
         import json
-        from concurrent.futures import Future
-        from concurrent.futures._base import as_completed
 
         from sema4ai_ls_core.protocols import ActionResult
 
@@ -266,10 +305,6 @@ class _OAuth2(object):
             get_oauthlib2_provider_settings,
         )
 
-        action_server_location = params["action_server_location"]
-        provider = params["provider"]
-        scopes = params["scopes"]
-
         oauth2_settings_file = get_default_oauth2_settings_file()
         try:
             # Raises an error if it's not Ok
@@ -278,6 +313,7 @@ class _OAuth2(object):
             )
             get_oauthlib2_provider_settings(provider, str(oauth2_settings_file))
         except Exception as e:
+            self.open_oauth2_settings()
             msg = f"Bad configuration in {oauth2_settings_file} for provider: {provider}.\nDetails: {e}"
             log.exception(msg)
             return ActionResult.make_failure(message=msg).as_dict()
@@ -295,25 +331,42 @@ class _OAuth2(object):
             provider=provider, scopes=scopes, reference_id=reference_id
         )
         process_finished_future = action_server.process_finished_future()
-        futures: list[Future[Any]] = [future_oauth2, process_finished_future]
+        future_monitor_cancelled = create_monitor_cancelled_future(monitor)
 
-        fut: Future[Any]
-        f: Future[Any]
-        for fut in as_completed(futures):  # After one completes cancel other(s)
-            for f in futures:
-                if f is not fut:
-                    f.cancel()
+        # i.e.: the clauses for termination are: action completes, process is killed,
+        # the user cancels the action.
+        futures: list["Future[Any]"] = [
+            future_oauth2,
+            process_finished_future,
+            future_monitor_cancelled,
+        ]
 
-            break
+        done = wait_first_future_completed(futures)
+        completed = future_oauth2 in done
 
-        if fut is future_oauth2:
+        # After one completes cancel other(s)
+        for f in futures:
+            if f not in done:
+                f.cancel()
+
+        monitor.check_cancelled()
+
+        if completed:
             # Ok, OAuth2 was completed.
-            result = fut.result()
+            result = future_oauth2.result()
+            if not result["body"]:
+                return ActionResult.make_failure(
+                    "body not available in future_oauth2"
+                ).as_dict()
+
             loaded_data = json.loads(result["body"])
             if loaded_data.get("reference_id") == reference_id:
-                return ActionResult.make_success(loaded_data)
+                log.info("OAuth2 authentication flow completed.")
+                return ActionResult.make_success(loaded_data).as_dict()
 
-        return ActionResult.make_failure("OAuth2 authentication flow not completed.")
+        msg = "OAuth2 authentication flow not completed."
+        log.info(msg)
+        return ActionResult.make_failure(msg).as_dict()
 
     def get_action_server_for_oauth2(
         self,

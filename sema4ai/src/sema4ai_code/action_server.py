@@ -203,7 +203,9 @@ class ActionServerAsService:
     def start_for_oauth2(self) -> None:
         if self._port != 0:
             if not is_port_free(self._port):
-                raise RuntimeError(f"Port: {self._port} is already taken.")
+                raise RuntimeError(
+                    f"Port: {self._port} is already in use. Please stop the service / action server in that port."
+                )
 
         assert self._process is None, "A process is already started"
 
@@ -377,8 +379,11 @@ class ActionServerAsService:
         callback_url = fut_address.result(DEFAULT_TIMEOUT)
         assert callback_url
 
-        # Needs to open the /oauth2/login in the browser as the cookie
-        # related to the session id will be set at this point.
+        log.info(
+            f"Requesting OAuth2 login flow for provider: {provider}, scopes: {scopes} in browser."
+        )
+
+        # Needs to open the /oauth2/login in the browser.
         webbrowser.open(
             self.build_full_url(
                 "/oauth2/login?"
@@ -391,8 +396,6 @@ class ActionServerAsService:
         )
 
         # The fut_uri will resolve when the user does the login.
-        # request_info = fut_uri.result(60 * 5)
-        # loaded = json.loads(request_info["body"])
         return fut_uri
 
     def oauth2_status(self, reference_id: str) -> dict[str, StatusTypedDict]:
@@ -445,7 +448,11 @@ class ActionServerAsService:
                         except Exception:
                             pass
                 finally:
-                    fut.set_result(True)
+                    if not fut.cancelled():
+                        try:
+                            fut.set_result(True)
+                        except Exception:
+                            pass  # This could in theory fail in a race condition.
 
             run_in_new_thread(wait_for_not_alive, "Wait for process")
 

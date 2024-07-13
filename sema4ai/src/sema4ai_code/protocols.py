@@ -321,16 +321,6 @@ class ActionServerPackageMetadataDict(TypedDict):
     output_file_path: str
 
 
-class ActionServerOauth2LoginParams(TypedDict):
-    action_server_location: str
-    provider: str
-    scopes: list[str]
-
-
-class ActionServerOauth2StatusParams(TypedDict):
-    action_server_location: str
-
-
 class IRccWorkspace(Protocol):
     @property
     def workspace_id(self) -> str:

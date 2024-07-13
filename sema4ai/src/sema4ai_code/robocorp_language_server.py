@@ -1639,3 +1639,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]
         self._endpoint.notify(method, msg["params"])
+
+    def m_oauth2_status(self, action_server_location: str):
+        return require_monitor(
+            partial(self._oauth2.oauth2_status, action_server_location)
+        )
+
+    def m_oauth2_login(
+        self, action_server_location: str, provider: str, scopes: list[str]
+    ):
+        return require_monitor(
+            partial(self._oauth2.oauth2_login, action_server_location, provider, scopes)
+        )

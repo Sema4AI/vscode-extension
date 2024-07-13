@@ -141,8 +141,6 @@
         "onCommand:sema4ai.actionServerPackagePublish",
         "onCommand:sema4ai.actionServerPackageMetadata",
         "onCommand:sema4ai.actionServerPackageMetadata.internal",
-        "onCommand:sema4ai.oauth2.login.internal",
-        "onCommand:sema4ai.oauth2.status.internal",
         "onCommand:sema4ai.oauth2.logout",
         "onCommand:sema4ai.oauth2.open_settings",
         "onDebugInitialConfigurations",
@@ -901,16 +899,6 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.oauth2.login.internal",
-                "title": "Makes an OAuth2 login",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.oauth2.status.internal",
-                "title": "Provides the status on the currently loaded data",
-                "category": "Sema4.ai"
-            },
-            {
                 "command": "sema4ai.oauth2.logout",
                 "title": "OAuth2 logout",
                 "category": "Sema4.ai"
@@ -1433,14 +1421,6 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageMetadata.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.oauth2.login.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.oauth2.status.internal",
                     "when": "false"
                 }
             ]
