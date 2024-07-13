@@ -162,8 +162,8 @@ class _OAuth2(object):
             oauth2_command_dispatcher
         )
 
-    def oauth2_status(
-        self, action_server_location: str, monitor: IMonitor
+    def oauth2_logout(
+        self, action_server_location: str, provider: str, monitor: IMonitor
     ) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
@@ -189,7 +189,39 @@ class _OAuth2(object):
 
         action_server = self.get_action_server_for_oauth2(action_server_location, data)
         reference_id = self._get_reference_id(data.cwd, action_server)
-        status = action_server.oauth2_status(reference_id)
+        result = action_server.oauth2_logout(reference_id, provider=provider)
+        return result.as_dict()
+
+    def oauth2_status(
+        self, action_server_location: str, provide_access_token: bool, monitor: IMonitor
+    ) -> ActionResultDict:
+        from sema4ai_ls_core.protocols import ActionResult
+
+        from sema4ai_code.action_server import get_default_oauth2_settings_file
+        from sema4ai_code.vendored_deps.oauth2_settings import (
+            get_oauthlib2_global_settings,
+        )
+
+        oauth2_settings_file = get_default_oauth2_settings_file()
+        try:
+            # Raises an error if it's not Ok
+            oauth2_global_contents = get_oauthlib2_global_settings(
+                str(oauth2_settings_file)
+            )
+        except Exception as e:
+            msg = f"Bad configuration in {oauth2_settings_file}.\nDetails: {e}"
+            log.exception(msg)
+            return ActionResult.make_failure(message=msg).as_dict()
+        try:
+            data = self._collect_info(oauth2_global_contents, oauth2_settings_file)
+        except Exception as e:
+            return ActionResult.make_failure(message=str(e)).as_dict()
+
+        action_server = self.get_action_server_for_oauth2(action_server_location, data)
+        reference_id = self._get_reference_id(data.cwd, action_server)
+        status = action_server.oauth2_status(
+            reference_id, provide_access_token=provide_access_token
+        )
 
         return ActionResult.make_success(status).as_dict()
 

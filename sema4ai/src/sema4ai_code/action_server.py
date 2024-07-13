@@ -398,17 +398,29 @@ class ActionServerAsService:
         # The fut_uri will resolve when the user does the login.
         return fut_uri
 
-    def oauth2_status(self, reference_id: str) -> dict[str, StatusTypedDict]:
+    def oauth2_status(
+        self, reference_id: str, provide_access_token: bool = False
+    ) -> dict[str, StatusTypedDict]:
         provider_to_status = self.get_json(
             "/oauth2/status",
             params={
                 "reference_id": reference_id,
-                "provide_access_token": True,
-                "refresh_tokens": True,
+                "provide_access_token": provide_access_token,
+                "refresh_tokens": True if provide_access_token else False,
                 "force_refresh": True,
             },
         )
         return provider_to_status
+
+    def oauth2_logout(self, reference_id: str, provider: str) -> ActionResult:
+        status = self.get_json(
+            "/oauth2/logout",
+            params={"reference_id": reference_id, "provider": provider},
+        )
+        if status["success"]:
+            return ActionResult.make_success(True)
+        else:
+            return ActionResult.make_failure(status["error_message"])
 
     def stop(self) -> None:
         if self._process is not None:
@@ -452,9 +464,11 @@ class ActionServerAsService:
                         try:
                             fut.set_result(True)
                         except Exception:
-                            pass  # This could in theory fail in a race condition.
+                            # This could in theory happen in a race condition
+                            # if it's cancelled in the meantime.
+                            pass
 
-            run_in_new_thread(wait_for_not_alive, "Wait for process")
+            run_in_new_thread(wait_for_not_alive, "Wait for process", daemon=True)
 
         return fut
 

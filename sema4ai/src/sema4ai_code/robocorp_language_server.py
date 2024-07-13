@@ -1640,9 +1640,13 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         method = msg["method"]
         self._endpoint.notify(method, msg["params"])
 
-    def m_oauth2_status(self, action_server_location: str):
+    def m_oauth2_status(
+        self, action_server_location: str, provide_access_token: bool = True
+    ):
         return require_monitor(
-            partial(self._oauth2.oauth2_status, action_server_location)
+            partial(
+                self._oauth2.oauth2_status, action_server_location, provide_access_token
+            )
         )
 
     def m_oauth2_login(
@@ -1650,4 +1654,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ):
         return require_monitor(
             partial(self._oauth2.oauth2_login, action_server_location, provider, scopes)
+        )
+
+    def m_oauth2_logout(self, action_server_location: str, provider: str):
+        return require_monitor(
+            partial(self._oauth2.oauth2_logout, action_server_location, provider)
         )

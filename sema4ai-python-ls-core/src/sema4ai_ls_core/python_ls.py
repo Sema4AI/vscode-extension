@@ -240,8 +240,9 @@ _LINT_DEBOUNCE_IN_SECONDS_LOW = 0.2
 _LINT_DEBOUNCE_IN_SECONDS_HIGH = 0.8
 
 
-def run_in_new_thread(func, thread_name):
+def run_in_new_thread(func, thread_name: str, daemon: bool = False):
     t = threading.Thread(target=func)
+    t.daemon = daemon
     t.name = thread_name
     t.start()
 

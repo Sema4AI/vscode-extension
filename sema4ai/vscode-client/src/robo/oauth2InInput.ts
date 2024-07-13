@@ -1,10 +1,10 @@
-import { CancellationToken, Progress, ProgressLocation, commands, window } from "vscode";
+import { CancellationToken, Progress, ProgressLocation, window } from "vscode";
 import { readFromFile } from "../files";
-import { SEMA4AI_OAUTH2_LOGIN_INTERNAL, SEMA4AI_OAUTH2_STATUS_INTERNAL } from "../robocorpCommands";
-import { OUTPUT_CHANNEL } from "../channel";
+import { OUTPUT_CHANNEL, logError } from "../channel";
 import { downloadOrGetActionServerLocation } from "../actionServer";
 import { ActionResult } from "../protocols";
 import { langServer } from "../extension";
+import { showSelectOneStrQuickPick } from "../ask";
 
 export interface ITokenInfo {
     provider?: string;
@@ -29,6 +29,77 @@ export interface IRequiredLogin {
 export interface IRequiredLogins {
     [key: string]: IRequiredLogin; // Provider name -> IRequiredLogin
 }
+
+export const oauth2Logout = async () => {
+    await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "OAuth2 login required for OAuth2Secrets",
+            cancellable: true,
+        },
+        async (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ): Promise<void> => {
+            progress.report({ message: "Getting action server", increment: 10 });
+
+            const actionServerLocation = await downloadOrGetActionServerLocation();
+            if (!actionServerLocation) {
+                window.showErrorMessage("Unable to make OAuth2 logout (unable to get action server executable).");
+                return;
+            }
+            try {
+                progress.report({ message: "Getting OAuth2 login status", increment: 50 });
+                const providerToStatus = await langServer.sendRequest<ActionResult<IProviderToTokenInfo>>(
+                    "oauth2Status",
+                    {
+                        action_server_location: actionServerLocation,
+                        provide_access_token: false,
+                    },
+                    token
+                );
+                if (!providerToStatus.success) {
+                    if (!providerToStatus.success) {
+                        throw new Error(providerToStatus.message);
+                    }
+                }
+
+                const providers = Object.keys(providerToStatus.result);
+                if (providers.length === 0) {
+                    window.showInformationMessage(
+                        "Unable to make OAuth2 logout because there is no login information saved."
+                    );
+                    return;
+                } else {
+                    const selected = await showSelectOneStrQuickPick(
+                        providers,
+                        "Select from which provider to logout",
+                        "OAuth2 logout"
+                    );
+                    if (!selected) {
+                        return; // user cancelled.
+                    }
+                    progress.report({ message: "Making logout", increment: 20 });
+                    const logoutResult = await langServer.sendRequest<ActionResult<any>>("oauth2Logout", {
+                        action_server_location: actionServerLocation,
+                        provider: selected,
+                    }, token);
+                    if (!logoutResult.success) {
+                        window.showErrorMessage(`Error making OAuth2 logout. Details: ${logoutResult.message}`);
+                        return;
+                    } else {
+                        window.showInformationMessage(`Finished making logout for: ${selected}`);
+                        return;
+                    }
+                }
+            } catch (error) {
+                window.showErrorMessage(`Unable to make OAuth2 logout. Details: ${error.message}`);
+                logError("Error making OAuth2 logout", error, "ERR_OAUTH2_LOGOUT");
+                return;
+            }
+        }
+    );
+};
 
 export const loginToAuth2WhereRequired = async (targetInput: string): Promise<ISecretsInfo> => {
     const contents: string = await readFromFile(targetInput);
@@ -100,7 +171,7 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
                     }
 
                     // Ok, gotten status, let's see if we have some valid info at this point
-                    for (const [provider, requiredLogin] of Object.entries(requiredLogins)) {
+                    for (const provider of Object.keys(requiredLogins)) {
                         const status = providerToStatus.result[provider];
                         if (status) {
                             providerToInfoFinal.set(provider, status);
@@ -115,7 +186,7 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
                         OUTPUT_CHANNEL.appendLine(msg);
                         progress.report({ message: msg, increment: 100 / steps });
 
-                        const providerToTokenInfo = await langServer.sendRequest<ActionResult<IProviderToTokenInfo>>(
+                        const providerToTokenInfo = await langServer.sendRequest<ActionResult<ITokenInfo>>(
                             "oauth2Login",
                             {
                                 action_server_location: actionServerLocation,
@@ -131,6 +202,7 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
                         if (token.isCancellationRequested) {
                             throw new Error("Cancelled.");
                         }
+                        providerToInfoFinal.set(provider, providerToTokenInfo.result);
                     }
                 }
             );
