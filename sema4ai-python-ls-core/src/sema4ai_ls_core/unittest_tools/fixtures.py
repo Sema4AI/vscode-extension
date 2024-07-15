@@ -27,6 +27,26 @@ def ws_root_path(tmpdir):
     return str(tmpdir.join("root"))
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _print_threads_after_timeout():
+    from sema4ai_ls_core.python_ls import run_in_new_thread
+
+    yield
+
+    def dump_threads_after_timeout():
+        import time
+        from sema4ai_ls_core.unittest_tools.monitor import dump_threads
+
+        time.sleep(
+            40
+        )  # After 40 seconds, if it didn't finish, print the threads running.
+        dump_threads()
+
+    run_in_new_thread(
+        dump_threads_after_timeout, "Dump threads after timeout", daemon=True
+    )
+
+
 @pytest.fixture(scope="function", autouse=True)
 def fix_dircache_directory(tmpdir, monkeypatch):
     #: :type monkeypatch: _pytest.monkeypatch.MonkeyPatch

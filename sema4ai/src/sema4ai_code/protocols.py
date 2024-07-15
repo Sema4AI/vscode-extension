@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Optional, Tuple, TypeVar, Literal
+from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa

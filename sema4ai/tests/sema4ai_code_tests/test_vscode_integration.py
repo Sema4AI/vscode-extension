@@ -1,3 +1,4 @@
+import json
 import logging
 import os.path
 import sys
@@ -5,7 +6,6 @@ import time
 import typing
 from pathlib import Path
 from typing import Dict, List, Optional
-import json
 
 import pytest
 from sema4ai_code_tests.fixtures import RccPatch
@@ -1595,6 +1595,7 @@ def test_package_build(
     cases: CasesFixture,
 ) -> None:
     import tempfile
+
     from sema4ai_code import commands
 
     assert os.path.exists(action_server_location)
@@ -1630,6 +1631,7 @@ def test_package_upload(
     action_server_location: str,
     cases: CasesFixture,
 ) -> None:
+    raise pytest.skip(reason="Server upload not online")
     from sema4ai_code import commands
 
     assert os.path.exists(action_server_location)
@@ -1669,6 +1671,8 @@ def test_package_status(
     language_server_initialized: IRobocorpLanguageServerClient,
     action_server_location: str,
 ) -> None:
+    raise pytest.skip(reason="Server upload not online")
+
     from sema4ai_code import commands
 
     assert os.path.exists(action_server_location)
@@ -1704,6 +1708,7 @@ def test_package_set_changelog(
     language_server_initialized: IRobocorpLanguageServerClient,
     action_server_location: str,
 ) -> None:
+    raise pytest.skip(reason="Server upload not online")
     from sema4ai_code import commands
 
     assert os.path.exists(action_server_location)

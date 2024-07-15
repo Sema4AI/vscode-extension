@@ -895,6 +895,11 @@ class ITimeoutHandle(Protocol):
         pass
 
 
+class IMonitorListener(Protocol):
+    def __call__(self) -> Any:
+        pass
+
+
 class IMonitor(Protocol):
     def cancel(self) -> None:
         pass
@@ -903,6 +908,9 @@ class IMonitor(Protocol):
         """
         raises JsonRpcRequestCancelled if cancelled.
         """
+
+    def add_listener(self, listener: IMonitorListener):
+        pass
 
 
 class ActionResultDict(TypedDict):
@@ -934,6 +942,14 @@ class ActionResult(Generic[T]):
         return f"ActionResult(success={self.success!r}, message={self.message!r}, result={self.result!r})"
 
     __repr__ = __str__
+
+    @classmethod
+    def make_failure(cls, message: str) -> "ActionResult[T]":
+        return ActionResult(success=False, message=message, result=None)
+
+    @classmethod
+    def make_success(cls, result: T) -> "ActionResult[T]":
+        return ActionResult(success=True, message=None, result=result)
 
 
 class RCCActionResult(ActionResult[str]):

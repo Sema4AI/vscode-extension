@@ -874,6 +874,16 @@ COMMANDS = [
         server_handled=True,
         hide_from_command_palette=True,
     ),
+    Command(
+        "sema4ai.oauth2.logout",
+        "OAuth2 logout",
+        server_handled=False,
+    ),
+    Command(
+        "sema4ai.oauth2.open_settings",
+        "Open Oauth2 Settings",
+        server_handled=True,
+    ),
 ]
 
 

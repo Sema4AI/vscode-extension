@@ -11,11 +11,11 @@ from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.command_dispatcher import _CommandDispatcher
+from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.endpoint import require_monitor
 from sema4ai_ls_core.lsp import HoverTypedDict
 from sema4ai_ls_core.protocols import IConfig, IMonitor, LibraryVersionInfoDict
 from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
-from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
@@ -27,12 +27,25 @@ from sema4ai_code.protocols import (
     ActionResultDictLocatorsJsonInfo,
     ActionResultDictRobotLaunch,
     ActionResultDictWorkItems,
+    ActionServerAccessCredentialsDict,
+    ActionServerListOrgsResultDict,
+    ActionServerLoginDict,
+    ActionServerPackageBuildDict,
+    ActionServerPackageBuildResultDict,
+    ActionServerPackageMetadataDict,
+    ActionServerPackageSetChangelogDict,
+    ActionServerPackageStatusDict,
+    ActionServerPackageUploadDict,
+    ActionServerPackageUploadStatusDict,
+    ActionServerVerifyLoginResultDict,
     CloudListWorkspaceDict,
     ConfigurationDiagnosticsDict,
+    CreateActionPackageParamsDict,
     CreateRobotParamsDict,
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
+    ListActionTemplatesParamsDict,
     ListWorkItemsParams,
     ListWorkspacesActionResultDict,
     LocalRobotMetadataInfoDict,
@@ -45,19 +58,6 @@ from sema4ai_code.protocols import (
     UploadRobotParamsDict,
     WorkItem,
     WorkspaceInfoDict,
-    ListActionTemplatesParamsDict,
-    CreateActionPackageParamsDict,
-    ActionServerLoginDict,
-    ActionServerVerifyLoginResultDict,
-    ActionServerAccessCredentialsDict,
-    ActionServerListOrgsResultDict,
-    ActionServerPackageUploadDict,
-    ActionServerPackageBuildDict,
-    ActionServerPackageBuildResultDict,
-    ActionServerPackageUploadStatusDict,
-    ActionServerPackageStatusDict,
-    ActionServerPackageSetChangelogDict,
-    ActionServerPackageMetadataDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -120,6 +120,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         from sema4ai_code._language_server_feedback import _Feedback
         from sema4ai_code._language_server_login import _Login
+        from sema4ai_code._language_server_oauth2 import _OAuth2
         from sema4ai_code._language_server_playwright import _Playwright
         from sema4ai_code._language_server_pre_run_scripts import _PreRunScripts
         from sema4ai_code._language_server_profile import _Profile
@@ -209,6 +210,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             command_dispatcher,
             self._rcc,
             self._feedback,
+        )
+
+        self._oauth2 = _OAuth2(
+            self._endpoint,
+            command_dispatcher,
+            self._rcc,
+            self._feedback,
+            lsp_messages=self._lsp_messages,
         )
 
         self._pm = PluginManager()
@@ -679,7 +688,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _local_list_actions_internal_impl(
         self, params: Optional[ListActionsParams]
     ) -> ActionResultDict:
-        from sema4ai_code.robo.collect_actions import iter_actions
+        from sema4ai_code.robo.collect_actions_ast import iter_actions
 
         # TODO: We should move this code somewhere else and have a cache of
         # things so that when the user changes anything the client is notified
@@ -1630,3 +1639,24 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]
         self._endpoint.notify(method, msg["params"])
+
+    def m_oauth2_status(
+        self, action_server_location: str, provide_access_token: bool = True
+    ):
+        return require_monitor(
+            partial(
+                self._oauth2.oauth2_status, action_server_location, provide_access_token
+            )
+        )
+
+    def m_oauth2_login(
+        self, action_server_location: str, provider: str, scopes: list[str]
+    ):
+        return require_monitor(
+            partial(self._oauth2.oauth2_login, action_server_location, provider, scopes)
+        )
+
+    def m_oauth2_logout(self, action_server_location: str, provider: str):
+        return require_monitor(
+            partial(self._oauth2.oauth2_logout, action_server_location, provider)
+        )

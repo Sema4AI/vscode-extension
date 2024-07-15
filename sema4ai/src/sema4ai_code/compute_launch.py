@@ -90,6 +90,7 @@ def _compute_action_package_launch(
         "args": args,
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen",
+        # "justMyCode": False,
     }
 
     if python_exe:

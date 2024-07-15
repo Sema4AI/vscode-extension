@@ -43,6 +43,7 @@ import {
     findActionPackagePath,
 } from "../actionServer";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
+import { loginToAuth2WhereRequired } from "./oauth2InInput";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -235,6 +236,18 @@ export async function runActionFromActionPackage(
         "args": [],
         "noDebug": noDebug,
     };
+    try {
+        const xActionContext = await loginToAuth2WhereRequired(targetInput);
+        if (xActionContext) {
+            const xActionServerHeader = Buffer.from(JSON.stringify(xActionContext), "utf-8").toString("base64");
+
+            debugConfiguration.baseEnv = { "SEMA4AI-VSCODE-X-ACTION-CONTEXT": xActionServerHeader };
+        }
+    } catch (error) {
+        logError("Error making OAuth2 login", error, "ERR_LOGIN_OAUTH2");
+        window.showErrorMessage("Error making OAuth2 login:\n" + error.message);
+        return;
+    }
     let debugSessionOptions: vscode.DebugSessionOptions = {};
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
