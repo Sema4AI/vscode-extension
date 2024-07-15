@@ -79,7 +79,7 @@ export const oauth2Logout = async () => {
                     if (!selected) {
                         return; // user cancelled.
                     }
-                    progress.report({ message: "Making logout", increment: 20 });
+                    progress.report({ message: "Logging out...", increment: 20 });
                     const logoutResult = await langServer.sendRequest<ActionResult<any>>("oauth2Logout", {
                         action_server_location: actionServerLocation,
                         provider: selected,
