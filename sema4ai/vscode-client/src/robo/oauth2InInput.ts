@@ -7,7 +7,7 @@ import { langServer } from "../extension";
 import { showSelectOneStrQuickPick } from "../ask";
 
 export interface ITokenInfo {
-    provider?: string;
+    provider: string;
     scopes?: string[];
     expires_at?: string;
     access_token: string;
@@ -59,9 +59,7 @@ export const oauth2Logout = async () => {
                     token
                 );
                 if (!providerToStatus.success) {
-                    if (!providerToStatus.success) {
-                        throw new Error(providerToStatus.message);
-                    }
+                    throw new Error(providerToStatus.message);
                 }
 
                 const providers = Object.keys(providerToStatus.result);
@@ -85,7 +83,7 @@ export const oauth2Logout = async () => {
                         provider: selected,
                     }, token);
                     if (!logoutResult.success) {
-                        window.showErrorMessage(`Error making OAuth2 logout. Details: ${logoutResult.message}`);
+                        window.showErrorMessage(`Error in OAuth2 logout. Details: ${logoutResult.message}`);
                         return;
                     } else {
                         window.showInformationMessage(`Finished logging out for: ${selected}`);
@@ -94,7 +92,7 @@ export const oauth2Logout = async () => {
                 }
             } catch (error) {
                 window.showErrorMessage(`Unable to make OAuth2 logout. Details: ${error.message}`);
-                logError("Error making OAuth2 logout", error, "ERR_OAUTH2_LOGOUT");
+                logError("Error in OAuth2 logout", error, "ERR_OAUTH2_LOGOUT");
                 return;
             }
         }
