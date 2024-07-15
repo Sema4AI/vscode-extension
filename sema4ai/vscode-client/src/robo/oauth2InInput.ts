@@ -88,7 +88,7 @@ export const oauth2Logout = async () => {
                         window.showErrorMessage(`Error making OAuth2 logout. Details: ${logoutResult.message}`);
                         return;
                     } else {
-                        window.showInformationMessage(`Finished making logout for: ${selected}`);
+                        window.showInformationMessage(`Finished logging out for: ${selected}`);
                         return;
                     }
                 }
