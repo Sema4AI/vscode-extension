@@ -317,16 +317,16 @@ export async function basicValidations(
         return { success: false, message: "", result: rccDiagnostics };
     }
     while (!rccDiagnostics.isRobocorpHomeOk()) {
-        const SELECT_ROBOCORP_HOME = "Set new SEMA4AI_HOME";
+        const SELECT_SEMA4AI_HOME = "Set new SEMA4AI_HOME";
         const CANCEL = "Cancel";
         let result = await window.showInformationMessage(
             "The current SEMA4AI_HOME is invalid (paths with spaces/non ascii chars are not supported).",
-            SELECT_ROBOCORP_HOME,
+            SELECT_SEMA4AI_HOME,
             CANCEL
         );
         if (!result || result == CANCEL) {
             OUTPUT_CHANNEL.appendLine("Cancelled setting new SEMA4AI_HOME.");
-            feedbackRobocorpCodeError("INIT_INVALID_ROBOCORP_HOME");
+            feedbackRobocorpCodeError("INIT_INVALID_SEMA4AI_HOME");
             if (failsPreventStartup) {
                 return { success: false, message: "", result: rccDiagnostics };
             } else {
@@ -342,7 +342,7 @@ export async function basicValidations(
         });
         if (!uriResult) {
             OUTPUT_CHANNEL.appendLine("Cancelled getting SEMA4AI_HOME path.");
-            feedbackRobocorpCodeError("INIT_CANCELLED_ROBOCORP_HOME");
+            feedbackRobocorpCodeError("INIT_CANCELLED_SEMA4AI_HOME");
             if (failsPreventStartup) {
                 return { success: false, message: "", result: rccDiagnostics };
             } else {
@@ -587,7 +587,7 @@ class StartupHelper {
 }
 
 const CACHE_KEY_DEFAULT_ENV_JSON_CONTENTS = "DEFAULT_ENV_JSON_CONTENTS";
-const CACHE_KEY_LAST_ROBOT_CONDA_HASH = "LAST_ROBOT_CONDA_HASH";
+const CACHE_KEY_LAST_ROBOT_CONDA_HASH = "LAST_SEMA4AI_CONDA_HASH";
 // This is set just when the language server is properly set (and it's reset at each new invocation).
 export const CACHE_KEY_LAST_WORKED = "LAST_WORKED";
 
@@ -643,7 +643,7 @@ export async function getLanguageServerPythonInfoUncached(): Promise<Interpreter
     let result: ExecFileReturn | undefined = await window.withProgress(
         {
             location: ProgressLocation.Notification,
-            title: "Robocorp",
+            title: "Sema4.ai",
             cancellable: false,
         },
         async (progress: Progress<{ message?: string; increment?: number }>): Promise<ExecFileReturn> | undefined => {

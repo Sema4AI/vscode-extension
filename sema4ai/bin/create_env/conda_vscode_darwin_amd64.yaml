@@ -5,7 +5,7 @@ channels:
 
 dependencies:
     - python=3.10.12 # https://pyreadiness.org/3.10/
-    - pip=23.2.1 # https://pip.pypa.io/en/stable/news/
+    - pip=23.3.2 # https://pip.pypa.io/en/stable/news/
     - pyyaml=6.0.1
     - msgspec=0.18.2
     - robocorp-truststore=0.8.0 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
@@ -14,5 +14,4 @@ dependencies:
     - python-mss==9.0.1 # VSCode Image Inspector dependency
     - pip:
           - --use-feature=truststore
-          - robotframework==5.0.1 # https://github.com/robotframework/robotframework/blob/master/doc/releasenotes/rf-5.0.1.rst
           - playwright==1.37.0
