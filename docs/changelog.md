@@ -1,10 +1,9 @@
 New in 2.2.0 (2024-07-16) -- prerelease
 -------------------------------------------
 
-- Add command and UI element to view metadata file for Action Package
+- Add command (`Sema4.ai: Open the Action Package OpenAPI Spec (metadata.json)` -- also available as under `Activities` in the `TASK/ACTION PACKAGES` View.
 - A prompt allowing to restart the Action Server will appear now when an environment file is modified in an Action package with active Action Server.
-- Fix build Action Package command to add selection step to select the Action Package in case there are multiple in workspace
-- It's now possible to 
+- Fix build Action Package command to add selection step to select the Action Package in case there are multiple in the workspace.
 - Using SEMA4AI_HOME instead of ROBOCORP_HOME.
     - In Windows the environments are now in now in `%LOCALAPPDATA%/sema4ai`  
     - In Linux/Mac the environments are now in now in `<home>/sema4ai`
