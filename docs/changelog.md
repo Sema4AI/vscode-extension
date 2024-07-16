@@ -1,12 +1,15 @@
 New in 2.2.0 (2024-07-16) -- pre-release
 -------------------------------------------
 
-- Add command (`Sema4.ai: Open the Action Package OpenAPI Spec (metadata.json)` -- also available as under `Activities` in the `TASK/ACTION PACKAGES` View.
-- A prompt allowing to restart the Action Server will appear now when an environment file is modified in an Action package with active Action Server.
+- A new command: `Sema4.ai: Open the Action Package OpenAPI Spec (metadata.json)` is available.
+    - It'll create a file showing the `metadata.json` for the Action Package.
+    - Also available under `Activities` in the `TASK/ACTION PACKAGES` View.
+- A prompt allowing to restart the Action Server will appear now when an environment file (`package.yaml`) is modified in an Action Package.
 - Fix build Action Package command to add selection step to select the Action Package in case there are multiple in the workspace.
-- Using SEMA4AI_HOME instead of ROBOCORP_HOME.
+- The extension now uses `sema4ai` folders instead of `robocorp`.
+    - The `SEMA4AI_HOME` environment variable can be used to configure the environments directory instead of `ROBOCORP_HOME`.
     - In Windows the environments are now in now in `%LOCALAPPDATA%/sema4ai`  
-    - In Linux/Mac the environments are now in now in `<home>/sema4ai`
+    - In Linux/Mac the environments are now in now in `<home>/.sema4ai`
 - When configuring the input.json for an `@action`, it's possible to do the OAuth2 flow automatically when the action is
   run by adding a `"vscode:request:oauth2"` entry to the input. 
   
