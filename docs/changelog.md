@@ -1,11 +1,43 @@
-Unreleased
------------------------------
+New in 2.2.0 (2024-07-16) -- prerelease
+-------------------------------------------
 
 - Add command and UI element to view metadata file for Action Package
 - A prompt allowing to restart the Action Server will appear now when an environment file is modified in an Action package with active Action Server.
 - Fix build Action Package command to add selection step to select the Action Package in case there are multiple in workspace
+- It's now possible to 
+- Using SEMA4AI_HOME instead of ROBOCORP_HOME.
+    - In Windows the environments are now in now in `%LOCALAPPDATA%/sema4ai`  
+    - In Linux/Mac the environments are now in now in `<home>/sema4ai`
+- When configuring the input.json for an `@action`, it's possible to do the OAuth2 flow automatically when the action is
+  run by adding a `"vscode:request:oauth2"` entry to the input. 
+  
+The example below shows a case where a `count` parameter is specified as `1` and 
+OAuth2 will be requested for the `google_secret` parameter.
+  
+```json
+{
+  "count": 1,
+  "vscode:request:oauth2": {
+    "google_secret": {
+      "type": "OAuth2Secret",
+      "scopes": [
+        "https://www.googleapis.com/auth/drive.readonly",
+        "https://www.googleapis.com/auth/gmail.send"
+      ],
+      "provider": "google"
+    }
+  }
+}
+```
 
-New in 2.1.0 (2024-06-25)
+- A new command: `Sema4.ai: Open OAuth2 Settings` is available.
+    - It can be used to open the file where the OAuth2 settings must be configured.
+    
+- A new command: `Sema4.ai: OAuth2 Logout` is available.
+    - It can be used to logout of a given OAuth2 provider which was previously logged in when a launch was done.
+
+New in 2.1.0 (2024-06-25) -- prerelease
+-------------------------------------------
 
 - Improvements when running actions:
     - Logs will show local variables (ROBOT_ROOT is no longer set).
@@ -22,19 +54,20 @@ New in 2.1.0 (2024-06-25)
 - Add UI element under activities to build Action Package to current workspace
 
 
-New in 2.0.1 (2024-05-24)
+New in 2.0.1 (2024-05-24) -- prerelease
+-------------------------------------------
 
 - Add functionality to publish Action Package to Sema4 Desktop Application
 
 
-New in 2.0.0 (2024-05-23)
------------------------------
+New in 2.0.0 (2024-05-23) -- prerelease
+-------------------------------------------
 
 - Rename Robocorp references to Sema4.ai
 
 
-New in 1.22.4 (2024-05-22)
------------------------------
+New in 1.22.4 (2024-05-22) -- prerelease
+-------------------------------------------
 
 - First `Sema4.ai` VSCode Extension release
 
