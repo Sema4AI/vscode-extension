@@ -61,12 +61,13 @@ def download_rcc(
         with timed_acquire_mutex("robocorp_get_rcc", timeout=120):
             if not os.path.exists(location) or force:
                 import urllib.request
+
                 from sema4ai_code import get_release_artifact_relative_path
 
                 relative_path = get_release_artifact_relative_path(sys_platform, "rcc")
 
-                RCC_VERSION = "v17.28.4"
-                prefix = f"https://downloads.robocorp.com/rcc/releases/{RCC_VERSION}"
+                RCC_VERSION = "v18.1.1"
+                prefix = f"https://cdn.sema4.ai/rcc/releases/{RCC_VERSION}"
                 url = prefix + relative_path
 
                 log.info(f"Downloading rcc from: {url} to: {location}.")
@@ -109,13 +110,13 @@ def get_default_rcc_location() -> str:
     return location
 
 
-def get_default_robocorp_home_location() -> Path:
+def get_default_app_home_location() -> Path:
     if sys.platform == "win32":
-        path = r"$LOCALAPPDATA\robocorp"
+        path = r"$LOCALAPPDATA\sema4ai"
     else:
-        path = r"$HOME/.robocorp"
-    robocorp_home_str = os.path.expandvars(path)
-    return Path(robocorp_home_str)
+        path = r"$HOME/.sema4ai"
+    home_str = os.path.expandvars(path)
+    return Path(home_str)
 
 
 class RccRobotMetadata(object):
@@ -210,11 +211,11 @@ class Rcc(object):
     def get_robocorp_code_datadir(self) -> Path:
         robocorp_home_str = self.get_robocorp_home_from_settings()
         if not robocorp_home_str:
-            robocorp_home = get_default_robocorp_home_location()
+            app_home = get_default_app_home_location()
         else:
-            robocorp_home = Path(robocorp_home_str)
+            app_home = Path(robocorp_home_str)
 
-        directory = robocorp_home / ".sema4ai_code"
+        directory = app_home / ".sema4ai_code"
         return directory
 
     @property
@@ -295,7 +296,11 @@ class Rcc(object):
             env["SEMA4AI_HOME"] = robocorp_home
 
         kwargs: dict = build_subprocess_kwargs(cwd, env, stderr=stderr)
-        args = [rcc_location] + args + ["--controller", "Sema4aiCode"]
+        args = (
+            [rcc_location]
+            + args
+            + ["--bundled", "--sema4ai", "--controller", "Sema4aiCode"]
+        )
         cmdline = list2cmdline([str(x) for x in args])
 
         try:
@@ -435,6 +440,7 @@ class Rcc(object):
         if config_location:
             args.append("--config")
             args.append(config_location)
+
         return args
 
     def _add_account_to_args(self, args: List[str]) -> Optional[ActionResult]:

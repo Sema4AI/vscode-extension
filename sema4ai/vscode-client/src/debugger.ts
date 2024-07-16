@@ -227,8 +227,7 @@ export function registerDebugger() {
                 env["ROBOCORP_HOME"] = robotHome;
                 env["SEMA4AI_HOME"] = robotHome;
             } else {
-                env = { "ROBOCORP_HOME": robotHome };
-                env = { "SEMA4AI_HOME": robotHome };
+                env = { "ROBOCORP_HOME": robotHome, "SEMA4AI_HOME": robotHome };
             }
         }
         let targetMain: string = path.resolve(__dirname, "../../src/sema4ai_code_debug_adapter/__main__.py");

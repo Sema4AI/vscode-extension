@@ -99,7 +99,7 @@ def download_action_server(
                     sys_platform, "action-server"
                 )
 
-                prefix = f"https://downloads.robocorp.com/action-server/releases/{action_server_version}"
+                prefix = f"https://cdn.sema4.ai/action-server/releases/{action_server_version}"
                 url = prefix + relative_path
 
                 log.info(f"Downloading Action Server from: {url} to: {location}.")

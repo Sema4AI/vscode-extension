@@ -22,42 +22,46 @@ export enum Metrics {
 }
 
 export async function getRobocorpHome(): Promise<string> {
-    let robocorpHome: string = roboConfig.getHome();
+    let home: string = roboConfig.getHome();
+    let details = " (found in settings)";
 
-    if (!robocorpHome || robocorpHome.length == 0) {
+    if (!home || home.length == 0) {
         const sema4aiHome = process.env["SEMA4AI_HOME"];
         if (sema4aiHome) {
             if (lastPrintedRobocorpHome != sema4aiHome) {
                 lastPrintedRobocorpHome = sema4aiHome;
-                OUTPUT_CHANNEL.appendLine("SEMA4AI_HOME: " + sema4aiHome);
+                OUTPUT_CHANNEL.appendLine("SEMA4AI_HOME: " + sema4aiHome + " (found in SEMA4AI_HOME env var)");
             }
             return sema4aiHome;
         }
 
-        robocorpHome = process.env["ROBOCORP_HOME"];
-        if (!robocorpHome) {
+        home = process.env["ROBOCORP_HOME"];
+        if (!home) {
             // Default from RCC (maybe it should provide an API to get it before creating an env?)
+            details = " (default)";
             if (process.platform == "win32") {
-                robocorpHome = path.join(process.env.LOCALAPPDATA, "robocorp");
+                home = path.join(process.env.LOCALAPPDATA, "sema4ai");
             } else {
-                robocorpHome = path.join(process.env.HOME, ".robocorp");
+                home = path.join(process.env.HOME, ".sema4ai");
             }
+        } else {
+            details = " (found in ROBOCORP_HOME env var)";
         }
     }
-    if (lastPrintedRobocorpHome != robocorpHome) {
-        lastPrintedRobocorpHome = robocorpHome;
-        OUTPUT_CHANNEL.appendLine("ROBOCORP_HOME: " + robocorpHome);
+    if (lastPrintedRobocorpHome != home) {
+        lastPrintedRobocorpHome = home;
+        OUTPUT_CHANNEL.appendLine("SEMA4AI_HOME: " + home + details);
     }
-    return robocorpHome;
+    return home;
 }
 
-export function createEnvWithRobocorpHome(robocorpHome: string): { [key: string]: string | null } {
+export function createEnvWithRobocorpHome(robocorpHome: string): { [key: string]: string } {
     const base = { "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome };
     if (getProceedwithlongpathsdisabled()) {
         base["ROBOCORP_OVERRIDE_SYSTEM_REQUIREMENTS"] = "1";
     }
 
-    let env: { [key: string]: string | null } = mergeEnviron(base);
+    let env: { [key: string]: string } = mergeEnviron(base);
     return env;
 }
 
@@ -141,17 +145,17 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v17.28.4";
-    const prefix = "https://downloads.robocorp.com/rcc/releases/" + RCC_VERSION;
+    const RCC_VERSION = "v18.1.1";
+    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await download(url, progress, token, location);
 }
 
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
-const BASENAME_PREBUILT_WIN_AMD64 = "2195c38e27a4ceb6_windows_amd64.zip";
-const BASENAME_PREBUILT_DARWIN = "5522648f69edb3e4_darwin_amd64.zip";
-const BASENAME_PREBUILT_LINUX_AMD64 = "e9c56273fd47ede1_linux_amd64.zip";
+const BASENAME_PREBUILT_WIN_AMD64 = "81f44270388737d7_windows_amd64.zip";
+const BASENAME_PREBUILT_DARWIN = "3ab02517d909fcef_darwin_amd64.zip";
+const BASENAME_PREBUILT_LINUX_AMD64 = "4a8e86f83b9ea1de_linux_amd64.zip";
 
 function getBaseAsZipBasename() {
     let basename: string;
@@ -193,7 +197,7 @@ async function downloadBaseAsZip(
     let httpSettings = workspace.getConfiguration("http");
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     const basename = getBaseAsZipBasename();
-    const url: string = "https://downloads.robocorp.com/holotree/bin/" + basename;
+    const url: string = "https://cdn.sema4.ai/holotree/sema4ai/" + basename;
     const ret = await download(url, progress, token, zipDownloadLocation);
 
     OUTPUT_CHANNEL.appendLine(
@@ -400,7 +404,7 @@ export async function runConfigDiagnostics(
         let env = mergeEnviron({ "ROBOCORP_HOME": robocorpHome, "SEMA4AI_HOME": robocorpHome });
         configureLongpathsOutput = await execFilePromise(
             rccLocation,
-            ["configure", "diagnostics", "-j", "--controller", "Sema4aiCode"],
+            ["configure", "diagnostics", "-j", "--bundled", "--sema4ai", "--controller", "Sema4aiCode"],
             { env: env }
         );
         let outputAsJSON = JSON.parse(configureLongpathsOutput.stdout);
@@ -551,7 +555,16 @@ export async function submitIssue(
 
             const reportPath: string = path.join(os.tmpdir(), `robocode_issue_report_${Date.now()}.json`);
             fs.writeFileSync(reportPath, JSON.stringify(metadata, null, 4), { encoding: "utf-8" });
-            let args: string[] = ["feedback", "issue", "-r", reportPath, "--controller", "Sema4aiCode"];
+            let args: string[] = [
+                "feedback",
+                "issue",
+                "-r",
+                reportPath,
+                "--bundled",
+                "--sema4ai",
+                "--controller",
+                "Sema4aiCode",
+            ];
             for (const file of files) {
                 args.push("-a");
                 args.push(file);
@@ -584,7 +597,7 @@ interface IEnvInfo {
 
 export async function feedback(name: string, value: string = "+1") {
     const rccLocation = await getRccLocation();
-    let args: string[] = ["feedback", "metric", "-t", "vscode", "-n", name, "-v", value];
+    let args: string[] = ["feedback", "metric", "--bundled", "--sema4ai", "-t", "vscode", "-n", name, "-v", value];
 
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
@@ -616,7 +629,18 @@ export async function feedbackAnyError(errorType: string, errorCode: string) {
     reportedErrorCodes.add(errorCodeKey);
 
     const rccLocation = await getRccLocation();
-    let args: string[] = ["feedback", "metric", "-t", "vscode", "-n", errorType, "-v", errorCode];
+    let args: string[] = [
+        "feedback",
+        "metric",
+        "-t",
+        "vscode",
+        "-n",
+        errorType,
+        "-v",
+        errorCode,
+        "--bundled",
+        "--sema4ai",
+    ];
 
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
@@ -637,7 +661,7 @@ async function enableHolotreeShared(rccLocation: string, env) {
         try {
             const execFileReturn: ExecFileReturn = await execFilePromise(
                 rccLocation,
-                ["holotree", "shared", "--enable", "--once"],
+                ["holotree", "shared", "--enable", "--once", "--bundled", "--sema4ai"],
                 { "env": env },
                 { "showOutputInteractively": true }
             );
@@ -674,7 +698,7 @@ async function initHolotree(rccLocation: string, env): Promise<boolean> {
     try {
         const execFileReturn = await execFilePromise(
             rccLocation,
-            ["holotree", "init"],
+            ["holotree", "init", "--bundled", "--sema4ai"],
             { "env": env },
             { "showOutputInteractively": true }
         );
@@ -702,9 +726,11 @@ export async function collectBaseEnv(
 
     let robocorpCodePath = path.join(robocorpHome, ".sema4ai_code");
     let spaceInfoPath = path.join(robocorpCodePath, spaceName);
-    let rccEnvInfoCachePath = path.join(spaceInfoPath, "rcc_env_info.json");
+    const spaceInfoPathExists = fs.existsSync(spaceInfoPath);
+    OUTPUT_CHANNEL.appendLine("Found base environment info on: " + spaceInfoPathExists);
+    let rccEnvInfoCachePath = path.join(spaceInfoPath, "rcc_env_info_sema4ai.json");
     try {
-        if (!fs.existsSync(spaceInfoPath)) {
+        if (!spaceInfoPathExists) {
             fs.mkdirSync(spaceInfoPath, { "recursive": true });
         }
     } catch (err) {
@@ -718,7 +744,6 @@ export async function collectBaseEnv(
     }
     const USE_PROGRAM_DATA_SHARED = true;
     if (USE_PROGRAM_DATA_SHARED) {
-        let execFileReturn: ExecFileReturn;
         const env = createEnvWithRobocorpHome(robocorpHome);
 
         if (!rccDiagnostics.holotreeShared) {
@@ -728,44 +753,13 @@ export async function collectBaseEnv(
 
             const holotreeInitOk: boolean = await initHolotree(rccLocation, env);
             if (holotreeInitOk) {
-                // Download and import into holotree.
-                const zipDownloadLocation = await getBaseAsZipDownloadLocation();
-                let downloadOk: boolean = false;
-                try {
-                    if (!(await fileExists(zipDownloadLocation))) {
-                        await window.withProgress(
-                            {
-                                location: ProgressLocation.Notification,
-                                title: "Download base environment.",
-                                cancellable: false,
-                            },
-                            async (progress, token) => await downloadBaseAsZip(progress, token, zipDownloadLocation)
-                        );
-                    }
-                    downloadOk = await fileExists(zipDownloadLocation);
-                } catch (err) {
-                    logError("Error while downloading shared holotree.", err, "ERROR_DOWNLOAD_BASE_ZIP");
-                }
-                if (downloadOk) {
-                    try {
-                        let timing = new Timing();
-                        execFileReturn = await execFilePromise(
-                            rccLocation,
-                            ["holotree", "import", zipDownloadLocation],
-                            { "env": env },
-                            { "showOutputInteractively": true }
-                        );
-                        OUTPUT_CHANNEL.appendLine(
-                            "Took: " + timing.getTotalElapsedAsStr() + " to import base holotree."
-                        );
-                    } catch (err) {
-                        logError(
-                            "Error while importing base zip into holotree.",
-                            err,
-                            "ERROR_IMPORT_BASE_ZIP_HOLOTREE"
-                        );
-                    }
-                }
+                await makeSharedHolotreeEnvImport(rccLocation, env);
+            }
+        } else {
+            // It was already shared once
+            if (!spaceInfoPathExists) {
+                // On new env do the shared holotree import
+                await makeSharedHolotreeEnvImport(rccLocation, env);
             }
         }
     }
@@ -808,6 +802,8 @@ export async function collectBaseEnv(
             args.push("-e");
             args.push(envFilename);
         }
+        args.push("--sema4ai");
+        args.push("--bundled");
         args.push("--controller");
         args.push("Sema4aiCode");
 
@@ -870,7 +866,7 @@ export async function getEndpointUrl(baseUrl): Promise<string> {
         const env = createEnvWithRobocorpHome(robocorpHome);
 
         const rccLocation = await getRccLocation();
-        let args: string[] = ["config", "settings", "--json"];
+        let args: string[] = ["config", "settings", "--bundled", "--sema4ai", "--json"];
         const execReturn: ExecFileReturn = await execFilePromise(
             rccLocation,
             args,
@@ -899,4 +895,40 @@ export async function getEndpointUrl(baseUrl): Promise<string> {
         return "https://robocorp.com/docs/";
     }
     throw new Error("Unable to get endpoint url: " + baseUrl);
+}
+
+async function makeSharedHolotreeEnvImport(rccLocation: string, env: { [key: string]: string }) {
+    // Download and import into holotree.
+    const zipDownloadLocation = await getBaseAsZipDownloadLocation();
+    let downloadOk: boolean = false;
+    try {
+        if (!(await fileExists(zipDownloadLocation))) {
+            await window.withProgress(
+                {
+                    location: ProgressLocation.Notification,
+                    title: "Download base environment.",
+                    cancellable: false,
+                },
+                async (progress, token) => await downloadBaseAsZip(progress, token, zipDownloadLocation)
+            );
+        }
+        downloadOk = await fileExists(zipDownloadLocation);
+    } catch (err) {
+        logError("Error while downloading shared holotree.", err, "ERROR_DOWNLOAD_BASE_ZIP");
+    }
+    if (downloadOk) {
+        try {
+            let execFileReturn: ExecFileReturn;
+            let timing = new Timing();
+            execFileReturn = await execFilePromise(
+                rccLocation,
+                ["holotree", "import", zipDownloadLocation, "--bundled", "--sema4ai"],
+                { "env": env },
+                { "showOutputInteractively": true }
+            );
+            OUTPUT_CHANNEL.appendLine("Took: " + timing.getTotalElapsedAsStr() + " to import base holotree.");
+        } catch (err) {
+            logError("Error while importing base zip into holotree.", err, "ERROR_IMPORT_BASE_ZIP_HOLOTREE");
+        }
+    }
 }
