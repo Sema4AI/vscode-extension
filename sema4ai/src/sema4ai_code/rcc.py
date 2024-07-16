@@ -67,7 +67,7 @@ def download_rcc(
                 relative_path = get_release_artifact_relative_path(sys_platform, "rcc")
 
                 RCC_VERSION = "v18.1.1"
-                prefix = f"https://downloads.robocorp.com/rcc/releases/{RCC_VERSION}"
+                prefix = f"https://cdn.sema4.ai/rcc/releases/{RCC_VERSION}"
                 url = prefix + relative_path
 
                 log.info(f"Downloading rcc from: {url} to: {location}.")

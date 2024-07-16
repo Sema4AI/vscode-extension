@@ -57,7 +57,7 @@ def test_prebuilt_environments(rcc: IRcc, tmpdir):
         raise AssertionError(f"Could not find line starting with: {check}.")
 
     basename_url = line.split("=")[-1].strip().replace('"', "").replace(";", "")
-    full_url = f"https://downloads.robocorp.com/holotree/bin/{basename_url}"
+    full_url = f"https://cdn.sema4.ai/holotree/sema4ai/{basename_url}"
     p = Path(str(tmpdir / basename_url))
 
     if not p.exists():

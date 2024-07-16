@@ -142,7 +142,7 @@ async function downloadRcc(
         }
     }
     const RCC_VERSION = "v18.1.1";
-    const prefix = "https://downloads.robocorp.com/rcc/releases/" + RCC_VERSION;
+    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await download(url, progress, token, location);
 }
@@ -193,7 +193,7 @@ async function downloadBaseAsZip(
     let httpSettings = workspace.getConfiguration("http");
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     const basename = getBaseAsZipBasename();
-    const url: string = "https://downloads.robocorp.com/holotree/bin/" + basename;
+    const url: string = "https://cdn.sema4.ai/holotree/sema4ai/" + basename;
     const ret = await download(url, progress, token, zipDownloadLocation);
 
     OUTPUT_CHANNEL.appendLine(
