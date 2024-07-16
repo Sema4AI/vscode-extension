@@ -1,4 +1,4 @@
-New in 2.2.0 (2024-07-16) -- prerelease
+New in 2.2.0 (2024-07-16) -- pre-release
 -------------------------------------------
 
 - Add command (`Sema4.ai: Open the Action Package OpenAPI Spec (metadata.json)` -- also available as under `Activities` in the `TASK/ACTION PACKAGES` View.
@@ -35,7 +35,7 @@ OAuth2 will be requested for the `google_secret` parameter.
 - A new command: `Sema4.ai: OAuth2 Logout` is available.
     - It can be used to logout of a given OAuth2 provider which was previously logged in when a launch was done.
 
-New in 2.1.0 (2024-06-25) -- prerelease
+New in 2.1.0 (2024-06-25) -- pre-release
 -------------------------------------------
 
 - Improvements when running actions:
@@ -53,19 +53,19 @@ New in 2.1.0 (2024-06-25) -- prerelease
 - Add UI element under activities to build Action Package to current workspace
 
 
-New in 2.0.1 (2024-05-24) -- prerelease
+New in 2.0.1 (2024-05-24) -- pre-release
 -------------------------------------------
 
 - Add functionality to publish Action Package to Sema4 Desktop Application
 
 
-New in 2.0.0 (2024-05-23) -- prerelease
+New in 2.0.0 (2024-05-23) -- pre-release
 -------------------------------------------
 
 - Rename Robocorp references to Sema4.ai
 
 
-New in 1.22.4 (2024-05-22) -- prerelease
+New in 1.22.4 (2024-05-22) -- pre-release
 -------------------------------------------
 
 - First `Sema4.ai` VSCode Extension release
