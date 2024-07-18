@@ -36,7 +36,7 @@ export enum RobotEntryType {
     OpenPackageYaml,
     StartActionServer,
     PackageRebuildEnvironment,
-    PackagePublishToDesktopApp,
+    PackagePublishToSema4AIStudioApp,
     PackageBuildToWorkspace,
     PackageMetadata,
 }

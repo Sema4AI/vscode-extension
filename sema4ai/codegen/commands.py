@@ -785,8 +785,8 @@ COMMANDS = [
         hide_from_command_palette=False,
     ),
     Command(
-        "sema4ai.packagePublishToDesktopApp",
-        "Publish Package to Sema4.ai Desktop",
+        "sema4ai.actionPackagePublishToSema4AIStudioApp",
+        "Publish Action Package to Sema4.ai Studio",
         server_handled=False,
         hide_from_command_palette=False,
     ),
