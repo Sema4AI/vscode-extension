@@ -233,12 +233,7 @@ class CreateRobotParamsDict(TypedDict):
     name: str
 
 
-class ListActionTemplatesParamsDict(TypedDict):
-    action_server_location: str
-
-
 class CreateActionPackageParamsDict(TypedDict):
-    action_server_location: str
     directory: str
     template: str
 
@@ -273,25 +268,21 @@ class ProfileListResultTypedDict(TypedDict):
 
 
 class ActionServerLoginDict(TypedDict):
-    action_server_location: str
     access_credentials: str
     hostname: str
 
 
 class ActionServerAccessCredentialsDict(TypedDict):
-    action_server_location: str
     access_credentials: Optional[str]
     hostname: Optional[str]
 
 
 class ActionServerPackageBuildDict(TypedDict):
-    action_server_location: str
     workspace_dir: str
     output_dir: str
 
 
 class ActionServerPackageUploadDict(TypedDict):
-    action_server_location: str
     package_path: str
     organization_id: str
     access_credentials: Optional[str]
@@ -299,7 +290,6 @@ class ActionServerPackageUploadDict(TypedDict):
 
 
 class ActionServerPackageStatusDict(TypedDict):
-    action_server_location: str
     package_id: str
     organization_id: str
     access_credentials: Optional[str]
@@ -307,7 +297,6 @@ class ActionServerPackageStatusDict(TypedDict):
 
 
 class ActionServerPackageSetChangelogDict(TypedDict):
-    action_server_location: str
     package_id: str
     organization_id: str
     changelog_input: str
@@ -316,9 +305,12 @@ class ActionServerPackageSetChangelogDict(TypedDict):
 
 
 class ActionServerPackageMetadataDict(TypedDict):
-    action_server_location: str
     action_package_path: str
     output_file_path: str
+
+
+class DownloadToolDict(TypedDict):
+    location: str
 
 
 class IRccWorkspace(Protocol):
@@ -400,7 +392,7 @@ class IRcc(Protocol):
         Read-only property specifying the config location to be used (gotten from settings).
         """
 
-    def get_rcc_location(self) -> str:
+    def get_rcc_location(self, download_if_missing: bool = True) -> str:
         pass
 
     def get_robocorp_home_from_settings(self) -> Optional[str]:

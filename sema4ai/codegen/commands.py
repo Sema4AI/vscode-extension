@@ -884,6 +884,36 @@ COMMANDS = [
         "Open Oauth2 Settings",
         server_handled=True,
     ),
+    Command(
+        "sema4ai.rccDownload.internal",
+        "Downloads the RCC (internal)",
+        server_handled=True,
+        add_to_package_json=False,
+    ),
+    Command(
+        "sema4ai.actionServerDownload.internal",
+        "Downloads the Action Server (internal)",
+        server_handled=True,
+        add_to_package_json=False,
+    ),
+    Command(
+        "sema4ai.agentServerDownload.internal",
+        "Downloads the Agent Server (internal)",
+        server_handled=True,
+        add_to_package_json=False,
+    ),
+    Command(
+        "sema4ai.actionServerVersion.internal",
+        "Get the Action Server's version (internal)",
+        server_handled=True,
+        add_to_package_json=False,
+    ),
+    Command(
+        "sema4ai.agentServerVersion.internal",
+        "Get the Agent Server's version (internal)",
+        server_handled=True,
+        add_to_package_json=False,
+    ),
 ]
 
 

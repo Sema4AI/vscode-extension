@@ -2,12 +2,18 @@ import json
 import os
 import sys
 import typing
+import weakref
 from concurrent.futures import Future
 from pathlib import Path
-from typing import Literal, Optional, TypedDict
+from typing import Literal, Optional, TypedDict, Any
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
+
+from sema4ai_ls_core.protocols import (
+    IConfig,
+    IConfigProvider,
+)
 
 from sema4ai_code.protocols import (
     ActionResult,
@@ -18,6 +24,8 @@ from sema4ai_code.protocols import (
     ActionServerVerifyLoginResultDict,
     ActionTemplate,
 )
+
+from sema4ai_code.tools import Tool
 
 log = get_logger(__name__)
 
@@ -67,9 +75,9 @@ def is_port_free(port: int) -> bool:
 
 def download_action_server(
     location: str,
+    action_server_version="latest",
     force: bool = False,
     sys_platform: Optional[str] = None,
-    action_server_version="0.16.1",
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -77,70 +85,25 @@ def download_action_server(
 
     Args:
         location: The location to store the Action Server executable in the filesystem.
+        action_server_version: version of the Action Server to download. Defaults to latest.
         force: Whether we should overwrite an existing installation.
         sys_platform: The target platform of downloaded artifact.
-        action_server_version: version of the Action Server to download. Defaults to latest.
     """
-    from sema4ai_ls_core.system_mutex import timed_acquire_mutex
+    from sema4ai_code.tools import download_tool
 
-    if sys_platform is None:
-        sys_platform = sys.platform
-
-    if not os.path.exists(location) or force:
-        with timed_acquire_mutex("sema4ai-get-action-server", timeout=120):
-            # if other call is already in progress, we need to check it again,
-            # as to not overwrite it when force was equal to False.
-            if not os.path.exists(location) or force:
-                import urllib.request
-
-                from sema4ai_code import get_release_artifact_relative_path
-
-                relative_path = get_release_artifact_relative_path(
-                    sys_platform, "action-server"
-                )
-
-                prefix = f"https://cdn.sema4.ai/action-server/releases/{action_server_version}"
-                url = prefix + relative_path
-
-                log.info(f"Downloading Action Server from: {url} to: {location}.")
-
-                # Cloudflare seems to be blocking "User-Agent: Python-urllib/3.9".
-                # Use a different one as that must be sorted out.
-                response = urllib.request.urlopen(
-                    urllib.request.Request(url, headers={"User-Agent": "Mozilla"})
-                )
-
-                # Put it all in memory before writing (i.e. just write it if
-                # we know we downloaded everything).
-                data = response.read()
-
-                try:
-                    os.makedirs(os.path.dirname(location))
-                except Exception:
-                    pass  # Error expected if the parent dir already exists.
-
-                try:
-                    with open(location, "wb") as stream:
-                        stream.write(data)
-                    os.chmod(location, 0x744)
-                except Exception:
-                    log.exception(
-                        "Error writing to: %s.\nParent dir exists: %s",
-                        location,
-                        os.path.dirname(location),
-                    )
-                    raise
+    download_tool(
+        Tool.ACTION_SERVER,
+        location,
+        action_server_version,
+        force=force,
+        sys_platform=sys_platform,
+    )
 
 
 def get_default_action_server_location(version: str = "") -> str:
-    from sema4ai_code import get_extension_relative_path
+    from sema4ai_code.tools import Tool, get_default_tool_location
 
-    version_suffix = f"-{version}" if version else ""
-
-    if sys.platform == "win32":
-        return get_extension_relative_path("bin", f"action-server{version_suffix}.exe")
-    else:
-        return get_extension_relative_path("bin", f"action-server{version_suffix}")
+    return get_default_tool_location(Tool.ACTION_SERVER, version)
 
 
 if typing.TYPE_CHECKING:
@@ -485,8 +448,40 @@ class ActionServerAsService:
 
 
 class ActionServer:
-    def __init__(self, action_server_location: str):
-        self._action_server_location = action_server_location
+    def __init__(self, config_provider: IConfigProvider):
+        self._config_provider = weakref.ref(config_provider)
+
+    def _get_str_optional_setting(self, setting_name) -> Any:
+        config_provider = self._config_provider()
+        config: Optional[IConfig] = None
+        if config_provider is not None:
+            config = config_provider.config
+
+        if config:
+            return config.get_setting(setting_name, str, None)
+        return None
+
+    def get_action_server_location(self, download_if_missing: bool = False) -> str:
+        """
+        Returns Action Server location as specified in extension's settings (if exists), falls back
+        to relative "bin" directory otherwise.
+
+        Args:
+            download_if_missing: If true, it will attempt to download the Action Server if missing.
+        """
+        from sema4ai_code import settings
+
+        action_server_location = self._get_str_optional_setting(
+            settings.SEMA4AI_ACTION_SERVER_LOCATION
+        )
+
+        if not action_server_location:
+            action_server_location = get_default_action_server_location()
+
+        if download_if_missing and not os.path.exists(action_server_location):
+            download_action_server(action_server_location)
+
+        return action_server_location
 
     def _run_action_server_command(
         self,
@@ -494,22 +489,20 @@ class ActionServer:
         timeout: float = 35,
     ) -> ActionServerResult:
         """
-        Returns an ActionResult where the result is the stdout of the executed Action Server command.
-
-        Note that by design, we let the extension client handle the location (or eventual download) of
-        the Action Server executable, therefore we want to avoid downloading the binary as a side effect.
-        Hence, we require action_server_location as an argument to the __init__ function.
-
-        Args:
-            args: The list of arguments to be passed to the command.
-            timeout: The timeout for running the command (in seconds).
+                Returns an ActionResult where the result is the stdout of the executed Action Server command.
+        0
+                Args:
+                    args: The list of arguments to be passed to the command.
+                    timeout: The timeout for running the command (in seconds).
         """
         from subprocess import CalledProcessError, TimeoutExpired, list2cmdline, run
 
         from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
 
+        action_server_location = self.get_action_server_location()
+
         kwargs = build_subprocess_kwargs(None, env=os.environ.copy())
-        args = [self._action_server_location] + args
+        args = [action_server_location] + args
         cmdline = list2cmdline([str(x) for x in args])
 
         # Not sure why, but (just when running in VSCode) something as:
@@ -560,7 +553,7 @@ class ActionServer:
 
     def get_version(self) -> ActionResult[str]:
         """
-        Returns the version of used Action Server executable.
+        Returns the version of Action Server executable.
         """
         command_result = self._run_action_server_command(["version"])
 

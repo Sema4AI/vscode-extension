@@ -45,7 +45,6 @@ from sema4ai_code.protocols import (
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
-    ListActionTemplatesParamsDict,
     ListWorkItemsParams,
     ListWorkspacesActionResultDict,
     LocalRobotMetadataInfoDict,
@@ -58,6 +57,7 @@ from sema4ai_code.protocols import (
     UploadRobotParamsDict,
     WorkItem,
     WorkspaceInfoDict,
+    DownloadToolDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -127,6 +127,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code._language_server_vault import _Vault
         from sema4ai_code.rcc import Rcc
         from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
+        from sema4ai_code.action_server import ActionServer
+        from sema4ai_code.agent_server import AgentServer
 
         user_home = os.getenv("ROBOCORP_CODE_USER_HOME", None)
         if user_home is None:
@@ -187,6 +189,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self._vault = _Vault(
             self._dir_cache, self._endpoint, self._rcc, command_dispatcher
         )
+
+        self._action_server = ActionServer(self)
+        self._agent_server = AgentServer(self)
 
         weak_self = weakref.ref(self)  # Avoid cyclic ref.
 
@@ -1478,54 +1483,28 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": None}
 
     @command_dispatcher(commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL)
-    def _list_action_templates(
-        self, params: ListActionTemplatesParamsDict
-    ) -> ActionResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
-
-        action_server = ActionServer(action_server_location)
-
-        return action_server.get_action_templates().as_dict()
+    def _list_action_templates(self) -> ActionResultDict:
+        return self._action_server.get_action_templates().as_dict()
 
     @command_dispatcher(commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL)
     def _create_action_package(
         self, params: CreateActionPackageParamsDict
     ) -> ActionResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         directory = params["directory"]
         template = params["template"]
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.create_action_package(directory, template).as_dict()
+        return self._action_server.create_action_package(directory, template).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL)
     def _action_server_login(self, params: ActionServerLoginDict) -> ActionResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         access_credentials = params["access_credentials"]
         hostname = params["hostname"]
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.cloud_login(access_credentials, hostname).as_dict()
+        return self._action_server.cloud_login(access_credentials, hostname).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL)
-    def _action_server_verify_login(
-        self, params: ActionServerAccessCredentialsDict
-    ) -> ActionServerVerifyLoginResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
-
-        action_server = ActionServer(action_server_location)
-
-        return action_server.verify_login().as_dict()
+    def _action_server_verify_login(self) -> ActionServerVerifyLoginResultDict:
+        return self._action_server.verify_login().as_dict()
 
     @command_dispatcher(
         commands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL
@@ -1533,39 +1512,28 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _action_server_list_organizations(
         self, params: ActionServerAccessCredentialsDict
     ) -> ActionServerListOrgsResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         access_credentials = (
             params["access_credentials"] if "access_credentials" in params else None
         )
         hostname = params["hostname"] if "hostname" in params else None
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.list_organizations(access_credentials, hostname).as_dict()
+        return self._action_server.list_organizations(
+            access_credentials, hostname
+        ).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL)
     def _action_server_package_build(
         self, params: ActionServerPackageBuildDict
     ) -> ActionServerPackageBuildResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         workspace_dir = params["workspace_dir"]
         output_dir = params["output_dir"]
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.package_build(workspace_dir, output_dir).as_dict()
+        return self._action_server.package_build(workspace_dir, output_dir).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL)
     def _action_server_package_upload(
         self, params: ActionServerPackageUploadDict
     ) -> ActionServerPackageUploadStatusDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         package_path = params["package_path"]
         organization_id = params["organization_id"]
         access_credentials = (
@@ -1573,9 +1541,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
         hostname = params["hostname"] if "hostname" in params else None
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.package_upload(
+        return self._action_server.package_upload(
             package_path, organization_id, access_credentials, hostname
         ).as_dict()
 
@@ -1583,9 +1549,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _action_server_package_status(
         self, params: ActionServerPackageStatusDict
     ) -> ActionServerPackageUploadStatusDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         package_id = params["package_id"]
         organization_id = params["organization_id"]
         access_credentials = (
@@ -1593,9 +1556,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
         hostname = params["hostname"] if "hostname" in params else None
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.package_status(
+        return self._action_server.package_status(
             package_id, organization_id, access_credentials, hostname
         ).as_dict()
 
@@ -1603,9 +1564,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _action_server_package_set_changelog(
         self, params: ActionServerPackageSetChangelogDict
     ) -> ActionResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         package_id = params["package_id"]
         organization_id = params["organization_id"]
         changelog_input = params["changelog_input"]
@@ -1614,9 +1572,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
         hostname = params["hostname"] if "hostname" in params else None
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.package_set_changelog(
+        return self._action_server.package_set_changelog(
             package_id, organization_id, changelog_input, access_credentials, hostname
         ).as_dict()
 
@@ -1624,17 +1580,85 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _action_server_package_metadata(
         self, params: ActionServerPackageMetadataDict
     ) -> ActionResultDict:
-        from sema4ai_code.action_server import ActionServer
-
-        action_server_location = params["action_server_location"]
         action_package_path = params["action_package_path"]
         output_file_path = params["output_file_path"]
 
-        action_server = ActionServer(action_server_location)
-
-        return action_server.package_metadata(
+        return self._action_server.package_metadata(
             action_package_path, output_file_path
         ).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL)
+    def _rcc_download(
+        self, params: Optional[DownloadToolDict] = None
+    ) -> ActionResultDict:
+        from sema4ai_code.rcc import download_rcc
+
+        location = params["location"] if params else self._rcc.get_rcc_location(False)
+
+        try:
+            download_rcc(location)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"RCC download failed: {e}",
+                "result": None,
+            }
+
+        return {"success": True, "message": None, "result": location}
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL)
+    def _action_server_download(
+        self, params: Optional[DownloadToolDict] = None
+    ) -> ActionResultDict:
+        from sema4ai_code.action_server import download_action_server
+
+        location = (
+            params["location"]
+            if params
+            else self._action_server.get_action_server_location()
+        )
+
+        try:
+            download_action_server(location)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Action Server download failed: {e}",
+                "result": None,
+            }
+
+        return {"success": True, "message": None, "result": location}
+
+    @command_dispatcher(commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL)
+    def _agent_server_download(
+        self, params: Optional[DownloadToolDict] = None
+    ) -> ActionResultDict:
+        from sema4ai_code.agent_server import download_agent_server
+
+        location = (
+            params["location"]
+            if params
+            else self._agent_server.get_agent_server_location()
+        )
+
+        try:
+            download_agent_server(location)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Agent Server download failed: {e}",
+                "result": None,
+            }
+
+        return {"success": True, "message": None, "result": location}
+
+    @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL)
+    def _action_server_version(self) -> ActionResultDict:
+        return self._action_server.get_version().as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_AGENT_SERVER_VERSION_INTERNAL)
+    def _agent_server_version(self) -> ActionResultDict:
+        return self._agent_server.get_version().as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

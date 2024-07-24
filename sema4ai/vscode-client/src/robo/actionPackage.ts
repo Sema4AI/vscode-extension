@@ -265,7 +265,7 @@ export async function createActionPackage() {
         return;
     }
 
-    const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion(actionServerLocation);
+    const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion();
 
     if (await isDirectoryAPackageDirectory(ws.uri)) {
         return;

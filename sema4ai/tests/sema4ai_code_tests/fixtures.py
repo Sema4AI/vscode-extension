@@ -370,6 +370,8 @@ def language_server_initialized(
     language_server_tcp: IRobocorpLanguageServerClient,
     ws_root_path: str,
     rcc_location: str,
+    action_server_location: str,
+    agent_server_location: str,
     ci_endpoint: str,
     rcc_config_location: str,
     initialization_options,
@@ -388,7 +390,11 @@ def language_server_initialized(
                         "location": rcc_location,
                         "endpoint": ci_endpoint,
                         "config_location": rcc_config_location,
-                    }
+                    },
+                    "actionServer": {"location": action_server_location},
+                    "agentServer": {
+                        "location": agent_server_location,
+                    },
                 }
             }
         }
@@ -489,7 +495,20 @@ def action_server_location_without_templates_handling() -> str:
 
     version = "0.9.0"
     location = get_default_action_server_location(version)
-    download_action_server(location, force=False, action_server_version=version)
+    download_action_server(location, action_server_version=version, force=False)
+    return location
+
+
+@pytest.fixture
+def agent_server_location() -> str:
+    from sema4ai_code.agent_server import (
+        download_agent_server,
+        get_default_agent_server_location,
+    )
+
+    location = get_default_agent_server_location()
+    download_agent_server(location, force=False)
+
     return location
 
 

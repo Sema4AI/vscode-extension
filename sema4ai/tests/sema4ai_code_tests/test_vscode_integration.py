@@ -6,6 +6,7 @@ import time
 import typing
 from pathlib import Path
 from typing import Dict, List, Optional
+from unittest import mock
 
 import pytest
 from sema4ai_code_tests.fixtures import RccPatch
@@ -1449,7 +1450,7 @@ def test_list_action_templates(
 
     result = language_server.execute_command(
         commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
-        [{"action_server_location": action_server_location}],
+        [],
     )["result"]
 
     assert result["success"]
@@ -1462,12 +1463,9 @@ def test_list_action_templates(
 
 def test_create_action_package(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
     tmpdir: str,
 ) -> None:
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
 
@@ -1478,7 +1476,6 @@ def test_create_action_package(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "directory": target,
                 "template": "minimal",
             }
@@ -1495,7 +1492,6 @@ def test_create_action_package(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "directory": target,
                 "template": "minimal",
             }
@@ -1518,6 +1514,19 @@ def test_create_action_package_without_templates_handling(
 
     language_server = language_server_initialized
 
+    # We need to overwrite the settings to make ActionServer wrapper get the correct version.
+    language_server_initialized.settings(
+        {
+            "settings": {
+                "sema4ai": {
+                    "actionServer": {
+                        "location": action_server_location_without_templates_handling,
+                    }
+                }
+            }
+        }
+    )
+
     target = str(tmpdir.join("dest"))
     language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
 
@@ -1539,17 +1548,14 @@ def test_create_action_package_without_templates_handling(
 
 def test_verify_login(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
 ) -> None:
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
 
     result = language_server.execute_command(
         commands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
-        [{"action_server_location": action_server_location}],
+        [],
     )["result"]
 
     assert result["success"]
@@ -1560,11 +1566,8 @@ def test_verify_login(
 @pytest.mark.timeout(60)
 def test_list_organizations(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
 ) -> None:
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
 
@@ -1575,7 +1578,6 @@ def test_list_organizations(
         commands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "access_credentials": access_credentials,
                 "hostname": hostname,
             },
@@ -1591,14 +1593,11 @@ def test_list_organizations(
 @pytest.mark.timeout(60 * 5)
 def test_package_build(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
     cases: CasesFixture,
 ) -> None:
     import tempfile
 
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     action_package_path = Path(cases.get_path("action_packages"), "action_package1")
     assert Path(action_package_path, "package.yaml").exists()
@@ -1610,7 +1609,6 @@ def test_package_build(
             commands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
             [
                 {
-                    "action_server_location": action_server_location,
                     "workspace_dir": str(action_package_path),
                     "output_dir": output_dir,
                 },
@@ -1628,13 +1626,10 @@ def test_package_build(
 @pytest.mark.timeout(60)
 def test_package_upload(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
     cases: CasesFixture,
 ) -> None:
     raise pytest.skip(reason="Server upload not online")
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     built_package_path = Path(
         cases.get_path("action_packages"), "action_package1", "saved_action.zip"
@@ -1651,7 +1646,6 @@ def test_package_upload(
         commands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "package_path": str(built_package_path),
                 "organization_id": organization_id,
                 "access_credentials": access_credentials,
@@ -1669,13 +1663,10 @@ def test_package_upload(
 @pytest.mark.timeout(60)
 def test_package_status(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
 ) -> None:
     raise pytest.skip(reason="Server upload not online")
 
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
 
@@ -1688,7 +1679,6 @@ def test_package_status(
         commands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "package_id": package_id,
                 "organization_id": organization_id,
                 "access_credentials": access_credentials,
@@ -1706,12 +1696,9 @@ def test_package_status(
 @pytest.mark.timeout(60)
 def test_package_set_changelog(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
 ) -> None:
     raise pytest.skip(reason="Server upload not online")
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
 
@@ -1724,7 +1711,6 @@ def test_package_set_changelog(
         commands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "package_id": package_id,
                 "organization_id": organization_id,
                 "changelog_input": "Testing",
@@ -1743,13 +1729,10 @@ def test_package_set_changelog(
 @pytest.mark.timeout(60)
 def test_package_metadata(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location: str,
     cases: CasesFixture,
     data_regression,
 ) -> None:
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location)
 
     language_server = language_server_initialized
     action_package_path = Path(cases.get_path("action_packages"), "action_package1")
@@ -1761,7 +1744,6 @@ def test_package_metadata(
         commands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
         [
             {
-                "action_server_location": action_server_location,
                 "action_package_path": str(action_package_path),
                 "output_file_path": str(output_file_path),
             },
@@ -1784,3 +1766,192 @@ def test_package_metadata(
         },
     }
     data_regression.check(static_data)
+
+
+def test_rcc_download(
+    language_server_initialized,
+) -> None:
+    from sema4ai_code import commands
+    from sema4ai_code.rcc import get_default_rcc_location
+
+    language_server = language_server_initialized
+
+    language_server.settings({"settings": {"sema4ai": {"rcc": {}}}})
+
+    default_location = get_default_rcc_location()
+
+    with mock.patch("sema4ai_code.rcc.download_rcc") as mock_download_rcc:
+        mock_download_rcc.return_value = None
+
+        # Test default location fallback
+        result = language_server.execute_command(
+            commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_rcc.call_count == 1
+        assert result["result"] == default_location
+
+        # Test location from settings
+        test_settings_location = "test/settings/location"
+
+        language_server.settings(
+            {"settings": {"sema4ai": {"rcc": {"location": test_settings_location}}}}
+        )
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_rcc.call_count == 2
+        assert result["result"] == test_settings_location
+
+        # Test passing location explicitly
+        test_explicit_location = "test/explicit/location"
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL,
+            [{"location": test_explicit_location}],
+        )["result"]
+
+        assert mock_download_rcc.call_count == 3
+        assert result["result"] == test_explicit_location
+
+
+def test_action_server_download(
+    language_server_initialized,
+) -> None:
+    from sema4ai_code import commands
+    from sema4ai_code.action_server import get_default_action_server_location
+
+    language_server = language_server_initialized
+
+    language_server.settings({"settings": {"sema4ai": {"actionServer": {}}}})
+
+    default_location = get_default_action_server_location()
+
+    with mock.patch(
+        "sema4ai_code.action_server.download_action_server"
+    ) as mock_download_action_server:
+        mock_download_action_server.return_value = None
+
+        # Test default location fallback
+        result = language_server.execute_command(
+            commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_action_server.call_count == 1
+        assert result["result"] == default_location
+
+        # Test location from settings
+        test_settings_location = "test/settings/location"
+
+        language_server.settings(
+            {
+                "settings": {
+                    "sema4ai": {"actionServer": {"location": test_settings_location}}
+                }
+            }
+        )
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_action_server.call_count == 2
+        assert result["result"] == test_settings_location
+
+        # Test passing location explicitly
+        test_explicit_location = "test/explicit/location"
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL,
+            [{"location": test_explicit_location}],
+        )["result"]
+
+        assert mock_download_action_server.call_count == 3
+        assert result["result"] == test_explicit_location
+
+
+def test_agent_server_download(
+    language_server_initialized,
+) -> None:
+    from sema4ai_code import commands
+    from sema4ai_code.agent_server import get_default_agent_server_location
+
+    language_server = language_server_initialized
+
+    language_server.settings({"settings": {"sema4ai": {"agentServer": {}}}})
+
+    default_location = get_default_agent_server_location()
+
+    with mock.patch(
+        "sema4ai_code.agent_server.download_agent_server"
+    ) as mock_download_agent_server:
+        mock_download_agent_server.return_value = None
+
+        # Test default location fallback
+        result = language_server.execute_command(
+            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_agent_server.call_count == 1
+        assert result["result"] == default_location
+
+        # Test location from settings
+        test_settings_location = "test/settings/location"
+
+        language_server.settings(
+            {
+                "settings": {
+                    "sema4ai": {"agentServer": {"location": test_settings_location}}
+                }
+            }
+        )
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL, []
+        )["result"]
+
+        assert mock_download_agent_server.call_count == 2
+        assert result["result"] == test_settings_location
+
+        # Test passing location explicitly
+        test_explicit_location = "test/explicit/location"
+
+        result = language_server.execute_command(
+            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL,
+            [{"location": test_explicit_location}],
+        )["result"]
+
+        assert mock_download_agent_server.call_count == 3
+        assert result["result"] == test_explicit_location
+
+
+def test_action_server_version(
+    language_server_initialized,
+) -> None:
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL, []
+    )["result"]
+
+    assert result["success"]
+    assert result["result"] is not None
+
+
+def test_agent_server_version(
+    language_server_initialized,
+) -> None:
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_AGENT_SERVER_VERSION_INTERNAL, []
+    )["result"]
+
+    assert result["success"]
+    assert result["result"] is not None

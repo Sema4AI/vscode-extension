@@ -1,17 +1,19 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as os from "os";
 import * as pathModule from "path";
-import { XHRResponse, configure as configureXHR, xhr } from "./requestLight";
+import * as os from "os";
+import { configure as configureXHR } from "./requestLight";
 import { fileExists, getExtensionRelativeFile } from "./files";
-import { workspace, window, ProgressLocation, CancellationToken, Progress, extensions, ExtensionContext } from "vscode";
+import { CancellationToken, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "./channel";
-import { Timing, sleep } from "./time";
+import { Timing } from "./time";
 import { execFilePromise, ExecFileReturn, mergeEnviron } from "./subprocess";
 import * as roboConfig from "./robocorpSettings";
-import { runAsAdminWin32 } from "./extensionCreateEnv";
 import { getProceedwithlongpathsdisabled } from "./robocorpSettings";
+import { runAsAdminWin32 } from "./extensionCreateEnv";
 import { GLOBAL_STATE } from "./extension";
+import { downloadWithProgress, DownloadProgress } from "./http";
+import { Tool, downloadTool } from "./tools";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -118,39 +120,6 @@ async function checkCachedEnvValid(env): Promise<boolean> {
     return true;
 }
 
-async function downloadRcc(
-    progress: Progress<{ message?: string; increment?: number }>,
-    token: CancellationToken
-): Promise<string | undefined> {
-    // Configure library with http settings.
-    // i.e.: https://code.visualstudio.com/docs/setup/network
-    let httpSettings = workspace.getConfiguration("http");
-    configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
-    let location = getExpectedRccLocation();
-    let relativePath: string;
-    if (process.platform == "win32") {
-        if (process.arch === "x64" || process.env.hasOwnProperty("PROCESSOR_ARCHITEW6432")) {
-            // Check if node is a 64 bit process or if it's a 32 bit process running in a 64 bit processor.
-            relativePath = "/windows64/rcc.exe";
-        } else {
-            throw new Error("Currently only Windows amd64 is supported.");
-        }
-    } else if (process.platform == "darwin") {
-        relativePath = "/macos64/rcc";
-    } else {
-        // Linux
-        if (process.arch == "x64") {
-            relativePath = "/linux64/rcc";
-        } else {
-            throw new Error("Currently only Linux amd64 is supported.");
-        }
-    }
-    const RCC_VERSION = "v18.1.1";
-    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
-    const url: string = prefix + relativePath;
-    return await download(url, progress, token, location);
-}
-
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
 const BASENAME_PREBUILT_WIN_AMD64 = "81f44270388737d7_windows_amd64.zip";
@@ -189,7 +158,7 @@ async function getBaseAsZipDownloadLocation(): Promise<string> {
 }
 
 async function downloadBaseAsZip(
-    progress: Progress<{ message?: string; increment?: number }>,
+    progress: Progress<DownloadProgress>,
     token: CancellationToken,
     zipDownloadLocation: string
 ) {
@@ -198,91 +167,13 @@ async function downloadBaseAsZip(
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     const basename = getBaseAsZipBasename();
     const url: string = "https://cdn.sema4.ai/holotree/sema4ai/" + basename;
-    const ret = await download(url, progress, token, zipDownloadLocation);
+    const ret = await downloadWithProgress(url, progress, token, zipDownloadLocation);
 
     OUTPUT_CHANNEL.appendLine(
         "Took: " + timing.getTotalElapsedAsStr() + " to download base environment (" + zipDownloadLocation + ")."
     );
 
     return ret;
-}
-
-export async function download(
-    url: string,
-    progress: Progress<{ message?: string; increment?: number }>,
-    token: CancellationToken,
-    location: string
-) {
-    // Downloads can go wrong (so, retry a few times before giving up).
-    const maxTries = 3;
-    let timing: Timing = new Timing();
-
-    OUTPUT_CHANNEL.appendLine("Downloading from: " + url);
-    for (let i = 0; i < maxTries; i++) {
-        function onProgress(currLen: number, totalLen: number) {
-            if (timing.elapsedFromLastMeasurement(300) || currLen == totalLen) {
-                currLen /= 1024 * 1024;
-                totalLen /= 1024 * 1024;
-                let currProgress = (currLen / totalLen) * 100;
-                let msg: string =
-                    "Downloaded: " +
-                    currLen.toFixed(1) +
-                    "MB of " +
-                    totalLen.toFixed(1) +
-                    "MB (" +
-                    currProgress.toFixed(1) +
-                    "%)";
-                if (i > 0) {
-                    msg = "Attempt: " + (i + 1) + " - " + msg;
-                }
-                progress.report({ message: msg });
-                OUTPUT_CHANNEL.appendLine(msg);
-            }
-        }
-
-        try {
-            let response: XHRResponse = await xhr({
-                "url": url,
-                "onProgress": onProgress,
-            });
-            if (response.status == 200) {
-                // Ok, we've been able to get it.
-                // Note: only write to file after we get all contents to avoid
-                // having partial downloads.
-                OUTPUT_CHANNEL.appendLine("Finished downloading in: " + timing.getTotalElapsedAsStr());
-                OUTPUT_CHANNEL.appendLine("Writing to: " + location);
-                progress.report({ message: "Finished downloading (writing to file)." });
-                let s = fs.createWriteStream(location, { "encoding": "binary", "mode": 0o744 });
-                try {
-                    response.responseData.forEach((element) => {
-                        s.write(element);
-                    });
-                } finally {
-                    s.close();
-                }
-
-                // If we don't sleep after downloading, the first activation seems to fail on Windows and Mac
-                // (EBUSY on Windows, undefined on Mac).
-                await sleep(200);
-
-                return location;
-            } else {
-                throw Error(
-                    "Unable to download from " +
-                        url +
-                        ". Response status: " +
-                        response.status +
-                        "Response message: " +
-                        response.responseText
-                );
-            }
-        } catch (error) {
-            OUTPUT_CHANNEL.appendLine("Error downloading (" + i + " of " + maxTries + "). Error: " + error.message);
-            if (i == maxTries - 1) {
-                return undefined;
-            }
-        }
-    }
 }
 
 function getExpectedRccLocation(): string {
@@ -304,7 +195,8 @@ function getExpectedRccLocation(): string {
 // https://github.com/microsoft/vscode/issues/6929#issuecomment-222153748
 
 export async function getRccLocation(): Promise<string | undefined> {
-    let location = getExpectedRccLocation();
+    const location = getExpectedRccLocation();
+
     if (!(await fileExists(location))) {
         await window.withProgress(
             {
@@ -312,7 +204,7 @@ export async function getRccLocation(): Promise<string | undefined> {
                 title: "Download conda manager (rcc).",
                 cancellable: false,
             },
-            downloadRcc
+            (): Promise<string> => downloadTool(Tool.Rcc, location)
         );
     }
     return location;

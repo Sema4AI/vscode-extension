@@ -125,6 +125,11 @@ SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata"  
 SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal"  # Open the Action Package OpenAPI Spec (metadata.json) (internal)
 SEMA4AI_OAUTH2_LOGOUT = "sema4ai.oauth2.logout"  # OAuth2 logout
 SEMA4AI_OAUTH2_OPEN_SETTINGS = "sema4ai.oauth2.open_settings"  # Open Oauth2 Settings
+SEMA4AI_RCC_DOWNLOAD_INTERNAL = "sema4ai.rccDownload.internal"  # Downloads the RCC (internal)
+SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL = "sema4ai.actionServerDownload.internal"  # Downloads the Action Server (internal)
+SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL = "sema4ai.agentServerDownload.internal"  # Downloads the Agent Server (internal)
+SEMA4AI_ACTION_SERVER_VERSION_INTERNAL = "sema4ai.actionServerVersion.internal"  # Get the Action Server's version (internal)
+SEMA4AI_AGENT_SERVER_VERSION_INTERNAL = "sema4ai.agentServerVersion.internal"  # Get the Agent Server's version (internal)
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -172,6 +177,11 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
     SEMA4AI_OAUTH2_OPEN_SETTINGS,
+    SEMA4AI_RCC_DOWNLOAD_INTERNAL,
+    SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL,
+    SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL,
+    SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
+    SEMA4AI_AGENT_SERVER_VERSION_INTERNAL,
 ]
 
 # fmt: on

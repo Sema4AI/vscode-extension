@@ -143,6 +143,11 @@
         "onCommand:sema4ai.actionServerPackageMetadata.internal",
         "onCommand:sema4ai.oauth2.logout",
         "onCommand:sema4ai.oauth2.open_settings",
+        "onCommand:sema4ai.rccDownload.internal",
+        "onCommand:sema4ai.actionServerDownload.internal",
+        "onCommand:sema4ai.agentServerDownload.internal",
+        "onCommand:sema4ai.actionServerVersion.internal",
+        "onCommand:sema4ai.agentServerVersion.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -227,6 +232,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Specifies the location of the action-server executable."
+                },
+                "sema4ai.agentServer.location": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Specifies the location of the agent-server executable."
                 }
             }
         },

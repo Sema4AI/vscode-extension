@@ -116,6 +116,12 @@ SETTINGS = [
         "Specifies the location of the action-server executable.",
         setting_type="string",
     ),
+    Setting(
+        "sema4ai.agentServer.location",
+        "",
+        "Specifies the location of the agent-server executable.",
+        setting_type="string",
+    ),
 ]
 
 
