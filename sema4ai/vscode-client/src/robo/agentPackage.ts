@@ -2,7 +2,7 @@ import {
     commands,
     window
 } from "vscode";
-import { getAgentServerLocation } from "../agentServer";
+import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
     getPackageTargetDirectory,
@@ -20,8 +20,8 @@ import {
 
 export const createAgentPackage = async (): Promise<void> => {
     /* We make sure Agent Server exists - if not, getAgentServerLocation will ask user to download it.  */
-    const agentServer = getAgentServerLocation();
-    if (!agentServer) {
+    const agentCli = getAgentCliLocation();
+    if (!agentCli) {
         return;
     }
 
