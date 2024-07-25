@@ -145,9 +145,9 @@
         "onCommand:sema4ai.oauth2.open_settings",
         "onCommand:sema4ai.rccDownload.internal",
         "onCommand:sema4ai.actionServerDownload.internal",
-        "onCommand:sema4ai.agentServerDownload.internal",
+        "onCommand:sema4ai.agentCliDownload.internal",
         "onCommand:sema4ai.actionServerVersion.internal",
-        "onCommand:sema4ai.agentServerVersion.internal",
+        "onCommand:sema4ai.agentCliVersion.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -233,10 +233,10 @@
                     "default": "",
                     "description": "Specifies the location of the action-server executable."
                 },
-                "sema4ai.agentServer.location": {
+                "sema4ai.agentCli.location": {
                     "type": "string",
                     "default": "",
-                    "description": "Specifies the location of the agent-server executable."
+                    "description": "Specifies the location of the agent-cli executable."
                 }
             }
         },

@@ -530,3 +530,18 @@ class ActionServerResult(ActionResult[str]):
     ):
         ActionResult.__init__(self, success, message, result)
         self.command_line = command_line
+
+
+class AgentCliResult(ActionResult[str]):
+    # A string-representation of the command line.
+    command_line: str
+
+    def __init__(
+        self,
+        command_line: str,
+        success: bool,
+        message: Optional[str] = None,
+        result: Optional[str] = None,
+    ):
+        ActionResult.__init__(self, success, message, result)
+        self.command_line = command_line

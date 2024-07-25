@@ -128,7 +128,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code.rcc import Rcc
         from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
         from sema4ai_code.action_server import ActionServer
-        from sema4ai_code.agent_server import AgentServer
+        from sema4ai_code.agent_cli import AgentCli
 
         user_home = os.getenv("ROBOCORP_CODE_USER_HOME", None)
         if user_home is None:
@@ -191,7 +191,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
         self._action_server = ActionServer(self)
-        self._agent_server = AgentServer(self)
+        self._agent_cli = AgentCli(self)
 
         weak_self = weakref.ref(self)  # Avoid cyclic ref.
 
@@ -1629,24 +1629,24 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return {"success": True, "message": None, "result": location}
 
-    @command_dispatcher(commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL)
-    def _agent_server_download(
+    @command_dispatcher(commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL)
+    def _agent_cli_download(
         self, params: Optional[DownloadToolDict] = None
     ) -> ActionResultDict:
-        from sema4ai_code.agent_server import download_agent_server
+        from sema4ai_code.agent_cli import download_agent_cli
 
         location = (
             params["location"]
             if params
-            else self._agent_server.get_agent_server_location()
+            else self._agent_cli.get_agent_cli_location()
         )
 
         try:
-            download_agent_server(location)
+            download_agent_cli(location)
         except Exception as e:
             return {
                 "success": False,
-                "message": f"Agent Server download failed: {e}",
+                "message": f"Agent CLI download failed: {e}",
                 "result": None,
             }
 
@@ -1656,9 +1656,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _action_server_version(self) -> ActionResultDict:
         return self._action_server.get_version().as_dict()
 
-    @command_dispatcher(commands.SEMA4AI_AGENT_SERVER_VERSION_INTERNAL)
-    def _agent_server_version(self) -> ActionResultDict:
-        return self._agent_server.get_version().as_dict()
+    @command_dispatcher(commands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL)
+    def _agent_cli_version(self) -> ActionResultDict:
+        return self._agent_cli.get_version().as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

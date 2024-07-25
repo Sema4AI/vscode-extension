@@ -1872,29 +1872,29 @@ def test_action_server_download(
         assert result["result"] == test_explicit_location
 
 
-def test_agent_server_download(
+def test_agent_cli_download(
     language_server_initialized,
 ) -> None:
     from sema4ai_code import commands
-    from sema4ai_code.agent_server import get_default_agent_server_location
+    from sema4ai_code.agent_cli import get_default_agent_cli_location
 
     language_server = language_server_initialized
 
-    language_server.settings({"settings": {"sema4ai": {"agentServer": {}}}})
+    language_server.settings({"settings": {"sema4ai": {"agentCli": {}}}})
 
-    default_location = get_default_agent_server_location()
+    default_location = get_default_agent_cli_location()
 
     with mock.patch(
-        "sema4ai_code.agent_server.download_agent_server"
-    ) as mock_download_agent_server:
-        mock_download_agent_server.return_value = None
+        "sema4ai_code.agent_cli.download_agent_cli"
+    ) as mock_download_agent_cli:
+        mock_download_agent_cli.return_value = None
 
         # Test default location fallback
         result = language_server.execute_command(
-            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL, []
+            commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL, []
         )["result"]
 
-        assert mock_download_agent_server.call_count == 1
+        assert mock_download_agent_cli.call_count == 1
         assert result["result"] == default_location
 
         # Test location from settings
@@ -1903,27 +1903,27 @@ def test_agent_server_download(
         language_server.settings(
             {
                 "settings": {
-                    "sema4ai": {"agentServer": {"location": test_settings_location}}
+                    "sema4ai": {"agentCli": {"location": test_settings_location}}
                 }
             }
         )
 
         result = language_server.execute_command(
-            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL, []
+            commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL, []
         )["result"]
 
-        assert mock_download_agent_server.call_count == 2
+        assert mock_download_agent_cli.call_count == 2
         assert result["result"] == test_settings_location
 
         # Test passing location explicitly
         test_explicit_location = "test/explicit/location"
 
         result = language_server.execute_command(
-            commands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL,
+            commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL,
             [{"location": test_explicit_location}],
         )["result"]
 
-        assert mock_download_agent_server.call_count == 3
+        assert mock_download_agent_cli.call_count == 3
         assert result["result"] == test_explicit_location
 
 
@@ -1942,7 +1942,7 @@ def test_action_server_version(
     assert result["result"] is not None
 
 
-def test_agent_server_version(
+def test_agent_cli_version(
     language_server_initialized,
 ) -> None:
     from sema4ai_code import commands
@@ -1950,7 +1950,7 @@ def test_agent_server_version(
     language_server = language_server_initialized
 
     result = language_server.execute_command(
-        commands.SEMA4AI_AGENT_SERVER_VERSION_INTERNAL, []
+        commands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL, []
     )["result"]
 
     assert result["success"]

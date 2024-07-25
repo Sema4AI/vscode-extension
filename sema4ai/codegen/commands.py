@@ -897,8 +897,8 @@ COMMANDS = [
         add_to_package_json=False,
     ),
     Command(
-        "sema4ai.agentServerDownload.internal",
-        "Downloads the Agent Server (internal)",
+        "sema4ai.agentCliDownload.internal",
+        "Downloads the Agent CLI (internal)",
         server_handled=True,
         add_to_package_json=False,
     ),
@@ -909,8 +909,8 @@ COMMANDS = [
         add_to_package_json=False,
     ),
     Command(
-        "sema4ai.agentServerVersion.internal",
-        "Get the Agent Server's version (internal)",
+        "sema4ai.agentCliVersion.internal",
+        "Get the Agent CLI's version (internal)",
         server_handled=True,
         add_to_package_json=False,
     ),

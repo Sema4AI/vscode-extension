@@ -371,7 +371,7 @@ def language_server_initialized(
     ws_root_path: str,
     rcc_location: str,
     action_server_location: str,
-    agent_server_location: str,
+        agent_cli_location: str,
     ci_endpoint: str,
     rcc_config_location: str,
     initialization_options,
@@ -392,8 +392,8 @@ def language_server_initialized(
                         "config_location": rcc_config_location,
                     },
                     "actionServer": {"location": action_server_location},
-                    "agentServer": {
-                        "location": agent_server_location,
+                    "agentCli": {
+                        "location": agent_cli_location,
                     },
                 }
             }
@@ -500,14 +500,14 @@ def action_server_location_without_templates_handling() -> str:
 
 
 @pytest.fixture
-def agent_server_location() -> str:
-    from sema4ai_code.agent_server import (
-        download_agent_server,
-        get_default_agent_server_location,
+def agent_cli_location() -> str:
+    from sema4ai_code.agent_cli import (
+        download_agent_cli,
+        get_default_agent_cli_location,
     )
 
-    location = get_default_agent_server_location()
-    download_agent_server(location, force=False)
+    location = get_default_agent_cli_location()
+    download_agent_cli(location, force=False)
 
     return location
 

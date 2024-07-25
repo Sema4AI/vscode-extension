@@ -117,9 +117,9 @@ SETTINGS = [
         setting_type="string",
     ),
     Setting(
-        "sema4ai.agentServer.location",
+        "sema4ai.agentCli.location",
         "",
-        "Specifies the location of the agent-server executable.",
+        "Specifies the location of the agent-cli executable.",
         setting_type="string",
     ),
 ]

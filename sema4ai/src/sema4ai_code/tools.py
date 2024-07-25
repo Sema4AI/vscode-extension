@@ -11,27 +11,27 @@ log = get_logger(__name__)
 class Tool(Enum):
     RCC = "rcc"
     ACTION_SERVER = "action-server"
-    AGENT_SERVER = "agent-server"
+    AGENT_CLI = "agent-cli"
 
 
 TOOL_MUTEX_MAP = {
     Tool.RCC: "robocorp_get_rcc",
     Tool.ACTION_SERVER: "sema4ai-get-action-server",
-    Tool.AGENT_SERVER: "sema4ai-get-agent-server",
+    Tool.AGENT_CLI: "sema4ai-get-agent-cli",
 }
 
 
 TOOL_BASE_URL_MAP = {
     Tool.RCC: "https://cdn.sema4.ai/rcc/releases",
     Tool.ACTION_SERVER: "https://cdn.sema4.ai/action-server/releases",
-    Tool.AGENT_SERVER: "https://cdn.sema4.ai/agent-server/releases",
+    Tool.AGENT_CLI: "https://cdn.sema4.ai/agent-cli/releases",
 }
 
 
 TOOL_EXECUTABLE_NAME_MAP = {
     Tool.RCC: "rcc",
     Tool.ACTION_SERVER: "action-server",
-    Tool.AGENT_SERVER: "agent-server",
+    Tool.AGENT_CLI: "agent-cli",
 }
 
 

@@ -7,7 +7,7 @@ import { ActionResult } from "./protocols";
 export enum Tool {
     Rcc = "rcc",
     ActionServer = "action-server",
-    AgentServer = "agent-server",
+    AgentCli = "agent-cli",
 }
 
 type ToolAttributeMap<T = string> = { [key in Tool]: T };
@@ -15,19 +15,19 @@ type ToolAttributeMap<T = string> = { [key in Tool]: T };
 const TOOL_EXECUTABLE_NAME_MAP: ToolAttributeMap = {
     [Tool.Rcc]: "rcc",
     [Tool.ActionServer]: "action-server",
-    [Tool.AgentServer]: "agent-server",
+    [Tool.AgentCli]: "agent-cli",
 };
 
 const TOOL_VERSION_COMMAND_MAP: ToolAttributeMap = {
     [Tool.Rcc]: "",
     [Tool.ActionServer]: roboCommands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
-    [Tool.AgentServer]: roboCommands.SEMA4AI_AGENT_SERVER_VERSION_INTERNAL,
+    [Tool.AgentCli]: roboCommands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
 };
 
 const TOOL_DOWNLOAD_COMMAND_MAP: ToolAttributeMap = {
     [Tool.Rcc]: roboCommands.SEMA4AI_RCC_DOWNLOAD_INTERNAL,
     [Tool.ActionServer]: roboCommands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL,
-    [Tool.AgentServer]: roboCommands.SEMA4AI_AGENT_SERVER_DOWNLOAD_INTERNAL,
+    [Tool.AgentCli]: roboCommands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL,
 };
 
 export const getExecutableFileName = (tool: Tool, suffix: string = ""): string => {
