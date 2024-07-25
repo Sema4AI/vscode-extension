@@ -312,12 +312,9 @@ const askForAccessCredentials = async (): Promise<string | undefined> => {
     return access_credentials;
 };
 
-export const verifyLogin = async (actionServerLocation: string): Promise<ActionServerVerifyLoginOutput | undefined> => {
+export const verifyLogin = async (): Promise<ActionServerVerifyLoginOutput | undefined> => {
     const result: ActionResult<ActionServerVerifyLoginOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
-        {
-            action_server_location: actionServerLocation,
-        }
     );
 
     if (!result.success) {
@@ -329,13 +326,12 @@ export const verifyLogin = async (actionServerLocation: string): Promise<ActionS
 };
 
 const askUserForHostname = async (
-    actionServerLocation: string,
     progress: Progress<{ message?: string; increment?: number }>
 ): Promise<string | undefined> => {
     let defaultHostname = "https://us1.robocorp.com";
 
     progress.report({ message: "Getting default hostname" });
-    const loginOutput = await verifyLogin(actionServerLocation);
+    const loginOutput = await verifyLogin();
     if (loginOutput && loginOutput.logged_in) {
         defaultHostname = loginOutput.hostname;
     }
@@ -378,7 +374,7 @@ export const actionServerCloudLogin = async () => {
                 return;
             }
 
-            const hostname = await askUserForHostname(actionServerLocation, progress);
+            const hostname = await askUserForHostname(progress);
             if (!hostname) {
                 return;
             }
@@ -387,7 +383,6 @@ export const actionServerCloudLogin = async () => {
             const result: ActionResult<undefined> = await commands.executeCommand(
                 roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL,
                 {
-                    action_server_location: actionServerLocation,
                     access_credentials: accessCredentials,
                     hostname,
                 }
@@ -402,12 +397,10 @@ export const actionServerCloudLogin = async () => {
     );
 };
 
-export const listOrganizations = async (actionServerLocation: string): Promise<ActionServerListOrganizationsOutput> => {
+export const listOrganizations = async (): Promise<ActionServerListOrganizationsOutput> => {
     const result: ActionResult<ActionServerListOrganizationsOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
-        {
-            action_server_location: actionServerLocation,
-        }
+        {}
     );
     if (!result.success) {
         window.showErrorMessage("No organizations found");

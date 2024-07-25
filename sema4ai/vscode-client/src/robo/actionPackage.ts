@@ -355,7 +355,7 @@ export async function createActionPackage() {
         let template = "";
 
         if (compare <= 0) {
-            template = await getTemplate(actionServerLocation);
+            template = await getTemplate();
 
             /* If there is no template, it means operation was cancelled, or errored. */
             if (!template) {
@@ -366,7 +366,6 @@ export async function createActionPackage() {
         const result: ActionResult<unknown> = await commands.executeCommand(
             roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
             {
-                "action_server_location": actionServerLocation,
                 "directory": targetDir,
                 "template": template,
             }
@@ -391,12 +390,9 @@ export async function createActionPackage() {
     }
 }
 
-async function getTemplate(actionServerLocation: string) {
+async function getTemplate() {
     const listActionTemplatesResult: ActionResult<ActionTemplate[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
-        {
-            "action_server_location": actionServerLocation,
-        }
     );
 
     if (!listActionTemplatesResult.success) {
@@ -439,11 +435,10 @@ const chooseOrganization = async (
     return organizations.find((org) => org.name == organization);
 };
 
-const buildPackage = async (actionServerLocation: string, workspaceDir: string, outputDir: string): Promise<string> => {
+const buildPackage = async (workspaceDir: string, outputDir: string): Promise<string> => {
     const result: ActionResult<ActionServerPackageBuildOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
         {
-            action_server_location: actionServerLocation,
             workspace_dir: workspaceDir,
             output_dir: outputDir,
         }
@@ -470,14 +465,12 @@ const askUserForChangelogInput = async (): Promise<string> => {
 };
 
 const uploadActionPackage = async (
-    actionServerLocation: string,
     packagePath: string,
     organizationId: string
 ): Promise<ActionServerPackageUploadStatusOutput | undefined> => {
     const result: ActionResult<ActionServerPackageUploadStatusOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
         {
-            action_server_location: actionServerLocation,
             package_path: packagePath,
             organization_id: organizationId,
         }
@@ -491,14 +484,12 @@ const uploadActionPackage = async (
 };
 
 const getActionPackageStatus = async (
-    actionServerLocation: string,
     actionPackageId: string,
     organizationId: string
 ): Promise<ActionServerPackageUploadStatusOutput> => {
     const result: ActionResult<ActionServerPackageUploadStatusOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
         {
-            action_server_location: actionServerLocation,
             package_id: actionPackageId,
             organization_id: organizationId,
         }
@@ -512,7 +503,6 @@ const getActionPackageStatus = async (
 };
 
 const waitUntilPackageVerified = async (
-    actionServerLocation: string,
     actionPackage: ActionServerPackageUploadStatusOutput,
     organizationId: string,
     progress: Progress<{ message?: string; increment?: number }>
@@ -526,7 +516,7 @@ const waitUntilPackageVerified = async (
 
     try {
         while (status !== "published" && status !== "completed" && !timedOut) {
-            const packageStatus = await getActionPackageStatus(actionServerLocation, actionPackage.id, organizationId);
+            const packageStatus = await getActionPackageStatus(actionPackage.id, organizationId);
             status = packageStatus.status;
             progress.report({ message: `Status - ${status}` });
 
@@ -555,7 +545,6 @@ const waitUntilPackageVerified = async (
 };
 
 const updateChangelog = async (
-    actionServerLocation: string,
     packageId: string,
     organizationId: string,
     changelogInput: string
@@ -563,7 +552,6 @@ const updateChangelog = async (
     const result: ActionResult<void> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
         {
-            action_server_location: actionServerLocation,
             package_id: packageId,
             organization_id: organizationId,
             changelog_input: changelogInput,
@@ -579,14 +567,12 @@ const updateChangelog = async (
 };
 
 const createMetadataFile = async (
-    actionServerLocation: string,
     actionPackagePath: string,
     outputFilePath: string
 ): Promise<boolean> => {
     const result: ActionResult<void> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
         {
-            action_server_location: actionServerLocation,
             action_package_path: actionPackagePath,
             output_file_path: outputFilePath,
         }
@@ -626,7 +612,7 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
             }
 
             progress.report({ message: "Validating authentication" });
-            const verifyLoginOutput = await verifyLogin(actionServerLocation);
+            const verifyLoginOutput = await verifyLogin();
             if (!verifyLoginOutput || !verifyLoginOutput.logged_in) {
                 window.showErrorMessage(
                     "Action Server Not authenticated to Control Room, run: Sema4ai: Authenticate the Action Server to Control Room"
@@ -635,7 +621,7 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
             }
 
             progress.report({ message: "Finding organizations" });
-            const organizations = await listOrganizations(actionServerLocation);
+            const organizations = await listOrganizations();
             if (organizations.length === 0) {
                 return;
             }
@@ -657,20 +643,19 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
                 fs.mkdirSync(tempDir, { recursive: true });
 
                 progress.report({ message: "Building package" });
-                const packagePath = await buildPackage(actionServerLocation, actionPackagePath.fsPath, tempDir);
+                const packagePath = await buildPackage(actionPackagePath.fsPath, tempDir);
                 if (!packagePath) {
                     return;
                 }
 
                 progress.report({ message: "Uploading package to Control Room" });
-                const actionPackage = await uploadActionPackage(actionServerLocation, packagePath, organization.id);
+                const actionPackage = await uploadActionPackage(packagePath, organization.id);
                 if (!actionPackage) {
                     return;
                 }
 
                 progress.report({ message: "Waiting for package to be verified" });
                 const verified = await waitUntilPackageVerified(
-                    actionServerLocation,
                     actionPackage,
                     organization.id,
                     progress
@@ -681,7 +666,6 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
 
                 progress.report({ message: "Updating the package changelog to Control Room" });
                 const updated = await updateChangelog(
-                    actionServerLocation,
                     actionPackage.id,
                     organization.id,
                     changelogInput
@@ -731,7 +715,6 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
 
             progress.report({ message: "Building package" });
             const packagePath = await buildPackage(
-                actionServerLocation,
                 actionPackagePath.fsPath,
                 actionPackagePath.fsPath
             );
@@ -762,7 +745,7 @@ const createMetadata = async (actionPackagePath: string, outputFilePath: string)
             }
 
             progress.report({ message: "Creating metadata.json (please wait, this can take a long time)" });
-            const ok = await createMetadataFile(actionServerLocation, actionPackagePath, outputFilePath);
+            const ok = await createMetadataFile(actionPackagePath, outputFilePath);
             if (!ok) {
                 return false;
             }
