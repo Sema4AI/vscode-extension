@@ -55,6 +55,8 @@ export const downloadLatestActionServer = async (): Promise<string | undefined> 
         return;
     }
 
+    OUTPUT_CHANNEL.appendLine(`Downloaded latest Action Server to ${versionedLocation}.`);
+
     await setActionserverLocation(savedLocation);
 
     return savedLocation;
