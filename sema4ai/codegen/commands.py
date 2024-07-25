@@ -914,6 +914,18 @@ COMMANDS = [
         server_handled=True,
         add_to_package_json=False,
     ),
+    Command(
+        "sema4ai.createAgentPackage",
+        "Create Agent Package",
+        server_handled=False,
+        icon="$(add)",
+    ),
+    Command(
+        "sema4ai.createAgentPackage.internal",
+        "Calls Agent Server to create new Agent Package",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 

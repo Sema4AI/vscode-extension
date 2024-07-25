@@ -11,7 +11,6 @@ import {
     CancellationToken,
 } from "vscode";
 import * as vscode from "vscode";
-import { join } from "path";
 import * as roboCommands from "../robocorpCommands";
 import {
     ActionResult,
@@ -24,11 +23,12 @@ import {
     ActionServerPackageUploadStatusOutput,
 } from "../protocols";
 import {
-    areThereRobotsInWorkspace,
     compareVersions,
+    getPackageTargetDirectory,
     isActionPackage,
     isDirectoryAPackageDirectory,
-    verifyIfPathOkToCreatePackage,
+    refreshFilesExplorer,
+    verifyIfPathOkToCreatePackage
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -253,7 +253,7 @@ export async function runActionFromActionPackage(
 }
 
 export async function createActionPackage() {
-    const robotsInWorkspacePromise: Promise<boolean> = areThereRobotsInWorkspace();
+    /* We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.  */
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
         return;
@@ -271,49 +271,16 @@ export async function createActionPackage() {
         return;
     }
 
-    const robotsInWorkspace: boolean = await robotsInWorkspacePromise;
-    let useWorkspaceFolder: boolean;
-    if (robotsInWorkspace) {
-        // i.e.: if we already have robots, this is a multi-Robot workspace.
-        useWorkspaceFolder = false;
-    } else {
-        const USE_WORKSPACE_FOLDER_LABEL = "Use workspace folder (recommended)";
-        let target = await window.showQuickPick(
-            [
-                {
-                    "label": USE_WORKSPACE_FOLDER_LABEL,
-                    "detail": "The workspace will only have a single Action Package.",
-                },
-                {
-                    "label": "Use child folder in workspace (advanced)",
-                    "detail": "Multiple Action Packages can be created in this workspace.",
-                },
-            ],
-            {
-                "placeHolder": "Where do you want to create the Action Package?",
-                "ignoreFocusOut": true,
-            }
-        );
+    const targetDir = await getPackageTargetDirectory(ws, {
+        title: "Where do you want to create the Action Package?",
+        useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
+        useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
+        provideNamePrompt: "Please provide the name for the Action Package folder name."
+    });
 
-        if (!target) {
-            // Operation cancelled.
-            return;
-        }
-        useWorkspaceFolder = target["label"] == USE_WORKSPACE_FOLDER_LABEL;
-    }
-
-    let targetDir = ws.uri.fsPath;
-    if (!useWorkspaceFolder) {
-        let name: string = await window.showInputBox({
-            "value": "Example",
-            "prompt": "Please provide the name for the Action Package folder name.",
-            "ignoreFocusOut": true,
-        });
-        if (!name) {
-            // Operation cancelled.
-            return;
-        }
-        targetDir = join(targetDir, name);
+    /* Operation cancelled. */
+    if (!targetDir) {
+        return;
     }
 
     // Now, let's validate if we can indeed create an Action Package in the given folder.
@@ -372,15 +339,10 @@ export async function createActionPackage() {
         );
 
         if (!result.success) {
-            throw new Error(result.message || "Unkown error");
+            throw new Error(result.message || "Unknown error");
         }
 
-        try {
-            commands.executeCommand("workbench.files.action.refreshFilesExplorer");
-        } catch (error) {
-            logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
-        }
-
+        refreshFilesExplorer();
         window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;

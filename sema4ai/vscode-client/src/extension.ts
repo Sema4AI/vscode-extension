@@ -149,6 +149,7 @@ import {
     SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
     SEMA4AI_OAUTH2_LOGOUT,
+    SEMA4AI_CREATE_AGENT_PACKAGE
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -178,6 +179,7 @@ import {
 import { showSelectOneStrQuickPick } from "./ask";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
 import { oauth2Logout } from "./robo/oauth2InInput";
+import { createAgentPackage } from "./robo/agentPackage";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -487,6 +489,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_BUILD, buildActionPackage);
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, openMetadata);
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
+    C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
 }
 
 async function clearEnvAndRestart() {

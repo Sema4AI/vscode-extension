@@ -313,6 +313,10 @@ class DownloadToolDict(TypedDict):
     location: str
 
 
+class CreateAgentPackageParamsDict(TypedDict):
+    directory: str
+
+
 class IRccWorkspace(Protocol):
     @property
     def workspace_id(self) -> str:

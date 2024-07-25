@@ -148,6 +148,8 @@
         "onCommand:sema4ai.agentCliDownload.internal",
         "onCommand:sema4ai.actionServerVersion.internal",
         "onCommand:sema4ai.agentCliVersion.internal",
+        "onCommand:sema4ai.createAgentPackage",
+        "onCommand:sema4ai.createAgentPackage.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -917,6 +919,12 @@
                 "command": "sema4ai.oauth2.open_settings",
                 "title": "Open Oauth2 Settings",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.createAgentPackage",
+                "title": "Create Agent Package",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
             }
         ],
         "menus": {

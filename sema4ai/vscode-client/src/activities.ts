@@ -9,7 +9,7 @@ import {
     DebugSessionOptions,
     env,
 } from "vscode";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
@@ -41,10 +41,11 @@ import {
 import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
-    areThereRobotsInWorkspace,
+    getPackageTargetDirectory,
     isActionPackage,
     isDirectoryAPackageDirectory,
-    verifyIfPathOkToCreatePackage,
+    refreshFilesExplorer,
+    verifyIfPathOkToCreatePackage
 } from "./common";
 
 export interface ListOpts {
@@ -710,7 +711,6 @@ export async function createRobot() {
         roboCommands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL
     );
 
-    const robotsInWorkspacePromise: Promise<boolean> = areThereRobotsInWorkspace();
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {
         // Operation cancelled.
@@ -757,49 +757,16 @@ export async function createRobot() {
         return;
     }
 
-    const robotsInWorkspace: boolean = await robotsInWorkspacePromise;
-    let useWorkspaceFolder: boolean;
-    if (robotsInWorkspace) {
-        // i.e.: if we already have robots, this is a multi-Robot workspace.
-        useWorkspaceFolder = false;
-    } else {
-        const USE_WORKSPACE_FOLDER_LABEL = "Use workspace folder (recommended)";
-        let target = await window.showQuickPick(
-            [
-                {
-                    "label": USE_WORKSPACE_FOLDER_LABEL,
-                    "detail": "The workspace will only have a single Task Package.",
-                },
-                {
-                    "label": "Use child folder in workspace (advanced)",
-                    "detail": "Multiple Task Packages can be created in this workspace.",
-                },
-            ],
-            {
-                "placeHolder": "Where do you want to create the Task Package?",
-                "ignoreFocusOut": true,
-            }
-        );
+    const targetDir = await getPackageTargetDirectory(ws, {
+        title: "Where do you want to create the Task Package?",
+        useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
+        useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
+        provideNamePrompt: "Please provide the name for the Task Package folder name."
+    });
 
-        if (!target) {
-            // Operation cancelled.
-            return;
-        }
-        useWorkspaceFolder = target["label"] == USE_WORKSPACE_FOLDER_LABEL;
-    }
-
-    let targetDir = ws.uri.fsPath;
-    if (!useWorkspaceFolder) {
-        let name: string = await window.showInputBox({
-            "value": "Example",
-            "prompt": "Please provide the name for the Task Package folder name.",
-            "ignoreFocusOut": true,
-        });
-        if (!name) {
-            // Operation cancelled.
-            return;
-        }
-        targetDir = join(targetDir, name);
+    /* Operation cancelled. */
+    if (!targetDir) {
+        return;
     }
 
     // Now, let's validate if we can indeed create a Robot in the given folder.
@@ -825,11 +792,7 @@ export async function createRobot() {
     );
 
     if (createRobotResult.success) {
-        try {
-            commands.executeCommand("workbench.files.action.refreshFilesExplorer");
-        } catch (error) {
-            logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
-        }
+        refreshFilesExplorer();
         window.showInformationMessage("Task Package successfully created in:\n" + targetDir);
     } else {
         OUTPUT_CHANNEL.appendLine("Error creating Task Package at: " + targetDir);

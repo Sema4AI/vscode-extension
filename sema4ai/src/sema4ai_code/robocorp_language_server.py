@@ -58,6 +58,7 @@ from sema4ai_code.protocols import (
     WorkItem,
     WorkspaceInfoDict,
     DownloadToolDict,
+    CreateAgentPackageParamsDict,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -635,7 +636,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         the old cache to remove stale values... all that's valid is put in
         the new cache).
         """
-        check_yamls = [sub / "robot.yaml", sub / "package.yaml"]
+        check_yamls = [sub / "robot.yaml", sub / "package.yaml", sub / "agent-spec.yaml"]
 
         cached_file_info: Optional[
             CachedFileInfo[LocalRobotMetadataInfoDict]
@@ -905,6 +906,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return find_robot_yaml.find_robot_yaml_path_from_path(path, stat)
 
+    # @TODO:
+    # At this point, this should probably be renamed, as it will list not only Robots,
+    # but also Action and Agent packages.
     @command_dispatcher(commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL)
     def _local_list_robots(self, params=None) -> ActionResultDictLocalRobotMetadata:
         curr_cache = self._local_list_robots_cache
@@ -1659,6 +1663,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     @command_dispatcher(commands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL)
     def _agent_cli_version(self) -> ActionResultDict:
         return self._agent_cli.get_version().as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL)
+    def _create_agent_package(self, params: CreateAgentPackageParamsDict) -> ActionResultDict:
+        directory = params["directory"]
+
+        return self._agent_server.create_agent_package(directory).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

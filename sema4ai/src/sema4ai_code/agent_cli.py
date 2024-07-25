@@ -163,3 +163,21 @@ class AgentCli:
             return ActionResult(success=False, message=command_result.message)
 
         return ActionResult(success=True, message=None, result=command_result.result)
+
+    def create_agent_package(self, directory: str) -> ActionResult[str]:
+        """
+        Create a new Agent package under given directory.
+
+        Args:
+            directory: The directory to create the Agent package in.
+        """
+        args = ["project", "new", "--output-dir", directory]
+
+        command_result = self._run_agent_server_command(args)
+
+        if not command_result.success:
+            return ActionResult(success=False, message=f"Error creating Agent package.\n{command_result.message}")
+
+        return ActionResult(success=True, message=None)
+
+

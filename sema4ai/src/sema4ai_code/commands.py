@@ -130,6 +130,8 @@ SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL = "sema4ai.actionServerDownload.internal
 SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL = "sema4ai.agentCliDownload.internal"  # Downloads the Agent CLI (internal)
 SEMA4AI_ACTION_SERVER_VERSION_INTERNAL = "sema4ai.actionServerVersion.internal"  # Get the Action Server's version (internal)
 SEMA4AI_AGENT_CLI_VERSION_INTERNAL = "sema4ai.agentCliVersion.internal"  # Get the Agent CLI's version (internal)
+SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage"  # Create Agent Package
+SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal"  # Calls Agent Server to create new Agent Package
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -182,6 +184,7 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL,
     SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
     SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
+    SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
 ]
 
 # fmt: on

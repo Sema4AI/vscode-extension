@@ -1,9 +1,23 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
-import { FileType, Uri, window } from "vscode";
+import {
+    commands,
+    FileType,
+    Uri,
+    window,
+    WorkspaceFolder
+} from "vscode";
 import { ActionResult, LocalRobotMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
+import { join } from "path";
+
+export type GetPackageTargetDirectoryMessages = {
+    title: string;
+    useWorkspaceFolderPrompt: string;
+    useChildFolderPrompt: string;
+    provideNamePrompt: string;
+};
 
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
@@ -27,25 +41,82 @@ export const isActionPackage = (entry: PackageEntry | LocalRobotMetadataInfo) =>
     return entry.filePath.endsWith("package.yaml");
 };
 
-export async function areThereRobotsInWorkspace(): Promise<boolean> {
-    let asyncListLocalRobots: Thenable<ActionResult<LocalRobotMetadataInfo[]>> = vscode.commands.executeCommand(
+export async function areTherePackagesInWorkspace(): Promise<boolean> {
+    const actionResultListLocalRobots: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
-    let actionResultListLocalRobots: ActionResult<LocalRobotMetadataInfo[]> = await asyncListLocalRobots;
-
-    let robotsInWorkspace = false;
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
         window.showErrorMessage(
             "Error listing robots: " + actionResultListLocalRobots.message + " (Robot creation will proceed)."
         );
+
+        return false;
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
-    } else {
-        let robotsInfo: LocalRobotMetadataInfo[] = actionResultListLocalRobots.result;
-        robotsInWorkspace = robotsInfo && robotsInfo.length > 0;
     }
-    return robotsInWorkspace;
+
+    const robotsInfo: LocalRobotMetadataInfo[] = actionResultListLocalRobots.result;
+    return robotsInfo && robotsInfo.length > 0
+}
+
+export async function getPackageTargetDirectory(ws: WorkspaceFolder, messages: GetPackageTargetDirectoryMessages): Promise<string | null> {
+    const packagesInDirectory = await areTherePackagesInWorkspace();
+
+    let useWorkspaceFolder = false;
+
+    if (!packagesInDirectory) {
+        const useWorkspaceFolderLabel = "Use workspace folder (recommended)";
+
+        const target = await window.showQuickPick(
+            [
+                {
+                    "label": useWorkspaceFolderLabel,
+                    "detail": messages.useWorkspaceFolderPrompt,
+                },
+                {
+                    "label": "Use child folder in workspace (advanced)",
+                    "detail": messages.useChildFolderPrompt,
+                },
+            ],
+            {
+                "placeHolder": messages.title,
+                "ignoreFocusOut": true,
+            }
+        );
+
+        /* Operation cancelled. */
+        if (!target) {
+            return null;
+        }
+
+        useWorkspaceFolder = target["label"] === useWorkspaceFolderLabel;
+    }
+
+    if (!useWorkspaceFolder) {
+        const name = await window.showInputBox({
+            "value": "Example",
+            "prompt": messages.provideNamePrompt,
+            "ignoreFocusOut": true,
+        });
+
+        /* Operation cancelled. */
+        if (!name) {
+            return null;
+        }
+
+        return join(ws.uri.fsPath, name);
+    }
+
+    return  ws.uri.fsPath;
+}
+
+export function refreshFilesExplorer() {
+    try {
+        commands.executeCommand("workbench.files.action.refreshFilesExplorer");
+    } catch (error) {
+        logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
+    }
 }
 
 export async function isDirectoryAPackageDirectory(wsUri: Uri): Promise<boolean> {
@@ -54,11 +125,11 @@ export async function isDirectoryAPackageDirectory(wsUri: Uri): Promise<boolean>
     try {
         let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(wsUri);
         for (const element of dirContents) {
-            if (element[0] === "robot.yaml" || element[0] === "conda.yaml" || element[0] === "package.yaml") {
+            if (element[0] === "robot.yaml" || element[0] === "conda.yaml" || element[0] === "package.yaml" || element[0] === "agent-spec.yaml") {
                 window.showErrorMessage(
                     "It's not possible to create a Package in: " +
                         wsUri.fsPath +
-                        " because this workspace folder is already a Task or Action Package (nested Packages are not allowed)."
+                        " because this workspace folder is already a Task, Action or Agent Package (nested Packages are not allowed)."
                 );
                 return true;
             }
