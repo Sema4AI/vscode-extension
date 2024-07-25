@@ -151,9 +151,7 @@ class AgentCli:
 
         stdout_output = output.stdout.decode("utf-8", "replace")
 
-        return AgentCliResult(
-            cmdline, success=True, message=None, result=stdout_output
-        )
+        return AgentCliResult(cmdline, success=True, message=None, result=stdout_output)
 
     def get_version(self) -> ActionResult[str]:
         """

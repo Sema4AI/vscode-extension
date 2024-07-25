@@ -1636,9 +1636,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code.agent_cli import download_agent_cli
 
         location = (
-            params["location"]
-            if params
-            else self._agent_cli.get_agent_cli_location()
+            params["location"] if params else self._agent_cli.get_agent_cli_location()
         )
 
         try:

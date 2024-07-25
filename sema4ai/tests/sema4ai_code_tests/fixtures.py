@@ -371,7 +371,7 @@ def language_server_initialized(
     ws_root_path: str,
     rcc_location: str,
     action_server_location: str,
-        agent_cli_location: str,
+    agent_cli_location: str,
     ci_endpoint: str,
     rcc_config_location: str,
     initialization_options,
