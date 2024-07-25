@@ -314,7 +314,7 @@ const askForAccessCredentials = async (): Promise<string | undefined> => {
 
 export const verifyLogin = async (): Promise<ActionServerVerifyLoginOutput | undefined> => {
     const result: ActionResult<ActionServerVerifyLoginOutput> = await commands.executeCommand(
-        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
+        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL
     );
 
     if (!result.success) {
