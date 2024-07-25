@@ -1,9 +1,7 @@
 import os
 
 
-def test_agent_server_download(
-    tmpdir
-) -> None:
+def test_agent_server_download(tmpdir) -> None:
     from sema4ai_code.agent_server import (
         download_agent_server,
     )
