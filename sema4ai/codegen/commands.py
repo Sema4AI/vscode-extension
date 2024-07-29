@@ -926,6 +926,12 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.localListAgentPackages.internal",
+        "Lists the Agent Packages currently available in the workspace",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 

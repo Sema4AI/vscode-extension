@@ -131,3 +131,4 @@ export const SEMA4AI_ACTION_SERVER_VERSION_INTERNAL = "sema4ai.actionServerVersi
 export const SEMA4AI_AGENT_CLI_VERSION_INTERNAL = "sema4ai.agentCliVersion.internal";  // Get the Agent CLI's version (internal)
 export const SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage";  // Create Agent Package
 export const SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal";  // Calls Agent Server to create new Agent Package
+export const SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL = "sema4ai.localListAgentPackages.internal";  // Lists the Agent Packages currently available in the workspace

@@ -5,3 +5,4 @@ export const TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE = "sema4ai-task-packages-tree"
 export const TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE = "sema4ai-package-content-tree";  // Sema4.ai
 export const TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE = "sema4ai-package-resources-tree";  // Sema4.ai
 export const TREE_VIEW_SEMA4AI_CLOUD_TREE = "sema4ai-cloud-tree";  // Sema4.ai
+export const TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE = "sema4ai-agent-packages-tree";  // Sema4.ai

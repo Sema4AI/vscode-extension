@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
+from enum import Enum
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -18,11 +19,31 @@ else:
     from typing import Protocol, TypedDict
 
 
-class LocalRobotMetadataInfoDict(TypedDict):
-    directory: str  # The directory that contains the robot.yaml
-    filePath: str  # The path to the robot.yaml
-    name: str  # The name of the robot
-    yamlContents: dict  # The contents of the robot.yaml
+class PackageType(Enum):
+    ROBOT = "robot"
+    ACTION = "action"
+    AGENT = "agent"
+
+
+class PackageYamlName(Enum):
+    ROBOT = "robot.yaml"
+    ACTION = "package.yaml"
+    AGENT = "agent-spec.yaml"
+
+
+class LocalPackageMetadataInfoDict(TypedDict):
+    packageType: str  # Type of the package.
+    directory: str  # The directory that contains the related package's YAML file
+    filePath: str  # The path to the YAML file
+    name: str  # The name of the package
+    yamlContents: dict  # The contents of the YAML file
+
+    organization: Optional[
+        str
+    ]  # Organization given package is specific to (applicable only to Actions).
+    sub_packages: Optional[
+        List["LocalPackageMetadataInfoDict"]
+    ]  # Any nested packages (applicable only to Agents).
 
 
 class LocatorEntryInfoDict(TypedDict):
@@ -93,7 +114,7 @@ class ActionResultDictLocalRobotMetadata(TypedDict):
     message: Optional[
         str
     ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocalRobotMetadataInfoDict]]
+    result: Optional[List[LocalPackageMetadataInfoDict]]
 
 
 class ActionServerVerifyLoginResultDict(TypedDict):
@@ -315,6 +336,14 @@ class DownloadToolDict(TypedDict):
 
 class CreateAgentPackageParamsDict(TypedDict):
     directory: str
+
+
+class ActionResultDictLocalAgentPackageMetadata(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: Optional[List[LocalPackageMetadataInfoDict]]
 
 
 class IRccWorkspace(Protocol):

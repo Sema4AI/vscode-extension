@@ -51,6 +51,13 @@ def get_default_agent_cli_location(version: str = "") -> str:
     return get_default_tool_location(Tool.AGENT_CLI, version)
 
 
+def get_agent_package_actions_sub_directory() -> str:
+    """
+    Returns the directory containing Agents' actions inside of an Agent Package.
+    """
+    return "actions"
+
+
 class AgentCli:
     def __init__(self, config_provider: IConfigProvider):
         self._config_provider = weakref.ref(config_provider)
@@ -171,13 +178,13 @@ class AgentCli:
         Args:
             directory: The directory to create the Agent package in.
         """
-        args = ["project", "new", "--output-dir", directory]
-
-        command_result = self._run_agent_server_command(args)
+        args = ["project", "new", "--name", directory]
+        command_result = self._run_agent_cli_command(args)
 
         if not command_result.success:
-            return ActionResult(success=False, message=f"Error creating Agent package.\n{command_result.message}")
+            return ActionResult(
+                success=False,
+                message=f"Error creating Agent package.\n{command_result.message}",
+            )
 
         return ActionResult(success=True, message=None)
-
-

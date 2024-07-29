@@ -1,10 +1,8 @@
 import * as assert from "assert";
-import * as path from "path";
 import * as vscode from "vscode";
 import { WorkspaceFolder } from "vscode";
 import { ActionResult, LocalRobotMetadataInfo } from "../../protocols";
 import { SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL } from "../../robocorpCommands";
-import { sleep } from "../../time";
 
 const testFolderLocation = "/resources/";
 

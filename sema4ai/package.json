@@ -150,12 +150,14 @@
         "onCommand:sema4ai.agentCliVersion.internal",
         "onCommand:sema4ai.createAgentPackage",
         "onCommand:sema4ai.createAgentPackage.internal",
+        "onCommand:sema4ai.localListAgentPackages.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
         "onView:sema4ai-package-content-tree",
         "onView:sema4ai-package-resources-tree",
         "onView:sema4ai-cloud-tree",
+        "onView:sema4ai-agent-packages-tree",
         "onLanguage:json",
         "onLanguage:yaml",
         "onLanguage:python"
@@ -267,18 +269,23 @@
                 },
                 {
                     "id": "sema4ai-package-content-tree",
-                    "name": "Package Content",
+                    "name": "Task/Action Package Content",
                     "contextualTitle": "Package Content"
                 },
                 {
                     "id": "sema4ai-package-resources-tree",
-                    "name": "Package Resources",
+                    "name": "Task/Action Package Resources",
                     "contextualTitle": "Package Resources"
                 },
                 {
                     "id": "sema4ai-cloud-tree",
                     "name": "Control Room",
                     "contextualTitle": "Sema4.ai"
+                },
+                {
+                    "id": "sema4ai-agent-packages-tree",
+                    "name": "Agent Packages",
+                    "contextualTitle": "Agent Packages"
                 }
             ],
             "sema4ai-python-view-output": [
@@ -952,6 +959,11 @@
                 {
                     "command": "sema4ai.refreshRobotContentView",
                     "when": "view == sema4ai-package-content-tree",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.createAgentPackage",
+                    "when": "view == sema4ai-agent-packages-tree",
                     "group": "navigation"
                 }
             ],
