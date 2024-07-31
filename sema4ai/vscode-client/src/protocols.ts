@@ -1,8 +1,18 @@
-export interface LocalRobotMetadataInfo {
+export interface LocalPackageMetadataInfo {
     name: string;
     directory: string;
     filePath: string;
     yamlContents: object;
+    organization?: string;
+}
+
+export interface LocalAgentPackageOrganizationMetadataInfo {
+    name: string;
+    actionPackages: LocalPackageMetadataInfo[];
+}
+
+export interface LocalAgentPackageMetadataInfo extends LocalPackageMetadataInfo {
+    organizations: LocalAgentPackageOrganizationMetadataInfo[];
 }
 
 export interface IVaultInfo {

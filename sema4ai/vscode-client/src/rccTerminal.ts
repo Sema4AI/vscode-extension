@@ -6,11 +6,11 @@ import { getRccLocation } from "./rcc";
 import { mergeEnviron } from "./subprocess";
 import { getAutosetpythonextensiondisableactivateterminal } from "./robocorpSettings";
 import { disablePythonTerminalActivateEnvironment } from "./pythonExtIntegration";
-import { LocalRobotMetadataInfo, ActionResult, InterpreterInfo } from "./protocols";
+import { LocalPackageMetadataInfo, ActionResult, InterpreterInfo } from "./protocols";
 import * as fsModule from "fs";
 
 export async function askAndCreateRccTerminal() {
-    let robot: LocalRobotMetadataInfo = await listAndAskRobotSelection(
+    let robot: LocalPackageMetadataInfo = await listAndAskRobotSelection(
         "Please select the target Task Package for the terminal.",
         "Unable to create terminal (no Task Package detected in the Workspace).",
         { showActionPackages: true, showTaskPackages: true }
@@ -20,7 +20,7 @@ export async function askAndCreateRccTerminal() {
     }
 }
 
-export async function createRccTerminal(robotInfo: LocalRobotMetadataInfo) {
+export async function createRccTerminal(robotInfo: LocalPackageMetadataInfo) {
     if (robotInfo) {
         async function startShell(progress: Progress<{ message?: string; increment?: number }>): Promise<undefined> {
             const rccLocation = await getRccLocation();

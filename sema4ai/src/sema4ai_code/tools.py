@@ -24,7 +24,7 @@ TOOL_MUTEX_MAP = {
 TOOL_BASE_URL_MAP = {
     Tool.RCC: "https://cdn.sema4.ai/rcc/releases",
     Tool.ACTION_SERVER: "https://cdn.sema4.ai/action-server/releases",
-    Tool.AGENT_CLI: "https://cdn.sema4.ai/agent-cli/beta",
+    Tool.AGENT_CLI: "https://cdn.sema4.ai/agent-cli/releases",
 }
 
 

@@ -3,7 +3,7 @@ import { commands, env, window } from "vscode";
 import { listAndAskRobotSelection } from "./activities";
 import { getSelectedLocator, getSelectedRobot, LocatorEntry, RobotEntry } from "./viewsCommon";
 import { OUTPUT_CHANNEL } from "./channel";
-import { LocalRobotMetadataInfo, ActionResult } from "./protocols";
+import { LocalPackageMetadataInfo, ActionResult } from "./protocols";
 
 export async function copySelectedToClipboard(locator?: LocatorEntry) {
     let locatorSelected: LocatorEntry | undefined = locator || (await getSelectedLocator());
@@ -23,7 +23,7 @@ export async function removeLocator(locator?: LocatorEntry) {
     let selectedEntry: RobotEntry = getSelectedRobot({
         noSelectionMessage: "Please select a robot first.",
     });
-    let robot: LocalRobotMetadataInfo | undefined = selectedEntry?.robot;
+    let robot: LocalPackageMetadataInfo | undefined = selectedEntry?.robot;
     if (!robot) {
         // Ask for the robot to be used and then show dialog with the options.
         robot = await listAndAskRobotSelection(

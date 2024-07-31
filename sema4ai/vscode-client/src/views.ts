@@ -225,7 +225,8 @@ export function registerViews(context: ExtensionContext) {
 
     // Robots (i.e.: list of robots, not its contents)
     let robotsTreeDataProvider = new RobotsTreeDataProvider();
-    let robotsTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, {
+    let
+        robotsTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, {
         "treeDataProvider": robotsTreeDataProvider,
     });
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTree);
@@ -278,8 +279,8 @@ export function registerViews(context: ExtensionContext) {
     );
 
     // Resources
-    let resourcesDataProvider = new ResourcesTreeDataProvider();
-    let resourcesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE, {
+    const resourcesDataProvider = new ResourcesTreeDataProvider();
+    const resourcesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE, {
         "treeDataProvider": resourcesDataProvider,
         "canSelectMany": true,
     });
@@ -288,9 +289,9 @@ export function registerViews(context: ExtensionContext) {
 
     context.subscriptions.push(onSelectedRobotChanged((e) => resourcesDataProvider.onRobotsTreeSelectionChanged(e)));
 
-    let robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/robot.yaml");
+    const robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/robot.yaml");
 
-    let onChangeRobotsYaml = debounce(() => {
+    const onChangeRobotsYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.
         // (https://github.com/microsoft/vscode/pull/110858)
         refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
@@ -300,9 +301,9 @@ export function registerViews(context: ExtensionContext) {
     robotsWatcher.onDidCreate(onChangeRobotsYaml);
     robotsWatcher.onDidDelete(onChangeRobotsYaml);
 
-    let locatorsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/locators.json");
+    const locatorsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/locators.json");
 
-    let onChangeLocatorsJson = debounce(() => {
+    const onChangeLocatorsJson = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.
         // (https://github.com/microsoft/vscode/pull/110858)
         refreshTreeView(TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE);
@@ -312,11 +313,6 @@ export function registerViews(context: ExtensionContext) {
     locatorsWatcher.onDidCreate(onChangeLocatorsJson);
     locatorsWatcher.onDidDelete(onChangeLocatorsJson);
 
-    context.subscriptions.push(robotsTree);
-    context.subscriptions.push(resourcesTree);
-    context.subscriptions.push(robotsWatcher);
-    context.subscriptions.push(locatorsWatcher);
-
     // Agents
     const agentPackagesTreeDataProvider = new AgentPackagesTreeDataProvider();
     const viewsAgentPackagesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, {
@@ -325,4 +321,22 @@ export function registerViews(context: ExtensionContext) {
 
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, viewsAgentPackagesTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, agentPackagesTreeDataProvider);
+
+    const agentPackagesWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/agent-spec.yaml");
+
+    const onChangeAgentSpecYaml = debounce(() => {
+        // Note: this doesn't currently work if the parent folder is renamed or removed.
+        // (https://github.com/microsoft/vscode/pull/110858)
+        refreshTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE);
+    }, 300);
+
+    agentPackagesWatcher.onDidChange(onChangeAgentSpecYaml);
+    agentPackagesWatcher.onDidCreate(onChangeAgentSpecYaml);
+    agentPackagesWatcher.onDidDelete(onChangeAgentSpecYaml);
+
+    context.subscriptions.push(robotsTree);
+    context.subscriptions.push(resourcesTree);
+    context.subscriptions.push(robotsWatcher);
+    context.subscriptions.push(locatorsWatcher);
+    context.subscriptions.push(agentPackagesWatcher);
 }

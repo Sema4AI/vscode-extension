@@ -1,4 +1,4 @@
-import { ActionResult, LocalRobotMetadataInfo } from "./protocols";
+import { ActionResult, LocalPackageMetadataInfo } from "./protocols";
 import { RobotEntry, getSelectedRobot } from "./viewsCommon";
 import { listAndAskRobotSelection } from "./activities";
 import { logError } from "./channel";
@@ -15,7 +15,7 @@ export async function openPlaywrightRecorder(useTreeSelected: boolean = false): 
         // User doesn't have a current editor opened, get from the tree
         // selection.
         let selectedEntry: RobotEntry = getSelectedRobot();
-        let robot: LocalRobotMetadataInfo | undefined = selectedEntry?.robot;
+        let robot: LocalPackageMetadataInfo | undefined = selectedEntry?.robot;
         if (robot === undefined) {
             // Ask for the robot to be used and then show dialog with the options.
             robot = await listAndAskRobotSelection(

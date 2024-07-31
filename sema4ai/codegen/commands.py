@@ -921,6 +921,13 @@ COMMANDS = [
         icon="$(add)",
     ),
     Command(
+        "sema4ai.refreshAgentPackagesView",
+        "Refresh Agent Packages view",
+        add_to_package_json=True,
+        server_handled=False,
+        icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
+    ),
+    Command(
         "sema4ai.createAgentPackage.internal",
         "Calls Agent Server to create new Agent Package",
         add_to_package_json=False,

@@ -44,6 +44,20 @@ TREE_VIEW_CONTAINERS = [
         icon="images/sema4ai-outline.svg",
         tree_views=[
             TreeView(
+                id="sema4ai-agent-packages-tree",
+                name="Agent Packages",
+                contextual_title="Agent Packages",
+                menus={
+                    # See: https://code.visualstudio.com/api/references/contribution-points#contributes.menus
+                    # for targets
+                    "view/title": [
+                        Menu("sema4ai.refreshAgentPackagesView", MenuGroup.NAVIGATION),
+                        Menu("sema4ai.createAgentPackage", MenuGroup.NAVIGATION),
+                    ],
+                    "view/item/context": [],
+                },
+            ),
+            TreeView(
                 id="sema4ai-task-packages-tree",
                 name="Task/Action Packages",
                 contextual_title="Task/Action Packages",
@@ -343,19 +357,6 @@ TREE_VIEW_CONTAINERS = [
                             when="viewItem == profileItem",
                         ),
                     ]
-                },
-            ),
-            TreeView(
-                id="sema4ai-agent-packages-tree",
-                name="Agent Packages",
-                contextual_title="Agent Packages",
-                menus={
-                    # See: https://code.visualstudio.com/api/references/contribution-points#contributes.menus
-                    # for targets
-                    "view/title": [
-                        Menu("sema4ai.createAgentPackage", MenuGroup.NAVIGATION),
-                    ],
-                    "view/item/context": [],
                 },
             ),
         ],

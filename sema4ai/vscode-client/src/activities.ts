@@ -32,7 +32,7 @@ import {
     InterpreterInfo,
     IVaultInfo,
     LibraryVersionInfoDict,
-    LocalRobotMetadataInfo,
+    LocalPackageMetadataInfo,
     PackageInfo,
     RobotTemplate,
     WorkItemsInfo,
@@ -184,8 +184,8 @@ export async function listAndAskRobotSelection(
     selectionMessage: string,
     noRobotErrorMessage: string,
     opts: ListOpts
-): Promise<LocalRobotMetadataInfo> {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+): Promise<LocalPackageMetadataInfo> {
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
@@ -193,14 +193,14 @@ export async function listAndAskRobotSelection(
         window.showInformationMessage("Error listing robots: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(noRobotErrorMessage);
         return;
     }
 
-    const filter = (entry: LocalRobotMetadataInfo) => {
+    const filter = (entry: LocalPackageMetadataInfo) => {
         const isActionPkg = isActionPackage(entry);
         const isTaskPackage = !isActionPkg;
 
@@ -219,7 +219,7 @@ export async function listAndAskRobotSelection(
         return;
     }
 
-    let robot: LocalRobotMetadataInfo = await askRobotSelection(robotsInfo, selectionMessage);
+    let robot: LocalPackageMetadataInfo = await askRobotSelection(robotsInfo, selectionMessage);
     if (!robot) {
         return;
     }
@@ -227,15 +227,15 @@ export async function listAndAskRobotSelection(
 }
 
 export async function askRobotSelection(
-    robotsInfo: LocalRobotMetadataInfo[],
+    robotsInfo: LocalPackageMetadataInfo[],
     message: string
-): Promise<LocalRobotMetadataInfo> {
-    let robot: LocalRobotMetadataInfo;
+): Promise<LocalPackageMetadataInfo> {
+    let robot: LocalPackageMetadataInfo;
     if (robotsInfo.length > 1) {
         let captions: QuickPickItemWithAction[] = new Array();
 
         for (let i = 0; i < robotsInfo.length; i++) {
-            const element: LocalRobotMetadataInfo = robotsInfo[i];
+            const element: LocalPackageMetadataInfo = robotsInfo[i];
             let caption: QuickPickItemWithAction = {
                 "label": element.name,
                 "description": element.directory,
@@ -281,14 +281,14 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
 }
 
 export async function setPythonInterpreterFromRobotYaml() {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing existing packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
@@ -297,7 +297,7 @@ export async function setPythonInterpreterFromRobotYaml() {
         return;
     }
 
-    let robot: LocalRobotMetadataInfo = await askRobotSelection(
+    let robot: LocalPackageMetadataInfo = await askRobotSelection(
         robotsInfo,
         "Please select the Action or Task Package from which the python executable should be used."
     );
@@ -368,14 +368,14 @@ export async function setPythonInterpreterFromRobotYaml() {
 }
 
 export async function rccConfigurationDiagnostics() {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing robots: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         // Only use task packages.
         robotsInfo = robotsInfo.filter((r) => {
@@ -410,7 +410,7 @@ export async function rccConfigurationDiagnostics() {
     });
 }
 
-export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
+export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     // Start this in parallel while we ask the user for info.
     let isLoginNeededPromise: Thenable<ActionResult<boolean>> = commands.executeCommand(
         roboCommands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL
@@ -420,14 +420,14 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
     if (window.activeTextEditor && window.activeTextEditor.document) {
         currentUri = window.activeTextEditor.document.uri;
     }
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error submitting Task Package to Control Room: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         robotsInfo = robotsInfo.filter((r) => {
             return !isActionPackage(r);
@@ -617,14 +617,14 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         "name": RUN_IN_RCC_LRU_CACHE_NAME,
     });
 
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Task/Action Packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         robotsInfo = robotsInfo.filter((r) => {
             return !isActionPackage(r);

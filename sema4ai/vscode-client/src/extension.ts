@@ -55,7 +55,11 @@ import {
     listAndAskRobotSelection,
 } from "./activities";
 import { handleProgressMessage, ProgressReport } from "./progress";
-import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE } from "./robocorpViews";
+import {
+    TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
+    TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
+    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE
+} from "./robocorpViews";
 import { askAndCreateRccTerminal } from "./rccTerminal";
 import {
     deleteResourceInRobotContentTree,
@@ -149,7 +153,8 @@ import {
     SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
     SEMA4AI_OAUTH2_LOGOUT,
-    SEMA4AI_CREATE_AGENT_PACKAGE
+    SEMA4AI_CREATE_AGENT_PACKAGE,
+    SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -386,6 +391,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
     C.register(SEMA4AI_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
     C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE));
+    C.register(SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE));
     C.register(SEMA4AI_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));

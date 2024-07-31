@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 from sema4ai_ls_core.protocols import IWorkspace
 from sema4ai_ls_core.cache import CachedFileInfo
@@ -10,6 +10,8 @@ from sema4ai_code.protocols import (
     PackageType,
     PackageYamlName,
     LocalPackageMetadataInfoDict,
+    LocalAgentPackageMetadataInfoDict,
+    LocalAgentPackageOrganizationInfoDict,
 )
 
 from sema4ai_code.agent_cli import get_agent_package_actions_sub_directory
@@ -79,16 +81,27 @@ class WorkspaceManager:
 
         return robots
 
-    def get_local_agent_packages(self) -> List[LocalPackageMetadataInfoDict]:
+    def get_local_agent_packages(self) -> List[LocalAgentPackageMetadataInfoDict]:
         """
         Returns all local Agent packages present in the workspace, either at root or first level.
         Ignores Robot/Action packages.
         """
 
         curr_cache = self._local_list_agent_packages_cache
+        # We don't need additional information that come with LocalAgentPackageMetadataInfoDict in cache,
+        # therefore we use the base class.
         new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]] = {}
 
-        agent_packages: List[LocalPackageMetadataInfoDict] = []
+        agent_packages: List[LocalAgentPackageMetadataInfoDict] = []
+
+        def append_if_exists(base_metadata: LocalPackageMetadataInfoDict | None):
+            if base_metadata is not None:
+                agent_package_metadata = cast(
+                    LocalAgentPackageMetadataInfoDict,
+                    {**base_metadata, "organizations": []},
+                )
+
+                agent_packages.append(agent_package_metadata)
 
         try:
             ws = self.workspace
@@ -97,60 +110,31 @@ class WorkspaceManager:
                     # Check the root directory itself for the agent-spec.yaml.
                     p = Path(folder_path)
 
-                    agent_package_metadata = self._get_package_metadata(
+                    base_agent_package_metadata = self._get_package_metadata(
                         [PackageYamlName.AGENT],
                         p,
                         curr_cache,
                         new_cache,
                     )
 
-                    if agent_package_metadata is not None:
-                        agent_packages.append(agent_package_metadata)
-                    elif p.is_dir():
+                    append_if_exists(base_agent_package_metadata)
+
+                    if base_agent_package_metadata is None and p.is_dir():
                         for sub in p.iterdir():
-                            agent_package_metadata = self._get_package_metadata(
+                            base_agent_package_metadata = self._get_package_metadata(
                                 [PackageYamlName.AGENT],
                                 sub,
                                 curr_cache,
                                 new_cache,
                             )
-                            if agent_package_metadata is not None:
-                                agent_packages.append(agent_package_metadata)
+
+                            append_if_exists(base_agent_package_metadata)
 
             for agent_package in agent_packages:
-                actions_directory = (
-                    Path(agent_package["directory"])
-                    / get_agent_package_actions_sub_directory()
+                agent_package["organizations"] = self._get_agent_package_organizations(
+                    agent_package["directory"],
+                    new_cache,
                 )
-
-                if not actions_directory.is_dir():
-                    continue
-
-                for org_directory in actions_directory.iterdir():
-                    if not org_directory.is_dir():
-                        continue
-
-                    for sub in org_directory.iterdir():
-                        # We defer creation of the array until we have any sub packages to iterate over.
-                        if agent_package["sub_packages"] is None:
-                            agent_package["sub_packages"] = []
-
-                        action_package_metadata = self._get_package_metadata(
-                            [PackageYamlName.ACTION], sub, curr_cache, new_cache
-                        )
-
-                        if (
-                            action_package_metadata is not None
-                            and agent_package["sub_packages"] is not None
-                        ):
-                            # Organization name is the name of the directory the Action Package exists in.
-                            action_package_metadata["organization"] = os.path.basename(
-                                org_directory
-                            )
-
-                            agent_package["sub_packages"].append(
-                                action_package_metadata
-                            )
 
             agent_packages.sort(key=lambda dct: dct["name"])
         except Exception as e:
@@ -162,6 +146,46 @@ class WorkspaceManager:
             self._local_list_agent_packages_cache = new_cache
 
         return agent_packages
+
+    def _get_agent_package_organizations(
+        self,
+        actions_directory: str,
+        new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
+    ) -> List[LocalAgentPackageOrganizationInfoDict]:
+        curr_cache = self._local_list_agent_packages_cache
+
+        actions_path = (
+            Path(actions_directory) / get_agent_package_actions_sub_directory()
+        )
+
+        organizations: List[LocalAgentPackageOrganizationInfoDict] = []
+
+        if not actions_path.is_dir():
+            return []
+
+        for org_directory in actions_path.iterdir():
+            if not org_directory.is_dir():
+                continue
+
+            # Organization name is the name of the directory the Action Package exists in.
+            organization_name = os.path.basename(org_directory)
+            organization: LocalAgentPackageOrganizationInfoDict = {
+                "name": organization_name,
+                "actionPackages": [],
+            }
+
+            for sub in org_directory.iterdir():
+                action_package_metadata = self._get_package_metadata(
+                    [PackageYamlName.ACTION], sub, curr_cache, new_cache
+                )
+
+                if action_package_metadata is not None:
+                    action_package_metadata["organization"] = organization_name
+                    organization["actionPackages"].append(action_package_metadata)
+
+            organizations.append(organization)
+
+        return organizations
 
     def _get_package_metadata(
         self,
@@ -216,7 +240,6 @@ class WorkspaceManager:
                             "name": name,
                             "yamlContents": yaml_contents,
                             "organization": None,
-                            "sub_packages": None,
                         }
 
                         return robot_metadata

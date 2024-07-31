@@ -16,7 +16,7 @@ import {
     ActionResult,
     ActionTemplate,
     IActionInfo,
-    LocalRobotMetadataInfo,
+    LocalPackageMetadataInfo,
     ActionServerListOrganizationsOutput,
     ActionServerOrganization,
     ActionServerPackageBuildOutput,
@@ -76,14 +76,14 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
         "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
     });
 
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Action Packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         // Only use action packages.
         robotsInfo = robotsInfo.filter((r) => {

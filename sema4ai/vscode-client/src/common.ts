@@ -7,10 +7,11 @@ import {
     window,
     WorkspaceFolder
 } from "vscode";
-import { ActionResult, LocalRobotMetadataInfo } from "./protocols";
+import { ActionResult, LocalPackageMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
+import { SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL } from "./robocorpCommands";
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -37,27 +38,39 @@ export interface PackageEntry {
     filePath: string;
 }
 
-export const isActionPackage = (entry: PackageEntry | LocalRobotMetadataInfo) => {
+export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) => {
     return entry.filePath.endsWith("package.yaml");
 };
 
 export async function areTherePackagesInWorkspace(): Promise<boolean> {
-    const actionResultListLocalRobots: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
-        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-    );
+    const [actionResultListLocalRobots, actionResultListAgents] = await Promise.all([
+        vscode.commands.executeCommand(
+            roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
+        ),
+        vscode.commands.executeCommand(
+            roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL
+        )
+    ]) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalPackageMetadataInfo[]>];
 
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
         window.showErrorMessage(
-            "Error listing robots: " + actionResultListLocalRobots.message + " (Robot creation will proceed)."
+            "Error listing robots: " + actionResultListLocalRobots.message + " (Package creation will proceed)."
         );
 
         return false;
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
     }
 
-    const robotsInfo: LocalRobotMetadataInfo[] = actionResultListLocalRobots.result;
-    return robotsInfo && robotsInfo.length > 0
+    if (!actionResultListAgents) {
+        feedbackRobocorpCodeError("ACT_LIST_AGENTS");
+        window.showErrorMessage(
+            "Error listing agents: " + actionResultListAgents.message + " (Package creation will proceed)."
+        );
+    }
+
+    const packagesInfo: LocalPackageMetadataInfo[] = [...actionResultListLocalRobots.result, ...actionResultListAgents.result];
+    return packagesInfo && packagesInfo.length > 0
 }
 
 export async function getPackageTargetDirectory(ws: WorkspaceFolder, messages: GetPackageTargetDirectoryMessages): Promise<string | null> {

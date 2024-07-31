@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { OUTPUT_CHANNEL, logError } from "./channel";
 import { uriExists } from "./files";
-import { LocalRobotMetadataInfo, ActionResult, IActionInfo } from "./protocols";
+import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { basename, getSelectedRobot, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { isActionPackage } from "./common";
@@ -12,7 +12,7 @@ function empty<T>(array: T[]) {
     return array === undefined || array.length === 0;
 }
 
-function getRobotLabel(robotInfo: LocalRobotMetadataInfo): string {
+function getRobotLabel(robotInfo: LocalPackageMetadataInfo): string {
     let label: string = undefined;
     if (robotInfo.yamlContents) {
         label = robotInfo.yamlContents["name"];
@@ -381,21 +381,21 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         }
 
         // Get root elements.
-        let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
+        let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
             roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
         );
         if (!actionResult.success) {
             OUTPUT_CHANNEL.appendLine(actionResult.message);
             return [];
         }
-        let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+        let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
         if (empty(robotsInfo)) {
             return [];
         }
 
         const collapsed = robotsInfo.length > 1;
-        return robotsInfo.map((robotInfo: LocalRobotMetadataInfo) => ({
+        return robotsInfo.map((robotInfo: LocalPackageMetadataInfo) => ({
             "label": getRobotLabel(robotInfo),
             "uri": vscode.Uri.file(robotInfo.filePath),
             "robot": robotInfo,

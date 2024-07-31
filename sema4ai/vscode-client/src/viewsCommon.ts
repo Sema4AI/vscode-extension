@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
-import { LocalRobotMetadataInfo, Range } from "./protocols";
+import {
+    LocalAgentPackageMetadataInfo,
+    LocalPackageMetadataInfo,
+    Range
+} from "./protocols";
 import { getLocatorSingleTreeSelection } from "./viewsResources";
 
 /**
@@ -16,6 +20,10 @@ export interface LocatorEntry {
 
 export const NO_PACKAGE_FOUND_MSG = "No package found in current folder";
 
+/**
+ * @TODO:
+ * Rename when there is a collective term for Action/Task packages.
+ */
 export enum RobotEntryType {
     ActionPackage,
     Action,
@@ -41,6 +49,12 @@ export enum RobotEntryType {
     PackageMetadata,
 }
 
+export enum AgentEntryType {
+    AgentPackage,
+    Organization,
+    Action
+}
+
 export interface CloudEntry {
     label: string;
     iconPath?: string;
@@ -53,7 +67,7 @@ export interface CloudEntry {
 export interface RobotEntry {
     label: string;
     uri: vscode.Uri | undefined;
-    robot: LocalRobotMetadataInfo | undefined;
+    robot: LocalPackageMetadataInfo | undefined;
     iconPath: string;
     type: RobotEntryType;
     parent: RobotEntry | undefined;
@@ -75,8 +89,29 @@ export interface FSEntry {
     filePath: string;
 }
 
-export let treeViewIdToTreeView: Map<string, vscode.TreeView<any>> = new Map();
-export let treeViewIdToTreeDataProvider: Map<string, vscode.TreeDataProvider<any>> = new Map();
+export interface AgentEntry {
+    type: AgentEntryType;
+    label: string;
+    iconPath?: string;
+    collapsed?: boolean;
+    tooltip?: string;
+    parent?: AgentEntry;
+
+    /* For root elements. */
+    packageInfo?: LocalAgentPackageMetadataInfo;
+    uri?: vscode.Uri | undefined;
+}
+
+export const treeViewIdToTreeView: Map<string, vscode.TreeView<any>> = new Map();
+export const treeViewIdToTreeDataProvider: Map<string, vscode.TreeDataProvider<any>> = new Map();
+
+const _onSelectedRobotChanged: vscode.EventEmitter<RobotEntry> = new vscode.EventEmitter<RobotEntry>();
+export const onSelectedRobotChanged: vscode.Event<RobotEntry> = _onSelectedRobotChanged.event;
+let lastSelectedRobot: RobotEntry | undefined = undefined;
+
+const _onSelectedAgentPackageChanged: vscode.EventEmitter<AgentEntry> = new vscode.EventEmitter<AgentEntry>();
+export const onSelectedAgentPackageChanged: vscode.Event<AgentEntry> = _onSelectedAgentPackageChanged.event;
+let lastSelectedAgentPackage: AgentEntry | undefined = undefined;
 
 export function refreshTreeView(treeViewId: string) {
     let dataProvider: any = <any>treeViewIdToTreeDataProvider.get(treeViewId);
@@ -113,10 +148,6 @@ export async function getSingleTreeSelection<T>(treeId: string, opts?: any): Pro
     return element;
 }
 
-let _onSelectedRobotChanged: vscode.EventEmitter<RobotEntry> = new vscode.EventEmitter<RobotEntry>();
-export let onSelectedRobotChanged: vscode.Event<RobotEntry> = _onSelectedRobotChanged.event;
-
-let lastSelectedRobot: RobotEntry | undefined = undefined;
 export function setSelectedRobot(robotEntry: RobotEntry | undefined) {
     lastSelectedRobot = robotEntry;
     _onSelectedRobotChanged.fire(robotEntry);
@@ -124,7 +155,6 @@ export function setSelectedRobot(robotEntry: RobotEntry | undefined) {
 
 /**
  * Returns the selected robot or undefined if there are no robots or if more than one robot is selected.
- *
  * If the messages are passed as a parameter, a warning is shown with that message if the selection is invalid.
  */
 export function getSelectedRobot(opts?: SingleTreeSelectionOpts): RobotEntry | undefined {
@@ -134,6 +164,23 @@ export function getSelectedRobot(opts?: SingleTreeSelectionOpts): RobotEntry | u
             vscode.window.showWarningMessage(opts.noSelectionMessage);
         }
     }
+    return ret;
+}
+
+export function setSelectedAgentPackage(agentEntry?: AgentEntry) {
+    lastSelectedAgentPackage = agentEntry;
+    _onSelectedAgentPackageChanged.fire(agentEntry);
+}
+
+export function getSelectedAgentPackage(opts?: SingleTreeSelectionOpts): AgentEntry | undefined {
+    const ret = lastSelectedAgentPackage;
+
+    if (!lastSelectedAgentPackage) {
+        if (opts?.noSelectionMessage) {
+            vscode.window.showErrorMessage(opts.noSelectionMessage);
+        }
+    }
+
     return ret;
 }
 

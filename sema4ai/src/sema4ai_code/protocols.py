@@ -38,12 +38,19 @@ class LocalPackageMetadataInfoDict(TypedDict):
     name: str  # The name of the package
     yamlContents: dict  # The contents of the YAML file
 
-    organization: Optional[
-        str
-    ]  # Organization given package is specific to (applicable only to Actions).
-    sub_packages: Optional[
-        List["LocalPackageMetadataInfoDict"]
-    ]  # Any nested packages (applicable only to Agents).
+    # Organization given package is specific to (applicable only to Actions).
+    organization: Optional[str]
+
+
+class LocalAgentPackageOrganizationInfoDict(TypedDict):
+    name: str  # Name of the organization.
+    actionPackages: List[
+        LocalPackageMetadataInfoDict
+    ]  # Action Packages specific to given organization.
+
+
+class LocalAgentPackageMetadataInfoDict(LocalPackageMetadataInfoDict):
+    organizations: List[LocalAgentPackageOrganizationInfoDict]
 
 
 class LocatorEntryInfoDict(TypedDict):
@@ -343,7 +350,7 @@ class ActionResultDictLocalAgentPackageMetadata(TypedDict):
     message: Optional[
         str
     ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocalPackageMetadataInfoDict]]
+    result: Optional[List[LocalAgentPackageMetadataInfoDict]]
 
 
 class IRccWorkspace(Protocol):
