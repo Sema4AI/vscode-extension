@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 
 import { getExtensionRelativeFile, verifyFileExists } from "../files";
 import { OUTPUT_CHANNEL, buildErrorStr, logError } from "../channel";
-import { getSelectedRobot } from "../viewsCommon";
+import { getSelectedRobot } from "../viewsSelection";
 import { BrowserLocator, ImageLocator, LocatorsMap, LocatorType } from "./types";
 import {
     ReportedStates,

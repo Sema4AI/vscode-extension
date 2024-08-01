@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { basename, dirname } from "path";
 
-import { debounce, FSEntry, getSelectedRobot, RobotEntry, treeViewIdToTreeView } from "./viewsCommon";
+import { debounce, FSEntry, RobotEntry, treeViewIdToTreeView } from "./viewsCommon";
+import { getSelectedRobot } from "./viewsSelection";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { SEMA4AI_OPEN_EXTERNALLY } from "./robocorpCommands";
 

@@ -3,7 +3,11 @@ import { OUTPUT_CHANNEL, logError } from "./channel";
 import { uriExists } from "./files";
 import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
-import { basename, getSelectedRobot, RobotEntry, RobotEntryType } from "./viewsCommon";
+import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
+import {
+    getSelectedAgentPackageOrganization,
+    getSelectedRobot
+} from "./viewsSelection";
 import { isActionPackage } from "./common";
 
 let _globalSentMetric: boolean = false;
@@ -380,15 +384,29 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             });
         }
 
-        // Get root elements.
-        let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
-            roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-        );
-        if (!actionResult.success) {
-            OUTPUT_CHANNEL.appendLine(actionResult.message);
-            return [];
+        let robotsInfo: LocalPackageMetadataInfo[] = [];
+
+        /**
+         * If Agent Packages section have an organization selected, we should only show
+         * packages from given organization.
+         * Otherwise, workspace will be scan for Task/Action packages.
+         */
+        const selectedActionPackageOrganization = getSelectedAgentPackageOrganization();
+        if (selectedActionPackageOrganization) {
+            robotsInfo = selectedActionPackageOrganization.actionPackages || [];
+        } else {
+            // Get root elements.
+            const actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
+                roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
+            );
+
+            if (!actionResult.success) {
+                OUTPUT_CHANNEL.appendLine(actionResult.message);
+                return [];
+            }
+
+            robotsInfo = actionResult.result;
         }
-        let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
         if (empty(robotsInfo)) {
             return [];

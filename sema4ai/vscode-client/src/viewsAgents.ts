@@ -19,6 +19,9 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
     private _onDidChangeTreeData = new vscode.EventEmitter<AgentEntry | null>();
     public readonly onDidChangeTreeData: vscode.Event<AgentEntry | null> = this._onDidChangeTreeData.event;
 
+    private _onForceSelectionFromTreeData: vscode.EventEmitter<AgentEntry[]> = new vscode.EventEmitter<AgentEntry[]>();
+    public readonly onForceSelectionFromTreeData: vscode.Event<AgentEntry[]> = this._onForceSelectionFromTreeData.event;
+
     public fireRootChange() {
         this._onDidChangeTreeData.fire(null);
     }
@@ -67,7 +70,8 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
                     type: AgentEntryType.Organization,
                     label: organization.name,
                     uri: vscode.Uri.file(`${parent.packageInfo?.directory}/${organization.name}`),
-                    iconPath: "circle"
+                    iconPath: "circle",
+                    actionPackages: organization?.actionPackages || [],
                 }));
             }
             return [];

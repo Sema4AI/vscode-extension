@@ -3,7 +3,8 @@ import { OUTPUT_CHANNEL } from "./channel";
 import { InspectorType } from "./inspector";
 import { ActionResult } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
-import { getSelectedRobot, LocatorEntry, NO_PACKAGE_FOUND_MSG, RobotEntry } from "./viewsCommon";
+import { LocatorEntry, NO_PACKAGE_FOUND_MSG, RobotEntry } from "./viewsCommon";
+import { getSelectedRobot } from "./viewsSelection";
 
 export class LocatorsTreeDataProvider
     implements vscode.TreeDataProvider<LocatorEntry | LocatorEntryNode | LocatorCreationNode>

@@ -1,5 +1,6 @@
 import { ActionResult, LocalPackageMetadataInfo } from "./protocols";
-import { RobotEntry, getSelectedRobot } from "./viewsCommon";
+import { RobotEntry } from "./viewsCommon";
+import { getSelectedRobot } from "./viewsSelection";
 import { listAndAskRobotSelection } from "./activities";
 import { logError } from "./channel";
 import { commands, ProgressLocation, Uri, window } from "vscode";

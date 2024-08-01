@@ -12,15 +12,18 @@ import { createRccTerminal } from "./rccTerminal";
 import { RobotContentTreeDataProvider } from "./viewsRobotContent";
 import {
     debounce,
-    getSelectedRobot,
-    onSelectedRobotChanged,
     refreshTreeView,
     RobotEntry,
     RobotEntryType,
-    setSelectedRobot,
     treeViewIdToTreeDataProvider,
     treeViewIdToTreeView,
 } from "./viewsCommon";
+import {
+    getSelectedRobot,
+    onSelectedRobotChanged,
+    onChangedRobotSelection,
+    onChangedAgentPackageOrganizationSelection
+} from "./viewsSelection";
 import { CloudTreeDataProvider } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 import { ResourcesTreeDataProvider } from "./viewsResources";
@@ -28,10 +31,6 @@ import * as path from "path";
 import { fileExists, uriExists, verifyFileExists } from "./files";
 import { createDefaultInputJson, getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
 import { AgentPackagesTreeDataProvider } from "./viewsAgents";
-
-function empty<T>(array: readonly T[]) {
-    return array === undefined || array.length === 0;
-}
 
 export async function editInput(actionRobotEntry?: RobotEntry) {
     if (!actionRobotEntry) {
@@ -170,65 +169,21 @@ export async function runSelectedAction(noDebug: boolean, actionRobotEntry?: Rob
     );
 }
 
-async function onChangedRobotSelection(
-    robotsTree: vscode.TreeView<RobotEntry>,
-    treeDataProvider: RobotsTreeDataProvider,
-    selection: readonly RobotEntry[]
-) {
-    if (selection === undefined) {
-        selection = [];
-    }
-    // Remove error nodes from the selection.
-    selection = selection.filter((e) => {
-        return e.type != RobotEntryType.Error;
-    });
-
-    if (empty(selection)) {
-        let rootChildren: RobotEntry[] = await treeDataProvider.getValidCachedOrComputeChildren(undefined);
-        if (empty(rootChildren)) {
-            // i.e.: there's nothing to reselect, so, just notify as usual.
-            setSelectedRobot(undefined);
-            return;
-        }
-
-        // Automatically update selection / reselect some item.
-        setSelectedRobot(rootChildren[0]);
-        robotsTree.reveal(rootChildren[0], { "select": true });
-        return;
-    }
-
-    if (!empty(selection)) {
-        setSelectedRobot(selection[0]);
-        return;
-    }
-
-    let rootChildren: RobotEntry[] = await treeDataProvider.getValidCachedOrComputeChildren(undefined);
-    if (empty(rootChildren)) {
-        // i.e.: there's nothing to reselect, so, just notify as usual.
-        setSelectedRobot(undefined);
-        return;
-    }
-
-    // // Automatically update selection / reselect some item.
-    setSelectedRobot(rootChildren[0]);
-    robotsTree.reveal(rootChildren[0], { "select": true });
-}
-
 export function registerViews(context: ExtensionContext) {
     // Cloud data
-    let cloudTreeDataProvider = new CloudTreeDataProvider();
-    let viewsCloudTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_CLOUD_TREE, {
+    const cloudTreeDataProvider = new CloudTreeDataProvider();
+    const viewsCloudTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_CLOUD_TREE, {
         "treeDataProvider": cloudTreeDataProvider,
     });
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, viewsCloudTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, cloudTreeDataProvider);
 
     // Robots (i.e.: list of robots, not its contents)
-    let robotsTreeDataProvider = new RobotsTreeDataProvider();
-    let
-        robotsTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, {
+    const robotsTreeDataProvider = new RobotsTreeDataProvider();
+    const robotsTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, {
         "treeDataProvider": robotsTreeDataProvider,
     });
+
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTreeDataProvider);
 
@@ -318,6 +273,18 @@ export function registerViews(context: ExtensionContext) {
     const viewsAgentPackagesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, {
         "treeDataProvider": agentPackagesTreeDataProvider,
     });
+
+    context.subscriptions.push(
+        viewsAgentPackagesTree.onDidChangeSelection(
+            async (e) => await onChangedAgentPackageOrganizationSelection(e.selection)
+        )
+    );
+
+    context.subscriptions.push(
+        agentPackagesTreeDataProvider.onForceSelectionFromTreeData(
+            async (e) => await onChangedAgentPackageOrganizationSelection(viewsAgentPackagesTree.selection)
+        )
+    );
 
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, viewsAgentPackagesTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, agentPackagesTreeDataProvider);

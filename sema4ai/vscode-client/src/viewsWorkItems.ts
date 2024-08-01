@@ -9,11 +9,11 @@ import {
 } from "./robocorpCommands";
 import {
     FSEntry,
-    getSelectedRobot,
     NO_PACKAGE_FOUND_MSG,
     RobotEntry,
     treeViewIdToTreeDataProvider,
 } from "./viewsCommon";
+import { getSelectedRobot } from "./viewsSelection";
 import { TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE } from "./robocorpViews";
 import { getCurrRobotDir, RobotSelectionTreeDataProviderBase } from "./viewsRobotSelectionTreeBase";
 import { resolveInterpreter } from "./activities";

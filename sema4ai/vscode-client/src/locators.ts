@@ -1,12 +1,14 @@
 import * as roboCommands from "./robocorpCommands";
 import { commands, env, window } from "vscode";
 import { listAndAskRobotSelection } from "./activities";
-import { getSelectedLocator, getSelectedRobot, LocatorEntry, RobotEntry } from "./viewsCommon";
+import { LocatorEntry, RobotEntry } from "./viewsCommon";
+import { getSelectedRobot } from "./viewsSelection";
 import { OUTPUT_CHANNEL } from "./channel";
 import { LocalPackageMetadataInfo, ActionResult } from "./protocols";
+import { getLocatorSingleTreeSelection } from "./viewsResources";
 
 export async function copySelectedToClipboard(locator?: LocatorEntry) {
-    let locatorSelected: LocatorEntry | undefined = locator || (await getSelectedLocator());
+    let locatorSelected: LocatorEntry | undefined = locator || (await getLocatorSingleTreeSelection());
     if (locatorSelected) {
         env.clipboard.writeText("alias:" + locatorSelected.name);
     }
@@ -15,7 +17,7 @@ export async function copySelectedToClipboard(locator?: LocatorEntry) {
 export async function removeLocator(locator?: LocatorEntry) {
     // Confirmation dialog button texts
     const DELETE = "Delete";
-    let locatorSelected: LocatorEntry | undefined = locator || (await getSelectedLocator());
+    let locatorSelected: LocatorEntry | undefined = locator || (await getLocatorSingleTreeSelection());
     if (!locatorSelected) {
         OUTPUT_CHANNEL.appendLine("Warning: Trying to delete locator when there is no locator selected");
         return;
