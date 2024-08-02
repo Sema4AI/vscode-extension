@@ -493,10 +493,10 @@ class ActionServer:
         timeout: float = 35,
     ) -> ActionServerResult:
         """
-                Returns an ActionResult where the result is the stdout of the executed Action Server command.
-                Args:
-                    args: The list of arguments to be passed to the command.
-                    timeout: The timeout for running the command (in seconds).
+        Returns an ActionResult where the result is the stdout of the executed Action Server command.
+        Args:
+            args: The list of arguments to be passed to the command.
+            timeout: The timeout for running the command (in seconds).
         """
         from subprocess import CalledProcessError, TimeoutExpired, list2cmdline, run
 
