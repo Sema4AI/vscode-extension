@@ -494,7 +494,6 @@ class ActionServer:
     ) -> ActionServerResult:
         """
                 Returns an ActionResult where the result is the stdout of the executed Action Server command.
-        0
                 Args:
                     args: The list of arguments to be passed to the command.
                     timeout: The timeout for running the command (in seconds).
