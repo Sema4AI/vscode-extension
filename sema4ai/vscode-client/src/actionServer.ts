@@ -2,24 +2,15 @@ import { SEMA4AI_ACTION_SERVER_LOCATION, getActionserverLocation, setActionserve
 import { fileExists, makeDirs } from "./files";
 import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, workspace, commands } from "vscode";
 import * as roboCommands from "./robocorpCommands";
-import { createEnvWithRobocorpHome, download, getRobocorpHome } from "./rcc";
+import { createEnvWithRobocorpHome, getRobocorpHome } from "./rcc";
 import path = require("path");
-import { OUTPUT_CHANNEL, logError } from "./channel";
+import { OUTPUT_CHANNEL } from "./channel";
 import * as http from "http";
 import { listAndAskRobotSelection } from "./activities";
-import { ExecFileReturn, execFilePromise } from "./subprocess";
 import { compareVersions } from "./common";
 import { showSelectOneStrQuickPick } from "./ask";
-import { sleep } from "./time";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
-
-//Default: Linux
-let DOWNLOAD_URL = "https://downloads.robocorp.com/action-server/releases/latest/linux64/action-server";
-if (process.platform === "win32") {
-    DOWNLOAD_URL = "https://downloads.robocorp.com/action-server/releases/latest/windows64/action-server.exe";
-} else if (process.platform === "darwin") {
-    DOWNLOAD_URL = "https://downloads.robocorp.com/action-server/releases/latest/macos64/action-server";
-}
+import { Tool, getExecutableFileName, getToolVersion, downloadTool } from "./tools";
 
 // Update so that Sema4.ai requests the latest version of the action server.
 const LATEST_ACTION_SERVER_VERSION = "0.16.1";
@@ -27,19 +18,14 @@ const LATEST_ACTION_SERVER_VERSION = "0.16.1";
 const ACTION_SERVER_DEFAULT_PORT = 8082;
 const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
 
-async function downloadActionServer(internalActionServerLocation: string) {
-    await window.withProgress(
+function downloadActionServer(internalActionServerLocation: string): Thenable<string> {
+    return window.withProgress(
         {
             location: ProgressLocation.Notification,
             title: "Downloading action server",
             cancellable: false,
         },
-        async (
-            progress: Progress<{ message?: string; increment?: number }>,
-            token: CancellationToken
-        ): Promise<void> => {
-            await download(DOWNLOAD_URL, progress, token, internalActionServerLocation);
-        }
+        (): Promise<string> => downloadTool(Tool.ActionServer, internalActionServerLocation)
     );
 }
 
@@ -49,48 +35,35 @@ const getInternalActionServerDirLocation = async (): Promise<string> => {
 };
 
 const getInternalActionServerLocation = async (tmpFlag: string = "") => {
-    let binName: string = process.platform === "win32" ? `action-server${tmpFlag}.exe` : `action-server${tmpFlag}`;
-    return path.join(await getInternalActionServerDirLocation(), binName);
+    return path.join(await getInternalActionServerDirLocation(), getExecutableFileName(Tool.ActionServer, tmpFlag));
 };
 
-export const getActionServerVersion = async (actionServerLocation: string): Promise<string | undefined> => {
-    let result: ExecFileReturn;
-    const maxTimes = 4;
-    let lastError = undefined;
-    for (let checkedTimes = 0; checkedTimes < maxTimes; checkedTimes++) {
-        try {
-            result = await execFilePromise(actionServerLocation, ["version"], {});
-            // this is the version
-            return result.stdout.trim();
-        } catch (err) {
-            lastError = err;
-            // In Windows right after downloading the file it may not be executable,
-            // so, retry a few times.
-            await sleep(250);
-        }
-    }
-    const msg = `There was an error running the action server at: ${actionServerLocation}. It may be unusable or you may not have permissions to run it.`;
-    logError(msg, lastError, "ERR_VERIFY_ACTION_SERVER_VERSION");
-    window.showErrorMessage(msg);
-    throw lastError;
+export const getActionServerVersion = async (): Promise<string> => {
+    return getToolVersion(Tool.ActionServer);
 };
 
 let verifiedActionServerVersions: Map<string, boolean> = new Map();
 
 export const downloadLatestActionServer = async (): Promise<string | undefined> => {
-    const tmpLocation = await getInternalActionServerLocation(`-${Date.now()}`);
-    OUTPUT_CHANNEL.appendLine(`Downloading latest Action Server to ${tmpLocation}.`);
-    await makeDirs(path.dirname(tmpLocation));
-    await downloadActionServer(tmpLocation);
-    const version = await getActionServerVersion(tmpLocation);
-    OUTPUT_CHANNEL.appendLine("Checking version of latest Action Server.");
-    const versionedLocation = await getInternalActionServerLocation(`-${version}`);
-    const source = Uri.file(tmpLocation);
-    const target = Uri.file(versionedLocation);
-    OUTPUT_CHANNEL.appendLine(`Putting in final location (${target}).`);
-    await workspace.fs.rename(source, target, { overwrite: true });
-    setActionserverLocation(versionedLocation);
-    return versionedLocation;
+    const versionedLocation = await getInternalActionServerLocation(`-${LATEST_ACTION_SERVER_VERSION}`);
+
+    OUTPUT_CHANNEL.appendLine(`Downloading latest Action Server to ${versionedLocation}.`);
+    await makeDirs(path.dirname(versionedLocation));
+    const savedLocation = await downloadActionServer(versionedLocation);
+
+    /**
+     * If failed, savedLocation will be nullish - at this point we simply exit the function,
+     * as appropriate error notifications have already been shown.
+     */
+    if (!savedLocation || savedLocation !== versionedLocation) {
+        return;
+    }
+
+    OUTPUT_CHANNEL.appendLine(`Downloaded latest Action Server to ${versionedLocation}.`);
+
+    await setActionserverLocation(savedLocation);
+
+    return savedLocation;
 };
 
 export const downloadOrGetActionServerLocation = async (): Promise<string | undefined> => {
@@ -98,10 +71,12 @@ export const downloadOrGetActionServerLocation = async (): Promise<string | unde
     if (!location) {
         return location;
     }
+
     const verifiedAlready = verifiedActionServerVersions.get(location);
+
     if (!verifiedAlready) {
         verifiedActionServerVersions.set(location, true);
-        const actionServerVersion = await getActionServerVersion(location);
+        const actionServerVersion = await getActionServerVersion();
 
         const expected = LATEST_ACTION_SERVER_VERSION;
         const compare = compareVersions(expected, actionServerVersion);
@@ -121,9 +96,10 @@ export const downloadOrGetActionServerLocation = async (): Promise<string | unde
 };
 
 const internalDownloadOrGetActionServerLocation = async (): Promise<string | undefined> => {
-    let actionServerLocationInSettings = getActionserverLocation();
-    let message: string | undefined = undefined;
+    const actionServerLocationInSettings = getActionserverLocation();
     const configName = SEMA4AI_ACTION_SERVER_LOCATION;
+    let message: string;
+
     if (!actionServerLocationInSettings) {
         message =
             "The action-server executable is not currently specified in the `" +
@@ -159,14 +135,13 @@ const internalDownloadOrGetActionServerLocation = async (): Promise<string | und
             });
             if (uris && uris.length === 1) {
                 const f = uris[0].fsPath;
-                setActionserverLocation(f);
+
+                await setActionserverLocation(f);
+
                 return f;
             }
-            return undefined;
         }
     }
-
-    return undefined;
 };
 
 export const isActionServerAlive = async (port: number = ACTION_SERVER_DEFAULT_PORT) => {
@@ -343,12 +318,9 @@ const askForAccessCredentials = async (): Promise<string | undefined> => {
     return access_credentials;
 };
 
-export const verifyLogin = async (actionServerLocation: string): Promise<ActionServerVerifyLoginOutput | undefined> => {
+export const verifyLogin = async (): Promise<ActionServerVerifyLoginOutput | undefined> => {
     const result: ActionResult<ActionServerVerifyLoginOutput> = await commands.executeCommand(
-        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
-        {
-            action_server_location: actionServerLocation,
-        }
+        roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL
     );
 
     if (!result.success) {
@@ -360,13 +332,12 @@ export const verifyLogin = async (actionServerLocation: string): Promise<ActionS
 };
 
 const askUserForHostname = async (
-    actionServerLocation: string,
     progress: Progress<{ message?: string; increment?: number }>
 ): Promise<string | undefined> => {
     let defaultHostname = "https://us1.robocorp.com";
 
     progress.report({ message: "Getting default hostname" });
-    const loginOutput = await verifyLogin(actionServerLocation);
+    const loginOutput = await verifyLogin();
     if (loginOutput && loginOutput.logged_in) {
         defaultHostname = loginOutput.hostname;
     }
@@ -409,7 +380,7 @@ export const actionServerCloudLogin = async () => {
                 return;
             }
 
-            const hostname = await askUserForHostname(actionServerLocation, progress);
+            const hostname = await askUserForHostname(progress);
             if (!hostname) {
                 return;
             }
@@ -418,7 +389,6 @@ export const actionServerCloudLogin = async () => {
             const result: ActionResult<undefined> = await commands.executeCommand(
                 roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL,
                 {
-                    action_server_location: actionServerLocation,
                     access_credentials: accessCredentials,
                     hostname,
                 }
@@ -433,12 +403,10 @@ export const actionServerCloudLogin = async () => {
     );
 };
 
-export const listOrganizations = async (actionServerLocation: string): Promise<ActionServerListOrganizationsOutput> => {
+export const listOrganizations = async (): Promise<ActionServerListOrganizationsOutput> => {
     const result: ActionResult<ActionServerListOrganizationsOutput> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
-        {
-            action_server_location: actionServerLocation,
-        }
+        {}
     );
     if (!result.success) {
         window.showErrorMessage("No organizations found");

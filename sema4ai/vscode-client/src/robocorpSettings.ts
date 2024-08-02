@@ -23,6 +23,7 @@ export const SEMA4AI_PROCEED_WITH_LONG_PATHS_DISABLED = "sema4ai.proceedWithLong
 export const SEMA4AI_VAULT_TOKEN_TIMEOUT_IN_MINUTES = "sema4ai.vaultTokenTimeoutInMinutes";
 export const SEMA4AI_CODE_LENS_ROBO_LAUNCH = "sema4ai.codeLens.roboLaunch";
 export const SEMA4AI_ACTION_SERVER_LOCATION = "sema4ai.actionServer.location";
+export const SEMA4AI_AGENT_CLI_LOCATION = "sema4ai.agentCli.location";
 
 export function getLanguageServerTcpPort(): number {
     let key = SEMA4AI_LANGUAGE_SERVER_TCP_PORT;
@@ -227,6 +228,21 @@ export function getActionserverLocation(): string {
 
 export async function setActionserverLocation(value): Promise<void> {
     let key = SEMA4AI_ACTION_SERVER_LOCATION;
+    let i = key.lastIndexOf('.');
+
+    let config = workspace.getConfiguration(key.slice(0, i));
+    await config.update(key.slice(i + 1), value, ConfigurationTarget.Global);
+}
+
+
+export function getAgentcliLocation(): string {
+    let key = SEMA4AI_AGENT_CLI_LOCATION;
+    return get<string>(key);
+}
+
+
+export async function setAgentcliLocation(value): Promise<void> {
+    let key = SEMA4AI_AGENT_CLI_LOCATION;
     let i = key.lastIndexOf('.');
 
     let config = workspace.getConfiguration(key.slice(0, i));

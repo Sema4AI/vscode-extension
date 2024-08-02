@@ -31,6 +31,7 @@ from sema4ai_code.protocols import (
     RobotTemplate,
 )
 from sema4ai_code.rcc_space_info import RCCSpaceInfo, SpaceState
+from sema4ai_code.tools import Tool
 
 log = get_logger(__name__)
 
@@ -52,62 +53,18 @@ def download_rcc(
     :param force:
         Whether we should overwrite an existing installation.
     """
-    from sema4ai_ls_core.system_mutex import timed_acquire_mutex
+    from sema4ai_code.tools import download_tool
 
-    if sys_platform is None:
-        sys_platform = sys.platform
-
-    if not os.path.exists(location) or force:
-        with timed_acquire_mutex("robocorp_get_rcc", timeout=120):
-            if not os.path.exists(location) or force:
-                import urllib.request
-
-                from sema4ai_code import get_release_artifact_relative_path
-
-                relative_path = get_release_artifact_relative_path(sys_platform, "rcc")
-
-                RCC_VERSION = "v18.1.1"
-                prefix = f"https://cdn.sema4.ai/rcc/releases/{RCC_VERSION}"
-                url = prefix + relative_path
-
-                log.info(f"Downloading rcc from: {url} to: {location}.")
-
-                # Cloudflare seems to be blocking "User-Agent: Python-urllib/3.9".
-                # Use a different one as that must be sorted out.
-                response = urllib.request.urlopen(
-                    urllib.request.Request(url, headers={"User-Agent": "Mozilla"})
-                )
-
-                # Put it all in memory before writing (i.e. just write it if
-                # we know we downloaded everything).
-                data = response.read()
-
-                try:
-                    os.makedirs(os.path.dirname(location))
-                except Exception:
-                    pass  # Error expected if the parent dir already exists.
-
-                try:
-                    with open(location, "wb") as stream:
-                        stream.write(data)
-                    os.chmod(location, 0x744)
-                except Exception:
-                    log.exception(
-                        "Error writing to: %s.\nParent dir exists: %s",
-                        location,
-                        os.path.dirname(location),
-                    )
-                    raise
+    RCC_VERSION = "v18.1.1"
+    download_tool(
+        Tool.RCC, location, RCC_VERSION, force=force, sys_platform=sys_platform
+    )
 
 
 def get_default_rcc_location() -> str:
-    from sema4ai_code import get_extension_relative_path
+    from sema4ai_code.tools import get_default_tool_location
 
-    if sys.platform == "win32":
-        location = get_extension_relative_path("bin", "rcc.exe")
-    else:
-        location = get_extension_relative_path("bin", "rcc")
-    return location
+    return get_default_tool_location(Tool.RCC)
 
 
 def get_default_app_home_location() -> Path:
@@ -239,14 +196,14 @@ class Rcc(object):
         return self._get_str_optional_setting(settings.SEMA4AI_RCC_ENDPOINT)
 
     @implements(IRcc.get_rcc_location)
-    def get_rcc_location(self) -> str:
+    def get_rcc_location(self, download_if_missing: bool = True) -> str:
         from sema4ai_code import settings
 
         rcc_location = self._get_str_optional_setting(settings.SEMA4AI_RCC_LOCATION)
         if not rcc_location:
             rcc_location = get_default_rcc_location()
 
-        if not os.path.exists(rcc_location):
+        if download_if_missing and not os.path.exists(rcc_location):
             download_rcc(rcc_location)
         return rcc_location
 

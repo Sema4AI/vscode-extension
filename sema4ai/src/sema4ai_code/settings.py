@@ -15,6 +15,7 @@ SEMA4AI_PROCEED_WITH_LONG_PATHS_DISABLED = "sema4ai.proceedWithLongPathsDisabled
 SEMA4AI_VAULT_TOKEN_TIMEOUT_IN_MINUTES = "sema4ai.vaultTokenTimeoutInMinutes"
 SEMA4AI_CODE_LENS_ROBO_LAUNCH = "sema4ai.codeLens.roboLaunch"
 SEMA4AI_ACTION_SERVER_LOCATION = "sema4ai.actionServer.location"
+SEMA4AI_AGENT_CLI_LOCATION = "sema4ai.agentCli.location"
 
 ALL_SEMA4AI_OPTIONS = frozenset(
     (
@@ -32,6 +33,7 @@ ALL_SEMA4AI_OPTIONS = frozenset(
         SEMA4AI_VAULT_TOKEN_TIMEOUT_IN_MINUTES,
         SEMA4AI_CODE_LENS_ROBO_LAUNCH,
         SEMA4AI_ACTION_SERVER_LOCATION,
+        SEMA4AI_AGENT_CLI_LOCATION,
     )
 )
 

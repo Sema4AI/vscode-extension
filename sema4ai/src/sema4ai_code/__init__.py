@@ -27,6 +27,13 @@ def get_bin_folder() -> str:
 
 
 def get_release_artifact_relative_path(sys_platform: str, executable_name: str) -> str:
+    """
+    Helper function for getting the release artifact relative path as defined in S3 bucket.
+
+    Args:
+        sys_platform: Platform for which the release artifact is being retrieved.
+        executable_name: Name of the executable we want to get the path for.
+    """
     import platform
 
     machine = platform.machine()
@@ -34,18 +41,18 @@ def get_release_artifact_relative_path(sys_platform: str, executable_name: str) 
 
     if sys_platform == "win32":
         if is_64:
-            return f"/windows64/{executable_name}.exe"
+            return f"windows64/{executable_name}.exe"
         else:
-            return f"/windows32/{executable_name}.exe"
+            return f"windows32/{executable_name}.exe"
 
     elif sys_platform == "darwin":
-        return f"/macos64/{executable_name}"
+        return f"macos64/{executable_name}"
 
     else:
         if is_64:
-            return f"/linux64/{executable_name}"
+            return f"linux64/{executable_name}"
         else:
-            return f"/linux32/{executable_name}"
+            return f"linux32/{executable_name}"
 
 
 def import_robocorp_ls_core() -> None:
