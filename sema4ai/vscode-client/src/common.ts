@@ -4,9 +4,6 @@ import { FileType, Uri, window } from "vscode";
 import { ActionResult, LocalRobotMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
-import { resolve } from "path";
-import { error } from "vscode-languageclient/lib/common/utils/is";
-import { sleep } from "./time";
 
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
