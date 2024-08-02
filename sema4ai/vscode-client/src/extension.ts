@@ -58,7 +58,7 @@ import { handleProgressMessage, ProgressReport } from "./progress";
 import {
     TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
     TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
-    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE
+    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE,
 } from "./robocorpViews";
 import { askAndCreateRccTerminal } from "./rccTerminal";
 import {
@@ -154,7 +154,7 @@ import {
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
     SEMA4AI_OAUTH2_LOGOUT,
     SEMA4AI_CREATE_AGENT_PACKAGE,
-    SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW
+    SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";

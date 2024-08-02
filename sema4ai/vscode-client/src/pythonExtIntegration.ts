@@ -15,10 +15,7 @@ import { logError, OUTPUT_CHANNEL } from "./channel";
 import { handleProgressMessage } from "./progress";
 import { ActionResult, InterpreterInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
-import {
-    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE,
-    TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
-} from "./robocorpViews";
+import { TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
 import { getActionServerTerminal, isActionServerAlive, restartActionServer } from "./actionServer";
 

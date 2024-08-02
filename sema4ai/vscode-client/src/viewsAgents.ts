@@ -1,19 +1,9 @@
 import * as vscode from "vscode";
-import {
-    TreeDataProvider,
-    TreeItem,
-    TreeItemCollapsibleState
-} from "vscode";
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
 import * as roboCommands from "./robocorpCommands";
-import {
-    ActionResult,
-    LocalAgentPackageMetadataInfo,
-} from "./protocols";
+import { ActionResult, LocalAgentPackageMetadataInfo } from "./protocols";
 import { OUTPUT_CHANNEL } from "./channel";
-import {
-    AgentEntry,
-    AgentEntryType
-} from "./viewsCommon";
+import { AgentEntry, AgentEntryType } from "./viewsCommon";
 
 export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntry> {
     private _onDidChangeTreeData = new vscode.EventEmitter<AgentEntry | null>();
@@ -54,7 +44,6 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
         const children = await this.computeChildren(parent);
 
         if (!children?.length) {
-
         }
 
         return children;
@@ -66,7 +55,7 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
             if (parent.type === AgentEntryType.AgentPackage) {
                 const agentActionOrganizations = parent.packageInfo?.organizations;
 
-                return agentActionOrganizations.map(organization => ({
+                return agentActionOrganizations.map((organization) => ({
                     type: AgentEntryType.Organization,
                     label: organization.name,
                     uri: vscode.Uri.file(`${parent.packageInfo?.directory}/${organization.name}`),
@@ -83,7 +72,7 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
 
     private async getRootElements(): Promise<AgentEntry[]> {
         const listAgentsResult: ActionResult<LocalAgentPackageMetadataInfo[]> = await vscode.commands.executeCommand(
-            roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
+            roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL
         );
 
         if (!listAgentsResult.success) {
@@ -99,7 +88,7 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
 
         const collapsed = !!agentPackages?.length;
 
-        return agentPackages.map(agentPackage => ({
+        return agentPackages.map((agentPackage) => ({
             type: AgentEntryType.AgentPackage,
             label: agentPackage.name,
             uri: vscode.Uri.file(agentPackage.filePath),

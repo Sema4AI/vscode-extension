@@ -4,10 +4,7 @@ import { uriExists } from "./files";
 import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
-import {
-    getSelectedAgentPackageOrganization,
-    getSelectedRobot
-} from "./viewsSelection";
+import { getSelectedAgentPackageOrganization, getSelectedRobot } from "./viewsSelection";
 import { isActionPackage } from "./common";
 
 let _globalSentMetric: boolean = false;

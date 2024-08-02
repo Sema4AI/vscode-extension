@@ -5,7 +5,7 @@ import {
     refreshTreeView,
     RobotEntry,
     RobotEntryType,
-    treeViewIdToTreeView
+    treeViewIdToTreeView,
 } from "./viewsCommon";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
@@ -23,8 +23,10 @@ const _onSelectedRobotChanged: vscode.EventEmitter<RobotEntry> = new vscode.Even
 export const onSelectedRobotChanged: vscode.Event<RobotEntry> = _onSelectedRobotChanged.event;
 let lastSelectedRobot: RobotEntry | undefined = undefined;
 
-const _onSelectedAgentPackageOrganizationChanged: vscode.EventEmitter<AgentEntry> = new vscode.EventEmitter<AgentEntry>();
-export const onSelectedAgentPackageOrganizationChanged: vscode.Event<AgentEntry> = _onSelectedAgentPackageOrganizationChanged.event;
+const _onSelectedAgentPackageOrganizationChanged: vscode.EventEmitter<AgentEntry> =
+    new vscode.EventEmitter<AgentEntry>();
+export const onSelectedAgentPackageOrganizationChanged: vscode.Event<AgentEntry> =
+    _onSelectedAgentPackageOrganizationChanged.event;
 let lastSelectedAgentPackageOrganization: AgentEntry | undefined = undefined;
 
 /**
@@ -107,9 +109,7 @@ function setSelectedAgentPackageOrganization(agentEntry?: AgentEntry) {
     _onSelectedAgentPackageOrganizationChanged.fire(agentEntry);
 }
 
-export async function onChangedAgentPackageOrganizationSelection(
-    selection: readonly AgentEntry[]
-) {
+export async function onChangedAgentPackageOrganizationSelection(selection: readonly AgentEntry[]) {
     const selectedEntry = selection?.[0];
 
     /**
@@ -117,7 +117,7 @@ export async function onChangedAgentPackageOrganizationSelection(
      * Otherwise, selection should not have an effect on Task/Action Packages view.
      */
     if (selectedEntry && selectedEntry.type === AgentEntryType.Organization) {
-        console.log('SELECTION: ', selectedEntry);
+        console.log("SELECTION: ", selectedEntry);
         setSelectedAgentPackageOrganization(selectedEntry);
     } else {
         setSelectedAgentPackageOrganization(undefined);

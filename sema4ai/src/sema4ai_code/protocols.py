@@ -20,7 +20,7 @@ else:
 
 
 class PackageType(Enum):
-    ROBOT = "robot"
+    TASK = "task"
     ACTION = "action"
     AGENT = "agent"
 

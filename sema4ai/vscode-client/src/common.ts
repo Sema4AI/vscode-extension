@@ -1,17 +1,10 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
-import {
-    commands,
-    FileType,
-    Uri,
-    window,
-    WorkspaceFolder
-} from "vscode";
+import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
 import { ActionResult, LocalPackageMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
-import { SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL } from "./robocorpCommands";
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -43,14 +36,10 @@ export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) 
 };
 
 export async function areTherePackagesInWorkspace(): Promise<boolean> {
-    const [actionResultListLocalRobots, actionResultListAgents] = await Promise.all([
-        vscode.commands.executeCommand(
-            roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-        ),
-        vscode.commands.executeCommand(
-            roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL
-        )
-    ]) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalPackageMetadataInfo[]>];
+    const [actionResultListLocalRobots, actionResultListAgents] = (await Promise.all([
+        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL),
+        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL),
+    ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalPackageMetadataInfo[]>];
 
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
@@ -69,11 +58,17 @@ export async function areTherePackagesInWorkspace(): Promise<boolean> {
         );
     }
 
-    const packagesInfo: LocalPackageMetadataInfo[] = [...actionResultListLocalRobots.result, ...actionResultListAgents.result];
-    return packagesInfo && packagesInfo.length > 0
+    const packagesInfo: LocalPackageMetadataInfo[] = [
+        ...actionResultListLocalRobots.result,
+        ...actionResultListAgents.result,
+    ];
+    return packagesInfo && packagesInfo.length > 0;
 }
 
-export async function getPackageTargetDirectory(ws: WorkspaceFolder, messages: GetPackageTargetDirectoryMessages): Promise<string | null> {
+export async function getPackageTargetDirectory(
+    ws: WorkspaceFolder,
+    messages: GetPackageTargetDirectoryMessages
+): Promise<string | null> {
     const packagesInDirectory = await areTherePackagesInWorkspace();
 
     let useWorkspaceFolder = false;
@@ -121,7 +116,7 @@ export async function getPackageTargetDirectory(ws: WorkspaceFolder, messages: G
         return join(ws.uri.fsPath, name);
     }
 
-    return  ws.uri.fsPath;
+    return ws.uri.fsPath;
 }
 
 export function refreshFilesExplorer() {
@@ -132,20 +127,36 @@ export function refreshFilesExplorer() {
     }
 }
 
-export async function isDirectoryAPackageDirectory(wsUri: Uri): Promise<boolean> {
+export async function getPackageYamlNameFromDirectory(uri: Uri): Promise<string | null> {
+    let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(uri);
+
+    for (const element of dirContents) {
+        if (
+            element[0] === "robot.yaml" ||
+            element[0] === "conda.yaml" ||
+            element[0] === "package.yaml" ||
+            element[0] === "agent-spec.yaml"
+        ) {
+            return element[0];
+        }
+    }
+
+    return null;
+}
+
+export async function isPackageDirectory(wsUri: Uri): Promise<boolean> {
     // Check if we still don't have a Robot in this folder (i.e.: if we have a Robot in the workspace
     // root already, we shouldn't create another Robot inside it).
     try {
-        let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(wsUri);
-        for (const element of dirContents) {
-            if (element[0] === "robot.yaml" || element[0] === "conda.yaml" || element[0] === "package.yaml" || element[0] === "agent-spec.yaml") {
-                window.showErrorMessage(
-                    "It's not possible to create a Package in: " +
-                        wsUri.fsPath +
-                        " because this workspace folder is already a Task, Action or Agent Package (nested Packages are not allowed)."
-                );
-                return true;
-            }
+        const packageYaml = await getPackageYamlNameFromDirectory(wsUri);
+
+        if (packageYaml) {
+            window.showErrorMessage(
+                "It's not possible to create a Package in: " +
+                    wsUri.fsPath +
+                    " because this workspace folder is already a Task, Action or Agent Package (nested Packages are not allowed)."
+            );
+            return true;
         }
     } catch (error) {
         logError("Error reading contents of: " + wsUri.fsPath, error, "ACT_CREATE_ROBOT");

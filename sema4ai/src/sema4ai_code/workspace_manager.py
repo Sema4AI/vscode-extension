@@ -262,6 +262,6 @@ class WorkspaceManager:
         if package_yaml_name == PackageYamlName.ACTION:
             return PackageType.ACTION.value
         if package_yaml_name == PackageYamlName.ROBOT:
-            return PackageType.ROBOT.value
+            return PackageType.TASK.value
 
         return ""

@@ -1,3 +1,9 @@
+export enum PackageType {
+    Task = "task",
+    Action = "action",
+    Agent = "agent",
+}
+
 export interface LocalPackageMetadataInfo {
     name: string;
     directory: string;

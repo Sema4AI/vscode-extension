@@ -1,9 +1,5 @@
 import * as vscode from "vscode";
-import {
-    LocalAgentPackageMetadataInfo,
-    LocalPackageMetadataInfo,
-    Range
-} from "./protocols";
+import { LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo, Range } from "./protocols";
 
 /**
  * Note: if type is error|info the name is the message to be shown.
@@ -51,7 +47,7 @@ export enum RobotEntryType {
 export enum AgentEntryType {
     AgentPackage,
     Organization,
-    Action
+    Action,
 }
 
 export interface CloudEntry {

@@ -43,9 +43,9 @@ import { connectWorkspace } from "./vault";
 import {
     getPackageTargetDirectory,
     isActionPackage,
-    isDirectoryAPackageDirectory,
+    isPackageDirectory,
     refreshFilesExplorer,
-    verifyIfPathOkToCreatePackage
+    verifyIfPathOkToCreatePackage,
 } from "./common";
 
 export interface ListOpts {
@@ -717,7 +717,7 @@ export async function createRobot() {
         return;
     }
 
-    if (await isDirectoryAPackageDirectory(ws.uri)) {
+    if (await isPackageDirectory(ws.uri)) {
         return;
     }
 
@@ -761,7 +761,7 @@ export async function createRobot() {
         title: "Where do you want to create the Task Package?",
         useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
         useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Task Package folder name."
+        provideNamePrompt: "Please provide the name for the Task Package folder name.",
     });
 
     /* Operation cancelled. */

@@ -3,7 +3,7 @@ import {
     TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
     TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
     TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE,
-    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE
+    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE,
 } from "./robocorpViews";
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
@@ -22,7 +22,7 @@ import {
     getSelectedRobot,
     onSelectedRobotChanged,
     onChangedRobotSelection,
-    onChangedAgentPackageOrganizationSelection
+    onChangedAgentPackageOrganizationSelection,
 } from "./viewsSelection";
 import { CloudTreeDataProvider } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
@@ -289,7 +289,8 @@ export function registerViews(context: ExtensionContext) {
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, viewsAgentPackagesTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, agentPackagesTreeDataProvider);
 
-    const agentPackagesWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/agent-spec.yaml");
+    const agentPackagesWatcher: vscode.FileSystemWatcher =
+        vscode.workspace.createFileSystemWatcher("**/agent-spec.yaml");
 
     const onChangeAgentSpecYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.

@@ -7,12 +7,7 @@ import {
     SEMA4AI_NEW_WORK_ITEM_IN_WORK_ITEMS_VIEW,
     SEMA4AI_VERIFY_LIBRARY_VERSION_INTERNAL,
 } from "./robocorpCommands";
-import {
-    FSEntry,
-    NO_PACKAGE_FOUND_MSG,
-    RobotEntry,
-    treeViewIdToTreeDataProvider,
-} from "./viewsCommon";
+import { FSEntry, NO_PACKAGE_FOUND_MSG, RobotEntry, treeViewIdToTreeDataProvider } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE } from "./robocorpViews";
 import { getCurrRobotDir, RobotSelectionTreeDataProviderBase } from "./viewsRobotSelectionTreeBase";

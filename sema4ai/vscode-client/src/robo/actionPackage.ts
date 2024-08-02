@@ -25,8 +25,9 @@ import {
 import {
     compareVersions,
     getPackageTargetDirectory,
+    getPackageYamlNameFromDirectory,
     isActionPackage,
-    isDirectoryAPackageDirectory,
+    isPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage
 } from "../common";
@@ -267,7 +268,9 @@ export async function createActionPackage() {
 
     const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion();
 
-    if (await isDirectoryAPackageDirectory(ws.uri)) {
+    const rootPackageYaml = await getPackageYamlNameFromDirectory(ws.uri);
+
+    if (await isPackageDirectory(ws.uri)) {
         return;
     }
 
