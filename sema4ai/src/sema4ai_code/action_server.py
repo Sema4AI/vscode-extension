@@ -85,7 +85,7 @@ def download_action_server(
 
     Args:
         location: The location to store the Action Server executable in the filesystem.
-        action_server_version: version of the Action Server to download. Defaults to latest.
+        action_server_version: Version of the Action Server to download. Defaults to latest.
         force: Whether we should overwrite an existing installation.
         sys_platform: The target platform of downloaded artifact.
     """
