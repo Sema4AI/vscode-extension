@@ -465,6 +465,10 @@ class ActionServer:
         """
         Returns Action Server location as specified in extension's settings (if exists), falls back
         to relative "bin" directory otherwise.
+        Note that because Action Server executables are more controlled by the user, we don't want
+        to download them by default if missing. Instead, we want to inform user about the error if it
+        doesn't exist when running a command, so they can validate whether they provided a correct path
+        for the executable of their choosing.
 
         Args:
             download_if_missing: If true, it will attempt to download the Action Server if missing.

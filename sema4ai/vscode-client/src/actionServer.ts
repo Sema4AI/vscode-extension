@@ -51,6 +51,10 @@ export const downloadLatestActionServer = async (): Promise<string | undefined> 
     await makeDirs(path.dirname(versionedLocation));
     const savedLocation = await downloadActionServer(versionedLocation);
 
+    /**
+     * If failed, savedLocation will be nullish - at this point we simply exit the function,
+     * as appropriate error notifications have already been shown.
+     */
     if (!savedLocation || savedLocation !== versionedLocation) {
         return;
     }

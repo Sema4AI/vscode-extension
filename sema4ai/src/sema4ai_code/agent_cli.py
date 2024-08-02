@@ -65,7 +65,7 @@ class AgentCli:
             return config.get_setting(setting_name, str, None)
         return None
 
-    def get_agent_cli_location(self, download_if_missing: bool = False) -> str:
+    def get_agent_cli_location(self, download_if_missing: bool = True) -> str:
         """
         Returns Agent CLI location as specified in extension's settings (if exists), falls back
         to relative "bin" directory otherwise.
