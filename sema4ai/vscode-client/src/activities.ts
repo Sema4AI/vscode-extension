@@ -47,6 +47,8 @@ import {
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
 } from "./common";
+import { createActionPackage } from "./robo/actionPackage";
+import { getSelectedAgentPackageOrganization } from "./viewsSelection";
 
 export interface ListOpts {
     showTaskPackages: boolean;
@@ -797,6 +799,35 @@ export async function createRobot() {
     } else {
         OUTPUT_CHANNEL.appendLine("Error creating Task Package at: " + targetDir);
         window.showErrorMessage(createRobotResult.message);
+    }
+}
+
+export async function createTaskOrActionPackage() {
+    const TASK_PACKAGE = "Task Package (Robot)";
+    const ACTION_PACKAGE = "Action Package";
+
+    const sidebarOrganizationSelection = getSelectedAgentPackageOrganization();
+
+    /**
+     * Since this function is only called from the sidebar, we check if there is an organization
+     * selected in the Agent Packages section - if so, we want to allow the user to create Action Package in it.
+     */
+    if (sidebarOrganizationSelection?.uri) {
+        await createActionPackage(sidebarOrganizationSelection.uri);
+
+        return;
+    }
+
+    const packageType = await showSelectOneStrQuickPick(
+        [TASK_PACKAGE, ACTION_PACKAGE],
+        "Which kind of Package would you like to create?"
+    );
+    if (packageType) {
+        if (packageType === TASK_PACKAGE) {
+            await createRobot();
+        } else if (packageType === ACTION_PACKAGE) {
+            await createActionPackage();
+        }
     }
 }
 

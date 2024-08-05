@@ -4,6 +4,12 @@ export enum PackageType {
     Agent = "agent",
 }
 
+export enum PackageYamlName {
+    Task = "robot.yaml",
+    Action = "package.yaml",
+    Agent = "agent-spec.yaml",
+}
+
 export interface LocalPackageMetadataInfo {
     name: string;
     directory: string;

@@ -86,7 +86,6 @@ class WorkspaceManager:
         Returns all local Agent packages present in the workspace, either at root or first level.
         Ignores Robot/Action packages.
         """
-
         curr_cache = self._local_list_agent_packages_cache
         # We don't need additional information that come with LocalAgentPackageMetadataInfoDict in cache,
         # therefore we use the base class.

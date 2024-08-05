@@ -23,6 +23,7 @@ import {
     onSelectedRobotChanged,
     onChangedRobotSelection,
     onChangedAgentPackageOrganizationSelection,
+    onSelectedAgentPackageOrganizationChanged,
 } from "./viewsSelection";
 import { CloudTreeDataProvider } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
@@ -216,9 +217,13 @@ export function registerViews(context: ExtensionContext) {
         })
     );
 
+    context.subscriptions.push(
+        onSelectedAgentPackageOrganizationChanged((e) => robotsTreeDataProvider.onAgentsTreeSelectionChanged())
+    );
+
     // The contents of a single robot (the one selected in the Robots tree).
-    let robotContentTreeDataProvider = new RobotContentTreeDataProvider();
-    let robotContentTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, {
+    const robotContentTreeDataProvider = new RobotContentTreeDataProvider();
+    const robotContentTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, {
         "treeDataProvider": robotContentTreeDataProvider,
     });
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, robotContentTree);
@@ -281,16 +286,19 @@ export function registerViews(context: ExtensionContext) {
     );
 
     context.subscriptions.push(
-        agentPackagesTreeDataProvider.onForceSelectionFromTreeData(
-            async (e) => await onChangedAgentPackageOrganizationSelection(viewsAgentPackagesTree.selection)
+        agentPackagesTreeDataProvider.onUpdateSelectedOrganization(
+            async (e) => await onChangedAgentPackageOrganizationSelection([e])
         )
     );
 
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, viewsAgentPackagesTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, agentPackagesTreeDataProvider);
 
-    const agentPackagesWatcher: vscode.FileSystemWatcher =
-        vscode.workspace.createFileSystemWatcher("**/agent-spec.yaml");
+    /**
+     * Needed when creating and deleting organization directories, as well as
+     * Action Packages nested inside.
+     */
+    const agentPackagesWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/actions/**");
 
     const onChangeAgentSpecYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.

@@ -65,8 +65,8 @@ export class RobotSelectionTreeDataProviderBase implements vscode.TreeDataProvid
         this.fireRootChange();
 
         if (robotEntry) {
-            let robotDirUri = vscode.Uri.file(dirname(robotEntry.uri.fsPath));
-            let watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
+            const robotDirUri = vscode.Uri.file(dirname(robotEntry.uri.fsPath));
+            const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
                 new vscode.RelativePattern(robotDirUri, this.PATTERN_TO_LISTEN),
                 false,
                 true,
@@ -75,7 +75,7 @@ export class RobotSelectionTreeDataProviderBase implements vscode.TreeDataProvid
 
             this.lastWatcher = watcher;
 
-            let onChangedSomething = debounce(() => {
+            const onChangedSomething = debounce(() => {
                 // Note: this doesn't currently work if the parent folder is renamed or removed.
                 // (https://github.com/microsoft/vscode/pull/110858)
                 this.fireRootChange();

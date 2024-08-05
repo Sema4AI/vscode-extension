@@ -1,14 +1,6 @@
 import * as vscode from "vscode";
-import {
-    AgentEntry,
-    AgentEntryType,
-    refreshTreeView,
-    RobotEntry,
-    RobotEntryType,
-    treeViewIdToTreeView,
-} from "./viewsCommon";
+import { AgentEntry, AgentEntryType, RobotEntry, RobotEntryType, treeViewIdToTreeView } from "./viewsCommon";
 import { RobotsTreeDataProvider } from "./viewsRobots";
-import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 
 export interface SingleTreeSelectionOpts {
     noSelectionMessage?: string;
@@ -117,13 +109,10 @@ export async function onChangedAgentPackageOrganizationSelection(selection: read
      * Otherwise, selection should not have an effect on Task/Action Packages view.
      */
     if (selectedEntry && selectedEntry.type === AgentEntryType.Organization) {
-        console.log("SELECTION: ", selectedEntry);
         setSelectedAgentPackageOrganization(selectedEntry);
     } else {
         setSelectedAgentPackageOrganization(undefined);
     }
-
-    refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
 }
 
 export async function getSingleTreeSelection<T>(treeId: string, opts?: any): Promise<T | undefined> {

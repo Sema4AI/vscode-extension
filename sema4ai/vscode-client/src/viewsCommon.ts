@@ -48,6 +48,7 @@ export enum AgentEntryType {
     AgentPackage,
     Organization,
     Action,
+    GetStartedEntry,
 }
 
 export interface CloudEntry {

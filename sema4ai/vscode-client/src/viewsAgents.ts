@@ -4,13 +4,16 @@ import * as roboCommands from "./robocorpCommands";
 import { ActionResult, LocalAgentPackageMetadataInfo } from "./protocols";
 import { OUTPUT_CHANNEL } from "./channel";
 import { AgentEntry, AgentEntryType } from "./viewsCommon";
+import { getSelectedAgentPackageOrganization } from "./viewsSelection";
 
 export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntry> {
     private _onDidChangeTreeData = new vscode.EventEmitter<AgentEntry | null>();
     public readonly onDidChangeTreeData: vscode.Event<AgentEntry | null> = this._onDidChangeTreeData.event;
 
-    private _onForceSelectionFromTreeData: vscode.EventEmitter<AgentEntry[]> = new vscode.EventEmitter<AgentEntry[]>();
-    public readonly onForceSelectionFromTreeData: vscode.Event<AgentEntry[]> = this._onForceSelectionFromTreeData.event;
+    private _onUpdateSelectedOrganization: vscode.EventEmitter<AgentEntry | null> =
+        new vscode.EventEmitter<AgentEntry>();
+    public readonly onUpdateSelectedOrganization: vscode.Event<AgentEntry | null> =
+        this._onUpdateSelectedOrganization.event;
 
     public fireRootChange() {
         this._onDidChangeTreeData.fire(null);
@@ -43,10 +46,44 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
     public async getChildren(parent?: AgentEntry): Promise<AgentEntry[]> {
         const children = await this.computeChildren(parent);
 
+        /**
+         * When recomputing Organization items, we want to update the selection,
+         * in case given Agent Package contains new Action Packages.
+         */
+        if (parent?.type === AgentEntryType.AgentPackage) {
+            this.updateOrganizationSelection(children);
+        }
+
         if (!children?.length) {
+            return [
+                "No Agent Package found.",
+                "A few ways to get started:",
+                "➔ Run the “Sema4.ai: Create Agent Package”",
+                "➔ Open an Agent Package folder (with an “agent-spec.yaml” file)",
+                "➔ Open a parent folder (with multiple Agent packages)",
+            ].map((label) => ({
+                label,
+                type: AgentEntryType.GetStartedEntry,
+            }));
         }
 
         return children;
+    }
+
+    private updateOrganizationSelection(newOrganizationEntries: AgentEntry[]) {
+        const currentSelectedOrganization = getSelectedAgentPackageOrganization();
+
+        if (!currentSelectedOrganization) {
+            return;
+        }
+
+        for (const organizationEntry of newOrganizationEntries) {
+            if (organizationEntry.label === currentSelectedOrganization.label) {
+                this._onUpdateSelectedOrganization.fire(organizationEntry);
+
+                return;
+            }
+        }
     }
 
     private async computeChildren(parent?: AgentEntry): Promise<AgentEntry[]> {
@@ -58,9 +95,10 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
                 return agentActionOrganizations.map((organization) => ({
                     type: AgentEntryType.Organization,
                     label: organization.name,
-                    uri: vscode.Uri.file(`${parent.packageInfo?.directory}/${organization.name}`),
+                    uri: vscode.Uri.file(`${parent.packageInfo?.directory}/actions/${organization.name}`),
                     iconPath: "circle",
                     actionPackages: organization?.actionPackages || [],
+                    parent,
                 }));
             }
             return [];

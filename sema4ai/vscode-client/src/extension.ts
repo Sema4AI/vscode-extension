@@ -53,6 +53,7 @@ import {
     updateLaunchEnvironment,
     resolveInterpreter,
     listAndAskRobotSelection,
+    createTaskOrActionPackage,
 } from "./activities";
 import { handleProgressMessage, ProgressReport } from "./progress";
 import {
@@ -357,21 +358,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
     C.register(SEMA4AI_CREATE_ROBOT, () => createRobot());
     C.register(SEMA4AI_CREATE_ACTION_PACKAGE, () => createActionPackage());
-    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE, async () => {
-        const TASK_PACKAGE = "Task Package (Robot)";
-        const ACTION_PACKAGE = "Action Package";
-        const packageType = await showSelectOneStrQuickPick(
-            [TASK_PACKAGE, ACTION_PACKAGE],
-            "Which kind of Package would you like to create?"
-        );
-        if (packageType) {
-            if (packageType === TASK_PACKAGE) {
-                createRobot();
-            } else if (packageType === ACTION_PACKAGE) {
-                createActionPackage();
-            }
-        }
-    });
+    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE, () => createTaskOrActionPackage());
     C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
             const location = await downloadLatestActionServer();

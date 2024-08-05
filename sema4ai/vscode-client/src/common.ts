@@ -1,7 +1,7 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
 import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
-import { ActionResult, LocalPackageMetadataInfo } from "./protocols";
+import { ActionResult, LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
@@ -11,6 +11,11 @@ export type GetPackageTargetDirectoryMessages = {
     useWorkspaceFolderPrompt: string;
     useChildFolderPrompt: string;
     provideNamePrompt: string;
+};
+
+export type WorkspacePackagesInfo = {
+    agentPackages: LocalAgentPackageMetadataInfo[];
+    taskActionPackages: LocalPackageMetadataInfo[];
 };
 
 export const debounce = (func, wait) => {
@@ -35,11 +40,11 @@ export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) 
     return entry.filePath.endsWith("package.yaml");
 };
 
-export async function areTherePackagesInWorkspace(): Promise<boolean> {
+export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo | null> {
     const [actionResultListLocalRobots, actionResultListAgents] = (await Promise.all([
         vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL),
         vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL),
-    ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalPackageMetadataInfo[]>];
+    ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalAgentPackageMetadataInfo[]>];
 
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
@@ -47,7 +52,7 @@ export async function areTherePackagesInWorkspace(): Promise<boolean> {
             "Error listing robots: " + actionResultListLocalRobots.message + " (Package creation will proceed)."
         );
 
-        return false;
+        return null;
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
     }
 
@@ -56,11 +61,26 @@ export async function areTherePackagesInWorkspace(): Promise<boolean> {
         window.showErrorMessage(
             "Error listing agents: " + actionResultListAgents.message + " (Package creation will proceed)."
         );
+
+        return null;
+    }
+
+    return {
+        agentPackages: actionResultListAgents.result || [],
+        taskActionPackages: actionResultListLocalRobots.result || [],
+    };
+}
+
+export async function areTherePackagesInWorkspace(): Promise<boolean> {
+    const workspacePackages = await getWorkspacePackages();
+
+    if (!workspacePackages) {
+        return false;
     }
 
     const packagesInfo: LocalPackageMetadataInfo[] = [
-        ...actionResultListLocalRobots.result,
-        ...actionResultListAgents.result,
+        ...workspacePackages.taskActionPackages,
+        ...workspacePackages.agentPackages,
     ];
     return packagesInfo && packagesInfo.length > 0;
 }
@@ -102,11 +122,7 @@ export async function getPackageTargetDirectory(
     }
 
     if (!useWorkspaceFolder) {
-        const name = await window.showInputBox({
-            "value": "Example",
-            "prompt": messages.provideNamePrompt,
-            "ignoreFocusOut": true,
-        });
+        const name = await getPackageDirectoryName(messages.provideNamePrompt);
 
         /* Operation cancelled. */
         if (!name) {
@@ -117,6 +133,16 @@ export async function getPackageTargetDirectory(
     }
 
     return ws.uri.fsPath;
+}
+
+export async function getPackageDirectoryName(prompt: string, defaultName: string = "Example"): Promise<string | null> {
+    const name = await window.showInputBox({
+        "value": "Example",
+        "prompt": prompt,
+        "ignoreFocusOut": true,
+    });
+
+    return name || null;
 }
 
 export function refreshFilesExplorer() {
@@ -144,13 +170,13 @@ export async function getPackageYamlNameFromDirectory(uri: Uri): Promise<string 
     return null;
 }
 
-export async function isPackageDirectory(wsUri: Uri): Promise<boolean> {
+export async function isPackageDirectory(wsUri: Uri, ignore: string[] = []): Promise<boolean> {
     // Check if we still don't have a Robot in this folder (i.e.: if we have a Robot in the workspace
     // root already, we shouldn't create another Robot inside it).
     try {
         const packageYaml = await getPackageYamlNameFromDirectory(wsUri);
 
-        if (packageYaml) {
+        if (packageYaml && !ignore.includes(packageYaml)) {
             window.showErrorMessage(
                 "It's not possible to create a Package in: " +
                     wsUri.fsPath +

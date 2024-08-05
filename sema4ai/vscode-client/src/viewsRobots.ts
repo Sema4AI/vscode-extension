@@ -42,6 +42,10 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         this._onDidChangeTreeData.fire(null);
     }
 
+    public onAgentsTreeSelectionChanged() {
+        this.fireRootChange();
+    }
+
     /**
      * Note that we make sure to only return valid entries here (i.e.: no entries
      * where RobotEntry.type === RobotEntryType.Error).
@@ -386,7 +390,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         /**
          * If Agent Packages section have an organization selected, we should only show
          * packages from given organization.
-         * Otherwise, workspace will be scan for Task/Action packages.
+         * Otherwise, workspace will be scan for Action packages.
          */
         const selectedActionPackageOrganization = getSelectedAgentPackageOrganization();
         if (selectedActionPackageOrganization) {
