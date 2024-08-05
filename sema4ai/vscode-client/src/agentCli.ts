@@ -4,7 +4,7 @@ import { getExtensionRelativeFile, fileExists } from "./files";
 import { compareVersions } from "./common";
 import { getAgentcliLocation } from "./robocorpSettings";
 
-const LATEST_AGENT_CLI_VERSION = "v0.0.8";
+const LATEST_AGENT_CLI_VERSION = "v0.0.9";
 let versionVerified = false;
 
 /**

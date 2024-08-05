@@ -20,7 +20,7 @@ log = get_logger(__name__)
 
 def download_agent_cli(
     location: str,
-    agent_cli_version="latest",
+    agent_cli_version="v0.0.9",
     force: bool = False,
     sys_platform: Optional[str] = None,
 ) -> None:
@@ -178,7 +178,7 @@ class AgentCli:
         Args:
             directory: The directory to create the Agent package in.
         """
-        args = ["project", "new", "--name", directory]
+        args = ["project", "new", "--path", directory]
         command_result = self._run_agent_cli_command(args)
 
         if not command_result.success:
