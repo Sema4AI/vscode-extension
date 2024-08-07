@@ -28,7 +28,9 @@ from sema4ai_code.inspector.common import (
 )
 from sema4ai_code.protocols import (
     ActionResult,
-    LocalRobotMetadataInfoDict,
+    LocalPackageMetadataInfoDict,
+    LocalAgentPackageOrganizationInfoDict,
+    LocalAgentPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
 
@@ -160,9 +162,366 @@ def test_list_rcc_robot_templates(
         commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL, []
     )["result"]
     assert result["success"]
-    folder_info_lst: List[LocalRobotMetadataInfoDict] = result["result"]
+    folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
     assert len(folder_info_lst) == 2
     assert set([x["name"] for x in folder_info_lst]) == {"example", "example2"}
+
+
+def test_list_local_robots(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    ws_root_path: str,
+    rcc_location: str,
+    tmpdir,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(rcc_location)
+    language_server = language_server_initialized
+
+    target = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
+        [
+            {
+                "directory": target,
+                "name": "example",
+                "template": "python",
+            }
+        ],
+    )
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
+        [{"directory": ws_root_path, "name": "example2", "template": "python"}],
+    )["result"]
+    assert result["success"]
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL, []
+    )["result"]
+    assert result["success"]
+    folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
+    assert len(folder_info_lst) == 2
+    assert set([x["name"] for x in folder_info_lst]) == {"example", "example2"}
+
+
+def test_list_local_agent_packages(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    ws_root_path: str,
+    agent_cli_location: str,
+    tmpdir,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(agent_cli_location)
+    language_server = language_server_initialized
+
+    agent_package_name_one = "test_agent_one"
+    agent_package_name_two = "test_agent_two"
+
+    # We create one Action package to test whether the command correctly ignores it.
+    action_package_name = "action_package"
+
+    target_directory = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{target_directory}/{agent_package_name_one}",
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{target_directory}/{agent_package_name_two}",
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{target_directory}/{action_package_name}",
+                "template": "minimal",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
+        [],
+    )["result"]
+
+    assert result["success"]
+
+    packages: List[LocalPackageMetadataInfoDict] = result["result"]
+
+    assert len(packages) == 2
+    assert set([x["name"] for x in packages]) == {
+        agent_package_name_one,
+        agent_package_name_two,
+    }
+    assert action_package_name not in [x["name"] for x in packages]
+
+    assert os.path.exists(
+        f"{target_directory}/{agent_package_name_one}/agent-spec.yaml"
+    )
+    assert os.path.exists(
+        f"{target_directory}/{agent_package_name_two}/agent-spec.yaml"
+    )
+
+
+def test_list_local_agent_packages_with_sub_packages(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    ws_root_path: str,
+    agent_cli_location: str,
+    tmpdir,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(agent_cli_location)
+    language_server = language_server_initialized
+
+    agent_package_name = "test_agent"
+
+    # We create one Action package to test whether the command correctly ignores it.
+    action_package_name_one = "action_package_one"
+    action_package_name_two = "action_package_two"
+    action_package_name_three = "action_package_three"
+
+    organization_one = "MyActions"
+    organization_two = "Sema4.ai"
+
+    target_directory = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    agent_package_directory = f"{target_directory}/{agent_package_name}"
+    agent_actions_directory = f"{agent_package_directory}/actions"
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": agent_package_directory,
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_one}",
+                "template": "minimal",
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_two}",
+                "template": "minimal",
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_actions_directory}/{organization_two}/{action_package_name_three}",
+                "template": "minimal",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
+        [],
+    )["result"]
+
+    assert result["success"]
+
+    packages: List[LocalAgentPackageMetadataInfoDict] = result["result"]
+
+    assert len(packages) == 1
+    assert set([x["name"] for x in packages]) == {agent_package_name}
+    assert os.path.exists(f"{agent_package_directory}/agent-spec.yaml")
+
+    package = packages[0]
+
+    organizations: List[LocalAgentPackageOrganizationInfoDict] = package[
+        "organizations"
+    ]
+
+    assert len(organizations) == 2
+    assert set([x["name"] for x in organizations]) == {
+        organization_one,
+        organization_two,
+    }
+
+    action_packages: List[LocalPackageMetadataInfoDict] = (
+        organizations[0]["actionPackages"] + organizations[1]["actionPackages"]
+    )
+
+    assert organizations is not None
+    assert len(action_packages) == 3
+
+    action_package_one = next(
+        (
+            x
+            for x in action_packages
+            if os.path.basename(x["directory"]) == action_package_name_one
+        ),
+        None,
+    )
+    action_package_two = next(
+        (
+            x
+            for x in action_packages
+            if os.path.basename(x["directory"]) == action_package_name_two
+        ),
+        None,
+    )
+    action_package_three = next(
+        (
+            x
+            for x in action_packages
+            if os.path.basename(x["directory"]) == action_package_name_three
+        ),
+        None,
+    )
+
+    assert action_package_one is not None
+    assert os.path.basename(action_package_one["directory"]) == action_package_name_one
+    assert action_package_one["organization"] == organization_one
+
+    assert action_package_two is not None
+    assert os.path.basename(action_package_two["directory"]) == action_package_name_two
+    assert action_package_two["organization"] == organization_one
+
+    assert action_package_three is not None
+    assert (
+        os.path.basename(action_package_three["directory"]) == action_package_name_three
+    )
+    assert action_package_three["organization"] == organization_two
+
+
+def test_list_local_agent_packages_cache(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    ws_root_path: str,
+    agent_cli_location: str,
+    tmpdir,
+) -> None:
+    from sema4ai_code import commands
+
+    assert os.path.exists(agent_cli_location)
+    language_server = language_server_initialized
+
+    agent_package_name = "test_agent"
+    organization_name = "MyActions"
+
+    # We create one Action package to test whether the command correctly ignores it.
+    action_package_name_one = "action_package_one"
+
+    target_directory = str(tmpdir.join("dest"))
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    agent_package_directory = f"{target_directory}/{agent_package_name}"
+    agent_actions_directory = f"{agent_package_directory}/actions"
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": agent_package_directory,
+            }
+        ],
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_actions_directory}/{organization_name}/{action_package_name_one}",
+                "template": "minimal",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
+        [],
+    )["result"]
+
+    assert result["success"]
+
+    packages: List[LocalAgentPackageMetadataInfoDict] = result["result"]
+
+    assert len(packages) == 1
+    assert os.path.exists(f"{agent_package_directory}/agent-spec.yaml")
+
+    package = packages[0]
+
+    organizations: List[LocalAgentPackageOrganizationInfoDict] = package[
+        "organizations"
+    ]
+
+    # Agent CLI always creates two organizations by default - MyActions and Sema4.ai.
+    assert len(organizations) == 2
+
+    organization_with_actions = next(
+        (x for x in organizations if x["name"] == organization_name), None
+    )
+
+    assert organization_with_actions is not None
+
+    action_packages = organization_with_actions["actionPackages"]
+
+    assert action_packages is not None
+    assert len(action_packages) == 1
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
+        [],
+    )["result"]
+
+    assert result["success"]
+
+    packages = result["result"]
+
+    # We want to test whether the result is correct given subsequent calls.
+    # These assertions tests, if no Agent package or sub packages are duplicated.
+    assert len(packages) == 1
+
+    organizations = packages[0]["organizations"]
+    assert len(organizations) == 2
+
+    organization_with_actions = next(
+        (x for x in organizations if x["name"] == organization_name), None
+    )
+
+    assert organization_with_actions is not None
+
+    action_packages = organization_with_actions["actionPackages"]
+
+    assert action_packages is not None
+    assert len(action_packages) == 1
 
 
 def get_workspace_from_name(
@@ -1283,7 +1642,7 @@ def test_web_inspector_integrated(
     listed_robots = api_client.m_list_robots()
     assert len(listed_robots) == 2
 
-    name_to_info: Dict[str, LocalRobotMetadataInfoDict] = {}
+    name_to_info: Dict[str, LocalPackageMetadataInfoDict] = {}
     for robot in listed_robots:
         name_to_info[robot["name"]] = robot
 
@@ -1955,3 +2314,50 @@ def test_agent_cli_version(
 
     assert result["success"]
     assert result["result"] is not None
+
+
+def test_create_agent_package(
+    language_server_initialized,
+    tmpdir,
+    agent_cli_location: str,
+) -> None:
+    assert os.path.exists(agent_cli_location)
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+
+    package_name = "test_agent"
+
+    target_directory = str(tmpdir.join(package_name))
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert not result["message"]
+    assert os.path.exists(f"{target_directory}/agent-spec.yaml")
+
+    # When creating a package in a directory that is not empty,
+    # we expect an error to be returned.
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert "Error creating Agent package" in result["message"]
+    assert "not empty" in result["message"]

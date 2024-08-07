@@ -148,8 +148,13 @@
         "onCommand:sema4ai.agentCliDownload.internal",
         "onCommand:sema4ai.actionServerVersion.internal",
         "onCommand:sema4ai.agentCliVersion.internal",
+        "onCommand:sema4ai.createAgentPackage",
+        "onCommand:sema4ai.refreshAgentPackagesView",
+        "onCommand:sema4ai.createAgentPackage.internal",
+        "onCommand:sema4ai.localListAgentPackages.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
+        "onView:sema4ai-agent-packages-tree",
         "onView:sema4ai-task-packages-tree",
         "onView:sema4ai-package-content-tree",
         "onView:sema4ai-package-resources-tree",
@@ -259,18 +264,23 @@
         "views": {
             "sem4ai-packages": [
                 {
+                    "id": "sema4ai-agent-packages-tree",
+                    "name": "Agent Packages",
+                    "contextualTitle": "Agent Packages"
+                },
+                {
                     "id": "sema4ai-task-packages-tree",
                     "name": "Task/Action Packages",
                     "contextualTitle": "Task/Action Packages"
                 },
                 {
                     "id": "sema4ai-package-content-tree",
-                    "name": "Package Content",
+                    "name": "Task/Action Package Content",
                     "contextualTitle": "Package Content"
                 },
                 {
                     "id": "sema4ai-package-resources-tree",
-                    "name": "Package Resources",
+                    "name": "Task/Action Package Resources",
                     "contextualTitle": "Package Resources"
                 },
                 {
@@ -917,10 +927,35 @@
                 "command": "sema4ai.oauth2.open_settings",
                 "title": "Open Oauth2 Settings",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.createAgentPackage",
+                "title": "Create Agent Package",
+                "category": "Sema4.ai",
+                "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.refreshAgentPackagesView",
+                "title": "Refresh Agent Packages view",
+                "category": "Sema4.ai",
+                "icon": {
+                    "light": "images/light/refresh.svg",
+                    "dark": "images/dark/refresh.svg"
+                }
             }
         ],
         "menus": {
             "view/title": [
+                {
+                    "command": "sema4ai.refreshAgentPackagesView",
+                    "when": "view == sema4ai-agent-packages-tree",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.createAgentPackage",
+                    "when": "view == sema4ai-agent-packages-tree",
+                    "group": "navigation"
+                },
                 {
                     "command": "sema4ai.refreshRobotsView",
                     "when": "view == sema4ai-task-packages-tree",

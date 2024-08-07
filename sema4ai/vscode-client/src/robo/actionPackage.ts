@@ -11,24 +11,29 @@ import {
     CancellationToken,
 } from "vscode";
 import * as vscode from "vscode";
-import { join } from "path";
 import * as roboCommands from "../robocorpCommands";
 import {
     ActionResult,
     ActionTemplate,
     IActionInfo,
-    LocalRobotMetadataInfo,
+    LocalPackageMetadataInfo,
     ActionServerListOrganizationsOutput,
     ActionServerOrganization,
     ActionServerPackageBuildOutput,
     ActionServerPackageUploadStatusOutput,
+    PackageYamlName,
+    LocalAgentPackageMetadataInfo
 } from "../protocols";
 import {
-    areThereRobotsInWorkspace,
     compareVersions,
+    getPackageDirectoryName,
+    getPackageTargetDirectory,
+    getPackageYamlNameFromDirectory,
+    getWorkspacePackages,
     isActionPackage,
-    isDirectoryAPackageDirectory,
-    verifyIfPathOkToCreatePackage,
+    isPackageDirectory,
+    refreshFilesExplorer,
+    verifyIfPathOkToCreatePackage
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -76,14 +81,14 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
         "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
     });
 
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Action Packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         // Only use action packages.
         robotsInfo = robotsInfo.filter((r) => {
@@ -252,8 +257,108 @@ export async function runActionFromActionPackage(
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-export async function createActionPackage() {
-    const robotsInWorkspacePromise: Promise<boolean> = areThereRobotsInWorkspace();
+async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | null> {
+    if (await isPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
+        return null;
+    }
+
+    const [rootPackageYaml, workspacePackages] = await Promise.all([
+        getPackageYamlNameFromDirectory(ws.uri),
+        getWorkspacePackages(),
+    ]);
+
+    let targetDir = '';
+
+    if (workspacePackages?.agentPackages?.length) {
+        let packageInfo: LocalAgentPackageMetadataInfo;
+        let useAgentPackage = false;
+
+        /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
+        if (rootPackageYaml === PackageYamlName.Agent) {
+            packageInfo = workspacePackages.agentPackages[0];
+            useAgentPackage = true;
+        } else {
+            const insideAgentPackageLabel = "Inside specific Agent Package";
+
+            const actionPackageLevelSelection = await window.showQuickPick(
+                [
+                    {
+                        "label": "At a root level",
+                        "detail": "Action Package will be created at workspace root level"
+                    },
+                    {
+                        "label": insideAgentPackageLabel,
+                        "detail": "Action Package will be created inside specific Agent Package"
+                    }
+                ],
+                {
+                    placeHolder: "Where do you want to create the Action Package?",
+                    ignoreFocusOut: true,
+                }
+            );
+
+            /* Operation cancelled. */
+            if (!actionPackageLevelSelection) {
+                return null;
+            }
+
+            useAgentPackage = actionPackageLevelSelection["label"] === insideAgentPackageLabel;
+
+            if (useAgentPackage) {
+                const packageName = await window.showQuickPick(
+                    workspacePackages.agentPackages.map(agentPackage => agentPackage.name),
+                    {
+                        placeHolder: "Where do you want to create the Action Package?",
+                        ignoreFocusOut: true,
+                    }
+                );
+
+                /* Operation cancelled. */
+                if (!packageName) {
+                    return null;
+                }
+
+                packageInfo = workspacePackages.agentPackages.find(agentPackage => agentPackage.name === packageName);
+            }
+        }
+
+        if (useAgentPackage) {
+            const organizationDirectoryName = await window.showQuickPick(
+                packageInfo.organizations.map(organization => organization.name),
+                {
+                    placeHolder: "Which organization do you want to create the Action Package in?",
+                    ignoreFocusOut: true,
+                }
+            );
+
+            /* Operation cancelled. */
+            if (!organizationDirectoryName) {
+                return null;
+            }
+
+            const packageDirectoryName = await getPackageDirectoryName("Please provide the name for the Action Package folder name.");
+
+            /* Operation cancelled. */
+            if (!packageDirectoryName) {
+                return null;
+            }
+
+            targetDir = path.join(packageInfo.directory, 'actions', organizationDirectoryName, packageDirectoryName);
+        } else {
+            targetDir = await getPackageTargetDirectory(ws, {
+                title: "Where do you want to create the Action Package?",
+                useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
+                useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
+                provideNamePrompt: "Please provide the name for the Action Package folder name."
+            });
+        }
+    }
+
+    return targetDir || null;
+}
+
+export async function createActionPackage(selectedOrganizationUri?: vscode.Uri) {
+    /* We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.  */
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
         return;
@@ -265,56 +370,20 @@ export async function createActionPackage() {
         return;
     }
 
-    const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion();
+    let targetDir = '';
 
-    if (await isDirectoryAPackageDirectory(ws.uri)) {
-        return;
-    }
-
-    const robotsInWorkspace: boolean = await robotsInWorkspacePromise;
-    let useWorkspaceFolder: boolean;
-    if (robotsInWorkspace) {
-        // i.e.: if we already have robots, this is a multi-Robot workspace.
-        useWorkspaceFolder = false;
+    if (selectedOrganizationUri) {
+        targetDir = path.join(selectedOrganizationUri.fsPath, await getPackageDirectoryName("Please provide the name for the Action Package folder name."));
     } else {
-        const USE_WORKSPACE_FOLDER_LABEL = "Use workspace folder (recommended)";
-        let target = await window.showQuickPick(
-            [
-                {
-                    "label": USE_WORKSPACE_FOLDER_LABEL,
-                    "detail": "The workspace will only have a single Action Package.",
-                },
-                {
-                    "label": "Use child folder in workspace (advanced)",
-                    "detail": "Multiple Action Packages can be created in this workspace.",
-                },
-            ],
-            {
-                "placeHolder": "Where do you want to create the Action Package?",
-                "ignoreFocusOut": true,
-            }
-        );
+        targetDir = await getActionPackageTargetDir(ws);
 
-        if (!target) {
-            // Operation cancelled.
+        /* Operation cancelled or directory conflict detected. */
+        if (!targetDir) {
             return;
         }
-        useWorkspaceFolder = target["label"] == USE_WORKSPACE_FOLDER_LABEL;
     }
 
-    let targetDir = ws.uri.fsPath;
-    if (!useWorkspaceFolder) {
-        let name: string = await window.showInputBox({
-            "value": "Example",
-            "prompt": "Please provide the name for the Action Package folder name.",
-            "ignoreFocusOut": true,
-        });
-        if (!name) {
-            // Operation cancelled.
-            return;
-        }
-        targetDir = join(targetDir, name);
-    }
+    const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion();
 
     // Now, let's validate if we can indeed create an Action Package in the given folder.
     const op = await verifyIfPathOkToCreatePackage(targetDir);
@@ -372,15 +441,10 @@ export async function createActionPackage() {
         );
 
         if (!result.success) {
-            throw new Error(result.message || "Unkown error");
+            throw new Error(result.message || "Unknown error");
         }
 
-        try {
-            commands.executeCommand("workbench.files.action.refreshFilesExplorer");
-        } catch (error) {
-            logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
-        }
-
+        refreshFilesExplorer();
         window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;

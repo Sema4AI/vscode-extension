@@ -20,7 +20,7 @@ log = get_logger(__name__)
 
 def download_agent_cli(
     location: str,
-    agent_cli_version="latest",
+    agent_cli_version="v0.0.9",
     force: bool = False,
     sys_platform: Optional[str] = None,
 ) -> None:
@@ -49,6 +49,13 @@ def get_default_agent_cli_location(version: str = "") -> str:
     from sema4ai_code.tools import get_default_tool_location
 
     return get_default_tool_location(Tool.AGENT_CLI, version)
+
+
+def get_agent_package_actions_sub_directory() -> str:
+    """
+    Returns the directory containing Agents' actions inside of an Agent Package.
+    """
+    return "actions"
 
 
 class AgentCli:
@@ -163,3 +170,21 @@ class AgentCli:
             return ActionResult(success=False, message=command_result.message)
 
         return ActionResult(success=True, message=None, result=command_result.result)
+
+    def create_agent_package(self, directory: str) -> ActionResult[str]:
+        """
+        Create a new Agent package under given directory.
+
+        Args:
+            directory: The directory to create the Agent package in.
+        """
+        args = ["project", "new", "--path", directory]
+        command_result = self._run_agent_cli_command(args)
+
+        if not command_result.success:
+            return ActionResult(
+                success=False,
+                message=f"Error creating Agent package.\n{command_result.message}",
+            )
+
+        return ActionResult(success=True, message=None)

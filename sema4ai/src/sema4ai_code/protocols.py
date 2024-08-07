@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
+from enum import Enum
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -18,11 +19,38 @@ else:
     from typing import Protocol, TypedDict
 
 
-class LocalRobotMetadataInfoDict(TypedDict):
-    directory: str  # The directory that contains the robot.yaml
-    filePath: str  # The path to the robot.yaml
-    name: str  # The name of the robot
-    yamlContents: dict  # The contents of the robot.yaml
+class PackageType(Enum):
+    TASK = "task"
+    ACTION = "action"
+    AGENT = "agent"
+
+
+class PackageYamlName(Enum):
+    ROBOT = "robot.yaml"
+    ACTION = "package.yaml"
+    AGENT = "agent-spec.yaml"
+
+
+class LocalPackageMetadataInfoDict(TypedDict):
+    packageType: str  # Type of the package.
+    directory: str  # The directory that contains the related package's YAML file
+    filePath: str  # The path to the YAML file
+    name: str  # The name of the package
+    yamlContents: dict  # The contents of the YAML file
+
+    # Organization given package is specific to (applicable only to Actions).
+    organization: Optional[str]
+
+
+class LocalAgentPackageOrganizationInfoDict(TypedDict):
+    name: str  # Name of the organization.
+    actionPackages: List[
+        LocalPackageMetadataInfoDict
+    ]  # Action Packages specific to given organization.
+
+
+class LocalAgentPackageMetadataInfoDict(LocalPackageMetadataInfoDict):
+    organizations: List[LocalAgentPackageOrganizationInfoDict]
 
 
 class LocatorEntryInfoDict(TypedDict):
@@ -93,7 +121,7 @@ class ActionResultDictLocalRobotMetadata(TypedDict):
     message: Optional[
         str
     ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocalRobotMetadataInfoDict]]
+    result: Optional[List[LocalPackageMetadataInfoDict]]
 
 
 class ActionServerVerifyLoginResultDict(TypedDict):
@@ -311,6 +339,18 @@ class ActionServerPackageMetadataDict(TypedDict):
 
 class DownloadToolDict(TypedDict):
     location: str
+
+
+class CreateAgentPackageParamsDict(TypedDict):
+    directory: str
+
+
+class ActionResultDictLocalAgentPackageMetadata(TypedDict):
+    success: bool
+    message: Optional[
+        str
+    ]  # if success == False, this can be some message to show to the user
+    result: Optional[List[LocalAgentPackageMetadataInfoDict]]
 
 
 class IRccWorkspace(Protocol):

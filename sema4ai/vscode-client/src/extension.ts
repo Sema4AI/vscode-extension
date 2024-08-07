@@ -53,9 +53,14 @@ import {
     updateLaunchEnvironment,
     resolveInterpreter,
     listAndAskRobotSelection,
+    createTaskOrActionPackage,
 } from "./activities";
 import { handleProgressMessage, ProgressReport } from "./progress";
-import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE } from "./robocorpViews";
+import {
+    TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
+    TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
+    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE,
+} from "./robocorpViews";
 import { askAndCreateRccTerminal } from "./rccTerminal";
 import {
     deleteResourceInRobotContentTree,
@@ -149,6 +154,8 @@ import {
     SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
     SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
     SEMA4AI_OAUTH2_LOGOUT,
+    SEMA4AI_CREATE_AGENT_PACKAGE,
+    SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -178,6 +185,7 @@ import {
 import { showSelectOneStrQuickPick } from "./ask";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
 import { oauth2Logout } from "./robo/oauth2InInput";
+import { createAgentPackage } from "./robo/agentPackage";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -350,21 +358,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
     C.register(SEMA4AI_CREATE_ROBOT, () => createRobot());
     C.register(SEMA4AI_CREATE_ACTION_PACKAGE, () => createActionPackage());
-    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE, async () => {
-        const TASK_PACKAGE = "Task Package (Robot)";
-        const ACTION_PACKAGE = "Action Package";
-        const packageType = await showSelectOneStrQuickPick(
-            [TASK_PACKAGE, ACTION_PACKAGE],
-            "Which kind of Package would you like to create?"
-        );
-        if (packageType) {
-            if (packageType === TASK_PACKAGE) {
-                createRobot();
-            } else if (packageType === ACTION_PACKAGE) {
-                createActionPackage();
-            }
-        }
-    });
+    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE, () => createTaskOrActionPackage());
     C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
             const location = await downloadLatestActionServer();
@@ -384,6 +378,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
     C.register(SEMA4AI_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
     C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE));
+    C.register(SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE));
     C.register(SEMA4AI_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
@@ -487,6 +482,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_BUILD, buildActionPackage);
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, openMetadata);
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
+    C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
 }
 
 async function clearEnvAndRestart() {

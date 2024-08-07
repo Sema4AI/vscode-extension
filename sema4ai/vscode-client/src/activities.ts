@@ -9,7 +9,7 @@ import {
     DebugSessionOptions,
     env,
 } from "vscode";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
@@ -32,7 +32,7 @@ import {
     InterpreterInfo,
     IVaultInfo,
     LibraryVersionInfoDict,
-    LocalRobotMetadataInfo,
+    LocalPackageMetadataInfo,
     PackageInfo,
     RobotTemplate,
     WorkItemsInfo,
@@ -41,11 +41,14 @@ import {
 import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
-    areThereRobotsInWorkspace,
+    getPackageTargetDirectory,
     isActionPackage,
-    isDirectoryAPackageDirectory,
+    isPackageDirectory,
+    refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
 } from "./common";
+import { createActionPackage } from "./robo/actionPackage";
+import { getSelectedAgentPackageOrganization } from "./viewsSelection";
 
 export interface ListOpts {
     showTaskPackages: boolean;
@@ -183,8 +186,8 @@ export async function listAndAskRobotSelection(
     selectionMessage: string,
     noRobotErrorMessage: string,
     opts: ListOpts
-): Promise<LocalRobotMetadataInfo> {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+): Promise<LocalPackageMetadataInfo> {
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
@@ -192,14 +195,14 @@ export async function listAndAskRobotSelection(
         window.showInformationMessage("Error listing robots: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(noRobotErrorMessage);
         return;
     }
 
-    const filter = (entry: LocalRobotMetadataInfo) => {
+    const filter = (entry: LocalPackageMetadataInfo) => {
         const isActionPkg = isActionPackage(entry);
         const isTaskPackage = !isActionPkg;
 
@@ -218,7 +221,7 @@ export async function listAndAskRobotSelection(
         return;
     }
 
-    let robot: LocalRobotMetadataInfo = await askRobotSelection(robotsInfo, selectionMessage);
+    let robot: LocalPackageMetadataInfo = await askRobotSelection(robotsInfo, selectionMessage);
     if (!robot) {
         return;
     }
@@ -226,15 +229,15 @@ export async function listAndAskRobotSelection(
 }
 
 export async function askRobotSelection(
-    robotsInfo: LocalRobotMetadataInfo[],
+    robotsInfo: LocalPackageMetadataInfo[],
     message: string
-): Promise<LocalRobotMetadataInfo> {
-    let robot: LocalRobotMetadataInfo;
+): Promise<LocalPackageMetadataInfo> {
+    let robot: LocalPackageMetadataInfo;
     if (robotsInfo.length > 1) {
         let captions: QuickPickItemWithAction[] = new Array();
 
         for (let i = 0; i < robotsInfo.length; i++) {
-            const element: LocalRobotMetadataInfo = robotsInfo[i];
+            const element: LocalPackageMetadataInfo = robotsInfo[i];
             let caption: QuickPickItemWithAction = {
                 "label": element.name,
                 "description": element.directory,
@@ -280,14 +283,14 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
 }
 
 export async function setPythonInterpreterFromRobotYaml() {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing existing packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
@@ -296,7 +299,7 @@ export async function setPythonInterpreterFromRobotYaml() {
         return;
     }
 
-    let robot: LocalRobotMetadataInfo = await askRobotSelection(
+    let robot: LocalPackageMetadataInfo = await askRobotSelection(
         robotsInfo,
         "Please select the Action or Task Package from which the python executable should be used."
     );
@@ -367,14 +370,14 @@ export async function setPythonInterpreterFromRobotYaml() {
 }
 
 export async function rccConfigurationDiagnostics() {
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error listing robots: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         // Only use task packages.
         robotsInfo = robotsInfo.filter((r) => {
@@ -409,7 +412,7 @@ export async function rccConfigurationDiagnostics() {
     });
 }
 
-export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
+export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     // Start this in parallel while we ask the user for info.
     let isLoginNeededPromise: Thenable<ActionResult<boolean>> = commands.executeCommand(
         roboCommands.SEMA4AI_IS_LOGIN_NEEDED_INTERNAL
@@ -419,14 +422,14 @@ export async function uploadRobot(robot?: LocalRobotMetadataInfo) {
     if (window.activeTextEditor && window.activeTextEditor.document) {
         currentUri = window.activeTextEditor.document.uri;
     }
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showInformationMessage("Error submitting Task Package to Control Room: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         robotsInfo = robotsInfo.filter((r) => {
             return !isActionPackage(r);
@@ -616,14 +619,14 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         "name": RUN_IN_RCC_LRU_CACHE_NAME,
     });
 
-    let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await commands.executeCommand(
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
         window.showErrorMessage("Error listing Task/Action Packages: " + actionResult.message);
         return;
     }
-    let robotsInfo: LocalRobotMetadataInfo[] = actionResult.result;
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         robotsInfo = robotsInfo.filter((r) => {
             return !isActionPackage(r);
@@ -710,14 +713,13 @@ export async function createRobot() {
         roboCommands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL
     );
 
-    const robotsInWorkspacePromise: Promise<boolean> = areThereRobotsInWorkspace();
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {
         // Operation cancelled.
         return;
     }
 
-    if (await isDirectoryAPackageDirectory(ws.uri)) {
+    if (await isPackageDirectory(ws.uri)) {
         return;
     }
 
@@ -757,49 +759,16 @@ export async function createRobot() {
         return;
     }
 
-    const robotsInWorkspace: boolean = await robotsInWorkspacePromise;
-    let useWorkspaceFolder: boolean;
-    if (robotsInWorkspace) {
-        // i.e.: if we already have robots, this is a multi-Robot workspace.
-        useWorkspaceFolder = false;
-    } else {
-        const USE_WORKSPACE_FOLDER_LABEL = "Use workspace folder (recommended)";
-        let target = await window.showQuickPick(
-            [
-                {
-                    "label": USE_WORKSPACE_FOLDER_LABEL,
-                    "detail": "The workspace will only have a single Task Package.",
-                },
-                {
-                    "label": "Use child folder in workspace (advanced)",
-                    "detail": "Multiple Task Packages can be created in this workspace.",
-                },
-            ],
-            {
-                "placeHolder": "Where do you want to create the Task Package?",
-                "ignoreFocusOut": true,
-            }
-        );
+    const targetDir = await getPackageTargetDirectory(ws, {
+        title: "Where do you want to create the Task Package?",
+        useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
+        useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
+        provideNamePrompt: "Please provide the name for the Task Package folder name.",
+    });
 
-        if (!target) {
-            // Operation cancelled.
-            return;
-        }
-        useWorkspaceFolder = target["label"] == USE_WORKSPACE_FOLDER_LABEL;
-    }
-
-    let targetDir = ws.uri.fsPath;
-    if (!useWorkspaceFolder) {
-        let name: string = await window.showInputBox({
-            "value": "Example",
-            "prompt": "Please provide the name for the Task Package folder name.",
-            "ignoreFocusOut": true,
-        });
-        if (!name) {
-            // Operation cancelled.
-            return;
-        }
-        targetDir = join(targetDir, name);
+    /* Operation cancelled. */
+    if (!targetDir) {
+        return;
     }
 
     // Now, let's validate if we can indeed create a Robot in the given folder.
@@ -825,15 +794,40 @@ export async function createRobot() {
     );
 
     if (createRobotResult.success) {
-        try {
-            commands.executeCommand("workbench.files.action.refreshFilesExplorer");
-        } catch (error) {
-            logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
-        }
+        refreshFilesExplorer();
         window.showInformationMessage("Task Package successfully created in:\n" + targetDir);
     } else {
         OUTPUT_CHANNEL.appendLine("Error creating Task Package at: " + targetDir);
         window.showErrorMessage(createRobotResult.message);
+    }
+}
+
+export async function createTaskOrActionPackage() {
+    const TASK_PACKAGE = "Task Package (Robot)";
+    const ACTION_PACKAGE = "Action Package";
+
+    const sidebarOrganizationSelection = getSelectedAgentPackageOrganization();
+
+    /**
+     * Since this function is only called from the sidebar, we check if there is an organization
+     * selected in the Agent Packages section - if so, we want to allow the user to create Action Package in it.
+     */
+    if (sidebarOrganizationSelection?.uri) {
+        await createActionPackage(sidebarOrganizationSelection.uri);
+
+        return;
+    }
+
+    const packageType = await showSelectOneStrQuickPick(
+        [TASK_PACKAGE, ACTION_PACKAGE],
+        "Which kind of Package would you like to create?"
+    );
+    if (packageType) {
+        if (packageType === TASK_PACKAGE) {
+            await createRobot();
+        } else if (packageType === ACTION_PACKAGE) {
+            await createActionPackage();
+        }
     }
 }
 

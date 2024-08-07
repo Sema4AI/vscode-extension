@@ -1,14 +1,7 @@
 import * as vscode from "vscode";
 import { TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE } from "./robocorpViews";
-import {
-    getSelectedRobot,
-    getSingleTreeSelection,
-    LocatorEntry,
-    NO_PACKAGE_FOUND_MSG,
-    RobotEntry,
-    RobotEntryType,
-    SingleTreeSelectionOpts,
-} from "./viewsCommon";
+import { LocatorEntry, NO_PACKAGE_FOUND_MSG, RobotEntry, RobotEntryType } from "./viewsCommon";
+import { getSelectedRobot, getSingleTreeSelection, SingleTreeSelectionOpts } from "./viewsSelection";
 import { LocatorsTreeDataProvider } from "./viewsLocators";
 import { RobotSelectionTreeDataProviderBase } from "./viewsRobotSelectionTreeBase";
 import { WorkItemsTreeDataProvider } from "./viewsWorkItems";

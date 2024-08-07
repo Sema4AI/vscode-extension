@@ -9,7 +9,6 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
-from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.command_dispatcher import _CommandDispatcher
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.endpoint import require_monitor
@@ -20,6 +19,7 @@ from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
 from sema4ai_code.inspector.inspector_language_server import InspectorLanguageServer
+from sema4ai_code.workspace_manager import WorkspaceManager
 from sema4ai_code.protocols import (
     ActionResultDict,
     ActionResultDictLocalRobotMetadata,
@@ -47,7 +47,6 @@ from sema4ai_code.protocols import (
     ListActionsParams,
     ListWorkItemsParams,
     ListWorkspacesActionResultDict,
-    LocalRobotMetadataInfoDict,
     LocatorEntryInfoDict,
     PackageInfoDict,
     PackageInfoInLRUDict,
@@ -58,6 +57,8 @@ from sema4ai_code.protocols import (
     WorkItem,
     WorkspaceInfoDict,
     DownloadToolDict,
+    CreateAgentPackageParamsDict,
+    ActionResultDictLocalAgentPackageMetadata,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -181,9 +182,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self._rcc = Rcc(self)
         self._feedback = _Feedback(self._rcc)
         self._pre_run_scripts = _PreRunScripts(command_dispatcher)
-        self._local_list_robots_cache: Dict[
-            Path, CachedFileInfo[LocalRobotMetadataInfoDict]
-        ] = {}
+
         PythonLanguageServer.__init__(self, read_stream, write_stream)
 
         self._vault = _Vault(
@@ -320,6 +319,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         self._feedback.metric("vscode.started", __version__)
         self._feedback.metric("vscode.started.os", sys.platform)
+
+        # self.workspace is initialized in parent's m_initialize, therefore we defer
+        # assignment from __init__.
+        self._workspace_manager = WorkspaceManager(self.workspace)
+
         return ret
 
     def m_shutdown(self, **_kwargs):
@@ -623,58 +627,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         result = self._rcc.get_template_names()
         return result.as_dict()
 
-    def _get_robot_metadata(
-        self,
-        sub: Path,
-        curr_cache: Dict[Path, CachedFileInfo[LocalRobotMetadataInfoDict]],
-        new_cache: Dict[Path, CachedFileInfo[LocalRobotMetadataInfoDict]],
-    ) -> Optional[LocalRobotMetadataInfoDict]:
-        """
-        Note that we get the value from the current cache and then put it in
-        the new cache if it's still valid (that way we don't have to mutate
-        the old cache to remove stale values... all that's valid is put in
-        the new cache).
-        """
-        check_yamls = [sub / "robot.yaml", sub / "package.yaml"]
-
-        cached_file_info: Optional[
-            CachedFileInfo[LocalRobotMetadataInfoDict]
-        ] = curr_cache.get(sub)
-        if cached_file_info is not None:
-            if cached_file_info.is_cache_valid():
-                new_cache[sub] = cached_file_info
-                return cached_file_info.value
-
-        for yaml_file in check_yamls:
-            if yaml_file.exists():
-                from sema4ai_ls_core import yaml_wrapper
-
-                try:
-
-                    def get_robot_metadata(robot_yaml: Path):
-                        name = robot_yaml.parent.name
-                        with robot_yaml.open("r", encoding="utf-8") as stream:
-                            yaml_contents = yaml_wrapper.load(stream)
-                            name = yaml_contents.get("name", name)
-
-                        robot_metadata: LocalRobotMetadataInfoDict = {
-                            "directory": str(sub),
-                            "filePath": str(robot_yaml),
-                            "name": name,
-                            "yamlContents": yaml_contents,
-                        }
-                        return robot_metadata
-
-                    cached_file_info = new_cache[sub] = CachedFileInfo(
-                        yaml_file, get_robot_metadata
-                    )
-                    return cached_file_info.value
-
-                except Exception:
-                    log.exception(f"Unable to get load metadata for: {yaml_file}")
-
-        return None
-
     @command_dispatcher(commands.SEMA4AI_RUN_IN_RCC_INTERNAL)
     def _run_in_rcc_internal(self, params=RunInRccParamsDict) -> ActionResultDict:
         try:
@@ -905,36 +857,28 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return find_robot_yaml.find_robot_yaml_path_from_path(path, stat)
 
+    # @TODO:
+    # At this point, this should probably be renamed or split, as it will list not only Robots,
+    # but also Action packages.
     @command_dispatcher(commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL)
     def _local_list_robots(self, params=None) -> ActionResultDictLocalRobotMetadata:
-        curr_cache = self._local_list_robots_cache
-        new_cache: Dict[Path, CachedFileInfo[LocalRobotMetadataInfoDict]] = {}
-
-        ret: List[LocalRobotMetadataInfoDict] = []
         try:
-            ws = self.workspace
-            if ws:
-                for folder_path in ws.get_folder_paths():
-                    # Check the root directory itself for the robot.yaml.
-                    p = Path(folder_path)
-                    robot_metadata = self._get_robot_metadata(p, curr_cache, new_cache)
-                    if robot_metadata is not None:
-                        ret.append(robot_metadata)
-                    elif p.is_dir():
-                        for sub in p.iterdir():
-                            robot_metadata = self._get_robot_metadata(
-                                sub, curr_cache, new_cache
-                            )
-                            if robot_metadata is not None:
-                                ret.append(robot_metadata)
-
-            ret.sort(key=lambda dct: dct["name"])
+            ret = self._workspace_manager.get_local_robots()
         except Exception as e:
             log.exception("Error listing robots.")
             return dict(success=False, message=str(e), result=None)
-        finally:
-            # Set the new cache after we finished computing all entries.
-            self._local_list_robots_cache = new_cache
+
+        return dict(success=True, message=None, result=ret)
+
+    @command_dispatcher(commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL)
+    def _local_list_agent_packages(
+        self, params=None
+    ) -> ActionResultDictLocalAgentPackageMetadata:
+        try:
+            ret = self._workspace_manager.get_local_agent_packages()
+        except Exception as e:
+            log.exception("Error listing Agent packages.")
+            return dict(success=False, message=str(e), result=None)
 
         return dict(success=True, message=None, result=ret)
 
@@ -1659,6 +1603,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     @command_dispatcher(commands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL)
     def _agent_cli_version(self) -> ActionResultDict:
         return self._agent_cli.get_version().as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL)
+    def _create_agent_package(
+        self, params: CreateAgentPackageParamsDict
+    ) -> ActionResultDict:
+        directory = params["directory"]
+
+        return self._agent_cli.create_agent_package(directory).as_dict()
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

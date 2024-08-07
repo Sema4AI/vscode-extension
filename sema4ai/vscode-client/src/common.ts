@@ -1,9 +1,22 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
-import { FileType, Uri, window } from "vscode";
-import { ActionResult, LocalRobotMetadataInfo } from "./protocols";
+import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
+import { ActionResult, LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
+import { join } from "path";
+
+export type GetPackageTargetDirectoryMessages = {
+    title: string;
+    useWorkspaceFolderPrompt: string;
+    useChildFolderPrompt: string;
+    provideNamePrompt: string;
+};
+
+export type WorkspacePackagesInfo = {
+    agentPackages: LocalAgentPackageMetadataInfo[];
+    taskActionPackages: LocalPackageMetadataInfo[];
+};
 
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
@@ -23,45 +36,153 @@ export interface PackageEntry {
     filePath: string;
 }
 
-export const isActionPackage = (entry: PackageEntry | LocalRobotMetadataInfo) => {
+export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) => {
     return entry.filePath.endsWith("package.yaml");
 };
 
-export async function areThereRobotsInWorkspace(): Promise<boolean> {
-    let asyncListLocalRobots: Thenable<ActionResult<LocalRobotMetadataInfo[]>> = vscode.commands.executeCommand(
-        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-    );
+export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo | null> {
+    const [actionResultListLocalRobots, actionResultListAgents] = (await Promise.all([
+        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL),
+        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL),
+    ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalAgentPackageMetadataInfo[]>];
 
-    let actionResultListLocalRobots: ActionResult<LocalRobotMetadataInfo[]> = await asyncListLocalRobots;
-
-    let robotsInWorkspace = false;
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
         window.showErrorMessage(
-            "Error listing robots: " + actionResultListLocalRobots.message + " (Robot creation will proceed)."
+            "Error listing robots: " + actionResultListLocalRobots.message + " (Package creation will proceed)."
         );
+
+        return null;
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
-    } else {
-        let robotsInfo: LocalRobotMetadataInfo[] = actionResultListLocalRobots.result;
-        robotsInWorkspace = robotsInfo && robotsInfo.length > 0;
     }
-    return robotsInWorkspace;
+
+    if (!actionResultListAgents) {
+        feedbackRobocorpCodeError("ACT_LIST_AGENTS");
+        window.showErrorMessage(
+            "Error listing agents: " + actionResultListAgents.message + " (Package creation will proceed)."
+        );
+
+        return null;
+    }
+
+    return {
+        agentPackages: actionResultListAgents.result || [],
+        taskActionPackages: actionResultListLocalRobots.result || [],
+    };
 }
 
-export async function isDirectoryAPackageDirectory(wsUri: Uri): Promise<boolean> {
+export async function areTherePackagesInWorkspace(): Promise<boolean> {
+    const workspacePackages = await getWorkspacePackages();
+
+    if (!workspacePackages) {
+        return false;
+    }
+
+    const packagesInfo: LocalPackageMetadataInfo[] = [
+        ...workspacePackages.taskActionPackages,
+        ...workspacePackages.agentPackages,
+    ];
+    return packagesInfo && packagesInfo.length > 0;
+}
+
+export async function getPackageTargetDirectory(
+    ws: WorkspaceFolder,
+    messages: GetPackageTargetDirectoryMessages
+): Promise<string | null> {
+    const packagesInDirectory = await areTherePackagesInWorkspace();
+
+    let useWorkspaceFolder = false;
+
+    if (!packagesInDirectory) {
+        const useWorkspaceFolderLabel = "Use workspace folder (recommended)";
+
+        const target = await window.showQuickPick(
+            [
+                {
+                    "label": useWorkspaceFolderLabel,
+                    "detail": messages.useWorkspaceFolderPrompt,
+                },
+                {
+                    "label": "Use child folder in workspace (advanced)",
+                    "detail": messages.useChildFolderPrompt,
+                },
+            ],
+            {
+                "placeHolder": messages.title,
+                "ignoreFocusOut": true,
+            }
+        );
+
+        /* Operation cancelled. */
+        if (!target) {
+            return null;
+        }
+
+        useWorkspaceFolder = target["label"] === useWorkspaceFolderLabel;
+    }
+
+    if (!useWorkspaceFolder) {
+        const name = await getPackageDirectoryName(messages.provideNamePrompt);
+
+        /* Operation cancelled. */
+        if (!name) {
+            return null;
+        }
+
+        return join(ws.uri.fsPath, name);
+    }
+
+    return ws.uri.fsPath;
+}
+
+export async function getPackageDirectoryName(prompt: string, defaultName: string = "Example"): Promise<string | null> {
+    const name = await window.showInputBox({
+        "value": "Example",
+        "prompt": prompt,
+        "ignoreFocusOut": true,
+    });
+
+    return name || null;
+}
+
+export function refreshFilesExplorer() {
+    try {
+        commands.executeCommand("workbench.files.action.refreshFilesExplorer");
+    } catch (error) {
+        logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
+    }
+}
+
+export async function getPackageYamlNameFromDirectory(uri: Uri): Promise<string | null> {
+    let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(uri);
+
+    for (const element of dirContents) {
+        if (
+            element[0] === "robot.yaml" ||
+            element[0] === "conda.yaml" ||
+            element[0] === "package.yaml" ||
+            element[0] === "agent-spec.yaml"
+        ) {
+            return element[0];
+        }
+    }
+
+    return null;
+}
+
+export async function isPackageDirectory(wsUri: Uri, ignore: string[] = []): Promise<boolean> {
     // Check if we still don't have a Robot in this folder (i.e.: if we have a Robot in the workspace
     // root already, we shouldn't create another Robot inside it).
     try {
-        let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(wsUri);
-        for (const element of dirContents) {
-            if (element[0] === "robot.yaml" || element[0] === "conda.yaml" || element[0] === "package.yaml") {
-                window.showErrorMessage(
-                    "It's not possible to create a Package in: " +
-                        wsUri.fsPath +
-                        " because this workspace folder is already a Task or Action Package (nested Packages are not allowed)."
-                );
-                return true;
-            }
+        const packageYaml = await getPackageYamlNameFromDirectory(wsUri);
+
+        if (packageYaml && !ignore.includes(packageYaml)) {
+            window.showErrorMessage(
+                "It's not possible to create a Package in: " +
+                    wsUri.fsPath +
+                    " because this workspace folder is already a Task, Action or Agent Package (nested Packages are not allowed)."
+            );
+            return true;
         }
     } catch (error) {
         logError("Error reading contents of: " + wsUri.fsPath, error, "ACT_CREATE_ROBOT");

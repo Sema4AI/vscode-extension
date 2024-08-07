@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 
 import { getExtensionRelativeFile, verifyFileExists } from "../files";
 import { OUTPUT_CHANNEL, buildErrorStr, logError } from "../channel";
-import { getSelectedRobot } from "../viewsCommon";
+import { getSelectedRobot } from "../viewsSelection";
 import { BrowserLocator, ImageLocator, LocatorsMap, LocatorType } from "./types";
 import {
     ReportedStates,
@@ -26,7 +26,7 @@ import {
     JavaAppTree,
 } from "./protocols";
 import { langServer } from "../extension";
-import { ActionResult, LocalRobotMetadataInfo } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo } from "../protocols";
 import { SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL } from "../robocorpCommands";
 import { generateID } from "./utils";
 
@@ -73,7 +73,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
     if (robot) {
         directory = robot.robot.directory;
     } else {
-        let actionResult: ActionResult<LocalRobotMetadataInfo[]> = await vscode.commands.executeCommand(
+        let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
             SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
         );
         if (actionResult.success) {
