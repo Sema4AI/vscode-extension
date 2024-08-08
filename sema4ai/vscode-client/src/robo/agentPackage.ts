@@ -6,7 +6,7 @@ import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
     getPackageTargetDirectory,
-    isPackageDirectory,
+    verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage
 } from "../common";
@@ -26,7 +26,7 @@ export const createAgentPackage = async (): Promise<void> => {
     }
 
     const ws = await askForWs();
-    const isWorkspacePackageDirectory = ws ? await isPackageDirectory(ws.uri) : null;
+    const isWorkspacePackageDirectory = ws ? await verifyIfIsPackageDirectory(ws.uri) : null;
 
     if (!ws || isWorkspacePackageDirectory) {
         return;

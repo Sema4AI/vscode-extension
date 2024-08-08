@@ -1,10 +1,11 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
 import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
-import { ActionResult, LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo } from "./protocols";
+import { ActionResult, LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo, PackageYamlName } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
+import { fileExists, uriExists } from "./files";
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -154,25 +155,19 @@ export function refreshFilesExplorer() {
 }
 
 export async function getPackageYamlNameFromDirectory(uri: Uri): Promise<string | null> {
-    let dirContents: [string, FileType][] = await vscode.workspace.fs.readDirectory(uri);
-
-    for (const element of dirContents) {
-        if (
-            element[0] === "robot.yaml" ||
-            element[0] === "conda.yaml" ||
-            element[0] === "package.yaml" ||
-            element[0] === "agent-spec.yaml"
-        ) {
-            return element[0];
+    for (const name of [PackageYamlName.Agent, PackageYamlName.Action, PackageYamlName.Task, "conda.yaml"]) {
+        if (await uriExists(Uri.joinPath(uri, name))) {
+            return name;
         }
     }
 
     return null;
 }
 
-export async function isPackageDirectory(wsUri: Uri, ignore: string[] = []): Promise<boolean> {
+export async function verifyIfIsPackageDirectory(wsUri: Uri, ignore: string[] = []): Promise<boolean> {
     // Check if we still don't have a Robot in this folder (i.e.: if we have a Robot in the workspace
     // root already, we shouldn't create another Robot inside it).
+    // Note: shows error message to the user.
     try {
         const packageYaml = await getPackageYamlNameFromDirectory(wsUri);
 

@@ -31,7 +31,7 @@ import {
     getPackageYamlNameFromDirectory,
     getWorkspacePackages,
     isActionPackage,
-    isPackageDirectory,
+    verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
 } from "../common";
@@ -257,8 +257,8 @@ export async function runActionFromActionPackage(
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | null> {
-    if (await isPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
+async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | null> {
+    if (await verifyIfIsPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
         return null;
     }
 
@@ -278,17 +278,18 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
             packageInfo = workspacePackages.agentPackages[0];
             useAgentPackage = true;
         } else {
-            const insideAgentPackageLabel = "Inside specific Agent Package";
+            const insideAgentPackageLabel = "Inside Agent Package";
 
             const actionPackageLevelSelection = await window.showQuickPick(
                 [
                     {
-                        "label": "At a root level",
-                        "detail": "Action Package will be created at workspace root level",
+                        "label": insideAgentPackageLabel,
+                        "detail": "Action Package will be created inside an Agent Package",
                     },
                     {
-                        "label": insideAgentPackageLabel,
-                        "detail": "Action Package will be created inside specific Agent Package",
+                        "label": "Workspace (root) level",
+                        "detail":
+                            "Action Package will be created at workspace root level",
                     },
                 ],
                 {
@@ -359,7 +360,7 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
     return targetDir || null;
 }
 
-export async function createActionPackage(selectedOrganizationUri?: vscode.Uri) {
+export async function createActionPackage(parentFolderUri?: vscode.Uri) {
     /* We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.  */
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
@@ -374,14 +375,14 @@ export async function createActionPackage(selectedOrganizationUri?: vscode.Uri) 
 
     let targetDir = "";
 
-    if (selectedOrganizationUri) {
+    if (parentFolderUri) {
         const name = await getPackageDirectoryName("Please provide the name for the Action Package folder name.");
         if (!name) {
             return;
         }
-        targetDir = path.join(selectedOrganizationUri.fsPath, name);
+        targetDir = path.join(parentFolderUri.fsPath, name);
     } else {
-        targetDir = await getActionPackageTargetDir(ws);
+        targetDir = await askActionPackageTargetDir(ws);
 
         /* Operation cancelled or directory conflict detected. */
         if (!targetDir) {
