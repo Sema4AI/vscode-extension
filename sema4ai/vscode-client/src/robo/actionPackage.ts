@@ -22,7 +22,7 @@ import {
     ActionServerPackageBuildOutput,
     ActionServerPackageUploadStatusOutput,
     PackageYamlName,
-    LocalAgentPackageMetadataInfo
+    LocalAgentPackageMetadataInfo,
 } from "../protocols";
 import {
     compareVersions,
@@ -33,7 +33,7 @@ import {
     isActionPackage,
     isPackageDirectory,
     refreshFilesExplorer,
-    verifyIfPathOkToCreatePackage
+    verifyIfPathOkToCreatePackage,
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -267,7 +267,7 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
         getWorkspacePackages(),
     ]);
 
-    let targetDir = '';
+    let targetDir = "";
 
     if (workspacePackages?.agentPackages?.length) {
         let packageInfo: LocalAgentPackageMetadataInfo;
@@ -284,12 +284,12 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
                 [
                     {
                         "label": "At a root level",
-                        "detail": "Action Package will be created at workspace root level"
+                        "detail": "Action Package will be created at workspace root level",
                     },
                     {
                         "label": insideAgentPackageLabel,
-                        "detail": "Action Package will be created inside specific Agent Package"
-                    }
+                        "detail": "Action Package will be created inside specific Agent Package",
+                    },
                 ],
                 {
                     placeHolder: "Where do you want to create the Action Package?",
@@ -306,7 +306,7 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
 
             if (useAgentPackage) {
                 const packageName = await window.showQuickPick(
-                    workspacePackages.agentPackages.map(agentPackage => agentPackage.name),
+                    workspacePackages.agentPackages.map((agentPackage) => agentPackage.name),
                     {
                         placeHolder: "Where do you want to create the Action Package?",
                         ignoreFocusOut: true,
@@ -318,13 +318,13 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
                     return null;
                 }
 
-                packageInfo = workspacePackages.agentPackages.find(agentPackage => agentPackage.name === packageName);
+                packageInfo = workspacePackages.agentPackages.find((agentPackage) => agentPackage.name === packageName);
             }
         }
 
         if (useAgentPackage) {
             const organizationDirectoryName = await window.showQuickPick(
-                packageInfo.organizations.map(organization => organization.name),
+                packageInfo.organizations.map((organization) => organization.name),
                 {
                     placeHolder: "Which organization do you want to create the Action Package in?",
                     ignoreFocusOut: true,
@@ -336,20 +336,22 @@ async function getActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
                 return null;
             }
 
-            const packageDirectoryName = await getPackageDirectoryName("Please provide the name for the Action Package folder name.");
+            const packageDirectoryName = await getPackageDirectoryName(
+                "Please provide the name for the Action Package folder name."
+            );
 
             /* Operation cancelled. */
             if (!packageDirectoryName) {
                 return null;
             }
 
-            targetDir = path.join(packageInfo.directory, 'actions', organizationDirectoryName, packageDirectoryName);
+            targetDir = path.join(packageInfo.directory, "actions", organizationDirectoryName, packageDirectoryName);
         } else {
             targetDir = await getPackageTargetDirectory(ws, {
                 title: "Where do you want to create the Action Package?",
                 useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
                 useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
-                provideNamePrompt: "Please provide the name for the Action Package folder name."
+                provideNamePrompt: "Please provide the name for the Action Package folder name.",
             });
         }
     }
@@ -370,10 +372,14 @@ export async function createActionPackage(selectedOrganizationUri?: vscode.Uri) 
         return;
     }
 
-    let targetDir = '';
+    let targetDir = "";
 
     if (selectedOrganizationUri) {
-        targetDir = path.join(selectedOrganizationUri.fsPath, await getPackageDirectoryName("Please provide the name for the Action Package folder name."));
+        const name = await getPackageDirectoryName("Please provide the name for the Action Package folder name.");
+        if (!name) {
+            return;
+        }
+        targetDir = path.join(selectedOrganizationUri.fsPath, name);
     } else {
         targetDir = await getActionPackageTargetDir(ws);
 
@@ -456,7 +462,7 @@ export async function createActionPackage(selectedOrganizationUri?: vscode.Uri) 
 
 async function getTemplate() {
     const listActionTemplatesResult: ActionResult<ActionTemplate[]> = await commands.executeCommand(
-        roboCommands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
+        roboCommands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL
     );
 
     if (!listActionTemplatesResult.success) {
@@ -608,11 +614,7 @@ const waitUntilPackageVerified = async (
     return true;
 };
 
-const updateChangelog = async (
-    packageId: string,
-    organizationId: string,
-    changelogInput: string
-): Promise<boolean> => {
+const updateChangelog = async (packageId: string, organizationId: string, changelogInput: string): Promise<boolean> => {
     const result: ActionResult<void> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
         {
@@ -630,10 +632,7 @@ const updateChangelog = async (
     return true;
 };
 
-const createMetadataFile = async (
-    actionPackagePath: string,
-    outputFilePath: string
-): Promise<boolean> => {
+const createMetadataFile = async (actionPackagePath: string, outputFilePath: string): Promise<boolean> => {
     const result: ActionResult<void> = await commands.executeCommand(
         roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
         {
@@ -719,21 +718,13 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
                 }
 
                 progress.report({ message: "Waiting for package to be verified" });
-                const verified = await waitUntilPackageVerified(
-                    actionPackage,
-                    organization.id,
-                    progress
-                );
+                const verified = await waitUntilPackageVerified(actionPackage, organization.id, progress);
                 if (!verified) {
                     return;
                 }
 
                 progress.report({ message: "Updating the package changelog to Control Room" });
-                const updated = await updateChangelog(
-                    actionPackage.id,
-                    organization.id,
-                    changelogInput
-                );
+                const updated = await updateChangelog(actionPackage.id, organization.id, changelogInput);
                 if (!updated) {
                     return;
                 }
@@ -778,10 +769,7 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
             }
 
             progress.report({ message: "Building package" });
-            const packagePath = await buildPackage(
-                actionPackagePath.fsPath,
-                actionPackagePath.fsPath
-            );
+            const packagePath = await buildPackage(actionPackagePath.fsPath, actionPackagePath.fsPath);
             if (!packagePath) {
                 return;
             }

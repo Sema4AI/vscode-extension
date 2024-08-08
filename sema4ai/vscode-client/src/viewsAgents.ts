@@ -21,7 +21,7 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
 
     public getTreeItem(element: AgentEntry): TreeItem {
         const treeItem = new TreeItem(element.label, TreeItemCollapsibleState.Collapsed);
-        if (element.type === AgentEntryType.Organization) {
+        if (element.type === AgentEntryType.Organization || element.type === AgentEntryType.GetStartedEntry) {
             treeItem.collapsibleState = TreeItemCollapsibleState.None;
         }
 
@@ -54,7 +54,7 @@ export class AgentPackagesTreeDataProvider implements TreeDataProvider<AgentEntr
             this.updateOrganizationSelection(children);
         }
 
-        if (!children?.length) {
+        if (!parent && !children?.length) {
             return [
                 "No Agent Package found.",
                 "A few ways to get started:",
