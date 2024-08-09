@@ -57,12 +57,12 @@ export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo> {
     } else {
         localRobots = actionResultListLocalRobots.result;
     }
-    
+
     let localAgents: any[];
     if (!actionResultListAgents.success) {
         feedbackRobocorpCodeError("ACT_LIST_AGENTS");
         window.showErrorMessage("Error listing agents: " + actionResultListAgents.message);
-        
+
         // This shouldn't happen, but let's proceed as if there were no Agents in the workspace.
         localAgents = [];
     } else {

@@ -288,8 +288,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
                     },
                     {
                         "label": "Workspace (root) level",
-                        "detail":
-                            "Action Package will be created at workspace root level",
+                        "detail": "Action Package will be created at workspace root level",
                     },
                 ],
                 {

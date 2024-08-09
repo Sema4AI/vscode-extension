@@ -1,22 +1,16 @@
-import {
-    commands,
-    window
-} from "vscode";
+import { commands, window } from "vscode";
 import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
     getPackageTargetDirectory,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
-    verifyIfPathOkToCreatePackage
+    verifyIfPathOkToCreatePackage,
 } from "../common";
 import { ActionResult } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
-import {
-    logError,
-    OUTPUT_CHANNEL
-} from "../channel";
+import { logError, OUTPUT_CHANNEL } from "../channel";
 
 export const createAgentPackage = async (): Promise<void> => {
     /* We make sure Agent Server exists - if not, getAgentServerLocation will ask user to download it.  */
@@ -33,11 +27,11 @@ export const createAgentPackage = async (): Promise<void> => {
     }
 
     const targetDir = await getPackageTargetDirectory(ws, {
-            title: "Where do you want to create the Agent Package?",
-            useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
-            useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
-            provideNamePrompt: "Please provide the name for the Agent Package folder name."
-        });
+        title: "Where do you want to create the Agent Package?",
+        useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
+        useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
+        provideNamePrompt: "Please provide the name for the Agent Package folder name.",
+    });
 
     /* Operation cancelled. */
     if (!targetDir) {
