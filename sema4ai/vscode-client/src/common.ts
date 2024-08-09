@@ -41,34 +41,37 @@ export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) 
     return entry.filePath.endsWith("package.yaml");
 };
 
-export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo | null> {
+export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo> {
     const [actionResultListLocalRobots, actionResultListAgents] = (await Promise.all([
         vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL),
         vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL),
     ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalAgentPackageMetadataInfo[]>];
 
+    let localRobots: any[];
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
-        window.showErrorMessage(
-            "Error listing robots: " + actionResultListLocalRobots.message + " (Package creation will proceed)."
-        );
+        window.showErrorMessage("Error listing robots: " + actionResultListLocalRobots.message);
 
-        return null;
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
+        localRobots = [];
+    } else {
+        localRobots = actionResultListLocalRobots.result;
     }
-
-    if (!actionResultListAgents) {
+    
+    let localAgents: any[];
+    if (!actionResultListAgents.success) {
         feedbackRobocorpCodeError("ACT_LIST_AGENTS");
-        window.showErrorMessage(
-            "Error listing agents: " + actionResultListAgents.message + " (Package creation will proceed)."
-        );
-
-        return null;
+        window.showErrorMessage("Error listing agents: " + actionResultListAgents.message);
+        
+        // This shouldn't happen, but let's proceed as if there were no Agents in the workspace.
+        localAgents = [];
+    } else {
+        localAgents = actionResultListAgents.result;
     }
 
     return {
-        agentPackages: actionResultListAgents.result || [],
-        taskActionPackages: actionResultListLocalRobots.result || [],
+        agentPackages: localAgents,
+        taskActionPackages: localRobots,
     };
 }
 
@@ -79,11 +82,7 @@ export async function areTherePackagesInWorkspace(): Promise<boolean> {
         return false;
     }
 
-    const packagesInfo: LocalPackageMetadataInfo[] = [
-        ...workspacePackages.taskActionPackages,
-        ...workspacePackages.agentPackages,
-    ];
-    return packagesInfo && packagesInfo.length > 0;
+    return workspacePackages.taskActionPackages.length > 0 && workspacePackages.agentPackages.length > 0;
 }
 
 export async function getPackageTargetDirectory(
@@ -136,7 +135,7 @@ export async function getPackageTargetDirectory(
     return ws.uri.fsPath;
 }
 
-export async function getPackageDirectoryName(prompt: string, defaultName: string = "Example"): Promise<string | null> {
+export async function getPackageDirectoryName(prompt: string): Promise<string | null> {
     const name = await window.showInputBox({
         "value": "Example",
         "prompt": prompt,
