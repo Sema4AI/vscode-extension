@@ -32,9 +32,9 @@ import {
     InterpreterInfo,
     IVaultInfo,
     LibraryVersionInfoDict,
-    LocalAgentPackageMetadataInfo,
     LocalPackageMetadataInfo,
     PackageInfo,
+    PackageType,
     RobotTemplate,
     WorkItemsInfo,
     WorkspaceInfo,
@@ -49,7 +49,9 @@ import {
     verifyIfPathOkToCreatePackage,
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
-import { getSelectedAgentPackageOrganization } from "./viewsSelection";
+import { getSelectedRobot } from "./viewsSelection";
+import { RobotEntryType } from "./viewsCommon";
+import { createAgentPackage } from "./robo/agentPackage";
 
 export interface ListOpts {
     showTaskPackages: boolean;
@@ -714,8 +716,8 @@ export async function createRobot() {
         roboCommands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL
     );
 
-    let asyncListAgentPackages: Thenable<ActionResult<LocalAgentPackageMetadataInfo[]>> = commands.executeCommand(
-        roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL
+    let asyncListPackages: Thenable<ActionResult<LocalPackageMetadataInfo[]>> = commands.executeCommand(
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
 
     let ws: WorkspaceFolder | undefined = await askForWs();
@@ -731,7 +733,6 @@ export async function createRobot() {
     // Unfortunately vscode does not have a good way to request multiple inputs at once,
     // so, for now we're asking each at a separate step.
     let actionResultListRobotTemplatesInternal: ActionResult<RobotTemplate[]> = await asyncListRobotTemplates;
-    let actionResultListAgents: ActionResult<LocalAgentPackageMetadataInfo[]> = await asyncListAgentPackages;
 
     if (!actionResultListRobotTemplatesInternal.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT_TEMPLATE");
@@ -747,23 +748,30 @@ export async function createRobot() {
         return;
     }
 
-    if (actionResultListAgents.success && actionResultListAgents.result.length > 0) {
-        const msgStart =
-            actionResultListAgents.result.length === 1
-                ? "It seems there is an Agent Package"
-                : "It seems there are Agent Packages";
-        let confirmCreateTaskInAgent = await showSelectOneQuickPick(
-            [
-                { action: "cancel", label: "Cancel", detail: "Cancel Task Package Creation" },
-                { action: "proceed", label: "Proceed", detail: "Proceed with Task Package Creation" },
-            ],
-            "",
-            `${msgStart} already created in the workspace and Task Packages 
-            don't usually interact with Agent Packages. 
-            Are you sure you want to create a Task Package instead of an Action Package whose actions can be used in an Agent?`
-        );
-        if (!confirmCreateTaskInAgent || confirmCreateTaskInAgent.action === "cancel") {
-            return;
+    let actionResultListPackages: ActionResult<LocalPackageMetadataInfo[]> = await asyncListPackages;
+    if (actionResultListPackages.success && actionResultListPackages.result.length > 0) {
+        // Filter just for agents.
+        const agentsFound = actionResultListPackages.result.filter((data) => {
+            return data.packageType === PackageType.Agent;
+        });
+        if (agentsFound.length > 0) {
+            const msgStart =
+                actionResultListPackages.result.length === 1
+                    ? "It seems there is an Agent Package"
+                    : "It seems there are Agent Packages";
+            let confirmCreateTaskInAgent = await showSelectOneQuickPick(
+                [
+                    { action: "cancel", label: "Cancel", detail: "Cancel Task Package Creation" },
+                    { action: "proceed", label: "Proceed", detail: "Proceed with Task Package Creation" },
+                ],
+                "",
+                `${msgStart} already created in the workspace and Task Packages 
+                don't usually interact with Agent Packages. 
+                Are you sure you want to create a Task Package instead of an Action Package whose actions can be used in an Agent?`
+            );
+            if (!confirmCreateTaskInAgent || confirmCreateTaskInAgent.action === "cancel") {
+                return;
+            }
         }
     }
 
@@ -828,24 +836,13 @@ export async function createRobot() {
     }
 }
 
-export async function createTaskOrActionPackage() {
+export async function createPackage() {
     const TASK_PACKAGE = "Task Package (Robot)";
     const ACTION_PACKAGE = "Action Package";
-
-    const sidebarAgentPackageOrganizationSelection = getSelectedAgentPackageOrganization();
-
-    /**
-     * Since this function is only called from the sidebar, we check if there is an organization
-     * selected in the Agent Packages section - if so, we want to allow the user to create Action Package in it.
-     */
-    if (sidebarAgentPackageOrganizationSelection?.uri) {
-        await createActionPackage(sidebarAgentPackageOrganizationSelection.uri);
-
-        return;
-    }
+    const AGENT_PACKAGE = "Agent Package";
 
     const packageType = await showSelectOneStrQuickPick(
-        [TASK_PACKAGE, ACTION_PACKAGE],
+        [AGENT_PACKAGE, ACTION_PACKAGE, TASK_PACKAGE],
         "Which kind of Package would you like to create?"
     );
     if (packageType) {
@@ -853,6 +850,8 @@ export async function createTaskOrActionPackage() {
             await createRobot();
         } else if (packageType === ACTION_PACKAGE) {
             await createActionPackage();
+        } else if (packageType === AGENT_PACKAGE) {
+            await createAgentPackage();
         }
     }
 }

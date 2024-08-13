@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { AgentEntry, AgentEntryType, RobotEntry, RobotEntryType, treeViewIdToTreeView } from "./viewsCommon";
+import { RobotEntry, RobotEntryType, treeViewIdToTreeView } from "./viewsCommon";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 
 export interface SingleTreeSelectionOpts {
@@ -14,12 +14,6 @@ function empty<T>(array: readonly T[]) {
 const _onSelectedRobotChanged: vscode.EventEmitter<RobotEntry> = new vscode.EventEmitter<RobotEntry>();
 export const onSelectedRobotChanged: vscode.Event<RobotEntry> = _onSelectedRobotChanged.event;
 let lastSelectedRobot: RobotEntry | undefined = undefined;
-
-const _onSelectedAgentPackageOrganizationChanged: vscode.EventEmitter<AgentEntry> =
-    new vscode.EventEmitter<AgentEntry>();
-export const onSelectedAgentPackageOrganizationChanged: vscode.Event<AgentEntry> =
-    _onSelectedAgentPackageOrganizationChanged.event;
-let lastSelectedAgentPackageOrganization: AgentEntry | undefined = undefined;
 
 /**
  * Returns the selected robot or undefined if there are no robots or if more than one robot is selected.
@@ -82,37 +76,6 @@ export async function onChangedRobotSelection(
     // // Automatically update selection / reselect some item.
     setSelectedRobot(rootChildren[0]);
     robotsTree.reveal(rootChildren[0], { "select": true });
-}
-
-export function getSelectedAgentPackageOrganization(opts?: SingleTreeSelectionOpts): AgentEntry | undefined {
-    const ret = lastSelectedAgentPackageOrganization;
-
-    if (!lastSelectedAgentPackageOrganization) {
-        if (opts?.noSelectionMessage) {
-            vscode.window.showErrorMessage(opts.noSelectionMessage);
-        }
-    }
-
-    return ret;
-}
-
-function setSelectedAgentPackageOrganization(agentEntry?: AgentEntry) {
-    lastSelectedAgentPackageOrganization = agentEntry;
-    _onSelectedAgentPackageOrganizationChanged.fire(agentEntry);
-}
-
-export async function onChangedAgentPackageOrganizationSelection(selection: readonly AgentEntry[]) {
-    const selectedEntry = selection?.[0];
-
-    /**
-     * We only want to select the entry if the type of it is "Organization".
-     * Otherwise, selection should not have an effect on Task/Action Packages view.
-     */
-    if (selectedEntry && selectedEntry.type === AgentEntryType.Organization) {
-        setSelectedAgentPackageOrganization(selectedEntry);
-    } else {
-        setSelectedAgentPackageOrganization(undefined);
-    }
 }
 
 export async function getSingleTreeSelection<T>(treeId: string, opts?: any): Promise<T | undefined> {

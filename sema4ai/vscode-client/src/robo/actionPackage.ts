@@ -22,7 +22,6 @@ import {
     ActionServerPackageBuildOutput,
     ActionServerPackageUploadStatusOutput,
     PackageYamlName,
-    LocalAgentPackageMetadataInfo,
 } from "../protocols";
 import {
     compareVersions,
@@ -270,7 +269,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
     let targetDir = "";
 
     if (workspacePackages?.agentPackages?.length) {
-        let packageInfo: LocalAgentPackageMetadataInfo;
+        let packageInfo: LocalPackageMetadataInfo;
         let useAgentPackage = false;
 
         /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
@@ -360,7 +359,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
 }
 
 export async function createActionPackage(parentFolderUri?: vscode.Uri) {
-    /* We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.  */
+    // We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
         return;
@@ -383,7 +382,7 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
     } else {
         targetDir = await askActionPackageTargetDir(ws);
 
-        /* Operation cancelled or directory conflict detected. */
+        // Operation cancelled or directory conflict detected.
         if (!targetDir) {
             return;
         }
