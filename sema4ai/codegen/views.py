@@ -231,7 +231,7 @@ TREE_VIEW_CONTAINERS = [
             ),
             TreeView(
                 id="sema4ai-package-resources-tree",
-                name="Task/Action Package Resources",
+                name="Package Resources",
                 contextual_title="Package Resources",
                 menus={
                     "view/item/context": [

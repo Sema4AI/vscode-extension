@@ -294,7 +294,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshRobotsView",
-        "Refresh Task/Action Packages view",
+        "Refresh Packages view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},

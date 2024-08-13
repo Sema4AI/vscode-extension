@@ -272,7 +272,7 @@
                 },
                 {
                     "id": "sema4ai-package-resources-tree",
-                    "name": "Task/Action Package Resources",
+                    "name": "Package Resources",
                     "contextualTitle": "Package Resources"
                 },
                 {
@@ -465,7 +465,7 @@
             },
             {
                 "command": "sema4ai.refreshRobotsView",
-                "title": "Refresh Task/Action Packages view",
+                "title": "Refresh Packages view",
                 "category": "Sema4.ai",
                 "icon": {
                     "light": "images/light/refresh.svg",

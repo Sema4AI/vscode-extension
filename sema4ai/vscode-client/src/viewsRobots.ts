@@ -132,11 +132,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 for (const label of [
                     "No Task nor Action Package found.",
                     "A few ways to get started:",
-                    "➔ Run the “Sema4.ai: Create Task Package”",
+                    "➔ Run the “Sema4.ai: Create Agent Package”",
                     "➔ Run the “Sema4.ai: Create Action Package”",
-                    "➔ Open a Task Package folder (with a “robot.yaml” file)",
+                    "➔ Run the “Sema4.ai: Create Task Package”",
+                    "➔ Open an Agent Package folder (with a “agent-spec.yaml” file)",
                     "➔ Open an Action Package folder (with a “package.yaml” file)",
-                    "➔ Open a parent folder (with multiple Task or Action packages)",
+                    "➔ Open a Task Package folder (with a “robot.yaml” file)",
+                    "➔ Open a parent folder (with multiple Agent/Action/Task Packages)",
                 ]) {
                     ret.push({
                         "label": label,
