@@ -1683,6 +1683,7 @@ def test_web_inspector_integrated_state(
     wait_for_condition(lambda: check_messages(STATE_CLOSED))
     del messages[:]
 
+    time.sleep(0.5)  # Doing it too fast seems to make the test brittle.
     api_client.m_web_inspector_start_pick()
     wait_for_condition(lambda: check_messages(STATE_OPENED))
     wait_for_condition(lambda: check_messages(STATE_PICKING))
