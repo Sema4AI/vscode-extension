@@ -13,7 +13,7 @@ import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizati
 import { Tool, getExecutableFileName, getToolVersion, downloadTool } from "./tools";
 
 // Update so that Sema4.ai requests the latest version of the action server.
-const LATEST_ACTION_SERVER_VERSION = "0.16.1";
+const LATEST_ACTION_SERVER_VERSION = "0.17.0";
 
 const ACTION_SERVER_DEFAULT_PORT = 8082;
 const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";

@@ -358,7 +358,10 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
             const location = await downloadLatestActionServer();
-            window.showInformationMessage(`The latest action server was downloaded to: ${location}`);
+            if (location) {
+                // If it failed a message should've been displayed already.
+                window.showInformationMessage(`The latest action server was downloaded to: ${location}`);
+            }
         } catch (error) {
             logError("Error downloading latest action server", error, "ERR_DOWNLOAD_ACTION_SERVER");
             window.showErrorMessage(

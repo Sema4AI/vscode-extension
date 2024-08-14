@@ -1,13 +1,11 @@
 Unreleased
 -------------------------------------------
-- A new sidebar section `Agent Packages` is available, containing a list of Agent Packages present in the workspace
+- Agent Packages present in the workspace are now shown
   - Each Agent Package entry contains a list of organizations (living under `/actions/` directory inside an Agent Package)
   - Each organization can contain multiple Action Packages
 - A new command `Create Agent Package` is available
   - It will create a new Agent Package in the current workspace
   - Command can be run from Command Palette or `Agent Packages` section in the extension's sidebar
-- `Task/Action Packages` can now be set to a context of an organization
-  - When an organization is selected in `Agent Packages` sidebar, `Task/Action Packages` will only show the Action Packages from selected organization
 - When using `Sema4.ai: Create Action Package` command, it's now possible to specify an Agent Package and organization
   to create the Action Package in (if at least one Agent Package is present in the workspace)
 
