@@ -244,6 +244,17 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     "parent": element,
                 });
                 return children;
+            } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
+                return [
+                    {
+                        "label": "Open Agent Spec (agent-spec.yaml)",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "go-to-file",
+                        "type": RobotEntryType.OpenAgentSpecYaml,
+                        "parent": element,
+                    },
+                ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
                     {
@@ -392,6 +403,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         });
                     }
                 }
+                ret.push({
+                    "label": "Commands",
+                    "uri": element.uri,
+                    "robot": element.robot,
+                    "iconPath": "tools",
+                    "type": RobotEntryType.ActionsInAgentPackage,
+                    "parent": element,
+                });
                 return ret;
             } else if (element.type === RobotEntryType.Error) {
                 return [];
@@ -496,6 +515,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.OpenRobotYaml) {
             treeItem.command = {
                 "title": "Configure Robot (robot.yaml)",
+                "command": roboCommands.SEMA4AI_OPEN_ROBOT_TREE_SELECTION,
+                "arguments": [element],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.OpenAgentSpecYaml) {
+            treeItem.command = {
+                "title": "Open Agent Spec (agent-spec.yaml)",
                 "command": roboCommands.SEMA4AI_OPEN_ROBOT_TREE_SELECTION,
                 "arguments": [element],
             };

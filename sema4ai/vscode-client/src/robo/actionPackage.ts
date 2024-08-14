@@ -513,7 +513,7 @@ const buildPackage = async (workspaceDir: string, outputDir: string): Promise<st
         }
     );
     if (!result.success) {
-        window.showErrorMessage(`Failed to upload action package: ${result.message}`);
+        window.showErrorMessage(`Failed to build action package: ${result.message}`);
         return;
     }
 
@@ -773,7 +773,9 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
                 return;
             }
 
-            window.showInformationMessage("Action Package built successfully to the workspace.");
+            const msg = `Action Package built successfully (in ${packagePath}).`;
+            OUTPUT_CHANNEL.appendLine(msg);
+            window.showInformationMessage(msg);
         }
     );
 };

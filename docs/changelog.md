@@ -8,6 +8,7 @@ Unreleased
   - Command can be run from Command Palette or `Agent Packages` section in the extension's sidebar
 - When using `Sema4.ai: Create Action Package` command, it's now possible to specify an Agent Package and organization
   to create the Action Package in (if at least one Agent Package is present in the workspace)
+- Option to open `agent-spec.yaml` is shown as a `Command` for an agent.
 
 New in 2.2.0 (2024-07-16) -- pre-release
 -------------------------------------------
