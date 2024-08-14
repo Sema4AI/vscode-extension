@@ -1,0 +1,12 @@
+agent-package:
+  spec-version: v1
+  agents:
+  - name: New Agent
+    description: Agent description
+    model: GPT 4 Turbo
+    type: agent
+    runbooks:
+      system: system.md
+      retrieval: retrieval.md
+    action-packages: []
+    resources: []

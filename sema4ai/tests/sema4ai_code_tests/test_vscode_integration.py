@@ -1451,10 +1451,40 @@ condaConfigFile: conda.yaml
     data_regression.check(sort_diagnostics(diag))
 
 
-def test_lint_action_package_integration_deps(
+def test_lint_agent_spec(
     language_server_initialized: IRobocorpLanguageServerClient,
     tmpdir,
     data_regression,
+    disable_rcc_diagnostics,
+):
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.unittest_tools.fixtures import TIMEOUT
+
+    conda_yaml = tmpdir.join("agent-spec.yaml")
+    conda_yaml_text = """
+bad yaml
+    """
+    conda_yaml.write_text(
+        conda_yaml_text,
+        "utf-8",
+    )
+
+    language_server = language_server_initialized
+    conda_yaml_uri = uris.from_fs_path(str(conda_yaml))
+    message_matcher = language_server.obtain_pattern_message_matcher(
+        {"method": "textDocument/publishDiagnostics"}
+    )
+    assert message_matcher
+    language_server.open_doc(conda_yaml_uri, 1, conda_yaml_text)
+
+    assert message_matcher.event.wait(TIMEOUT)
+    diag = message_matcher.msg["params"]["diagnostics"]
+    data_regression.check(sort_diagnostics(diag))
+
+
+def test_lint_action_package_integration_deps(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    tmpdir,
     disable_rcc_diagnostics,
 ):
     from sema4ai_ls_core import uris
@@ -1495,8 +1525,14 @@ dependencies:
 
     assert message_matcher.event.wait(TIMEOUT)
     diag = message_matcher.msg["params"]["diagnostics"]
-    print(diag)
-    # data_regression.check(sort_diagnostics(diag))
+    for d in diag:
+        if (
+            d["message"]
+            == "Error: only expected children are pypi and conda (dict entries). Found: pip"
+        ):
+            break
+    else:
+        raise AssertionError("Did not find expected diagnostic entry")
 
 
 class ResolveInterpreterCurrentEnv:

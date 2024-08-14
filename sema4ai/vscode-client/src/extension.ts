@@ -177,7 +177,6 @@ import {
     buildActionPackage,
     openMetadata,
 } from "./robo/actionPackage";
-import { showSelectOneStrQuickPick } from "./ask";
 import { getSema4DesktopURLForFolderPath } from "./deepLink";
 import { oauth2Logout } from "./robo/oauth2InInput";
 import { createAgentPackage } from "./robo/agentPackage";
