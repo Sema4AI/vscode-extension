@@ -1,3 +1,4 @@
+import os
 import sys
 from typing import Dict, Optional, Union
 
@@ -31,7 +32,14 @@ class SubprocessDiedError(Exception):
 
 
 class InspectorApiClient(LanguageServerClientBase):
-    DEFAULT_TIMEOUT = None if not USE_TIMEOUTS else 30
+    # DEFAULT_TIMEOUT = None if not USE_TIMEOUTS else 30
+
+    if "GITHUB_WORKFLOW" in os.environ:
+        # Use timeout only in the ci for now (need to
+        # investigate if adding the timeout would break if
+        # something as downloading the browser is done here
+        # in the real-world use case).
+        DEFAULT_TIMEOUT = 30
 
     def __init__(
         self, writer, reader, server_process, on_received_message=None
