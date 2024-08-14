@@ -1,13 +1,16 @@
+import os
 import sys
 from typing import Dict, Optional, Union
 
 from sema4ai_ls_core.basic import implements
 from sema4ai_ls_core.client_base import LanguageServerClientBase
+from sema4ai_ls_core.options import USE_TIMEOUTS
 from sema4ai_ls_core.protocols import (
     IErrorMessage,
     IIdMessageMatcher,
     ILanguageServerClientBase,
     IResultMessage,
+    Sentinel,
 )
 
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
@@ -29,6 +32,15 @@ class SubprocessDiedError(Exception):
 
 
 class InspectorApiClient(LanguageServerClientBase):
+    # DEFAULT_TIMEOUT = None if not USE_TIMEOUTS else 30
+
+    if "GITHUB_WORKFLOW" in os.environ:
+        # Use timeout only in the ci for now (need to
+        # investigate if adding the timeout would break if
+        # something as downloading the browser is done here
+        # in the real-world use case).
+        DEFAULT_TIMEOUT = 30
+
     def __init__(
         self, writer, reader, server_process, on_received_message=None
     ) -> None:
@@ -85,10 +97,13 @@ class InspectorApiClient(LanguageServerClientBase):
     ###### Message Handlers
 
     def send_sync_message(
-        self, method_name, params: dict
+        self,
+        method_name,
+        params: dict,
+        timeout: Union[int, Sentinel, None] = Sentinel.USE_DEFAULT_TIMEOUT,
     ) -> Optional[Union[IResultMessage, IErrorMessage]]:
         self._check_process_alive()
-        return self.request(self._build_msg(method_name, params))
+        return self.request(self._build_msg(method_name, params), timeout=timeout)
 
     def send_async_message(
         self, method_name, params: dict

@@ -19,7 +19,6 @@ from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
 from sema4ai_code.inspector.inspector_language_server import InspectorLanguageServer
-from sema4ai_code.workspace_manager import WorkspaceManager
 from sema4ai_code.protocols import (
     ActionResultDict,
     ActionResultDictLocalRobotMetadata,
@@ -41,7 +40,9 @@ from sema4ai_code.protocols import (
     CloudListWorkspaceDict,
     ConfigurationDiagnosticsDict,
     CreateActionPackageParamsDict,
+    CreateAgentPackageParamsDict,
     CreateRobotParamsDict,
+    DownloadToolDict,
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
@@ -56,14 +57,12 @@ from sema4ai_code.protocols import (
     UploadRobotParamsDict,
     WorkItem,
     WorkspaceInfoDict,
-    DownloadToolDict,
-    CreateAgentPackageParamsDict,
-    ActionResultDictLocalAgentPackageMetadata,
 )
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
     IPyPiCloud,
 )
+from sema4ai_code.workspace_manager import WorkspaceManager
 
 log = get_logger(__name__)
 
@@ -126,10 +125,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code._language_server_pre_run_scripts import _PreRunScripts
         from sema4ai_code._language_server_profile import _Profile
         from sema4ai_code._language_server_vault import _Vault
-        from sema4ai_code.rcc import Rcc
-        from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
         from sema4ai_code.action_server import ActionServer
         from sema4ai_code.agent_cli import AgentCli
+        from sema4ai_code.rcc import Rcc
+        from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
 
         user_home = os.getenv("ROBOCORP_CODE_USER_HOME", None)
         if user_home is None:
@@ -866,18 +865,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ret = self._workspace_manager.get_local_robots()
         except Exception as e:
             log.exception("Error listing robots.")
-            return dict(success=False, message=str(e), result=None)
-
-        return dict(success=True, message=None, result=ret)
-
-    @command_dispatcher(commands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL)
-    def _local_list_agent_packages(
-        self, params=None
-    ) -> ActionResultDictLocalAgentPackageMetadata:
-        try:
-            ret = self._workspace_manager.get_local_agent_packages()
-        except Exception as e:
-            log.exception("Error listing Agent packages.")
             return dict(success=False, message=str(e), result=None)
 
         return dict(success=True, message=None, result=ret)

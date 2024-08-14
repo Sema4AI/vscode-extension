@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo, Range } from "./protocols";
+import { LocalPackageMetadataInfo, Range } from "./protocols";
 
 /**
  * Note: if type is error|info the name is the message to be shown.
@@ -20,35 +20,30 @@ export const NO_PACKAGE_FOUND_MSG = "No package found in current folder";
  * Rename when there is a collective term for Action/Task packages.
  */
 export enum RobotEntryType {
-    ActionPackage,
-    Action,
-    ActionsInActionPackage,
-    Robot,
-    Task,
-    Error,
-    Run,
-    Debug,
-    RunAction,
-    DebugAction,
-    ActionsInRobot,
-    OpenFlowExplorer,
-    UploadRobot,
-    RobotTerminal,
-    OpenRobotYaml,
-    OpenRobotCondaYaml,
-    OpenPackageYaml,
-    StartActionServer,
-    PackageRebuildEnvironment,
-    PackagePublishToDesktopApp,
-    PackageBuildToWorkspace,
-    PackageMetadata,
-}
-
-export enum AgentEntryType {
-    AgentPackage,
-    Organization,
-    Action,
-    GetStartedEntry,
+    ActionPackage = "ActionPackage",
+    Action = "Action",
+    ActionsInActionPackage = "ActionsInActionPackage",
+    Robot = "Robot",
+    Task = "Task",
+    Error = "Error",
+    Run = "Run",
+    Debug = "Debug",
+    RunAction = "RunAction",
+    DebugAction = "DebugAction",
+    ActionsInRobot = "ActionsInRobot",
+    OpenFlowExplorer = "OpenFlowExplorer",
+    UploadRobot = "UploadRobot",
+    RobotTerminal = "RobotTerminal",
+    OpenRobotYaml = "OpenRobotYaml",
+    OpenRobotCondaYaml = "OpenRobotCondaYaml",
+    OpenPackageYaml = "OpenPackageYaml",
+    StartActionServer = "StartActionServer",
+    PackageRebuildEnvironment = "PackageRebuildEnvironment",
+    PackagePublishToDesktopApp = "PackagePublishToDesktopApp",
+    PackageBuildToWorkspace = "PackageBuildToWorkspace",
+    PackageMetadata = "PackageMetadata",
+    AgentPackage = "AgentPackage",
+    AgentPackageOrganizationForActions = "AgentPackageOrganizationForActions",
 }
 
 export interface CloudEntry {
@@ -83,22 +78,6 @@ export interface FSEntry {
     name: string;
     isDirectory: boolean;
     filePath: string;
-}
-
-export interface AgentEntry {
-    type: AgentEntryType;
-    label: string;
-    iconPath?: string;
-    collapsed?: boolean;
-    tooltip?: string;
-    parent?: AgentEntry;
-
-    /* For root elements. */
-    packageInfo?: LocalAgentPackageMetadataInfo;
-    uri?: vscode.Uri | undefined;
-
-    /* For organizations. */
-    actionPackages?: LocalPackageMetadataInfo[];
 }
 
 export const treeViewIdToTreeView: Map<string, vscode.TreeView<any>> = new Map();

@@ -11,20 +11,17 @@ export enum PackageYamlName {
 }
 
 export interface LocalPackageMetadataInfo {
+    packageType: string;
     name: string;
     directory: string;
     filePath: string;
     yamlContents: object;
-    organization?: string;
+    organizations?: LocalAgentPackageOrganizationMetadataInfo[]; // Only for Agents
 }
 
 export interface LocalAgentPackageOrganizationMetadataInfo {
     name: string;
     actionPackages: LocalPackageMetadataInfo[];
-}
-
-export interface LocalAgentPackageMetadataInfo extends LocalPackageMetadataInfo {
-    organizations: LocalAgentPackageOrganizationMetadataInfo[];
 }
 
 export interface IVaultInfo {

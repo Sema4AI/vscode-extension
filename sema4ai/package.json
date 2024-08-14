@@ -24,7 +24,7 @@
         "onCommand:sema4ai.getPluginsDir",
         "onCommand:sema4ai.createRobot",
         "onCommand:sema4ai.createActionPackage",
-        "onCommand:sema4ai.createTaskOrActionPackage",
+        "onCommand:sema4ai.createTaskOrActionOrAgentPackage",
         "onCommand:sema4ai.listRobotTemplates.internal",
         "onCommand:sema4ai.createRobot.internal",
         "onCommand:sema4ai.uploadRobotToCloud",
@@ -149,12 +149,9 @@
         "onCommand:sema4ai.actionServerVersion.internal",
         "onCommand:sema4ai.agentCliVersion.internal",
         "onCommand:sema4ai.createAgentPackage",
-        "onCommand:sema4ai.refreshAgentPackagesView",
         "onCommand:sema4ai.createAgentPackage.internal",
-        "onCommand:sema4ai.localListAgentPackages.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
-        "onView:sema4ai-agent-packages-tree",
         "onView:sema4ai-task-packages-tree",
         "onView:sema4ai-package-content-tree",
         "onView:sema4ai-package-resources-tree",
@@ -264,23 +261,18 @@
         "views": {
             "sem4ai-packages": [
                 {
-                    "id": "sema4ai-agent-packages-tree",
-                    "name": "Agent Packages",
-                    "contextualTitle": "Agent Packages"
-                },
-                {
                     "id": "sema4ai-task-packages-tree",
-                    "name": "Task/Action Packages",
-                    "contextualTitle": "Task/Action Packages"
+                    "name": "Agent/Action/Task Packages",
+                    "contextualTitle": "Agent/Action/Task Packages"
                 },
                 {
                     "id": "sema4ai-package-content-tree",
-                    "name": "Task/Action Package Content",
+                    "name": "Package Content",
                     "contextualTitle": "Package Content"
                 },
                 {
                     "id": "sema4ai-package-resources-tree",
-                    "name": "Task/Action Package Resources",
+                    "name": "Package Resources",
                     "contextualTitle": "Package Resources"
                 },
                 {
@@ -358,8 +350,8 @@
                 "icon": "$(add)"
             },
             {
-                "command": "sema4ai.createTaskOrActionPackage",
-                "title": "Create Action Package",
+                "command": "sema4ai.createTaskOrActionOrAgentPackage",
+                "title": "Create Agent, Action or Task Package",
                 "category": "Sema4.ai",
                 "icon": "$(add)"
             },
@@ -473,7 +465,7 @@
             },
             {
                 "command": "sema4ai.refreshRobotsView",
-                "title": "Refresh Task/Action Packages view",
+                "title": "Refresh Packages view",
                 "category": "Sema4.ai",
                 "icon": {
                     "light": "images/light/refresh.svg",
@@ -933,36 +925,17 @@
                 "title": "Create Agent Package",
                 "category": "Sema4.ai",
                 "icon": "$(add)"
-            },
-            {
-                "command": "sema4ai.refreshAgentPackagesView",
-                "title": "Refresh Agent Packages view",
-                "category": "Sema4.ai",
-                "icon": {
-                    "light": "images/light/refresh.svg",
-                    "dark": "images/dark/refresh.svg"
-                }
             }
         ],
         "menus": {
             "view/title": [
-                {
-                    "command": "sema4ai.refreshAgentPackagesView",
-                    "when": "view == sema4ai-agent-packages-tree",
-                    "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.createAgentPackage",
-                    "when": "view == sema4ai-agent-packages-tree",
-                    "group": "navigation"
-                },
                 {
                     "command": "sema4ai.refreshRobotsView",
                     "when": "view == sema4ai-task-packages-tree",
                     "group": "navigation"
                 },
                 {
-                    "command": "sema4ai.createTaskOrActionPackage",
+                    "command": "sema4ai.createTaskOrActionOrAgentPackage",
                     "when": "view == sema4ai-task-packages-tree",
                     "group": "navigation"
                 },
@@ -1221,7 +1194,7 @@
             ],
             "commandPalette": [
                 {
-                    "command": "sema4ai.createTaskOrActionPackage",
+                    "command": "sema4ai.createTaskOrActionOrAgentPackage",
                     "when": "false"
                 },
                 {

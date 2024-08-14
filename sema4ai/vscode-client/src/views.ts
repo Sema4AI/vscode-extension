@@ -3,7 +3,6 @@ import {
     TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE,
     TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE,
     TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE,
-    TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE,
 } from "./robocorpViews";
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
@@ -18,20 +17,14 @@ import {
     treeViewIdToTreeDataProvider,
     treeViewIdToTreeView,
 } from "./viewsCommon";
-import {
-    getSelectedRobot,
-    onSelectedRobotChanged,
-    onChangedRobotSelection,
-    onChangedAgentPackageOrganizationSelection,
-    onSelectedAgentPackageOrganizationChanged,
-} from "./viewsSelection";
+import { getSelectedRobot, onSelectedRobotChanged, onChangedRobotSelection } from "./viewsSelection";
 import { CloudTreeDataProvider } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 import { ResourcesTreeDataProvider } from "./viewsResources";
 import * as path from "path";
 import { fileExists, uriExists, verifyFileExists } from "./files";
 import { createDefaultInputJson, getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
-import { AgentPackagesTreeDataProvider } from "./viewsAgents";
+import { OUTPUT_CHANNEL } from "./channel";
 
 export async function editInput(actionRobotEntry?: RobotEntry) {
     if (!actionRobotEntry) {
@@ -217,10 +210,6 @@ export function registerViews(context: ExtensionContext) {
         })
     );
 
-    context.subscriptions.push(
-        onSelectedAgentPackageOrganizationChanged((e) => robotsTreeDataProvider.onAgentsTreeSelectionChanged())
-    );
-
     // The contents of a single robot (the one selected in the Robots tree).
     const robotContentTreeDataProvider = new RobotContentTreeDataProvider();
     const robotContentTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE, {
@@ -249,7 +238,9 @@ export function registerViews(context: ExtensionContext) {
 
     context.subscriptions.push(onSelectedRobotChanged((e) => resourcesDataProvider.onRobotsTreeSelectionChanged(e)));
 
-    const robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/robot.yaml");
+    const robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
+        "**/{robot.yaml,package.yaml,agent-spec.yaml,actions/*}"
+    );
 
     const onChangeRobotsYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.
@@ -273,46 +264,8 @@ export function registerViews(context: ExtensionContext) {
     locatorsWatcher.onDidCreate(onChangeLocatorsJson);
     locatorsWatcher.onDidDelete(onChangeLocatorsJson);
 
-    // Agents
-    const agentPackagesTreeDataProvider = new AgentPackagesTreeDataProvider();
-    const viewsAgentPackagesTree = vscode.window.createTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, {
-        "treeDataProvider": agentPackagesTreeDataProvider,
-    });
-
-    context.subscriptions.push(
-        viewsAgentPackagesTree.onDidChangeSelection(
-            async (e) => await onChangedAgentPackageOrganizationSelection(e.selection)
-        )
-    );
-
-    context.subscriptions.push(
-        agentPackagesTreeDataProvider.onUpdateSelectedOrganization(
-            async (e) => await onChangedAgentPackageOrganizationSelection([e])
-        )
-    );
-
-    treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, viewsAgentPackagesTree);
-    treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE, agentPackagesTreeDataProvider);
-
-    /**
-     * Needed when creating and deleting organization directories, as well as
-     * Action Packages nested inside.
-     */
-    const agentPackagesWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/actions/**");
-
-    const onChangeAgentSpecYaml = debounce(() => {
-        // Note: this doesn't currently work if the parent folder is renamed or removed.
-        // (https://github.com/microsoft/vscode/pull/110858)
-        refreshTreeView(TREE_VIEW_SEMA4AI_AGENT_PACKAGES_TREE);
-    }, 300);
-
-    agentPackagesWatcher.onDidChange(onChangeAgentSpecYaml);
-    agentPackagesWatcher.onDidCreate(onChangeAgentSpecYaml);
-    agentPackagesWatcher.onDidDelete(onChangeAgentSpecYaml);
-
     context.subscriptions.push(robotsTree);
     context.subscriptions.push(resourcesTree);
     context.subscriptions.push(robotsWatcher);
     context.subscriptions.push(locatorsWatcher);
-    context.subscriptions.push(agentPackagesWatcher);
 }

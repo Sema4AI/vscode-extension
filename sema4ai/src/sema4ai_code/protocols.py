@@ -1,7 +1,7 @@
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
-from enum import Enum
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -31,15 +31,13 @@ class PackageYamlName(Enum):
     AGENT = "agent-spec.yaml"
 
 
-class LocalPackageMetadataInfoDict(TypedDict):
+class LocalPackageMetadataInfoDict(TypedDict, total=False):
     packageType: str  # Type of the package.
     directory: str  # The directory that contains the related package's YAML file
     filePath: str  # The path to the YAML file
     name: str  # The name of the package
     yamlContents: dict  # The contents of the YAML file
-
-    # Organization given package is specific to (applicable only to Actions).
-    organization: Optional[str]
+    organizations: Optional[List["LocalAgentPackageOrganizationInfoDict"]]
 
 
 class LocalAgentPackageOrganizationInfoDict(TypedDict):
@@ -47,10 +45,6 @@ class LocalAgentPackageOrganizationInfoDict(TypedDict):
     actionPackages: List[
         LocalPackageMetadataInfoDict
     ]  # Action Packages specific to given organization.
-
-
-class LocalAgentPackageMetadataInfoDict(LocalPackageMetadataInfoDict):
-    organizations: List[LocalAgentPackageOrganizationInfoDict]
 
 
 class LocatorEntryInfoDict(TypedDict):
@@ -343,14 +337,6 @@ class DownloadToolDict(TypedDict):
 
 class CreateAgentPackageParamsDict(TypedDict):
     directory: str
-
-
-class ActionResultDictLocalAgentPackageMetadata(TypedDict):
-    success: bool
-    message: Optional[
-        str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocalAgentPackageMetadataInfoDict]]
 
 
 class IRccWorkspace(Protocol):

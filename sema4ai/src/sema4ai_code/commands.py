@@ -6,7 +6,7 @@ SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO = "sema4ai.getLanguageServerPythonInfo" 
 SEMA4AI_GET_PLUGINS_DIR = "sema4ai.getPluginsDir"  # Get the directory for plugins
 SEMA4AI_CREATE_ROBOT = "sema4ai.createRobot"  # Create Task Package
 SEMA4AI_CREATE_ACTION_PACKAGE = "sema4ai.createActionPackage"  # Create Action Package
-SEMA4AI_CREATE_TASK_OR_ACTION_PACKAGE = "sema4ai.createTaskOrActionPackage"  # Create Action Package
+SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE = "sema4ai.createTaskOrActionOrAgentPackage"  # Create Agent, Action or Task Package
 SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL = "sema4ai.listRobotTemplates.internal"  # Provides a list with the available Task Package templates
 SEMA4AI_CREATE_ROBOT_INTERNAL = "sema4ai.createRobot.internal"  # Actually calls rcc to create the Task Package
 SEMA4AI_UPLOAD_ROBOT_TO_CLOUD = "sema4ai.uploadRobotToCloud"  # Upload Task Package to Control Room
@@ -38,7 +38,7 @@ SEMA4AI_SET_PYTHON_INTERPRETER = "sema4ai.setPythonInterpreter"  # Set python ex
 SEMA4AI_RESOLVE_INTERPRETER = "sema4ai.resolveInterpreter"  # Resolves the interpreter to be used given a path
 SEMA4AI_CLOUD_LOGOUT = "sema4ai.cloudLogout"  # Unlink and remove credentials from Control Room
 SEMA4AI_CLOUD_LOGOUT_INTERNAL = "sema4ai.cloudLogout.internal"  # Unlink and remove credentials from Control Room internal
-SEMA4AI_REFRESH_ROBOTS_VIEW = "sema4ai.refreshRobotsView"  # Refresh Task/Action Packages view
+SEMA4AI_REFRESH_ROBOTS_VIEW = "sema4ai.refreshRobotsView"  # Refresh Packages view
 SEMA4AI_REFRESH_ROBOT_CONTENT_VIEW = "sema4ai.refreshRobotContentView"  # Refresh Task Package Content view
 SEMA4AI_NEW_FILE_IN_ROBOT_CONTENT_VIEW = "sema4ai.newFileInRobotContentView"  # New File
 SEMA4AI_NEW_FOLDER_IN_ROBOT_CONTENT_VIEW = "sema4ai.newFolderInRobotContentView"  # New Folder
@@ -131,9 +131,7 @@ SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL = "sema4ai.agentCliDownload.internal"  # Dow
 SEMA4AI_ACTION_SERVER_VERSION_INTERNAL = "sema4ai.actionServerVersion.internal"  # Get the Action Server's version (internal)
 SEMA4AI_AGENT_CLI_VERSION_INTERNAL = "sema4ai.agentCliVersion.internal"  # Get the Agent CLI's version (internal)
 SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage"  # Create Agent Package
-SEMA4AI_REFRESH_AGENT_PACKAGES_VIEW = "sema4ai.refreshAgentPackagesView"  # Refresh Agent Packages view
 SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal"  # Calls Agent Server to create new Agent Package
-SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL = "sema4ai.localListAgentPackages.internal"  # Lists the Agent Packages currently available in the workspace
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -187,7 +185,6 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
     SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
     SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-    SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL,
 ]
 
 # fmt: on

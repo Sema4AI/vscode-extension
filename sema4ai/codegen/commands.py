@@ -80,8 +80,8 @@ COMMANDS = [
         icon="$(add)",
     ),
     Command(
-        "sema4ai.createTaskOrActionPackage",
-        "Create Action Package",
+        "sema4ai.createTaskOrActionOrAgentPackage",
+        "Create Agent, Action or Task Package",
         server_handled=False,
         hide_from_command_palette=True,
         icon="$(add)",
@@ -294,7 +294,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.refreshRobotsView",
-        "Refresh Task/Action Packages view",
+        "Refresh Packages view",
         add_to_package_json=True,
         server_handled=False,
         icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
@@ -921,21 +921,8 @@ COMMANDS = [
         icon="$(add)",
     ),
     Command(
-        "sema4ai.refreshAgentPackagesView",
-        "Refresh Agent Packages view",
-        add_to_package_json=True,
-        server_handled=False,
-        icon={"light": "images/light/refresh.svg", "dark": "images/dark/refresh.svg"},
-    ),
-    Command(
         "sema4ai.createAgentPackage.internal",
         "Calls Agent Server to create new Agent Package",
-        add_to_package_json=False,
-        server_handled=True,
-    ),
-    Command(
-        "sema4ai.localListAgentPackages.internal",
-        "Lists the Agent Packages currently available in the workspace",
         add_to_package_json=False,
         server_handled=True,
     ),

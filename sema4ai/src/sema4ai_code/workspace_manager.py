@@ -1,20 +1,18 @@
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
-from sema4ai_ls_core.protocols import IWorkspace
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
-
-from sema4ai_code.protocols import (
-    PackageType,
-    PackageYamlName,
-    LocalPackageMetadataInfoDict,
-    LocalAgentPackageMetadataInfoDict,
-    LocalAgentPackageOrganizationInfoDict,
-)
+from sema4ai_ls_core.protocols import IWorkspace
 
 from sema4ai_code.agent_cli import get_agent_package_actions_sub_directory
+from sema4ai_code.protocols import (
+    LocalAgentPackageOrganizationInfoDict,
+    LocalPackageMetadataInfoDict,
+    PackageType,
+    PackageYamlName,
+)
 
 log = get_logger(__name__)
 
@@ -51,7 +49,11 @@ class WorkspaceManager:
                     # Check the root directory itself for the robot.yaml.
                     p = Path(folder_path)
                     robot_metadata = self._get_package_metadata(
-                        [PackageYamlName.ROBOT, PackageYamlName.ACTION],
+                        [
+                            PackageYamlName.ROBOT,
+                            PackageYamlName.ACTION,
+                            PackageYamlName.AGENT,
+                        ],
                         p,
                         curr_cache,
                         new_cache,
@@ -62,7 +64,11 @@ class WorkspaceManager:
                     elif p.is_dir():
                         for sub in p.iterdir():
                             robot_metadata = self._get_package_metadata(
-                                [PackageYamlName.ROBOT, PackageYamlName.ACTION],
+                                [
+                                    PackageYamlName.ROBOT,
+                                    PackageYamlName.ACTION,
+                                    PackageYamlName.AGENT,
+                                ],
                                 sub,
                                 curr_cache,
                                 new_cache,
@@ -70,81 +76,29 @@ class WorkspaceManager:
                             if robot_metadata is not None:
                                 robots.append(robot_metadata)
 
-            robots.sort(key=lambda dct: dct["name"])
-        except Exception as e:
-            # We use try-except, so we can update the cache in "finally" block - therefore
-            # we simply rethrow on exception.
-            raise e
+            def get_key(dct):
+                package_type = dct["packageType"]
+                priority = 2
+                if package_type == PackageType.AGENT.value:
+                    priority = 0
+                elif package_type == PackageType.ACTION.value:
+                    priority = 1
+                return (priority, dct["name"].lower())
+
+            robots.sort(key=get_key)
+
+            for package in robots:
+                if package["packageType"] == PackageType.AGENT.value:
+                    package["organizations"] = self._get_agent_package_organizations(
+                        package["directory"],
+                        new_cache,
+                    )
+
         finally:
             # Set the new cache after we finished computing all entries.
             self._local_list_robots_cache = new_cache
 
         return robots
-
-    def get_local_agent_packages(self) -> List[LocalAgentPackageMetadataInfoDict]:
-        """
-        Returns all local Agent packages present in the workspace, either at root or first level.
-        Ignores Robot/Action packages.
-        """
-        curr_cache = self._local_list_agent_packages_cache
-        # We don't need additional information that come with LocalAgentPackageMetadataInfoDict in cache,
-        # therefore we use the base class.
-        new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]] = {}
-
-        agent_packages: List[LocalAgentPackageMetadataInfoDict] = []
-
-        def append_if_exists(base_metadata: LocalPackageMetadataInfoDict | None):
-            if base_metadata is not None:
-                agent_package_metadata = cast(
-                    LocalAgentPackageMetadataInfoDict,
-                    {**base_metadata, "organizations": []},
-                )
-
-                agent_packages.append(agent_package_metadata)
-
-        try:
-            ws = self.workspace
-            if ws:
-                for folder_path in ws.get_folder_paths():
-                    # Check the root directory itself for the agent-spec.yaml.
-                    p = Path(folder_path)
-
-                    base_agent_package_metadata = self._get_package_metadata(
-                        [PackageYamlName.AGENT],
-                        p,
-                        curr_cache,
-                        new_cache,
-                    )
-
-                    append_if_exists(base_agent_package_metadata)
-
-                    if base_agent_package_metadata is None and p.is_dir():
-                        for sub in p.iterdir():
-                            base_agent_package_metadata = self._get_package_metadata(
-                                [PackageYamlName.AGENT],
-                                sub,
-                                curr_cache,
-                                new_cache,
-                            )
-
-                            append_if_exists(base_agent_package_metadata)
-
-            for agent_package in agent_packages:
-                agent_package["organizations"] = self._get_agent_package_organizations(
-                    agent_package["directory"],
-                    new_cache,
-                )
-
-            agent_packages.sort(key=lambda dct: dct["name"])
-        except Exception as e:
-            # We use try-except, so we can update the cache in "finally" block - therefore
-            # we simply rethrow on exception.
-            raise e
-        finally:
-            # Set the new cache after we finished computing all entries.
-            self._local_list_agent_packages_cache = new_cache
-
-        return agent_packages
 
     def _get_agent_package_organizations(
         self,
@@ -179,7 +133,6 @@ class WorkspaceManager:
                 )
 
                 if action_package_metadata is not None:
-                    action_package_metadata["organization"] = organization_name
                     organization["actionPackages"].append(action_package_metadata)
 
             organizations.append(organization)
@@ -238,7 +191,6 @@ class WorkspaceManager:
                             "filePath": str(yaml_file_path),
                             "name": name,
                             "yamlContents": yaml_contents,
-                            "organization": None,
                         }
 
                         return robot_metadata

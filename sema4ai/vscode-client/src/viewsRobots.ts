@@ -4,8 +4,8 @@ import { uriExists } from "./files";
 import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
-import { getSelectedAgentPackageOrganization, getSelectedRobot } from "./viewsSelection";
-import { isActionPackage } from "./common";
+import { getSelectedRobot } from "./viewsSelection";
+import { isActionPackage, isAgentPackage } from "./common";
 
 let _globalSentMetric: boolean = false;
 
@@ -132,11 +132,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 for (const label of [
                     "No Task nor Action Package found.",
                     "A few ways to get started:",
-                    "➔ Run the “Sema4.ai: Create Task Package”",
+                    "➔ Run the “Sema4.ai: Create Agent Package”",
                     "➔ Run the “Sema4.ai: Create Action Package”",
-                    "➔ Open a Task Package folder (with a “robot.yaml” file)",
+                    "➔ Run the “Sema4.ai: Create Task Package”",
+                    "➔ Open an Agent Package folder (with a “agent-spec.yaml” file)",
                     "➔ Open an Action Package folder (with a “package.yaml” file)",
-                    "➔ Open a parent folder (with multiple Task or Action packages)",
+                    "➔ Open a Task Package folder (with a “robot.yaml” file)",
+                    "➔ Open a parent folder (with multiple Agent/Action/Task Packages)",
                 ]) {
                     ret.push({
                         "label": label,
@@ -204,7 +206,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     },
                 ];
             } else if (element.type === RobotEntryType.ActionPackage) {
-                // TODO: We need a way to get the actions for the action package.
                 let children: RobotEntry[] = [];
                 try {
                     let result: ActionResult<undefined> = await vscode.commands.executeCommand(
@@ -235,7 +236,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 }
 
                 children.push({
-                    "label": "Activities",
+                    "label": "Commands",
                     "uri": element.uri,
                     "robot": element.robot,
                     "iconPath": "tools",
@@ -281,22 +282,22 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Publishes the Action Package to the Sema4.ai Desktop application",
                     },
                     {
-                        "label": "Create Action Package",
+                        "label": "Build Action Package (zip)",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "archive",
                         "type": RobotEntryType.PackageBuildToWorkspace,
                         "parent": element,
-                        "tooltip": "Create the Action Package .zip file to the workspace folder",
+                        "tooltip": "Builds the Action Package .zip file in the workspace folder",
                     },
                     {
-                        "label": "Open the Package OpenAPI Spec (metadata.json)",
+                        "label": "Preview the Package OpenAPI Spec (metadata.json)",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "new-file",
                         "type": RobotEntryType.PackageMetadata,
                         "parent": element,
-                        "tooltip": "Open the Action Package OpenAPI spec (metadata.json) file",
+                        "tooltip": "Preview the Action Package OpenAPI spec (metadata.json) file",
                     },
                 ];
             } else if (element.type === RobotEntryType.Robot) {
@@ -318,7 +319,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     }
                 }
                 robotChildren.push({
-                    "label": "Activities",
+                    "label": "Commands",
                     "uri": element.uri,
                     "robot": element.robot,
                     "iconPath": "tools",
@@ -369,6 +370,29 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                     },
                 ];
+            } else if (element.type === RobotEntryType.AgentPackageOrganizationForActions) {
+                const ret = [];
+                const collapsed = false;
+                for (const actionPackageInfo of element["actionPackages"]) {
+                    ret.push(this.createNodeFromPackage(element, collapsed, actionPackageInfo));
+                }
+                return ret;
+            } else if (element.type === RobotEntryType.AgentPackage) {
+                const ret = [];
+                if (element.robot.organizations) {
+                    for (const org of element.robot.organizations) {
+                        ret.push({
+                            "label": org["name"],
+                            "uri": element.uri,
+                            "robot": element.robot,
+                            "iconPath": "list-tree",
+                            "type": RobotEntryType.AgentPackageOrganizationForActions,
+                            "parent": element,
+                            "actionPackages": org["actionPackages"],
+                        });
+                    }
+                }
+                return ret;
             } else if (element.type === RobotEntryType.Error) {
                 return [];
             }
@@ -387,42 +411,49 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
 
         let robotsInfo: LocalPackageMetadataInfo[] = [];
 
-        /**
-         * If Agent Packages section have an organization selected, we should only show
-         * packages from given organization.
-         * Otherwise, workspace will be scan for Action packages.
-         */
-        const selectedActionPackageOrganization = getSelectedAgentPackageOrganization();
-        if (selectedActionPackageOrganization) {
-            robotsInfo = selectedActionPackageOrganization.actionPackages || [];
-        } else {
-            // Get root elements.
-            const actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
-                roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-            );
+        // Get root elements.
+        const actionResult: ActionResult<LocalPackageMetadataInfo[]> = await vscode.commands.executeCommand(
+            roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
+        );
 
-            if (!actionResult.success) {
-                OUTPUT_CHANNEL.appendLine(actionResult.message);
-                return [];
-            }
-
-            robotsInfo = actionResult.result;
+        if (!actionResult.success) {
+            OUTPUT_CHANNEL.appendLine(actionResult.message);
+            return [];
         }
+
+        robotsInfo = actionResult.result;
 
         if (empty(robotsInfo)) {
             return [];
         }
 
         const collapsed = robotsInfo.length > 1;
-        return robotsInfo.map((robotInfo: LocalPackageMetadataInfo) => ({
+
+        const ret = [];
+        for (const robotInfo of robotsInfo) {
+            ret.push(this.createNodeFromPackage(element, collapsed, robotInfo));
+        }
+
+        return ret;
+    }
+
+    createNodeFromPackage(parent: any, collapsed: boolean, robotInfo: LocalPackageMetadataInfo) {
+        const isAgent = isAgentPackage(robotInfo);
+        const isAction = isActionPackage(robotInfo);
+
+        return {
             "label": getRobotLabel(robotInfo),
             "uri": vscode.Uri.file(robotInfo.filePath),
             "robot": robotInfo,
-            "iconPath": "package",
-            "type": isActionPackage(robotInfo) ? RobotEntryType.ActionPackage : RobotEntryType.Robot,
-            "parent": element,
+            "iconPath": isAgent ? "person" : isAction ? "symbol-event" : "package",
+            "type": isAgent
+                ? RobotEntryType.AgentPackage
+                : isAction
+                ? RobotEntryType.ActionPackage
+                : RobotEntryType.Robot,
+            "parent": parent,
             "collapsed": collapsed,
-        }));
+        };
     }
 
     getTreeItem(element: RobotEntry): vscode.TreeItem {
@@ -536,7 +567,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
             treeItem.command = {
-                "title": "Create Action Package to Workspace",
+                "title": "Build Action Package (zip) in Workspace",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -552,7 +583,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.tooltip = element.tooltip;
         }
         if (element.iconPath) {
-            treeItem.iconPath = new vscode.ThemeIcon(element.iconPath);
+            if (element.type === RobotEntryType.AgentPackage) {
+                treeItem.iconPath = new vscode.ThemeIcon(
+                    element.iconPath,
+                    new vscode.ThemeColor("textLink.foreground")
+                );
+            } else {
+                treeItem.iconPath = new vscode.ThemeIcon(element.iconPath);
+            }
         }
         if (element.collapsed !== undefined) {
             treeItem.collapsibleState = element.collapsed

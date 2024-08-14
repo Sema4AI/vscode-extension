@@ -1,11 +1,11 @@
 import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
 import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
-import { ActionResult, LocalAgentPackageMetadataInfo, LocalPackageMetadataInfo, PackageYamlName } from "./protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "./protocols";
 import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
-import { fileExists, uriExists } from "./files";
+import { uriExists } from "./files";
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -15,7 +15,7 @@ export type GetPackageTargetDirectoryMessages = {
 };
 
 export type WorkspacePackagesInfo = {
-    agentPackages: LocalAgentPackageMetadataInfo[];
+    agentPackages: LocalPackageMetadataInfo[];
     taskActionPackages: LocalPackageMetadataInfo[];
 };
 
@@ -41,38 +41,34 @@ export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) 
     return entry.filePath.endsWith("package.yaml");
 };
 
-export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo> {
-    const [actionResultListLocalRobots, actionResultListAgents] = (await Promise.all([
-        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL),
-        vscode.commands.executeCommand(roboCommands.SEMA4AI_LOCAL_LIST_AGENT_PACKAGES_INTERNAL),
-    ])) as [ActionResult<LocalPackageMetadataInfo[]>, ActionResult<LocalAgentPackageMetadataInfo[]>];
+export const isAgentPackage = (entry: PackageEntry | LocalPackageMetadataInfo) => {
+    return entry.filePath.endsWith("agent-spec.yaml");
+};
 
-    let localRobots: any[];
+export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo> {
+    const actionResultListLocalRobots = (await vscode.commands.executeCommand(
+        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
+    )) as ActionResult<LocalPackageMetadataInfo[]>;
+
     if (!actionResultListLocalRobots.success) {
         feedbackRobocorpCodeError("ACT_LIST_ROBOT");
         window.showErrorMessage("Error listing robots: " + actionResultListLocalRobots.message);
 
         // This shouldn't happen, but let's proceed as if there were no Robots in the workspace.
-        localRobots = [];
+        return {
+            agentPackages: [],
+            taskActionPackages: [],
+        };
     } else {
-        localRobots = actionResultListLocalRobots.result;
+        return {
+            agentPackages: actionResultListLocalRobots.result.filter((data) => {
+                return data.packageType === PackageType.Agent;
+            }),
+            taskActionPackages: actionResultListLocalRobots.result.filter((data) => {
+                return data.packageType !== PackageType.Agent;
+            }),
+        };
     }
-
-    let localAgents: any[];
-    if (!actionResultListAgents.success) {
-        feedbackRobocorpCodeError("ACT_LIST_AGENTS");
-        window.showErrorMessage("Error listing agents: " + actionResultListAgents.message);
-
-        // This shouldn't happen, but let's proceed as if there were no Agents in the workspace.
-        localAgents = [];
-    } else {
-        localAgents = actionResultListAgents.result;
-    }
-
-    return {
-        agentPackages: localAgents,
-        taskActionPackages: localRobots,
-    };
 }
 
 export async function areTherePackagesInWorkspace(): Promise<boolean> {
