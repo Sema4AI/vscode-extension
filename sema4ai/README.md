@@ -53,7 +53,7 @@ During the first activation, the extension will download additional dependencies
 
 ### Developing
 
-See: [Developing](docs/develop.md) for details on how to develop the `Sema4.ai` -extension.
+See: [Developing](../docs/develop.md) for details on how to develop the `Sema4.ai` -extension.
 
 ### Reporting Issues
 

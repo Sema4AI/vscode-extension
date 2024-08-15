@@ -2,22 +2,28 @@
 Developing
 -----------
 
-Install NodeJs (https://nodejs.org/en/) -- make sure that `node` and `npm` are in the `PATH`.
+🚀 Base installations and first run
 
-Install Yarn (https://yarnpkg.com/) -- make sure that `yarn` is in the `PATH`.
+Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to get the different Node versions easily 
+- `nvm install 20.12.2` installs correct Node version
+- Enable yarn (v1.22.22): `corepack enable`
+- Verify sure that `node`, `npm` and `yarn` are working
+  - `node --version`
+  - `npm --version`
+  - `yarn --version`
 
-Download the sources, head to the root directory (where `package.json` is located)
-and run: `yarn install`.
+- Go to `/sema4ai` -folder and run: `yarn install`.
+- Now open `/sema4ai/.vscode/sema4ai-code.code-workspace` in VS Code and run debug
+  - ![](/docs/vscode-workspace.png)
+- A new VS Code window should pop-up with the VS Code extension in play.
 
-After this step, it should be possible to open the `sema4ai_code` folder in VSCode and launch
-`Extension: Sema4.ai` to have a new instance of VSCode with the loaded extension.
+Creating a local environment for python backend development
+-----------------------------------------------------------
 
-
-Creating a local environment for python development
-----------------------------------------------------
+🏗️ If you need to develop the extension backend you need the setup below.
 
 For local development, `poetry` should be used to install the libraries needed,
-so, head on to `/sema4ai` and do `poetry install` to get your python
+so, head on to `/sema4ai-python-ls-core` and do `poetry install` to get your python
 environment setup.
 
 If everything went well, just pointing your IDE to use the python executable
@@ -30,7 +36,7 @@ Building a VSIX locally
 ------------------------
 
 To build a VSIX, follow the steps in https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-(if everything is setup, `vsce package` from the root directory should do it).
+(if everything is setup, `vsce package` from the `sema4ai` -directory should do it).
 
 
 Adding a new command
