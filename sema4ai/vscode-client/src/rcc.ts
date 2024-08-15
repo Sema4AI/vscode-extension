@@ -13,7 +13,6 @@ import { getProceedwithlongpathsdisabled } from "./robocorpSettings";
 import { runAsAdminWin32 } from "./extensionCreateEnv";
 import { GLOBAL_STATE } from "./extension";
 import { downloadWithProgress, DownloadProgress } from "./http";
-import { Tool, downloadTool } from "./tools";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -120,6 +119,39 @@ async function checkCachedEnvValid(env): Promise<boolean> {
     return true;
 }
 
+async function downloadRcc(
+    progress: Progress<{ message?: string; increment?: number }>,
+    token: CancellationToken
+): Promise<string | undefined> {
+    // Configure library with http settings.
+    // i.e.: https://code.visualstudio.com/docs/setup/network
+    let httpSettings = workspace.getConfiguration("http");
+    configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
+    let location = getExpectedRccLocation();
+    let relativePath: string;
+    if (process.platform == "win32") {
+        if (process.arch === "x64" || process.env.hasOwnProperty("PROCESSOR_ARCHITEW6432")) {
+            // Check if node is a 64 bit process or if it's a 32 bit process running in a 64 bit processor.
+            relativePath = "/windows64/rcc.exe";
+        } else {
+            throw new Error("Currently only Windows amd64 is supported.");
+        }
+    } else if (process.platform == "darwin") {
+        relativePath = "/macos64/rcc";
+    } else {
+        // Linux
+        if (process.arch == "x64") {
+            relativePath = "/linux64/rcc";
+        } else {
+            throw new Error("Currently only Linux amd64 is supported.");
+        }
+    }
+    const RCC_VERSION = "v18.1.1";
+    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
+    const url: string = prefix + relativePath;
+    return await downloadWithProgress(url, progress, token, location);
+}
+
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
 const BASENAME_PREBUILT_WIN_AMD64 = "81f44270388737d7_windows_amd64.zip";
@@ -204,7 +236,7 @@ export async function getRccLocation(): Promise<string | undefined> {
                 title: "Download conda manager (rcc).",
                 cancellable: false,
             },
-            (): Promise<string> => downloadTool(Tool.Rcc, location)
+            downloadRcc
         );
     }
     return location;
