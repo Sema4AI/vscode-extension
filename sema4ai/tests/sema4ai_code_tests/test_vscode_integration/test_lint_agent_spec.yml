@@ -1,0 +1,10 @@
+- message: 'Error: expected dict to be root of yaml (found: <class ''str''>)'
+  range:
+    end:
+      character: 0
+      line: 1
+    start:
+      character: 0
+      line: 0
+  severity: 1
+  source: sema4ai

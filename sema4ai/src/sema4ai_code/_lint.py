@@ -3,10 +3,10 @@ import weakref
 from typing import List, Optional
 
 from sema4ai_ls_core.basic import overrides
+from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.lsp import DiagnosticsTypedDict, LSPMessages
 from sema4ai_ls_core.protocols import IDocument, IEndPoint, IMonitor, IWorkspace
 from sema4ai_ls_core.python_ls import BaseLintInfo, BaseLintManager
-from sema4ai_ls_core.core_log import get_logger
 
 from sema4ai_code.protocols import IRcc
 from sema4ai_code.robocorp_language_server import RobocorpLanguageServer
@@ -188,6 +188,26 @@ class _CurrLintInfo(BaseLintInfo):
                         collect_package_yaml_diagnostics(
                             robocorp_language_server.pypi_cloud,
                             robocorp_language_server.conda_cloud,
+                            ws,
+                            doc_uri,
+                            self._monitor,
+                        )
+                    )
+
+            self._lsp_messages.publish_diagnostics(doc_uri, found)
+            return
+
+        if doc_uri.endswith("agent-spec.yaml"):
+            found = []
+            if robocorp_language_server is not None:
+                ws = robocorp_language_server.workspace
+                if ws is not None:
+                    from sema4ai_code.agents.collect_agent_spec_diagnostics import (
+                        collect_agent_spec_diagnostics,
+                    )
+
+                    found.extend(
+                        collect_agent_spec_diagnostics(
                             ws,
                             doc_uri,
                             self._monitor,
