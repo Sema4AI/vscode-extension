@@ -23,7 +23,7 @@ Creating a local environment for python backend development
 🏗️ If you need to develop the extension backend you need the setup below.
 
 For local development, `poetry` should be used to install the libraries needed,
-so, head on to `/sema4ai-python-ls-core` and do `poetry install` to get your python
+so, head on to `/sema4ai` and do `poetry install` to get your python
 environment setup.
 
 If everything went well, just pointing your IDE to use the python executable
