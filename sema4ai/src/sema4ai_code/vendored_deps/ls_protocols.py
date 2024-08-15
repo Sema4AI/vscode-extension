@@ -40,7 +40,7 @@ class _DiagnosticsTypedDict(TypedDict, total=False):
     # An optional property to describe the error code.
     #
     # @since 3.16.0
-    codeDescription: Any
+    codeDescription: Optional[str]
 
     # A human-readable string describing the source of this
     # diagnostic, e.g. 'typescript' or 'super lint'.

@@ -8,7 +8,7 @@ from sema4ai_ls_core.lsp import DiagnosticsTypedDict, LSPMessages
 from sema4ai_ls_core.protocols import IDocument, IEndPoint, IMonitor, IWorkspace
 from sema4ai_ls_core.python_ls import BaseLintInfo, BaseLintManager
 
-from sema4ai_code.protocols import IRcc
+from sema4ai_code.protocols import IRcc, PackageYamlName
 from sema4ai_code.robocorp_language_server import RobocorpLanguageServer
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
@@ -179,7 +179,7 @@ class _CurrLintInfo(BaseLintInfo):
                 self._lsp_messages.publish_diagnostics(doc_uri, errors)
             return
 
-        if doc_uri.endswith("package.yaml"):
+        if doc_uri.endswith(PackageYamlName.ACTION.value):
             found = []
             if robocorp_language_server is not None:
                 ws = robocorp_language_server.workspace
@@ -197,7 +197,7 @@ class _CurrLintInfo(BaseLintInfo):
             self._lsp_messages.publish_diagnostics(doc_uri, found)
             return
 
-        if doc_uri.endswith("agent-spec.yaml"):
+        if doc_uri.endswith(PackageYamlName.AGENT.value):
             found = []
             if robocorp_language_server is not None:
                 ws = robocorp_language_server.workspace
