@@ -5,6 +5,7 @@ agent-package:
     description: Agent description
     model: GPT 4 Turbo
     type: agent
+    reasoningLevel: 0
     runbooks:
       system: system.md
       retrieval: retrieval.md

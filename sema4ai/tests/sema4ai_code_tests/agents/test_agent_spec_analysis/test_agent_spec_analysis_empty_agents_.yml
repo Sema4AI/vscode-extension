@@ -1,0 +1,10 @@
+- message: No 'agents' defined.
+  range:
+    end:
+      character: 8
+      line: 2
+    start:
+      character: 2
+      line: 2
+  severity: 2
+  source: sema4ai

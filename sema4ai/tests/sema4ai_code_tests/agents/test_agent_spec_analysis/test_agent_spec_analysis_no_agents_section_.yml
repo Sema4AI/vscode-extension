@@ -1,10 +1,10 @@
-- message: '''spec-version'' not found in ''agent-package'''
+- message: No 'agents' section defined under 'agent-package'.
   range:
     end:
       character: 0
-      line: 3
+      line: 2
     start:
       character: 2
-      line: 2
+      line: 1
   severity: 1
   source: sema4ai

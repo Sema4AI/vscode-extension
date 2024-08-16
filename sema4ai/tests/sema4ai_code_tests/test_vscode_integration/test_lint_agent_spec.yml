@@ -1,4 +1,4 @@
-- message: 'Error: expected dict to be root of yaml (found: <class ''str''>)'
+- message: 'Error: expected dict to be root of yaml (found: bad yaml)'
   range:
     end:
       character: 0
