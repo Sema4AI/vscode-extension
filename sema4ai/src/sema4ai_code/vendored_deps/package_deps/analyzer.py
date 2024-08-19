@@ -286,7 +286,11 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         if self._loaded_yaml:
             return
 
-        from ..yaml_with_location import ScalarInfo, create_range_from_location
+        from ..yaml_with_location import (
+            create_range_from_location,
+            str_with_location,
+            str_with_location_capture,
+        )
 
         BaseAnalyzer._load_yaml_info(self)
         data = self._yaml_data
@@ -294,14 +298,12 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             return
 
         diagnostic: _DiagnosticsTypedDict
-        dependencies_key_entry: ScalarInfo
-        for key, v in data.items():
-            if isinstance(key, ScalarInfo) and isinstance(key.scalar, str):
-                if key.scalar == "dependencies":
-                    dependencies = v
-                    dependencies_key_entry = key
-                    break
-        else:
+        dependencies_key_entry: str_with_location_capture = str_with_location_capture(
+            "dependencies"
+        )
+
+        dependencies = data.get(dependencies_key_entry)
+        if dependencies is None:
             diagnostic = {
                 "range": create_range_from_location(0, 0),
                 "severity": _DiagnosticSeverity.Error,
@@ -330,8 +332,8 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             self._additional_load_errors.append(diagnostic)
         else:
             for dep_name, dep in dependencies.items():
-                if isinstance(dep_name, ScalarInfo):
-                    if dep_name.scalar == "pypi":
+                if isinstance(dep_name, str_with_location):
+                    if dep_name == "pypi":
                         if not isinstance(dep, list):
                             diagnostic = {
                                 "range": dep_name.as_range(),
@@ -343,7 +345,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                             continue
 
                         for entry in dep:
-                            if not isinstance(entry, ScalarInfo):
+                            if not isinstance(entry, str_with_location):
                                 diagnostic = {
                                     "range": dep_name.as_range(),
                                     "severity": _DiagnosticSeverity.Error,
@@ -353,10 +355,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                                 self._additional_load_errors.append(diagnostic)
                                 continue
 
-                            if (
-                                entry.scalar.replace(" ", "")
-                                == "--use-feature=truststore"
-                            ):
+                            if entry.replace(" ", "") == "--use-feature=truststore":
                                 diagnostic = {
                                     "range": entry.as_range(),
                                     "severity": _DiagnosticSeverity.Warning,
@@ -370,21 +369,21 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                                 self._additional_load_errors.append(diagnostic)
                                 continue
 
-                            if entry.scalar.startswith("--"):
+                            if entry.startswith("--"):
                                 diagnostic = {
                                     "range": entry.as_range(),
                                     "severity": _DiagnosticSeverity.Error,
                                     "source": "sema4ai",
-                                    "message": f"Invalid entry in pypi: {entry.scalar}",
+                                    "message": f"Invalid entry in pypi: {entry}",
                                 }
                                 self._additional_load_errors.append(diagnostic)
                                 continue
 
-                            self._pip_deps.add_dep(entry.scalar, entry.as_range())
+                            self._pip_deps.add_dep(entry, entry.as_range())
 
-                    elif dep_name.scalar == "conda-forge":
+                    elif dep_name == "conda-forge":
                         for entry in dep:
-                            if not isinstance(entry, ScalarInfo):
+                            if not isinstance(entry, str_with_location):
                                 diagnostic = {
                                     "range": dep_name.as_range(),
                                     "severity": _DiagnosticSeverity.Error,
@@ -394,7 +393,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                                 self._additional_load_errors.append(diagnostic)
                                 continue
 
-                            self._conda_deps.add_dep(entry.scalar, entry.as_range())
+                            self._conda_deps.add_dep(entry, entry.as_range())
 
                     else:
                         diagnostic = {
@@ -403,7 +402,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                             "source": "sema4ai",
                             "message": (
                                 "Error: only expected children are pypi and conda (dict entries). "
-                                f"Found: {dep_name.scalar}"
+                                f"Found: {dep_name}"
                             ),
                         }
                         self._additional_load_errors.append(diagnostic)
@@ -437,19 +436,14 @@ class CondaYamlAnalyzer(BaseAnalyzer):
         if self._loaded_yaml:
             return
 
-        from ..yaml_with_location import ScalarInfo
+        from ..yaml_with_location import str_with_location
 
         BaseAnalyzer._load_yaml_info(self)
         data = self._yaml_data
         if not data:
             return
 
-        dependencies = data.get(
-            ScalarInfo(
-                "dependencies",
-                None,
-            ),
-        )
+        dependencies = data.get("dependencies")
 
         conda_versions = self._conda_deps
         pip_versions = self._pip_deps
@@ -460,16 +454,16 @@ class CondaYamlAnalyzer(BaseAnalyzer):
                 # A bunch of code from conda was copied to handle that so that we
                 # can just `conda_match_spec.parse_spec_str` to identify the version
                 # we're dealing with.
-                if isinstance(dep, ScalarInfo) and isinstance(dep.scalar, str):
-                    conda_versions.add_dep(dep.scalar, dep.as_range())
+                if isinstance(dep, str_with_location):
+                    conda_versions.add_dep(dep, dep.as_range())
                 elif isinstance(dep, dict):
-                    pip_deps = dep.get(ScalarInfo("pip", None))
+                    pip_deps = dep.get("pip")
                     if pip_deps:
                         for dep in pip_deps:
-                            if isinstance(dep, ScalarInfo) and isinstance(
-                                dep.scalar, str
+                            if isinstance(dep, str_with_location) and isinstance(
+                                dep, str
                             ):
-                                pip_versions.add_dep(dep.scalar, dep.as_range())
+                                pip_versions.add_dep(dep, dep.as_range())
 
     def iter_conda_yaml_issues(self) -> Iterator[_DiagnosticsTypedDict]:
         self._load_yaml_info()

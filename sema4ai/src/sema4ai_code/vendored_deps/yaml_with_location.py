@@ -1,54 +1,8 @@
-from typing import Any, Optional, Tuple
+from typing import Optional
 
 import yaml
 
 from .ls_protocols import _RangeTypedDict
-
-
-class ScalarInfo:
-    def __init__(self, scalar: Any, location: Optional[Tuple[int, int, int, int]]):
-        """
-        Args:
-            scalar:
-            location: tuple(start_line, start_col, end_line, end_col)
-        """
-        self.scalar = scalar
-        self.location = location
-
-    def __repr__(self):
-        return repr(self.scalar)
-
-    def __str__(self):
-        return str(self.scalar)
-
-    def __eq__(self, o):
-        if isinstance(o, ScalarInfo):
-            return self.scalar == o.scalar
-
-        return False
-
-    def __ne__(self, o):
-        return not self == o
-
-    def __hash__(self):
-        return hash(self.scalar)
-
-    def as_range(self) -> _RangeTypedDict:
-        assert self.location
-        start_line, start_col, end_line, end_col = self.location
-        return create_range_from_location(start_line, start_col, end_line, end_col)
-
-    def replace(self, *args, **kwargs):
-        # Needed because when dealing with floats/ints/bools yaml does a call
-        # to `construct_scalar` and then proceeds to do a replace and actually
-        # manage the value (we could override more functions to deal with those
-        # but we're mostly interested in the keys location, so, this is just
-        # ignored for now such that we don't get locations for things that aren't
-        # strings).
-        return self.scalar.replace(*args, **kwargs)
-
-    def encode(self, *args, **kwargs):
-        return self.scalar.encode(*args, **kwargs)
 
 
 def create_range_from_location(
@@ -79,18 +33,105 @@ def create_range_from_location(
     return dct
 
 
+class str_with_location(str):
+    # location: tuple(start_line, start_col, end_line, end_col)
+    location: Optional[tuple[int, int, int, int]] = None
+
+    @property
+    def scalar(self):
+        return self
+
+    def as_range(self) -> _RangeTypedDict:
+        assert self.location
+        start_line, start_col, end_line, end_col = self.location
+        return create_range_from_location(start_line, start_col, end_line, end_col)
+
+
+class str_with_location_capture(str_with_location):
+    """
+    The point of this class is that when a `str_with_location` is in a dict
+    and we get the dict value, we don't really have access to the dict key to
+    get the key location.
+
+    As such, this class can be used to automatically obtain the location of
+    the matched key when `__eq__` is called without requiring access to the
+    actual key object (which is stored in the dict).
+    """
+
+    def __eq__(self, value: object) -> bool:
+        equals = str.__eq__(self, value)
+        if equals and hasattr(value, "location"):
+            self.location = value.location
+        return equals
+
+    def __hash__(self) -> int:
+        return str.__hash__(self)
+
+
+class int_with_location(int):
+    # location: tuple(start_line, start_col, end_line, end_col)
+    location: Optional[tuple[int, int, int, int]] = None
+
+    @property
+    def scalar(self):
+        return self
+
+    def as_range(self) -> _RangeTypedDict:
+        assert self.location
+        start_line, start_col, end_line, end_col = self.location
+        return create_range_from_location(start_line, start_col, end_line, end_col)
+
+
+class dict_with_location(dict):
+    # location: tuple(start_line, start_col, end_line, end_col)
+    location: Optional[tuple[int, int, int, int]] = None
+
+
 class LoaderWithLines(yaml.SafeLoader):
-    def construct_scalar(self, node, *args, **kwargs):
-        scalar = yaml.SafeLoader.construct_scalar(self, node, *args, **kwargs)
-        return ScalarInfo(
-            scalar=scalar,
-            location=(
-                node.start_mark.line,
-                node.start_mark.column,
-                node.end_mark.line,
-                node.end_mark.column,
-            ),
+    def __init__(self, stream):
+        yaml.SafeLoader.__init__(self, stream)
+        self.add_constructor(
+            "tag:yaml.org,2002:int", LoaderWithLines.construct_yaml_int
         )
+        self.add_constructor(
+            "tag:yaml.org,2002:str", LoaderWithLines.construct_yaml_str
+        )
+        self.add_constructor(
+            "tag:yaml.org,2002:map", LoaderWithLines.construct_yaml_map
+        )
+
+    def construct_yaml_map(self, node, *args, **kwargs):
+        (obj,) = yaml.SafeLoader.construct_yaml_map(self, node, *args, **kwargs)
+        ret = dict_with_location(obj)
+        ret.location = (
+            node.start_mark.line,
+            node.start_mark.column,
+            node.end_mark.line,
+            node.end_mark.column,
+        )
+        return ret
+
+    def construct_yaml_int(self, node, *args, **kwargs):
+        scalar = yaml.SafeLoader.construct_yaml_int(self, node, *args, **kwargs)
+        ret = int_with_location(scalar)
+        ret.location = (
+            node.start_mark.line,
+            node.start_mark.column,
+            node.end_mark.line,
+            node.end_mark.column,
+        )
+        return ret
+
+    def construct_yaml_str(self, node, *args, **kwargs):
+        scalar = yaml.SafeLoader.construct_scalar(self, node, *args, **kwargs)
+        ret = str_with_location(scalar)
+        ret.location = (
+            node.start_mark.line,
+            node.start_mark.column,
+            node.end_mark.line,
+            node.end_mark.column,
+        )
+        return ret
 
 
 class _Position:

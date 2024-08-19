@@ -1,11 +1,10 @@
-- message: 'Error: expected spec-version to be a string (something as `v1`, `v2`,
-    ...).'
+- message: Expected spec-version to be a string (something as `v1`, `v2`, ...).
   range:
     end:
-      character: 14
+      character: 18
       line: 1
     start:
-      character: 2
+      character: 16
       line: 1
   severity: 1
   source: sema4ai

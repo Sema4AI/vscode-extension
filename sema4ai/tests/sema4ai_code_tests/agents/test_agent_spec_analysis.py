@@ -30,8 +30,40 @@ def ok(agent_path):
     pass
 
 
+def no_agents_section(agent_path):
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    agent_spec.write_text(txt.replace("agents:", "no-agents:"))
+
+
+def empty_agents(agent_path):
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    agent_spec.write_text(txt.replace("agents:", "agents: []\n  no-agents:"))
+
+
+def bad_agent_items(agent_path):
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    agent_spec.write_text(
+        txt.replace("name: New Agent", "name: 1")
+        .replace("description: Agent description", "")
+        .replace("type: agent", "type: foobar")
+        .replace("reasoningLevel: 0", "reasoningLevel: 22")
+    )
+
+
 @pytest.mark.parametrize(
-    "scenario", [no_spec_version, bad_spec_version, ok, bad_format]
+    "scenario",
+    [
+        bad_spec_version,
+        no_spec_version,
+        ok,
+        bad_format,
+        no_agents_section,
+        empty_agents,
+        bad_agent_items,
+    ],
 )
 def test_agent_spec_analysis(datadir, scenario, data_regression) -> None:
     from sema4ai_ls_core import uris
