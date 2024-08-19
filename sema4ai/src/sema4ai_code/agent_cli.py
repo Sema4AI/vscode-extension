@@ -189,7 +189,33 @@ class AgentCli:
         Args:
             directory: The agent package directory to pack.
         """
-        args = ["package", "build", "--overwrite", "--input-dir", directory]
+
+        # [TODO] - uncomment this when the agent package validation is fixed
+        # Validate the agent package
+        # args = [
+        #     "package",
+        #     "metadata",
+        #     "--package",
+        #     directory,
+        # ]
+        # command_result = self._run_agent_cli_command(args)
+
+        # if not command_result.success:
+        #     return ActionResult(
+        #         success=False,
+        #         message=f"Agent package is not valid:\n{command_result.message}",
+        #     )
+
+        # Zip the agent package
+        args = [
+            "package",
+            "build",
+            "--overwrite",
+            "--input-dir",
+            directory,
+            "--output-dir",
+            directory,
+        ]
         command_result = self._run_agent_cli_command(args)
 
         if not command_result.success:

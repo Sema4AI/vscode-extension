@@ -1,4 +1,4 @@
-import { commands, window, WorkspaceFolder } from "vscode";
+import { commands, window, WorkspaceFolder, Uri } from "vscode";
 import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
@@ -12,7 +12,7 @@ import {
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
-import { makeDirs } from "../files";
+import { makeDirs, uriExists } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
 import path = require("path");
 
@@ -148,4 +148,9 @@ export const packAgentPackage = async (): Promise<void> => {
         OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
         window.showErrorMessage(detailedErrorMsg);
     }
-}
+
+    const zipUri = Uri.file(path.join(targetDir, "agent-package.zip"));
+    if (await uriExists(zipUri)) {
+        await commands.executeCommand("revealInExplorer", zipUri);
+    }
+};
