@@ -5,6 +5,9 @@
         },
         {
             "path": "../../sema4ai-python-ls-core"
+        },
+        {
+            "path": "../../docs"
         }
     ],
     "settings": {
