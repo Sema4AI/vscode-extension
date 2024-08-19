@@ -1,19 +1,12 @@
 import os
 import weakref
-from typing import Optional, Any
+from typing import Any, Optional
 
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IConfig, IConfigProvider
+
+from sema4ai_code.protocols import ActionResult, AgentCliResult
 from sema4ai_code.tools import Tool
-
-from sema4ai_ls_core.protocols import (
-    IConfig,
-    IConfigProvider,
-)
-
-from sema4ai_code.protocols import (
-    ActionResult,
-    AgentCliResult,
-)
 
 log = get_logger(__name__)
 
@@ -185,6 +178,24 @@ class AgentCli:
             return ActionResult(
                 success=False,
                 message=f"Error creating Agent package.\n{command_result.message}",
+            )
+
+        return ActionResult(success=True, message=None)
+
+    def pack_agent_package(self, directory: str) -> ActionResult[str]:
+        """
+        Packs into a zip file the given agent package directory.
+
+        Args:
+            directory: The agent package directory to pack.
+        """
+        args = ["package", "build", "--overwrite", "--input-dir", directory]
+        command_result = self._run_agent_cli_command(args)
+
+        if not command_result.success:
+            return ActionResult(
+                success=False,
+                message=f"Error packing the agent package.\n{command_result.message}",
             )
 
         return ActionResult(success=True, message=None)

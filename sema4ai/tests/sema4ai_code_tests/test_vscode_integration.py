@@ -2319,7 +2319,7 @@ def test_agent_cli_version(
     assert result["result"] is not None
 
 
-def test_create_agent_package(
+def test_create_and_pack_agent_package(
     language_server_initialized,
     tmpdir,
     agent_cli_location: str,

@@ -1,4 +1,4 @@
-import { commands, window } from "vscode";
+import { commands, window, WorkspaceFolder } from "vscode";
 import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
@@ -6,11 +6,15 @@ import {
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
+    getPackageDirectoryName,
+    getPackageYamlNameFromDirectory,
+    getWorkspacePackages,
 } from "../common";
-import { ActionResult } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
+import path = require("path");
 
 export const createAgentPackage = async (): Promise<void> => {
     /* We make sure Agent Server exists - if not, getAgentServerLocation will ask user to download it.  */
@@ -73,3 +77,75 @@ export const createAgentPackage = async (): Promise<void> => {
         window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai` for more details).");
     }
 };
+
+export const packAgentPackage = async (): Promise<void> => {
+    const agentCli = getAgentCliLocation();
+    if (!agentCli) {
+        return;
+    }
+
+    let ws: WorkspaceFolder | undefined = await askForWs();
+    if (!ws) {
+        // Operation cancelled.
+        return;
+    }
+
+    const [rootPackageYaml, workspacePackages] = await Promise.all([
+        getPackageYamlNameFromDirectory(ws.uri),
+        getWorkspacePackages(),
+    ]);
+
+    if (!workspacePackages?.agentPackages?.length) {
+        window.showErrorMessage("No Agent Packages found in the workspace.");
+        return;
+    }
+
+    let packageInfo: LocalPackageMetadataInfo;
+    let actionPackageSelection: string | null = null;
+
+    /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
+    if (rootPackageYaml === PackageYamlName.Agent) {
+        packageInfo = workspacePackages.agentPackages[0];
+    } else {
+        actionPackageSelection = await window.showQuickPick(
+            workspacePackages.agentPackages.map((agentPackage) => agentPackage.name),
+            {
+                placeHolder: "Which action package do you want to pack?",
+                ignoreFocusOut: true,
+            }
+        );
+
+        /* Operation cancelled. */
+        if (!actionPackageSelection) {
+            return null;
+        }
+
+        // Update packageInfo based on selected action package
+        packageInfo = workspacePackages.agentPackages.find(
+            (agentPackage) => agentPackage.name === actionPackageSelection
+        );
+    }
+
+    const targetDir = packageInfo.directory;
+
+    try {
+        const result: ActionResult<string> = await commands.executeCommand(
+            roboCommands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
+            { directory: targetDir }
+        );
+
+        if (!result.success) {
+            throw new Error(result.message || "An unexpected error occurred during the packaging process.");
+        }
+
+        refreshFilesExplorer();
+        window.showInformationMessage(`Package successfully packed at:\n${targetDir}`);
+    } catch (error) {
+        const errorMsg = `Failed to package the agent at: ${targetDir}`;
+        logError(errorMsg, error, "ERR_PACK_ACTION_PACKAGE");
+
+        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
+        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
+        window.showErrorMessage(detailedErrorMsg);
+    }
+}

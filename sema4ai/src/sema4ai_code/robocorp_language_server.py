@@ -1599,6 +1599,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return self._agent_cli.create_agent_package(directory).as_dict()
 
+    @command_dispatcher(commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL)
+    def _pack_agent_package(
+        self, params: CreateAgentPackageParamsDict
+    ) -> ActionResultDict:
+        directory = params["directory"]
+
+        return self._agent_cli.pack_agent_package(directory).as_dict()
+
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]
         self._endpoint.notify(method, msg["params"])
