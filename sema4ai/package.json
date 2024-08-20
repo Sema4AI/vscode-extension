@@ -9,7 +9,7 @@
         "url": "https://github.com/Sema4AI/vscode-extension/.git"
     },
     "license": "SEE LICENSE IN LICENSE.txt",
-    "version": "2.1.0",
+    "version": "2.3.0",
     "icon": "images/icon.png",
     "publisher": "sema4ai",
     "engines": {
@@ -126,7 +126,7 @@
         "onCommand:sema4ai.startActionServer.internal",
         "onCommand:sema4ai.listActions.internal",
         "onCommand:sema4ai.packageEnvironmentRebuild",
-        "onCommand:sema4ai.packagePublishToDesktopApp",
+        "onCommand:sema4ai.actionPackagePublishToSema4AIStudioApp",
         "onCommand:sema4ai.listActionTemplates.internal",
         "onCommand:sema4ai.createActionPackage.internal",
         "onCommand:sema4ai.actionServerCloudLogin",
@@ -848,8 +848,8 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.packagePublishToDesktopApp",
-                "title": "Publish Package to Sema4.ai Desktop",
+                "command": "sema4ai.actionPackagePublishToSema4AIStudioApp",
+                "title": "Publish Action Package to Sema4.ai Studio",
                 "category": "Sema4.ai"
             },
             {

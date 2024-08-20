@@ -284,13 +284,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Rebuilds the current Python package environment",
                     },
                     {
-                        "label": "Publish to Sema4.ai Desktop",
+                        "label": "Publish to Sema4.ai Studio",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "desktop-download",
-                        "type": RobotEntryType.PackagePublishToDesktopApp,
+                        "type": RobotEntryType.PackagePublishToSema4AIStudioApp,
                         "parent": element,
-                        "tooltip": "Publishes the Action Package to the Sema4.ai Desktop application",
+                        "tooltip": "Publishes the Action Package to the Sema4.ai Studio application",
                     },
                     {
                         "label": "Build Action Package (zip)",
@@ -585,10 +585,10 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "command": roboCommands.SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        } else if (element.type === RobotEntryType.PackagePublishToDesktopApp) {
+        } else if (element.type === RobotEntryType.PackagePublishToSema4AIStudioApp) {
             treeItem.command = {
-                "title": "Publish Package to Sema4.ai Desktop",
-                "command": roboCommands.SEMA4AI_PACKAGE_PUBLISH_TO_DESKTOP_APP,
+                "title": "Publish Package to Sema4.ai Studio",
+                "command": roboCommands.SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {

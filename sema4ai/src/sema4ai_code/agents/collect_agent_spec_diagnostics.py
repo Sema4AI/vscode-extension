@@ -1,12 +1,17 @@
 import pathlib
 import typing
-from typing import Iterator, Optional
+from dataclasses import dataclass
+from typing import Iterator, Optional, Union
 
 from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
 from sema4ai_ls_core.protocols import IDocument, IMonitor, IWorkspace, Sentinel
 
 if typing.TYPE_CHECKING:
-    from sema4ai_code.vendored_deps.yaml_with_location import ScalarInfo
+    from sema4ai_code.vendored_deps.yaml_with_location import str_with_location
+
+
+class RequiredValidationFailedError(RuntimeError):
+    pass
 
 
 class _Node:
@@ -15,9 +20,9 @@ class _Node:
 
 
 class _EntryNode(_Node):
-    def __init__(self, key: "ScalarInfo", value):
+    def __init__(self, key: "str_with_location", value):
         self.key = key
-        self.value = value
+        self.value: object = value
 
 
 class _ErrorNode(_Node):
@@ -25,12 +30,11 @@ class _ErrorNode(_Node):
         self.diagnostic = diagnostic
 
 
-def _get_node(
-    data, key: str, msg: str, require_key_scalar_info: bool = True
-) -> _EntryNode | _ErrorNode:
+def _get_node(data, key: str, msg: str) -> _EntryNode | _ErrorNode:
     from sema4ai_code.vendored_deps.yaml_with_location import (
-        ScalarInfo,
         create_range_from_location,
+        dict_with_location,
+        str_with_location_capture,
     )
 
     report_location: Optional[tuple] = None
@@ -40,35 +44,24 @@ def _get_node(
         report_location = data.key.location
         data = data.value
 
+    if isinstance(data, dict_with_location) and data.location:
+        report_location = data.location[:2]  # just start line/col for this report
+
     report_location = report_location or (0, 0)
 
     if not isinstance(data, dict):
         diagnostic = {
-            "range": create_range_from_location(0, 0),
+            "range": create_range_from_location(*report_location),
             "severity": DiagnosticSeverity.Error,
             "source": "sema4ai",
             "message": msg,
         }
         return _ErrorNode(diagnostic)
 
-    if not require_key_scalar_info:
-        use_key = ScalarInfo(key, None)
-        ret = data.get(use_key, Sentinel.SENTINEL)
-        if ret != Sentinel.SENTINEL:
-            return _EntryNode(use_key, ret)
-    else:
-        for k, v in data.items():
-            # We do a (slow) search because we want the key as a ScalarInfo
-            # (for the position). We could pre-index so that it wasn't so
-            # slow, but I don't think it matters until we start to have
-            # really big `agent-spec.yaml` contents (which is not expected
-            # at this point).
-            #
-            # If the key position won't be used, `require_key_scalar_info`
-            # should be passed as False.
-            if isinstance(k, ScalarInfo):
-                if k.scalar == key:
-                    return _EntryNode(k, v)
+    use_key = str_with_location_capture(key)
+    ret = data.get(use_key, Sentinel.SENTINEL)
+    if ret != Sentinel.SENTINEL:
+        return _EntryNode(use_key, ret)
 
     diagnostic = {
         "range": create_range_from_location(*report_location),
@@ -94,7 +87,6 @@ class _Analyzer:
 
         from sema4ai_code.vendored_deps.yaml_with_location import (
             LoaderWithLines,
-            ScalarInfo,
             create_range_from_location,
         )
 
@@ -114,20 +106,12 @@ class _Analyzer:
             if isinstance(data, dict):
                 self._yaml_data = data
             else:
-                if isinstance(data, ScalarInfo):
-                    diagnostic = {
-                        "range": create_range_from_location(0, 0),
-                        "severity": DiagnosticSeverity.Error,
-                        "source": "sema4ai",
-                        "message": f"Error: expected dict to be root of yaml (found: {type(data.scalar)})",
-                    }
-                else:
-                    diagnostic = {
-                        "range": create_range_from_location(0, 0),
-                        "severity": DiagnosticSeverity.Error,
-                        "source": "sema4ai",
-                        "message": f"Error: expected dict to be root of yaml (found: {type(data)})",
-                    }
+                diagnostic = {
+                    "range": create_range_from_location(0, 0),
+                    "severity": DiagnosticSeverity.Error,
+                    "source": "sema4ai",
+                    "message": f"Error: expected dict to be root of yaml (found: {data})",
+                }
                 self._load_errors.append(diagnostic)
 
         except MarkedYAMLError as e:
@@ -154,7 +138,7 @@ class _Analyzer:
             return
 
         agent_package = _get_node(
-            data, "agent-package", "Error: 'agent-package' not found in yaml root."
+            data, "agent-package", "'agent-package' not found in yaml root."
         )
         if isinstance(agent_package, _ErrorNode):
             yield agent_package.diagnostic
@@ -163,51 +147,158 @@ class _Analyzer:
         spec_version = _get_node(
             agent_package,
             "spec-version",
-            "Error: 'spec-version' not found in 'agent-package'",
+            "'spec-version' not found in 'agent-package'",
         )
         if isinstance(spec_version, _ErrorNode):
             yield spec_version.diagnostic
             return
 
-        diagnostic: DiagnosticsTypedDict
-
         version_value = _get_scalar_value_str(spec_version.value)
-        if not version_value:
-            diagnostic = {
-                "range": spec_version.key.as_range(),
-                "severity": DiagnosticSeverity.Error,
-                "source": "sema4ai",
-                "message": "Error: expected spec-version to be a string (something as `v1`, `v2`, ...).",
-            }
-            yield diagnostic
+        yield from validate(
+            version_value,
+            spec_version,
+            "Expected spec-version to be a string (something as `v1`, `v2`, ...).",
+            required=True,
+        )
+
+        yield from validate(
+            version_value.startswith("v"),
+            spec_version,
+            "Expected spec-version to be a string starting with `v`.",
+            required=True,
+        )
+
+        is_v1 = version_value == "v1"
+        yield from validate(
+            is_v1,
+            spec_version,
+            "Unexpected spec-version (only `v1` is currently supported).",
+            required=True,
+        )
+
+        # For now no need to check version for further checks, but in the future
+        # some logic will be needed here as checks may depend on the actual version.
+        agents_node = _get_node(
+            agent_package,
+            "agents",
+            "No 'agents' section defined under 'agent-package'.",
+        )
+        if isinstance(agents_node, _ErrorNode):
+            yield agents_node.diagnostic
             return
 
-        if not version_value.startswith("v"):
-            diagnostic = {
-                "range": spec_version.value.as_range(),
-                "severity": DiagnosticSeverity.Error,
-                "source": "sema4ai",
-                "message": "Error: expected spec-version to be a string starting with `v`.",
-            }
-            yield diagnostic
-            return
+        yield from validate(
+            isinstance(agents_node.value, list),
+            agents_node.key,
+            "'agents' is expected to be a list.",
+            required=True,
+        )
 
-        if version_value not in ("v1",):
-            diagnostic = {
-                "range": spec_version.value.as_range(),
-                "severity": DiagnosticSeverity.Error,
-                "source": "sema4ai",
-                "message": "Error: unexpected spec-version (only `v1` is currently supported).",
-            }
-            yield diagnostic
-            return
+        yield from validate(
+            bool(agents_node.value),
+            agents_node.key,
+            "No 'agents' defined.",
+            # Warning because that's a valid file, just not really useful...
+            severity=DiagnosticSeverity.Warning,
+            required=True,
+        )
+
+        # isinstance to make type-checker happy (we validated that already).
+        assert isinstance(agents_node.value, list)
+        for agent in agents_node.value:
+            yield from validate_agent(agent, _Version(is_v1=is_v1))
+
+
+@dataclass
+class _Version:
+    is_v1: bool
+
+
+def validate_agent(agent_node: _EntryNode, version: _Version):
+    yield from validate_sections(
+        agent_node,
+        {
+            "name": str,
+            "description": str,
+            "type": ("agent", "chat_plan_execute"),
+            "reasoningLevel": (0, 1, 2, 3),
+        },
+    )
+
+
+def validate_sections(
+    node: _EntryNode, spec: dict[str, type[str] | tuple]
+) -> Iterator[DiagnosticsTypedDict]:
+    for k, v in spec.items():
+        child = _get_node(node, k, f"'{k}' section not found.")
+        if isinstance(child, _ErrorNode):
+            yield child.diagnostic
+        else:
+            if v == str:
+                yield from validate(
+                    isinstance(child.value, str),
+                    child,
+                    f"Expected {child.key} to be a string.",
+                    required=False,
+                )
+
+            elif isinstance(v, tuple):
+                valid = "', '".join(str(x) for x in v)
+                yield from validate(
+                    child.value in v,
+                    child,
+                    f"Expected {child.key} to be one of: '{valid}'.",
+                    required=False,
+                )
+            else:
+                raise AssertionError(f"Bad node specification: {v}")
+
+
+def validate(
+    condition: bool,
+    scalar: Union["str_with_location", _EntryNode],
+    msg: str,
+    *,
+    required: bool,
+    severity=DiagnosticSeverity.Error,
+) -> Iterator[DiagnosticsTypedDict]:
+    from sema4ai_code.vendored_deps.yaml_with_location import create_range_from_location
+
+    diagnostic: DiagnosticsTypedDict
+    if not condition:
+        use_location = None
+
+        check_order: tuple[object, ...]
+
+        if isinstance(scalar, _EntryNode):
+            # Try to use value first
+            check_order = (scalar.value, scalar.key)
+        else:
+            check_order = (scalar,)
+
+        for check in check_order:
+            location = getattr(check, "location", None)
+            if location and isinstance(location, (tuple, list)) and len(location) == 4:
+                use_location = location
+                break
+        else:
+            use_location = (0, 0, 1, 0)
+
+        start_line, start_col, end_line, end_col = use_location
+        use_range = create_range_from_location(start_line, start_col, end_line, end_col)
+
+        diagnostic = {
+            "range": use_range,
+            "severity": severity,
+            "source": "sema4ai",
+            "message": msg,
+        }
+        yield diagnostic
+        if required:
+            raise RequiredValidationFailedError()
 
 
 def _get_scalar_value_str(v):
-    from sema4ai_code.vendored_deps.yaml_with_location import ScalarInfo
-
-    if isinstance(v, ScalarInfo) and isinstance(v.scalar, str):
-        return v.scalar
     if isinstance(v, str):
         return v
     return None
@@ -223,4 +314,9 @@ def collect_agent_spec_diagnostics(
         monitor.check_cancelled()
 
     analyzer = _Analyzer(workspace, doc, monitor)
-    yield from analyzer.iter_issues()
+    try:
+        yield from analyzer.iter_issues()
+    except RequiredValidationFailedError:
+        # Just ignore this one (the error should've been yielded and the exception
+        # is just a marker to stop trying to check further issues).
+        pass
