@@ -6,15 +6,12 @@ import {
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
-    getPackageDirectoryName,
-    getPackageYamlNameFromDirectory,
     getWorkspacePackages,
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
-import { makeDirs, uriExists } from "../files";
+import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
-import path = require("path");
 
 export const createAgentPackage = async (): Promise<void> => {
     /* We make sure Agent Server exists - if not, getAgentServerLocation will ask user to download it.  */
@@ -90,10 +87,7 @@ export const packAgentPackage = async (): Promise<void> => {
         return;
     }
 
-    const [rootPackageYaml, workspacePackages] = await Promise.all([
-        getPackageYamlNameFromDirectory(ws.uri),
-        getWorkspacePackages(),
-    ]);
+    const workspacePackages = await getWorkspacePackages();
 
     if (!workspacePackages?.agentPackages?.length) {
         window.showErrorMessage("No Agent Packages found in the workspace.");
@@ -104,7 +98,7 @@ export const packAgentPackage = async (): Promise<void> => {
     let actionPackageSelection: string | null = null;
 
     /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
-    if (rootPackageYaml === PackageYamlName.Agent) {
+    if (workspacePackages.agentPackages.length === 1) {
         packageInfo = workspacePackages.agentPackages[0];
     } else {
         actionPackageSelection = await window.showQuickPick(
@@ -138,8 +132,8 @@ export const packAgentPackage = async (): Promise<void> => {
             throw new Error(result.message || "An unexpected error occurred during the packaging process.");
         }
 
-        refreshFilesExplorer();
         window.showInformationMessage(`Package successfully packed at:\n${targetDir}`);
+        await commands.executeCommand("revealInExplorer", Uri.file(result.result));
     } catch (error) {
         const errorMsg = `Failed to package the agent at: ${targetDir}`;
         logError(errorMsg, error, "ERR_PACK_ACTION_PACKAGE");
@@ -147,10 +141,5 @@ export const packAgentPackage = async (): Promise<void> => {
         const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
         OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
         window.showErrorMessage(detailedErrorMsg);
-    }
-
-    const zipUri = Uri.file(path.join(targetDir, "agent-package.zip"));
-    if (await uriExists(zipUri)) {
-        await commands.executeCommand("revealInExplorer", zipUri);
     }
 };

@@ -2364,3 +2364,40 @@ def test_create_and_pack_agent_package(
     assert not result["success"]
     assert "Error creating Agent package" in result["message"]
     assert "not empty" in result["message"]
+
+    import yaml
+
+    # New YAML content to override the existing one
+    new_yaml_content = {
+        "agent-package": {
+            "spec-version": "v1",
+            "agents": [
+                {
+                    "name": "New Agent",
+                    "description": "Agent description",
+                    "model": "GPT 4 Turbo",
+                    "type": "agent",
+                    "reasoningLevel": 0,
+                    "runbooks": {"system": "system.md", "retrieval": "retrieval.md"},
+                    "action-packages": [],
+                    "resources": [],
+                }
+            ],
+        }
+    }
+
+    with open(f"{target_directory}/agent-spec.yaml", "w") as yaml_file:
+        yaml.dump(new_yaml_content, yaml_file, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert not result["message"]
+    assert os.path.exists(f"{target_directory}/agent-package.zip")
