@@ -13,9 +13,6 @@ from sema4ai_ls_core.protocols import (
     IWorkspace,
 )
 
-from sema4ai_code.agents.collect_agent_spec_diagnostics import (
-    collect_agent_spec_diagnostics,
-)
 from sema4ai_code.protocols import ActionResult, AgentCliResult
 from sema4ai_code.tools import Tool
 
@@ -197,6 +194,12 @@ class AgentCli:
     def _validate_agent_package(
         directory: str, workspace: IWorkspace, monitor: IMonitor
     ) -> tuple[bool, str]:
+        from sema4ai_ls_core.lsp import DiagnosticSeverity
+
+        from sema4ai_code.agents.collect_agent_spec_diagnostics import (
+            collect_agent_spec_diagnostics,
+        )
+
         # [TODO] - uncomment this when the agent package validation is fixed
         # Validate the agent package
         # args = [
@@ -206,7 +209,6 @@ class AgentCli:
         #     directory,
         # ]
         # command_result = self._run_agent_cli_command(args)
-
         # if not command_result.success:
         #     return False, f"Error validating the agent package.\n{command_result.message}"
 
@@ -214,7 +216,15 @@ class AgentCli:
         found = list(collect_agent_spec_diagnostics(workspace, agent_spec, monitor))
 
         if found:
-            return False, f"Error validating the agent package.\n{found}"
+            error_details = [
+                f"Line {error['range']['start']['line'] + 1}: {error['message']}"
+                for error in found
+                if error.get("severity") == DiagnosticSeverity.Error
+            ]
+
+            return False, f"Error validating the agent package:\n" + "\n".join(
+                error_details
+            )
 
         return True, ""
 

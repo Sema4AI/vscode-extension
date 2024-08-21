@@ -2319,6 +2319,24 @@ def test_agent_cli_version(
     assert result["result"] is not None
 
 
+def _write_agent_spec_and_pack(
+    agent_spec: dict, target_directory: str, language_server, commands
+) -> dict:
+    import yaml
+
+    with open(f"{target_directory}/agent-spec.yaml", "w") as yaml_file:
+        yaml.dump(agent_spec, yaml_file, default_flow_style=False)
+
+    return language_server.execute_command(
+        commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )["result"]
+
+
 def test_create_and_pack_agent_package(
     language_server_initialized,
     tmpdir,
@@ -2365,10 +2383,8 @@ def test_create_and_pack_agent_package(
     assert "Error creating Agent package" in result["message"]
     assert "not empty" in result["message"]
 
-    import yaml
-
-    # New YAML content to override the existing one
-    new_yaml_content = {
+    # Correct agent spec configuration
+    agent_spec = {
         "agent-package": {
             "spec-version": "v1",
             "agents": [
@@ -2386,18 +2402,20 @@ def test_create_and_pack_agent_package(
         }
     }
 
-    with open(f"{target_directory}/agent-spec.yaml", "w") as yaml_file:
-        yaml.dump(new_yaml_content, yaml_file, default_flow_style=False)
-
-    result = language_server.execute_command(
-        commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-            }
-        ],
-    )["result"]
+    result = _write_agent_spec_and_pack(
+        agent_spec, target_directory, language_server, commands
+    )
 
     assert result["success"]
     assert not result["message"]
     assert os.path.exists(f"{target_directory}/agent-package.zip")
+
+    # Incorrect agent spec configuration
+    del agent_spec["agent-package"]["agents"][0]["description"]
+
+    result = _write_agent_spec_and_pack(
+        agent_spec, target_directory, language_server, commands
+    )
+
+    assert not result["success"]
+    assert result["message"] == "Error validating the agent package:\nLine 3: 'description' section not found."
