@@ -30,7 +30,7 @@ from sema4ai_ls_core.ep_resolve_interpreter import (
 from sema4ai_ls_core.pluginmanager import PluginManager
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
-from sema4ai_code_tests.fixtures import RccPatch
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
@@ -122,8 +122,7 @@ def test_list_rcc_robot_templates(
     )["result"]
     assert result["success"]
     template_names = [template["name"] for template in result["result"]]
-    assert "python" in template_names
-    assert "standard" in template_names
+    assert template_names == RCC_TEMPLATE_NAMES
 
     target = str(tmpdir.join("dest"))
     language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
@@ -144,7 +143,7 @@ def test_list_rcc_robot_templates(
     # Error
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": target, "name": "example", "template": "python"}],
+        [{"directory": target, "name": "example", "template": "01-python"}],
     )["result"]
     assert not result["success"]
     assert "Error creating robot" in result["message"]
@@ -153,7 +152,7 @@ def test_list_rcc_robot_templates(
 
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example2", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example2", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
@@ -186,13 +185,13 @@ def test_list_local_robots(
             {
                 "directory": target,
                 "name": "example",
-                "template": "python",
+                "template": "01-python",
             }
         ],
     )
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example2", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example2", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
@@ -700,7 +699,7 @@ def test_upload_to_cloud(
     found_package: PackageInfoDict = found_packages[0]
     result = client.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example", "template": "01-python"}],
     )["result"]
     assert result["success"]
 

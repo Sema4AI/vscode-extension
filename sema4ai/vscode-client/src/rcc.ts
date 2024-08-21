@@ -146,7 +146,7 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v18.1.1";
+    const RCC_VERSION = "v18.1.5";
     const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await downloadWithProgress(url, progress, token, location);
@@ -393,7 +393,7 @@ export async function collectIssueLogs(logPath: string): Promise<CollectedLogs> 
             lower.includes("robocorp code") ||
             lower.includes("robot framework") ||
             lower.includes("exthost") ||
-            lower.includes("sema4ai")
+            lower.includes("sema4.ai")
         ) {
             return true;
         }
