@@ -127,9 +127,4 @@ node_modules
 **/report.html
 **/.mypy_cache
 
-# devutils
-**/rcc.exe
-**/rcc
-
-
 *.robolog
