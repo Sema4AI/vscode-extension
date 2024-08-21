@@ -393,7 +393,7 @@ export async function collectIssueLogs(logPath: string): Promise<CollectedLogs> 
             lower.includes("robocorp code") ||
             lower.includes("robot framework") ||
             lower.includes("exthost") ||
-            lower.includes("sema4ai")
+            lower.includes("sema4.ai")
         ) {
             return true;
         }
