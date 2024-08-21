@@ -27,11 +27,11 @@ echo Creating a clean environment...
 :: Activate the virtual environment and install dependencies everytime.
 call .\%venvDir%\Scripts\activate.bat
 python -m pip install poetry==1.8.3
-
 cd /D %scriptPath%\..
 
-yarn install
-poetry install
+call yarn install  || goto vscode_error
+call poetry install  || goto vscode_error
+
 code .\.vscode\sema4ai-code.code-workspace || goto vscode_error
 goto end
 
