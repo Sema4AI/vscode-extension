@@ -1,62 +1,61 @@
-#! /bin/bash -e
+#!/bin/bash -e
 
-# Save current directory and change to the script's directory.
-pushd . > /dev/null
-cd $(dirname $0)
-venvDir=venv  # better to not clash in naming with Poetry's ".venv" default name
+# Navigate to the script's directory
+cd "$(dirname "$0")"
 
-# Check first if we aren't sourcing the script instead of executing it, as sourcing
-# will activate the environment instead.
-if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then  # it's sourced, not executed
+# Define the virtual environment directory name
+venvDir=venv  # Naming it differently from Poetry's ".venv" to avoid conflicts
+
+# Check if the script is being sourced or executed
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
     echo "Activating an already existing virtual environment."
-    . ../$venvDir/bin/activate
-    popd > /dev/null
-    return  # stops the rest of the execution without exiting the shell
+    source "../$venvDir/bin/activate"
+    return  # Stop the rest of the script without exiting the shell
 fi
 
-# Get RCC, binary with which we're going to create the master environment.
+# Download RCC binary if it does not exist
 if [ ! -f rcc ]; then
     system=$(uname -s)
     case ${system} in
-        Linux*)     url=https://downloads.robocorp.com/rcc/releases/latest/linux64/rcc;;
-        Darwin*)    url=https://downloads.robocorp.com/rcc/releases/latest/macos64/rcc;;
-        *)           echo "Invalid platform '$system' detected!"; exit 1;
+        Linux*)     url=https://downloads.robocorp.com/rcc/releases/v18.1.5/linux64/rcc;;
+        Darwin*)    url=https://downloads.robocorp.com/rcc/releases/v18.1.5/macos64/rcc;;
+        *)          echo "Invalid platform '$system' detected!"; exit 1;;
     esac
     curl -o rcc $url
     chmod +x rcc
 fi
 
-# Create a new or replace an already existing virtual environment.
-cd ..  # place/check the new/existing venv in the devtools root dir
-if [ -d $venvDir ]; then
+# Check if the virtual environment directory exists
+if [ -d "$venvDir" ]; then
     echo "Detected existing development environment."
     read -r -p "Do you want to create a clean environment? [Y/N] " response
-    if [[ "$response" =~ ^[Yy] ]]; then
+    if [[ "$response" =~ ^[Yy]$ ]]; then
         echo "Replacing existing environment with a clean one..."
-        newEnv=true
+        ./rcc venv development-environment.yaml --space robocorp-development --force --sema4ai
     else
         echo "Using existing development environment."
-        newEnv=false
     fi
 else
     echo "Creating a new environment..."
-    newEnv=true
+    ./rcc venv development-environment.yaml --space robocorp-development --force --sema4ai
 fi
 
-if $newEnv; then
-    ./bin/rcc venv developer.yaml --space sema4ai-development --force
-fi
-. ./$venvDir/bin/activate  # environment already exists at this point
-# Install requirements all the time (due to updates).
-python -m poetry install
-cd sema4ai
-yarn
+# Activate the virtual environment
+source "./$venvDir/bin/activate"
 
-# Start VS Code over the repo to open the entire project for development.
-code .. || echo "VSCode binary not available in PATH! (skip opening)"
+# Install dependencies
+python -m pip install poetry==1.8.3
 
-# Bring back the initial working directory.
-popd > /dev/null
+# Move up one directory to the project root
+cd ..
+yarn install
+poetry install
 
-echo "Source the development script to activate the environment, example:"
-echo "$ source $0"
+# Open the workspace in VS Code
+code ./.vscode/sema4ai-code.code-workspace || {
+    echo "Running VSCode failed!"
+    exit 1
+}
+
+echo "Setup completed successfully."
+echo "To activate the environment, source this script: source $(basename "$0")"

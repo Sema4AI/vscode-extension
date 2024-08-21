@@ -92,6 +92,7 @@ celerybeat-schedule
 
 # virtualenv
 venv/
+.venv/
 ENV/
 envs/
 
@@ -125,8 +126,5 @@ node_modules
 **/output.xml
 **/report.html
 **/.mypy_cache
-
-# virtual environment
-.venv/
 
 *.robolog
