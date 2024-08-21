@@ -9,17 +9,6 @@ from typing import Dict, List, Optional
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
-from sema4ai_ls_core.basic import wait_for_condition
-from sema4ai_ls_core.callbacks import Callback
-from sema4ai_ls_core.ep_resolve_interpreter import (
-    DefaultInterpreterInfo,
-    IInterpreterInfo,
-)
-from sema4ai_ls_core.pluginmanager import PluginManager
-from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
-
 from sema4ai_code.inspector.common import (
     STATE_CLOSED,
     STATE_NOT_PICKING,
@@ -32,6 +21,17 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_ls_core.basic import wait_for_condition
+from sema4ai_ls_core.callbacks import Callback
+from sema4ai_ls_core.ep_resolve_interpreter import (
+    DefaultInterpreterInfo,
+    IInterpreterInfo,
+)
+from sema4ai_ls_core.pluginmanager import PluginManager
+from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
+
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -122,8 +122,7 @@ def test_list_rcc_robot_templates(
     )["result"]
     assert result["success"]
     template_names = [template["name"] for template in result["result"]]
-    assert "python" in template_names
-    assert "standard" in template_names
+    assert template_names == RCC_TEMPLATE_NAMES
 
     target = str(tmpdir.join("dest"))
     language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
@@ -144,7 +143,7 @@ def test_list_rcc_robot_templates(
     # Error
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": target, "name": "example", "template": "python"}],
+        [{"directory": target, "name": "example", "template": "01-python"}],
     )["result"]
     assert not result["success"]
     assert "Error creating robot" in result["message"]
@@ -153,7 +152,7 @@ def test_list_rcc_robot_templates(
 
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example2", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example2", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
@@ -186,13 +185,13 @@ def test_list_local_robots(
             {
                 "directory": target,
                 "name": "example",
-                "template": "python",
+                "template": "01-python",
             }
         ],
     )
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example2", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example2", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
@@ -700,7 +699,7 @@ def test_upload_to_cloud(
     found_package: PackageInfoDict = found_packages[0]
     result = client.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
@@ -1072,9 +1071,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1345,14 +1345,13 @@ def test_profile_import(
     datadir,
     disable_rcc_diagnostics,
 ):
-    from sema4ai_ls_core import uris
-
     from sema4ai_code.commands import (
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
         SEMA4AI_PROFILE_IMPORT_INTERNAL,
         SEMA4AI_PROFILE_LIST_INTERNAL,
         SEMA4AI_PROFILE_SWITCH_INTERNAL,
     )
+    from sema4ai_ls_core import uris
 
     result = language_server_initialized.execute_command(
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
@@ -1630,10 +1629,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
