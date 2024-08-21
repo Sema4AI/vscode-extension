@@ -169,7 +169,7 @@ def test_rcc_cloud(rcc: IRcc, ci_credentials: str, tmpdir):
 
     wsdir = str(tmpdir.join("ws"))
 
-    result = rcc.create_robot("python", wsdir)
+    result = rcc.create_robot("01-python", wsdir)
     assert result.success
     result = rcc.cloud_set_robot_contents(wsdir, ws.workspace_id, act.robot_id)
     assert result.success
