@@ -699,7 +699,7 @@ def test_upload_to_cloud(
     found_package: PackageInfoDict = found_packages[0]
     result = client.execute_command(
         commands.SEMA4AI_CREATE_ROBOT_INTERNAL,
-        [{"directory": ws_root_path, "name": "example", "template": "python"}],
+        [{"directory": ws_root_path, "name": "example", "template": "01-python"}],
     )["result"]
     assert result["success"]
 
