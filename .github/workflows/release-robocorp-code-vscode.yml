@@ -1,7 +1,5 @@
 on:
   push:
-    branches:
-      - "release-sema4ai"
     tags:
       - "sema4ai-*"
 name: Deploy - Sema4.ai Extension
@@ -16,113 +14,113 @@ jobs:
       fail-fast: true
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-    - name: Yarn install
-      run: yarn install
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-    - name: Install deps
-      run: pip install --upgrade pip fire poetry
-    - name: Vendor sema4ai_ls_core
-      run: python -m dev vendor-robocorp-ls-core
-    - name: Fix README references
-      run: python -m dev fix-readme
-    - name: Generate LICENSE.md
-      run: python -m dev generate-license-file
-    - name: Install locally
-      working-directory: ./sema4ai
-      run: poetry install
-    - run: npm install -g vsce@2.15.0
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Yarn install
+        run: yarn install
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install deps
+        run: pip install --upgrade pip fire poetry
+      - name: Vendor sema4ai_ls_core
+        run: python -m dev vendor-robocorp-ls-core
+      - name: Fix README references
+        run: python -m dev fix-readme
+      - name: Generate LICENSE.md
+        run: python -m dev generate-license-file
+      - name: Install locally
+        working-directory: ./sema4ai
+        run: poetry install
+      - run: npm install -g vsce@2.15.0
 
-    - name: Check tag version
-      run: python -m dev check-tag-version
+      - name: Check tag version
+        run: python -m dev check-tag-version
 
-    # Deal with Windows --------------
-    - name: Download rcc for windows
-      run: python -m dev download-rcc win32
+      # Deal with Windows --------------
+      - name: Download rcc for windows
+        run: python -m dev download-rcc win32
 
-    - run: vsce package --target win32-x64 -o sema4ai-win32-x64.vsix
+      - run: vsce package --target win32-x64 -o sema4ai-win32-x64.vsix
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sema4ai-win32-x64.vsix
-        path: ./sema4ai/sema4ai-win32-x64.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-win32-x64.vsix
+          path: ./sema4ai/sema4ai-win32-x64.vsix
 
-    - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./sema4ai-win32-x64.vsix -p $VSCODE_VSCE_TOKEN
-      env:
-        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+      - name: Publish pre-release to vscode marketplace
+        run: vsce publish --packagePath ./sema4ai-win32-x64.vsix -p $VSCODE_VSCE_TOKEN
+        env:
+          VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
-    - name: Publish windows to open vsx marketplace
-      run: npx ovsx publish sema4ai-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
-      env:
-        VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
+      - name: Publish windows to open vsx marketplace
+        run: npx ovsx publish sema4ai-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        env:
+          VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
-    # Deal with Linux --------------
-    - name: Download rcc for linux
-      run: python -m dev download-rcc linux
+      # Deal with Linux --------------
+      - name: Download rcc for linux
+        run: python -m dev download-rcc linux
 
-    - run: vsce package --target linux-x64 -o sema4ai-linux-x64.vsix
+      - run: vsce package --target linux-x64 -o sema4ai-linux-x64.vsix
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sema4ai-linux-x64.vsix
-        path: ./sema4ai/sema4ai-linux-x64.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-linux-x64.vsix
+          path: ./sema4ai/sema4ai-linux-x64.vsix
 
-    - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./sema4ai-linux-x64.vsix -p $VSCODE_VSCE_TOKEN
-      env:
-        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+      - name: Publish pre-release to vscode marketplace
+        run: vsce publish --packagePath ./sema4ai-linux-x64.vsix -p $VSCODE_VSCE_TOKEN
+        env:
+          VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
-    - name: Publish linux to open vsx marketplace
-      run: npx ovsx publish sema4ai-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
-      env:
-        VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
+      - name: Publish linux to open vsx marketplace
+        run: npx ovsx publish sema4ai-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        env:
+          VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
-    # Deal with Darwin x64 --------------
-    - name: Download rcc for darwin
-      run: python -m dev download-rcc darwin
+      # Deal with Darwin x64 --------------
+      - name: Download rcc for darwin
+        run: python -m dev download-rcc darwin
 
-    - run: vsce package --target darwin-x64 -o sema4ai-darwin-x64.vsix
+      - run: vsce package --target darwin-x64 -o sema4ai-darwin-x64.vsix
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sema4ai-darwin-x64.vsix
-        path: ./sema4ai/sema4ai-darwin-x64.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-darwin-x64.vsix
+          path: ./sema4ai/sema4ai-darwin-x64.vsix
 
-    - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./sema4ai-darwin-x64.vsix -p $VSCODE_VSCE_TOKEN
-      env:
-        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+      - name: Publish pre-release to vscode marketplace
+        run: vsce publish --packagePath ./sema4ai-darwin-x64.vsix -p $VSCODE_VSCE_TOKEN
+        env:
+          VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
-    - name: Publish darwin to open vsx marketplace
-      run: npx ovsx publish sema4ai-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
-      env:
-        VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
+      - name: Publish darwin to open vsx marketplace
+        run: npx ovsx publish sema4ai-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        env:
+          VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
-    # Deal with Darwin arm64 --------------
-    - name: Download rcc for darwin
-      run: python -m dev download-rcc darwin
+      # Deal with Darwin arm64 --------------
+      - name: Download rcc for darwin
+        run: python -m dev download-rcc darwin
 
-    - run: vsce package --target darwin-arm64 -o sema4ai-darwin-arm64.vsix
+      - run: vsce package --target darwin-arm64 -o sema4ai-darwin-arm64.vsix
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sema4ai-darwin-arm64.vsix
-        path: ./sema4ai/sema4ai-darwin-arm64.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-darwin-arm64.vsix
+          path: ./sema4ai/sema4ai-darwin-arm64.vsix
 
-    - name: Publish pre-release to vscode marketplace
-      run: vsce publish --packagePath ./sema4ai-darwin-arm64.vsix -p $VSCODE_VSCE_TOKEN
-      env:
-        VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
+      - name: Publish pre-release to vscode marketplace
+        run: vsce publish --packagePath ./sema4ai-darwin-arm64.vsix -p $VSCODE_VSCE_TOKEN
+        env:
+          VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
-    - name: Publish darwin to open vsx marketplace
-      run: npx ovsx publish sema4ai-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN
-      env:
-        VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
+      - name: Publish darwin to open vsx marketplace
+        run: npx ovsx publish sema4ai-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        env:
+          VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}

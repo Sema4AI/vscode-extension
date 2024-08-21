@@ -1,7 +1,8 @@
 ## New in 2.4.0 (2024-08-21)
 
 - Updated RCC to `v18.1.5`.
-- Update `docs/release.md` to reflect current flow.
+- Properly collect Sema4.ai Extension logs when submitting an issue.
+- New Command: `Pack Agent Package`.
 
 ## New in 2.3.0 (2024-08-19) -- first `Sema4.ai` extension stable release
 
