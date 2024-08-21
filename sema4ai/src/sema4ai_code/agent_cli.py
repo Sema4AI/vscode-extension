@@ -6,7 +6,12 @@ from typing import Any, Optional
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.monitor import IMonitor
-from sema4ai_ls_core.protocols import IConfig, IConfigProvider, IWorkspace, ActionResultDict
+from sema4ai_ls_core.protocols import (
+    ActionResultDict,
+    IConfig,
+    IConfigProvider,
+    IWorkspace,
+)
 
 from sema4ai_code.agents.collect_agent_spec_diagnostics import (
     collect_agent_spec_diagnostics,
@@ -225,7 +230,9 @@ class AgentCli:
             monitor: The monitor to report progress to.
         """
 
-        valid, error_message = self._validate_agent_package(directory, workspace, monitor)
+        valid, error_message = self._validate_agent_package(
+            directory, workspace, monitor
+        )
         if not valid:
             return ActionResult(success=False, message=error_message).as_dict()
 

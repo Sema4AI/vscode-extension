@@ -1606,9 +1606,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         directory = params["directory"]
 
         return require_monitor(
-            partial(
-                self._agent_cli.pack_agent_package, directory, self.workspace
-            )
+            partial(self._agent_cli.pack_agent_package, directory, self.workspace)
         )
 
     def forward_msg(self, msg: dict) -> None:
