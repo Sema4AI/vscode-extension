@@ -1,3 +1,8 @@
+## New in 2.4.0 (2024-08-21)
+
+- Updated RCC to `v18.1.5`.
+- Update `docs/release.md` to reflect current flow.
+
 ## New in 2.3.0 (2024-08-19) -- first `Sema4.ai` extension stable release
 
 - Agent Packages present in the workspace are now shown
