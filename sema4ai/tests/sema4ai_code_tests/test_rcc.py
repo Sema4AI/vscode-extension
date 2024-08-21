@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from sema4ai_code_tests.fixtures import RccPatch
+from sema4ai_code.protocols import IRcc, IRccRobotMetadata
 from sema4ai_ls_core.protocols import ActionResult
 
-from sema4ai_code.protocols import IRcc, IRccRobotMetadata
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
 
 TIMEOUT_FOR_UPDATES_IN_SECONDS = 1
 TIMEOUT_TO_REUSE_SPACE = 3
@@ -21,8 +21,7 @@ def test_rcc_template_names(rcc: IRcc):
     assert result.success
     assert result.result
     template_names = [template["name"] for template in result.result]
-    assert "python" in template_names
-    assert "standard" in template_names
+    assert template_names == RCC_TEMPLATE_NAMES
 
 
 def test_rcc_cloud_issues(rcc: IRcc, ci_credentials: str, tmpdir, rcc_patch: RccPatch):
@@ -245,9 +244,8 @@ class _RobotInfo:
 
 
 def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
-    from sema4ai_ls_core.protocols import ActionResult
-
     from sema4ai_code.protocols import IRCCSpaceInfo, IRobotYamlEnvInfo
+    from sema4ai_ls_core.protocols import ActionResult
 
     robot1 = _RobotInfo(datadir, "robot1")
     robot2 = _RobotInfo(datadir, "robot2")
@@ -393,9 +391,8 @@ def test_get_robot_yaml_environ_not_ok(rcc: IRcc, datadir, holotree_manager):
     listener = RccListener()
 
     rcc.rcc_listeners.append(listener)
-    from sema4ai_ls_core.protocols import ActionResult
-
     from sema4ai_code.protocols import IRobotYamlEnvInfo
+    from sema4ai_ls_core.protocols import ActionResult
 
     bad_robot1 = _RobotInfo(datadir, "bad_robot1")
     result: ActionResult[IRobotYamlEnvInfo] = rcc.get_robot_yaml_env_info(
