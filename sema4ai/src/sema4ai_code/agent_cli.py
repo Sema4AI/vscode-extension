@@ -1,19 +1,20 @@
 import os
 import weakref
-from typing import Optional, Any
+from pathlib import Path
+from typing import Any, Optional
 
+from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
-from sema4ai_code.tools import Tool
-
+from sema4ai_ls_core.jsonrpc.monitor import IMonitor
 from sema4ai_ls_core.protocols import (
+    ActionResultDict,
     IConfig,
     IConfigProvider,
+    IWorkspace,
 )
 
-from sema4ai_code.protocols import (
-    ActionResult,
-    AgentCliResult,
-)
+from sema4ai_code.protocols import ActionResult, AgentCliResult
+from sema4ai_code.tools import Tool
 
 log = get_logger(__name__)
 
@@ -188,3 +189,89 @@ class AgentCli:
             )
 
         return ActionResult(success=True, message=None)
+
+    @staticmethod
+    def _validate_agent_package(
+        directory: str, workspace: IWorkspace, monitor: IMonitor
+    ) -> tuple[bool, str]:
+        from sema4ai_ls_core.lsp import DiagnosticSeverity
+
+        from sema4ai_code.agents.collect_agent_spec_diagnostics import (
+            collect_agent_spec_diagnostics,
+        )
+
+        # [TODO] - uncomment this when the agent package validation is fixed
+        # Validate the agent package
+        # args = [
+        #     "package",
+        #     "metadata",
+        #     "--package",
+        #     directory,
+        # ]
+        # command_result = self._run_agent_cli_command(args)
+        # if not command_result.success:
+        #     return False, f"Error validating the agent package.\n{command_result.message}"
+
+        agent_spec = uris.from_fs_path(str(Path(directory) / "agent-spec.yaml"))
+        diagnostics = list(
+            collect_agent_spec_diagnostics(workspace, agent_spec, monitor)
+        )
+        errors = [
+            diag
+            for diag in diagnostics
+            if diag.get("severity") == DiagnosticSeverity.Error
+        ]
+
+        if errors:
+            error_details = [
+                f"Line {error['range']['start']['line'] + 1}: {error['message']}"
+                for error in errors
+            ]
+
+            return False, f"Error validating the agent package:\n" + "\n".join(
+                error_details
+            )
+
+        return True, ""
+
+    def pack_agent_package(
+        self, directory: str, workspace: IWorkspace, monitor: IMonitor
+    ) -> ActionResultDict:
+        """
+        Packs into a zip file the given agent package directory.
+
+        Args:
+            directory: The agent package directory to pack.
+            workspace: The workspace to pack the agent package into.
+            monitor: The monitor to report progress to.
+        """
+
+        valid, error_message = self._validate_agent_package(
+            directory, workspace, monitor
+        )
+        if not valid:
+            return ActionResult(success=False, message=error_message).as_dict()
+
+        # Zip the agent package
+        args = [
+            "package",
+            "build",
+            "--overwrite",
+            "--input-dir",
+            directory,
+            "--output-dir",
+            directory,
+        ]
+        command_result = self._run_agent_cli_command(args)
+
+        if not command_result.success:
+            return ActionResult(
+                success=False,
+                message=f"Error packing the agent package.\n{command_result.message}",
+            ).as_dict()
+
+        return ActionResult(
+            success=True,
+            message=None,
+            result=str(Path(directory) / "agent-package.zip"),
+        ).as_dict()

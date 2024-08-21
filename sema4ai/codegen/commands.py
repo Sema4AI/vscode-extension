@@ -926,6 +926,17 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.packAgentPackage",
+        "Pack Agent Package",
+        server_handled=False,
+    ),
+    Command(
+        "sema4ai.packAgentPackage.internal",
+        "Pack Agent Package (internal)",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 

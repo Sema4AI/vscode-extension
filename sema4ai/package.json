@@ -150,6 +150,8 @@
         "onCommand:sema4ai.agentCliVersion.internal",
         "onCommand:sema4ai.createAgentPackage",
         "onCommand:sema4ai.createAgentPackage.internal",
+        "onCommand:sema4ai.packAgentPackage",
+        "onCommand:sema4ai.packAgentPackage.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -925,6 +927,11 @@
                 "title": "Create Agent Package",
                 "category": "Sema4.ai",
                 "icon": "$(add)"
+            },
+            {
+                "command": "sema4ai.packAgentPackage",
+                "title": "Pack Agent Package",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {
