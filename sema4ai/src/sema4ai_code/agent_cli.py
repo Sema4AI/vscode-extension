@@ -213,13 +213,19 @@ class AgentCli:
         #     return False, f"Error validating the agent package.\n{command_result.message}"
 
         agent_spec = uris.from_fs_path(str(Path(directory) / "agent-spec.yaml"))
-        found = list(collect_agent_spec_diagnostics(workspace, agent_spec, monitor))
+        diagnostics = list(
+            collect_agent_spec_diagnostics(workspace, agent_spec, monitor)
+        )
+        errors = [
+            diag
+            for diag in diagnostics
+            if diag.get("severity") == DiagnosticSeverity.Error
+        ]
 
-        if found:
+        if errors:
             error_details = [
                 f"Line {error['range']['start']['line'] + 1}: {error['message']}"
-                for error in found
-                if error.get("severity") == DiagnosticSeverity.Error
+                for error in errors
             ]
 
             return False, f"Error validating the agent package:\n" + "\n".join(
