@@ -268,10 +268,10 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
 
     let targetDir = "";
 
-    if (workspacePackages?.agentPackages?.length) {
-        let packageInfo: LocalPackageMetadataInfo;
-        let useAgentPackage = false;
+    let useAgentPackage = false;
+    let packageInfo: LocalPackageMetadataInfo;
 
+    if (workspacePackages?.agentPackages?.length) {
         /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
         if (rootPackageYaml === PackageYamlName.Agent) {
             packageInfo = workspacePackages.agentPackages[0];
@@ -320,39 +320,39 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
                 packageInfo = workspacePackages.agentPackages.find((agentPackage) => agentPackage.name === packageName);
             }
         }
+    }
 
-        if (useAgentPackage) {
-            const organizationDirectoryName = await window.showQuickPick(
-                packageInfo.organizations.map((organization) => organization.name),
-                {
-                    placeHolder: "Which organization do you want to create the Action Package in?",
-                    ignoreFocusOut: true,
-                }
-            );
-
-            /* Operation cancelled. */
-            if (!organizationDirectoryName) {
-                return null;
+    if (useAgentPackage) {
+        const organizationDirectoryName = await window.showQuickPick(
+            packageInfo.organizations.map((organization) => organization.name),
+            {
+                placeHolder: "Which organization do you want to create the Action Package in?",
+                ignoreFocusOut: true,
             }
+        );
 
-            const packageDirectoryName = await getPackageDirectoryName(
-                "Please provide the name for the Action Package folder name."
-            );
-
-            /* Operation cancelled. */
-            if (!packageDirectoryName) {
-                return null;
-            }
-
-            targetDir = path.join(packageInfo.directory, "actions", organizationDirectoryName, packageDirectoryName);
-        } else {
-            targetDir = await getPackageTargetDirectory(ws, {
-                title: "Where do you want to create the Action Package?",
-                useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
-                useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
-                provideNamePrompt: "Please provide the name for the Action Package folder name.",
-            });
+        /* Operation cancelled. */
+        if (!organizationDirectoryName) {
+            return null;
         }
+
+        const packageDirectoryName = await getPackageDirectoryName(
+            "Please provide the name for the Action Package folder name."
+        );
+
+        /* Operation cancelled. */
+        if (!packageDirectoryName) {
+            return null;
+        }
+
+        targetDir = path.join(packageInfo.directory, "actions", organizationDirectoryName, packageDirectoryName);
+    } else {
+        targetDir = await getPackageTargetDirectory(ws, {
+            title: "Where do you want to create the Action Package?",
+            useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
+            useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
+            provideNamePrompt: "Please provide the name for the Action Package folder name.",
+        });
     }
 
     return targetDir || null;
@@ -409,8 +409,6 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
     const robocorpHome = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(robocorpHome);
 
-    await makeDirs(targetDir);
-
     try {
         const actionServerVersion: string | undefined = await actionServerVersionPromise;
         if (actionServerVersion === undefined) {
@@ -436,6 +434,8 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
                 return;
             }
         }
+
+        await makeDirs(targetDir);
 
         const result: ActionResult<unknown> = await commands.executeCommand(
             roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
