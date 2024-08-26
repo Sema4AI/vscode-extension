@@ -1,13 +1,7 @@
 {
     "folders": [
         {
-            "path": ".."
-        },
-        {
-            "path": "../../sema4ai-python-ls-core"
-        },
-        {
-            "path": "../../docs"
+            "path": "../.."
         }
     ],
     "settings": {

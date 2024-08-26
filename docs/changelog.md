@@ -1,3 +1,7 @@
+## New in 2.4.2 (2024-08-26)
+
+- Fixes creating an Action Package.
+
 ## New in 2.4.0 (2024-08-21)
 
 - Updated RCC to `v18.1.5`.
