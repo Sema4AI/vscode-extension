@@ -1,46 +1,49 @@
-// A launch configuration that compiles the extension and then opens it inside a new window
 {
     "version": "0.1.0",
     "configurations": [
         {
+            // A launch configuration that compiles the extension and then opens it inside a new window
             "name": "Extension: Sema4.ai",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--extensionDevelopmentPath=${workspaceRoot}/../robotframework-ls"
-            ],
-            "stopOnEntry": false,
+            "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/vscode-client/out/**/*.js",
-                "${workspaceRoot}/../robotframework-ls/vscode-client/out/**/*.js"
-            ],
-            // Note: the language server must be already compiled as this
-            // will only take care of compiling robocorp code.
+            "outFiles": ["${workspaceRoot}/vscode-client/out/**/*.js"],
             "preLaunchTask": "npm: compile",
-            "env": {
-                // "SERVER_PORT": "8787",
-                // "SERVER_HOME_EXPORTED": "C:/export/pydev_lsp/eclipse"
-            }
+            "env": {}
         },
         {
             "name": "Extension Tests: Sema4.ai",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "stopOnEntry": false,
             "sourceMaps": true,
             "args": [
                 "${workspaceRoot}/vscode-client/src/tests/resources",
                 "--extensionDevelopmentPath=${workspaceRoot}",
                 "--extensionTestsPath=${workspaceRoot}/vscode-client/out/tests/suite/index"
             ],
-            "outFiles": [
-                "${workspaceRoot}/vscode-client/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceRoot}/vscode-client/out/**/*.js"],
             "preLaunchTask": "npm: compile"
+        },
+        // Used when running tests with PyDev for VSCode
+        {
+            "type": "pydevd",
+            "name": "PyDev Test Template",
+            "request": "test-template",
+            "console": "integratedTerminal",
+            "args": ["--capture=no", "--force-regen"]
+        },
+        // Used to run the current file with PyDev for VSCode
+        {
+            "type": "pydevd",
+            "name": "PyDev: Launch current file",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "program": "${file}",
+            "args": ""
         }
     ]
 }

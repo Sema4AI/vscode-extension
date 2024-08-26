@@ -1,5 +1,8 @@
 {
     "folders": [
+        // Note: Maybe it'd be nice to move the .vscode to the root and just leave '..'
+        // to show all contents, but this needs updates to most of the configurations
+        // which have paths relative to the workspace file at this point (including launch.json).
         {
             "path": ".."
         },
