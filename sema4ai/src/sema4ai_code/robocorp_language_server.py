@@ -1629,7 +1629,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         directory = params["directory"]
 
         ws = self.workspace
-        assert ws
+        if ws is None:
+            return {
+                "success": False,
+                "message": "Workspace already closed",
+                "result": None,
+            }
         return require_monitor(
             partial(self._agent_cli.pack_agent_package, directory, ws)
         )
