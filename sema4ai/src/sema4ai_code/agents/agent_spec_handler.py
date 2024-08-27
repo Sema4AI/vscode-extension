@@ -88,6 +88,7 @@ def load_spec(json_spec: dict[str, Any]) -> dict[str, Entry]:
 
     for path, value in json_spec.items():
         try:
+            expected_type = "<unknown>"
             assert isinstance(
                 value, dict
             ), f"Invalid spec: {path}. Expected a dictionary. Found {type(value)}"

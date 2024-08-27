@@ -1,8 +1,31 @@
-import json
+import typing
 from typing import Optional
 
 from sema4ai_ls_core.lsp import HoverTypedDict
 from sema4ai_ls_core.protocols import IDocument, IMonitor
+
+if typing.TYPE_CHECKING:
+    from tree_sitter import Node
+
+
+def yield_all_nodes(node: "Node"):
+    for child in node.children:
+        yield child
+        yield from yield_all_nodes(child)
+
+
+def _find_version(node: "Node") -> Optional[str]:
+    """
+    In this function we must search for the version node and return its value.
+    """
+    for node in yield_all_nodes(node):
+        if node.type == "block_mapping_pair":
+            key = node.child_by_field_name("key")
+            if key and key.text and key.text.decode("utf8") == "spec-version":
+                value = node.child_by_field_name("value")
+                if value and value.text:
+                    return value.text.decode("utf8")
+    return None
 
 
 def hover_on_agent_spec_yaml(
@@ -21,6 +44,8 @@ def hover_on_agent_spec_yaml(
     if not descendant:
         return None
 
+    version = _find_version(tree.root_node)
+
     def get_full_path(node) -> str:
         path: list[str] = []
         current = node
@@ -33,13 +58,17 @@ def hover_on_agent_spec_yaml(
         return "/".join(path)
 
     def get_description(full_path) -> Optional[str]:
-        from sema4ai_code.agents.agent_spec_provider import load_v2_spec
+        if version == "v2":
+            # Hover currently only available for v2
+            from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
 
-        info = load_v2_spec()
-        entry = info.get(full_path, None)
-        if not entry:
+            info = AGENT_SPEC_V2
+            entry = info.get(full_path, None)
+            if not entry:
+                return None
+            return entry.description
+        else:
             return None
-        return entry.description
 
     full_path = get_full_path(descendant)
     description = get_description(full_path)

@@ -1628,8 +1628,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ) -> ActionResultDict:
         directory = params["directory"]
 
+        ws = self.workspace
+        assert ws
         return require_monitor(
-            partial(self._agent_cli.pack_agent_package, directory, self.workspace)
+            partial(self._agent_cli.pack_agent_package, directory, ws)
         )
 
     def forward_msg(self, msg: dict) -> None:
