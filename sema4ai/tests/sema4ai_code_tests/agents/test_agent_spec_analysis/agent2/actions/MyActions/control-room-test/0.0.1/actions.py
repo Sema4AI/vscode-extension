@@ -13,4 +13,4 @@ def get_time_now() -> str:
     Returns:
         The current time.
     """
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
