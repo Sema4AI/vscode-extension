@@ -68,7 +68,8 @@ def hover_on_agent_spec_yaml(
                 return None
             return entry.description
         else:
-            return None
+            show_version = version if version else "<unknown>"
+            return f"{full_path} (more info unavailable for version: {show_version})"
 
     full_path = get_full_path(descendant)
     description = get_description(full_path)
