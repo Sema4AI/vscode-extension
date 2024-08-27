@@ -1,41 +1,41 @@
 import sys
 import threading
+import typing
+from enum import Enum
 from typing import (
-    Dict,
-    Union,
     Any,
-    Generic,
     Callable,
+    Dict,
+    Generic,
+    Iterable,
+    List,
     Mapping,
     Optional,
-    List,
-    Type,
-    Iterable,
     Tuple,
+    Type,
+    TypeVar,
+    Union,
 )
-from typing import TypeVar
-import typing
-
-from enum import Enum
-
 
 if typing.TYPE_CHECKING:
     # This would lead to a circular import, so, do it only when type-checking.
     from sema4ai_ls_core.callbacks import Callback
-    from sema4ai_ls_core.lsp import TextDocumentContentChangeEvent
-    from sema4ai_ls_core.lsp import HoverResponseTypedDict
-    from sema4ai_ls_core.lsp import ReferencesResponseTypedDict
-    from sema4ai_ls_core.lsp import TextDocumentTypedDict
-    from sema4ai_ls_core.lsp import ResponseTypedDict
-    from sema4ai_ls_core.lsp import CodeLensTypedDict
-    from sema4ai_ls_core.lsp import RangeTypedDict
-    from sema4ai_ls_core.lsp import DocumentHighlightResponseTypedDict
-    from sema4ai_ls_core.lsp import PositionTypedDict
-    from sema4ai_ls_core.lsp import CompletionItemTypedDict
-    from sema4ai_ls_core.lsp import CompletionsResponseTypedDict
-    from sema4ai_ls_core.lsp import CompletionResolveResponseTypedDict
-    from sema4ai_ls_core.lsp import TextDocumentItem
-    from sema4ai_ls_core.lsp import TextEditTypedDict
+    from sema4ai_ls_core.lsp import (
+        CodeLensTypedDict,
+        CompletionItemTypedDict,
+        CompletionResolveResponseTypedDict,
+        CompletionsResponseTypedDict,
+        DocumentHighlightResponseTypedDict,
+        HoverResponseTypedDict,
+        PositionTypedDict,
+        RangeTypedDict,
+        ReferencesResponseTypedDict,
+        ResponseTypedDict,
+        TextDocumentContentChangeEvent,
+        TextDocumentItem,
+        TextDocumentTypedDict,
+        TextEditTypedDict,
+    )
 
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
@@ -48,8 +48,7 @@ if sys.version_info[:2] < (3, 8):
             pass
 
 else:
-    from typing import Protocol
-    from typing import TypedDict
+    from typing import Protocol, TypedDict
 
 
 T = TypeVar("T")
@@ -836,6 +835,12 @@ class IDocument(Protocol):
         """
 
     def find_line_with_contents(self, contents: str) -> int:
+        pass
+
+    def set_custom_data(self, key: str, value: Any) -> None:
+        pass
+
+    def get_custom_data(self, key: str) -> Any:
         pass
 
 

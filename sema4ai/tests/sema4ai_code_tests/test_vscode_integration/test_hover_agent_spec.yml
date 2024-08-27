@@ -1,0 +1,10 @@
+contents:
+  kind: plaintext
+  value: 'Description for the agent. Example: "My smart agent that does what I want"'
+range:
+  end:
+    character: 34
+    line: 5
+  start:
+    character: 17
+    line: 5

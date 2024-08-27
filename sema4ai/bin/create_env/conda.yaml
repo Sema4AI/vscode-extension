@@ -13,3 +13,5 @@ dependencies:
           - --use-feature=truststore
           - robocorp-inspector==0.10.2 # https://github.com/robocorp/inspector/blob/master/CHANGELOG.md
           - playwright==1.37.0
+          - tree-sitter==0.22.3
+          - tree-sitter-yaml==0.6.0

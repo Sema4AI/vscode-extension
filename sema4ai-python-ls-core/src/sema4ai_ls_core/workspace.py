@@ -17,33 +17,33 @@
 # limitations under the License.
 import io
 import os
-from typing import Optional, Dict, List, Iterable, Tuple, Set, Union, Any
+import threading
+import time
+import weakref
+from collections import namedtuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import implements
+from sema4ai_ls_core.callbacks import Callback
+from sema4ai_ls_core.code_units import convert_utf16_code_unit_to_python
+from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.lsp import (
+    RangeTypedDict,
+    TextDocumentContentChangeEvent,
+    TextDocumentItem,
+    TextEdit,
+    TextEditTypedDict,
+)
 from sema4ai_ls_core.protocols import (
-    IWorkspace,
+    IConfig,
     IDocument,
     IDocumentSelection,
+    IWorkspace,
     IWorkspaceFolder,
-    IConfig,
 )
-from sema4ai_ls_core.core_log import get_logger
-from sema4ai_ls_core.uris import uri_scheme, to_fs_path, normalize_drive, normalize_uri
-import threading
-from sema4ai_ls_core.lsp import (
-    TextDocumentItem,
-    TextDocumentContentChangeEvent,
-    RangeTypedDict,
-    TextEditTypedDict,
-    TextEdit,
-)
-import weakref
-from collections import namedtuple
-import time
+from sema4ai_ls_core.uris import normalize_drive, normalize_uri, to_fs_path, uri_scheme
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
-from sema4ai_ls_core.code_units import convert_utf16_code_unit_to_python
-from sema4ai_ls_core.callbacks import Callback
 
 log = get_logger(__name__)
 
@@ -68,9 +68,9 @@ class _VirtualFSThread(threading.Thread):
     on_created = Callback()
 
     def __init__(self, virtual_fs):
-        from sema4ai_ls_core.watchdog_wrapper import IFSWatch
         from sema4ai_ls_core import load_ignored_dirs
         from sema4ai_ls_core.callbacks import Callback
+        from sema4ai_ls_core.watchdog_wrapper import IFSWatch
 
         threading.Thread.__init__(self)
         self.daemon = True
@@ -332,9 +332,9 @@ class Workspace(object):
         workspace_folders: Optional[List[IWorkspaceFolder]] = None,
         track_file_extensions=(".robot", ".resource", ".py", ".yml", ".yaml"),
     ) -> None:
-        from sema4ai_ls_core.lsp import WorkspaceFolder
-        from sema4ai_ls_core.callbacks import Callback
         from sema4ai_ls_core.cache import LRUCache
+        from sema4ai_ls_core.callbacks import Callback
+        from sema4ai_ls_core.lsp import WorkspaceFolder
 
         self._main_thread = threading.current_thread()
 
@@ -605,6 +605,7 @@ class Document(object):
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)  # Note: may be None.
+        self.__custom_data: dict[str, Any] = {}
 
         self._source = source
         self.__line_start_offsets = None
@@ -663,6 +664,16 @@ class Document(object):
         self._check_in_mutate_thread()
         self.__lines = None
         self.__line_start_offsets = None
+        self.__custom_data.clear()
+
+    def set_custom_data(self, key: str, value: Any):
+        """
+        Can be used to store custom data in the document (cleared if the source is changed).
+        """
+        self.__custom_data[key] = value
+
+    def get_custom_data(self, key: str) -> Any:
+        return self.__custom_data.get(key)
 
     @property
     def _lines(self):

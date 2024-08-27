@@ -14,3 +14,5 @@ dependencies:
     - pip:
           - --use-feature=truststore
           - playwright==1.37.0
+          - tree-sitter==0.22.3
+          - tree-sitter-yaml==0.6.0
