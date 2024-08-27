@@ -1,0 +1,32 @@
+# Required: A short name for the action package
+name: Control Room Test
+
+# Required: A description of what's in the action package.
+description: Used for testing the features of Control Room such as passing secrets to Actions. The API key is "sema4ai-world-domination".
+
+# Required: A link to where the documentation on the package lives.
+documentation: https://github.com/...
+
+version: 0.0.1
+
+dependencies:
+  conda-forge:
+  - python=3.10.14
+  - uv=0.2.4
+  pypi:
+  - sema4ai-actions=0.10.0
+  - requests=2.32.3
+
+packaging:
+  # By default, all files and folders in this directory are packaged when uploaded.
+  # Add exclusion rules below (expects glob format: https://docs.python.org/3/library/glob.html)
+  exclude:
+    - ./.git/**
+    - ./.vscode/**
+    - ./devdata/**
+    - ./output/**
+    - ./venv/**
+    - ./.venv/**
+    - ./.DS_store/**
+    - ./**/*.pyc
+    - ./**/*.zip

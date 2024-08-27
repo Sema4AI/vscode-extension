@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Generic, Iterator, Optional, TypeVar
 
 if typing.TYPE_CHECKING:
-    from tree_sitter import Node
+    from tree_sitter import Node, Tree
 
 
 class _ExpectedTypeEnum(Enum):
@@ -271,43 +271,46 @@ class InvalidSpec(Exception):
     pass
 
 
-def validate(
+def validate_from_spec(
+    spec_entries: dict[str, Entry],
     yaml_spec_contents: str,
-    json_spec: dict,
     agent_root_dir: Path,
     raise_on_error: bool = True,
 ) -> tuple[Error, ...]:
     """
     Validate the YAML agent spec against the JSON agent spec.
 
+    Note: the yaml should've been already pre-loaded with yaml.safe_load
+    and the parsing should be correct. At this point the validation will
+    be done with tree-sitter (which may not catch syntax errors).
+
     Params:
+        spec_entries: The spec entries as a dictionary (previously loaded from load_spec with the correct version).
         yaml_spec_contents: The YAML agent spec contents as a string.
-        json_spec: The JSON agent spec as a dictionary (loaded from the JSON file).
         agent_root_dir: The root directory of the agent package (contains the agent-spec.yaml file).
 
     Raises:
         InvalidSpec: If the YAML agent spec is invalid.
     """
-    import tree_sitter_yaml
-    import yaml
-    from tree_sitter import Language, Parser
-
-    # Make sure the YAML agent spec is valid
-    yaml.safe_load(yaml_spec_contents)
-
-    spec_entries = load_spec(json_spec)
-
-    language = tree_sitter_yaml.language()
-    parser = Parser(Language(language))
-    contents = yaml_spec_contents.encode("utf8", errors="replace")
-    tree = parser.parse(contents, encoding="utf8")
 
     validator = Validator(spec_entries, agent_root_dir)
+    tree = tree_sitter_parse_yaml(yaml_spec_contents)
     errors: tuple[Error, ...] = tuple(validator.validate(tree.root_node))
     if errors and raise_on_error:
         msg = "\n".join(e.message for e in errors)
         raise InvalidSpec(msg)
     return errors
+
+
+def tree_sitter_parse_yaml(yaml_spec_contents: str) -> "Tree":
+    import tree_sitter_yaml
+    from tree_sitter import Language, Parser
+
+    language = tree_sitter_yaml.language()
+    parser = Parser(Language(language))
+    contents = yaml_spec_contents.encode("utf8", errors="replace")
+    tree = parser.parse(contents, encoding="utf8")
+    return tree
 
 
 class Validator:

@@ -1,8 +1,10 @@
 import json
-from typing import Any
 
-AGENT_SPEC_V2: dict[str, Any] = json.loads(
-    r"""{
+from .agent_spec_handler import Entry, load_spec
+
+AGENT_SPEC_V2: dict[str, Entry] = load_spec(
+    json.loads(
+        r"""{
   "agent-package": {
     "description": "Root element for the agent spec",
     "required": true,
@@ -201,4 +203,5 @@ AGENT_SPEC_V2: dict[str, Any] = json.loads(
   }
 }
 """
+    )
 )
