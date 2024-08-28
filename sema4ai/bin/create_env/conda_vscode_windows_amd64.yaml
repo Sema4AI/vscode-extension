@@ -5,7 +5,7 @@ channels:
 
 dependencies:
     - python=3.10.12 # https://pyreadiness.org/3.10/
-    - pip=23.3.2 # https://pip.pypa.io/en/stable/news/
+    - uv=0.2.37 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.1
     - msgspec=0.18.2
     - pywin32=303 # https://github.com/mhammond/pywin32/blob/main/CHANGES.txt
@@ -15,7 +15,6 @@ dependencies:
     - psutil==5.9.8 # VSCode Windows Inspector dependency
     - java-access-bridge-wrapper==1.2.0 # VSCode Java Inspector dependency
     - pip:
-          - --use-feature=truststore
           - robocorp-truststore==0.9.1 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
           - playwright==1.37.0
           - tree-sitter==0.22.3
