@@ -15,7 +15,6 @@ dependencies:
         - uv=0.2.4
     pypi:
         - sema4ai-actions=0.10.0
-        - requests=2.32.3
 
 packaging:
     # By default, all files and folders in this directory are packaged when uploaded.

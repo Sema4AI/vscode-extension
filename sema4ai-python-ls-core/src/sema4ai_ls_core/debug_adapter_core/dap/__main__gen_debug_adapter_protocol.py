@@ -102,17 +102,17 @@ class Ref(object):
 
 
 def load_schema_data():
-    import os.path
     import json
+    import os.path
 
     json_file = os.path.join(os.path.dirname(__file__), "debugProtocol.json")
     if not os.path.exists(json_file):
-        import requests
+        from sema4ai_ls_core import http
 
-        req = requests.get(
+        req = http.get(
             "https://raw.githubusercontent.com/microsoft/debug-adapter-protocol/gh-pages/debugAdapterProtocol.json"
         )
-        assert req.status_code == 200
+        req.raise_for_status()
         with open(json_file, "wb") as stream:
             stream.write(req.content)
 
@@ -122,8 +122,8 @@ def load_schema_data():
 
 
 def load_custom_schema_data():
-    import os.path
     import json
+    import os.path
 
     json_file = os.path.join(os.path.dirname(__file__), "debugProtocolCustom.json")
 

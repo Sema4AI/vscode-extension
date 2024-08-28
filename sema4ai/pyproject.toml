@@ -61,7 +61,6 @@ isort = { version = "^5.12.0", python = "^3.8" }
 invoke = "^2.0"
 tomlkit = "^0.11.8"
 semver = "^3.0.0"
-requests = "*"
 robocorp-truststore = "0.9.1"
 
 mock = "*"
@@ -70,7 +69,6 @@ pytest-regressions = "1.0.6"
 pytest-xdist = "*"
 pytest-timeout = "*"
 
-types-requests = "*"
 types-invoke = "^2.0"
 types-psutil = "^5.9"
 types-mock = "*"
