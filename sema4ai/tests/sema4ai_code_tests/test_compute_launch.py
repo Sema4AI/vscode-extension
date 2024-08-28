@@ -463,8 +463,7 @@ documentation: https://github.com/...
 dependencies:
   conda-forge:
   - python=3.10.12
-  - pip=23.2.1
-  - robocorp-truststore=0.8.0
+  - uv=0.2.37
   pypi:
   - robocorp-actions=0.0.7
 """

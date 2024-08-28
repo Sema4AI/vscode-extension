@@ -1499,8 +1499,7 @@ def test_lint_action_package_integration_deps(
 dependencies:
   conda-forge:
   - python=3.10.12
-  - pip=23.2.1
-  - robocorp-truststore=0.8.0
+  - uv=0.2.37
   pypi:
   - rpaframework=28.3.0 # https://rpaframework.org/releasenotes.html
   - robocorp=1.6.2 # https://pypi.org/project/robocorp

@@ -60,7 +60,7 @@ invoke = "^2.0"
 tomlkit = "^0.11.8"
 semver = "^3.0.0"
 requests = "*"
-truststore = "0.8.0"
+truststore = "0.9.2"
 
 mock = "*"
 pytest = "*"
