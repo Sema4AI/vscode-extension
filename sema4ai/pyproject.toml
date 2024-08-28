@@ -43,14 +43,16 @@ mss = "^9.0.1"
 
 java-access-bridge-wrapper = "^1.2.0"
 ruff = "^0.1.14"
+tree-sitter = "^0.22.3"
+tree-sitter-yaml = "^0.6.0"
 
 [tool.poetry.group.dev.dependencies]
 sema4ai-python-ls-core = {path = "../sema4ai-python-ls-core/", develop = true}
 
 fire = "*"
 
-robocorp-actions = "^0.2.0" # Just needed for testing.
-sema4ai-actions = "^0.3.1" # Just needed for testing.
+robocorp-actions = "^0.2.1" # Just needed for testing.
+sema4ai-actions = "^0.10.0" # Just needed for testing.
 
 numpy = "<2"
 ruff = "^0.1.14"
@@ -59,8 +61,7 @@ isort = { version = "^5.12.0", python = "^3.8" }
 invoke = "^2.0"
 tomlkit = "^0.11.8"
 semver = "^3.0.0"
-requests = "*"
-truststore = "0.8.0"
+robocorp-truststore = "0.9.1"
 
 mock = "*"
 pytest = "*"
@@ -68,7 +69,6 @@ pytest-regressions = "1.0.6"
 pytest-xdist = "*"
 pytest-timeout = "*"
 
-types-requests = "*"
 types-invoke = "^2.0"
 types-psutil = "^5.9"
 types-mock = "*"

@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from enum import Enum
 from typing import Optional
 
@@ -54,6 +54,9 @@ def download_tool(
         sys_platform: The target platform of downloaded artifact. Defaults to None.
     """
 
+    from pathlib import Path
+
+    from sema4ai_ls_core.http import download_with_resume
     from sema4ai_ls_core.system_mutex import timed_acquire_mutex
 
     if sys_platform is None:
@@ -68,7 +71,6 @@ def download_tool(
         if os.path.exists(location) and not force:
             return
 
-        import urllib.request
         from sema4ai_code import get_release_artifact_relative_path
 
         executable_name = TOOL_EXECUTABLE_NAME_MAP[tool]
@@ -79,34 +81,7 @@ def download_tool(
 
         url = f"{TOOL_BASE_URL_MAP[tool]}/{tool_version}/{relative_path}"
 
-        log.info(f"Downloading tool: '{executable_name}' from: {url} to: {location}.")
-
-        # Cloudflare seems to be blocking "User-Agent: Python-urllib/3.9".
-        # Use a different one as that must be sorted out.
-        response = urllib.request.urlopen(
-            urllib.request.Request(url, headers={"User-Agent": "Mozilla"})
-        )
-
-        # Put it all in memory before writing (i.e. just write it if
-        # we know we downloaded everything).
-        data = response.read()
-
-        try:
-            os.makedirs(os.path.dirname(location))
-        except Exception:
-            pass  # Error expected if the parent dir already exists.
-
-        try:
-            with open(location, "wb") as stream:
-                stream.write(data)
-            os.chmod(location, 0x744)
-        except Exception:
-            log.exception(
-                "Error writing to: %s.\nParent dir exists: %s",
-                location,
-                os.path.dirname(location),
-            )
-            raise
+        download_with_resume(url, Path(location), make_executable=True)
 
 
 def get_default_tool_location(tool: Tool, version: str = "") -> str:

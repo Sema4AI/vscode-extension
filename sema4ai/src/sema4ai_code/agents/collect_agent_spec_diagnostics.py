@@ -169,10 +169,11 @@ class _Analyzer:
         )
 
         is_v1 = version_value == "v1"
+        is_v2 = version_value == "v2"
         yield from validate(
-            is_v1,
+            is_v1 or is_v2,
             spec_version,
-            "Unexpected spec-version (only `v1` is currently supported).",
+            "Unexpected spec-version (only `v1` and `v2` are currently supported).",
             required=True,
         )
 
@@ -206,27 +207,77 @@ class _Analyzer:
         # isinstance to make type-checker happy (we validated that already).
         assert isinstance(agents_node.value, list)
         for agent in agents_node.value:
-            yield from validate_agent(agent, _Version(is_v1=is_v1))
+            yield from validate_agent(
+                self.doc, agent, _Version(is_v1=is_v1, is_v2=is_v2)
+            )
 
 
 @dataclass
 class _Version:
     is_v1: bool
+    is_v2: bool
 
 
-def validate_agent(agent_node: _EntryNode, version: _Version):
-    yield from validate_sections(
-        agent_node,
-        {
-            "name": str,
-            "description": str,
-            "type": ("agent", "chat_plan_execute"),
-            "reasoningLevel": (0, 1, 2, 3),
-        },
-    )
+def validate_agent(
+    doc: IDocument, agent_node: _EntryNode, version: _Version
+) -> Iterator[DiagnosticsTypedDict]:
+    from typing import Sequence
+
+    from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
+    from sema4ai_code.agents.agent_spec_handler import Error, validate_from_spec
+    from sema4ai_code.vendored_deps.yaml_with_location import create_range_from_location
+
+    if version.is_v1:
+        yield from validate_sections_v1(
+            agent_node,
+            {
+                "name": str,
+                "description": str,
+                "type": ("agent", "chat_plan_execute"),
+                "reasoningLevel": (0, 1, 2, 3),
+            },
+        )
+    elif version.is_v2:
+        error: Error
+        for error in validate_from_spec(
+            AGENT_SPEC_V2,
+            doc.source,
+            pathlib.Path(doc.path).parent,
+            raise_on_error=False,
+        ):
+            use_location: Sequence[int]
+            if not error.node:
+                use_location = (0, 0, 1, 0)
+                if agent_node.key.location:
+                    use_location = agent_node.key.location
+            else:
+                start_line, start_col = (
+                    error.node.start_point.row,
+                    error.node.start_point.column,
+                )
+                end_line, end_col = (
+                    error.node.end_point.row,
+                    error.node.end_point.column,
+                )
+                use_location = start_line, start_col, end_line, end_col
+
+            use_range = create_range_from_location(*use_location)
+
+            diagnostic: DiagnosticsTypedDict
+
+            diagnostic = {
+                "range": use_range,
+                "severity": DiagnosticSeverity.Error,
+                "source": "sema4ai",
+                "message": error.message,
+            }
+            yield diagnostic
+
+    else:
+        raise AssertionError(f"Unexpected version: {version}")
 
 
-def validate_sections(
+def validate_sections_v1(
     node: _EntryNode, spec: dict[str, type[str] | tuple]
 ) -> Iterator[DiagnosticsTypedDict]:
     for k, v in spec.items():

@@ -1,0 +1,10 @@
+contents:
+  kind: plaintext
+  value: 'agent-package/spec-version (more info unavailable for version: v1)'
+range:
+  end:
+    character: 14
+    line: 1
+  start:
+    character: 2
+    line: 1

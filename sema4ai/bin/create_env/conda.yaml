@@ -5,11 +5,12 @@ channels:
 
 dependencies:
     - python=3.10.12 # https://pyreadiness.org/3.10/
-    - pip=23.3.2 # https://pip.pypa.io/en/stable/news/
+    - uv=0.2.37 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.1
     - msgspec=0.18.2
-    - robocorp-truststore=0.8.0 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
     - pip:
-          - --use-feature=truststore
+          - robocorp-truststore==0.9.1 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
           - robocorp-inspector==0.10.2 # https://github.com/robocorp/inspector/blob/master/CHANGELOG.md
           - playwright==1.37.0
+          - tree-sitter==0.22.3
+          - tree-sitter-yaml==0.6.0

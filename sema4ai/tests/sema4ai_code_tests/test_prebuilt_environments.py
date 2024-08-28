@@ -12,7 +12,7 @@ def test_prebuilt_environments(rcc: IRcc, tmpdir):
     # We download the env and check that we can create it in the ci.
     import io
 
-    import requests
+    from sema4ai_ls_core import http
 
     import sema4ai_code
 
@@ -62,7 +62,8 @@ def test_prebuilt_environments(rcc: IRcc, tmpdir):
 
     if not p.exists():
         log.info(f"Downloading to: {p}")
-        response = requests.get(full_url)
+
+        response = http.get(full_url)
         assert response.status_code == 200
         b = io.BytesIO(response.content)
         p.write_bytes(b.read())

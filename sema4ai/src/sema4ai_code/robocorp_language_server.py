@@ -1166,6 +1166,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         i.e.: Provide the contents in markdown format to show the actual image from the
         locators.json.
         """
+        from sema4ai_code.protocols import PackageYamlName
+
         doc_uri = kwargs["textDocument"]["uri"]
         # Note: 0-based
         line: int = kwargs["position"]["line"]
@@ -1183,6 +1185,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if fspath.endswith("package.yaml"):
             return require_monitor(
                 partial(self._hover_on_package_yaml, doc_uri, line, col)
+            )
+        if fspath.endswith(PackageYamlName.AGENT.value):
+            return require_monitor(
+                partial(self._hover_on_agent_spec_yaml, doc_uri, line, col)
             )
         return None
 
@@ -1221,6 +1227,23 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return hover_on_package_yaml(
             doc, line, col, self._pypi_cloud, self._conda_cloud
         )
+
+    def _hover_on_agent_spec_yaml(
+        self, doc_uri, line, col, monitor: IMonitor
+    ) -> Optional[HoverTypedDict]:
+        from sema4ai_ls_core.protocols import IDocument
+
+        from sema4ai_code.agents.hover_agent_spec import hover_on_agent_spec_yaml
+
+        ws = self._workspace
+        if ws is None:
+            return None
+
+        doc: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+        if doc is None:
+            return None
+
+        return hover_on_agent_spec_yaml(doc, line, col, monitor)
 
     def _hover_on_locators_json(
         self, doc_uri, line, col, monitor: IMonitor
@@ -1605,8 +1628,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ) -> ActionResultDict:
         directory = params["directory"]
 
+        ws = self.workspace
+        if ws is None:
+            return {
+                "success": False,
+                "message": "Workspace already closed",
+                "result": None,
+            }
         return require_monitor(
-            partial(self._agent_cli.pack_agent_package, directory, self.workspace)
+            partial(self._agent_cli.pack_agent_package, directory, ws)
         )
 
     def forward_msg(self, msg: dict) -> None:

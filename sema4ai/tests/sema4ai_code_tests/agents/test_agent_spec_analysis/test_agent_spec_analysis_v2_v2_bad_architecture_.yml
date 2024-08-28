@@ -1,0 +1,11 @@
+- message: Expected agent-package/agents/architecture to be one of ['agent', 'plan_execute']
+    (found 'bad-architecture').
+  range:
+    end:
+      character: 36
+      line: 12
+    start:
+      character: 6
+      line: 12
+  severity: 1
+  source: sema4ai

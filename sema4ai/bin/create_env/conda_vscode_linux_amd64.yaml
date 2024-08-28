@@ -5,12 +5,13 @@ channels:
 
 dependencies:
     - python=3.10.12 # https://pyreadiness.org/3.10/
-    - pip=23.3.2 # https://pip.pypa.io/en/stable/news/
+    - uv=0.2.37 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.1
     - msgspec=0.18.2
-    - robocorp-truststore=0.8.0 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
     - pyscreeze==0.1.30 # VSCode Image Inspector dependency
     - python-mss==9.0.1 # VSCode Image Inspector dependency
     - pip:
-          - --use-feature=truststore
+          - robocorp-truststore==0.9.1 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
           - playwright==1.37.0
+          - tree-sitter==0.22.3
+          - tree-sitter-yaml==0.6.0

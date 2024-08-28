@@ -1,0 +1,10 @@
+contents:
+  kind: plaintext
+  value: 'The version of the spec being used. Example: "v2"'
+range:
+  end:
+    character: 14
+    line: 1
+  start:
+    character: 2
+    line: 1
