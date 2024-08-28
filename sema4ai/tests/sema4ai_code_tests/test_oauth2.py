@@ -33,5 +33,5 @@ def test_oauth2_server_cancel():
 
     from urllib.error import URLError
 
-    with pytest.raises(URLError):
+    with pytest.raises((URLError, TimeoutError)):
         post(f"{address}/foo/bar", timeout=1)
