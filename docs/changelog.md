@@ -1,3 +1,16 @@
+## Unreleased
+
+- Hover for `agent-spec.yaml` (using new spec format for v2)
+- Code analysis for `agent-spec.yaml` (using new spec format for v2)
+- New dependency required: tree-sitter
+- Update `robocorp-trustore` dependency to 0.9.1
+- No longer use `requests` (due to breakage with truststore)
+- Make downloads with resume
+- Update `agent-cli` to `v0.0.17`
+- Location for agent cli and action server is no longer customizable
+  - It's now always downloaded in a default path in the extension.
+  - Current version: `0.0.19`
+
 ## New in 2.4.2 (2024-08-26)
 
 - Fixes creating an Action Package.

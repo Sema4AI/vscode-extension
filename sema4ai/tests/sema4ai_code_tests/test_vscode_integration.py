@@ -81,8 +81,9 @@ def test_exit_with_parent_process_died(
     """
     :note: Only check with the language_server_io (because that's in another process).
     """
-    from sema4ai_ls_core.basic import is_process_alive, kill_process_and_subprocesses
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
+    import subprocess
+
+    from sema4ai_ls_core.process import is_process_alive, kill_process_and_subprocesses
     from sema4ai_ls_core.unittest_tools.fixtures import wait_for_test_condition
 
     language_server = language_server_io
@@ -1907,27 +1908,12 @@ def test_create_action_package(
 
 def test_create_action_package_without_templates_handling(
     language_server_initialized: IRobocorpLanguageServerClient,
-    action_server_location_without_templates_handling: str,
     tmpdir: str,
 ) -> None:
     from sema4ai_code import commands
-
-    assert os.path.exists(action_server_location_without_templates_handling)
+    from sema4ai_code.action_server import get_default_action_server_location
 
     language_server = language_server_initialized
-
-    # We need to overwrite the settings to make ActionServer wrapper get the correct version.
-    language_server_initialized.settings(
-        {
-            "settings": {
-                "sema4ai": {
-                    "actionServer": {
-                        "location": action_server_location_without_templates_handling,
-                    }
-                }
-            }
-        }
-    )
 
     target = str(tmpdir.join("dest"))
     language_server.change_workspace_folders(added_folders=[target], removed_folders=[])
@@ -1936,16 +1922,15 @@ def test_create_action_package_without_templates_handling(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
         [
             {
-                "action_server_location": action_server_location_without_templates_handling,
+                "action_server_location": get_default_action_server_location(),
                 "directory": target,
                 "template": "",
             }
         ],
     )["result"]
 
-    assert result["success"]
-    assert not result["message"]
-    assert os.path.exists(target + "/package.yaml")
+    assert not result["success"]
+    assert "Template name must be provided and may not be empty" in result["message"]
 
 
 def test_verify_login(
@@ -2227,8 +2212,6 @@ def test_action_server_download(
 
     language_server = language_server_initialized
 
-    language_server.settings({"settings": {"sema4ai": {"actionServer": {}}}})
-
     default_location = get_default_action_server_location()
 
     with mock.patch(
@@ -2244,35 +2227,6 @@ def test_action_server_download(
         assert mock_download_action_server.call_count == 1
         assert result["result"] == default_location
 
-        # Test location from settings
-        test_settings_location = "test/settings/location"
-
-        language_server.settings(
-            {
-                "settings": {
-                    "sema4ai": {"actionServer": {"location": test_settings_location}}
-                }
-            }
-        )
-
-        result = language_server.execute_command(
-            commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL, []
-        )["result"]
-
-        assert mock_download_action_server.call_count == 2
-        assert result["result"] == test_settings_location
-
-        # Test passing location explicitly
-        test_explicit_location = "test/explicit/location"
-
-        result = language_server.execute_command(
-            commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL,
-            [{"location": test_explicit_location}],
-        )["result"]
-
-        assert mock_download_action_server.call_count == 3
-        assert result["result"] == test_explicit_location
-
 
 def test_agent_cli_download(
     language_server_initialized,
@@ -2281,8 +2235,6 @@ def test_agent_cli_download(
     from sema4ai_code.agent_cli import get_default_agent_cli_location
 
     language_server = language_server_initialized
-
-    language_server.settings({"settings": {"sema4ai": {"agentCli": {}}}})
 
     default_location = get_default_agent_cli_location()
 
@@ -2298,35 +2250,6 @@ def test_agent_cli_download(
 
         assert mock_download_agent_cli.call_count == 1
         assert result["result"] == default_location
-
-        # Test location from settings
-        test_settings_location = "test/settings/location"
-
-        language_server.settings(
-            {
-                "settings": {
-                    "sema4ai": {"agentCli": {"location": test_settings_location}}
-                }
-            }
-        )
-
-        result = language_server.execute_command(
-            commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL, []
-        )["result"]
-
-        assert mock_download_agent_cli.call_count == 2
-        assert result["result"] == test_settings_location
-
-        # Test passing location explicitly
-        test_explicit_location = "test/explicit/location"
-
-        result = language_server.execute_command(
-            commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL,
-            [{"location": test_explicit_location}],
-        )["result"]
-
-        assert mock_download_agent_cli.call_count == 3
-        assert result["result"] == test_explicit_location
 
 
 def test_action_server_version(
@@ -2384,6 +2307,8 @@ def test_create_and_pack_agent_package(
 ) -> None:
     assert os.path.exists(agent_cli_location)
 
+    import yaml
+
     from sema4ai_code import commands
 
     language_server = language_server_initialized
@@ -2408,6 +2333,10 @@ def test_create_and_pack_agent_package(
     assert not result["message"]
     assert os.path.exists(f"{target_directory}/agent-spec.yaml")
 
+    with open(f"{target_directory}/agent-spec.yaml") as stream:
+        agent_spec = yaml.safe_load(stream)
+        assert isinstance(agent_spec, dict)
+
     # When creating a package in a directory that is not empty,
     # we expect an error to be returned.
     result = language_server.execute_command(
@@ -2422,25 +2351,6 @@ def test_create_and_pack_agent_package(
     assert not result["success"]
     assert "Error creating Agent package" in result["message"]
     assert "not empty" in result["message"]
-
-    # Correct agent spec configuration
-    agent_spec: dict = {
-        "agent-package": {
-            "spec-version": "v1",
-            "agents": [
-                {
-                    "name": "New Agent",
-                    "description": "Agent description",
-                    "model": "GPT 4 Turbo",
-                    "type": "agent",
-                    "reasoningLevel": 0,
-                    "runbooks": {"system": "system.md", "retrieval": "retrieval.md"},
-                    "action-packages": [],
-                    "resources": [],
-                }
-            ],
-        }
-    }
 
     result = _write_agent_spec_and_pack(
         agent_spec, target_directory, language_server, commands
@@ -2459,6 +2369,5 @@ def test_create_and_pack_agent_package(
 
     assert not result["success"]
     assert (
-        result["message"]
-        == "Error validating the agent package:\nLine 3: 'description' section not found."
+        "Missing required entry: agent-package/agents/description." in result["message"]
     )

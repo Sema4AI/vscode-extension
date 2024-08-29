@@ -388,8 +388,6 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
         }
     }
 
-    const actionServerVersionPromise: Promise<string | undefined> = getActionServerVersion();
-
     // Now, let's validate if we can indeed create an Action Package in the given folder.
     const op = await verifyIfPathOkToCreatePackage(targetDir);
     let force: boolean;
@@ -406,33 +404,14 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
             throw Error("Unexpected result: " + op);
     }
 
-    const robocorpHome = await getRobocorpHome();
-    const env = createEnvWithRobocorpHome(robocorpHome);
-
     try {
-        const actionServerVersion: string | undefined = await actionServerVersionPromise;
-        if (actionServerVersion === undefined) {
-            const msg = "Cannot do `new` command (it was not possible to get the action server version).";
-            OUTPUT_CHANNEL.appendLine(msg);
-            window.showErrorMessage(msg);
-            return;
-        }
-
-        const compare = compareVersions("0.10.0", actionServerVersion);
-
         /**
          * For versions before 0.10.0, we pass empty string, to indicate no template.
          * It will be handled internally by the language server.
          */
-        let template = "";
-
-        if (compare <= 0) {
-            template = await getTemplate();
-
-            /* If there is no template, it means operation was cancelled, or errored. */
-            if (!template) {
-                return;
-            }
+        const template = await getTemplate();
+        if (!template) {
+            return;
         }
 
         await makeDirs(targetDir);

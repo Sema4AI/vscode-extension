@@ -1,13 +1,13 @@
-import sys
 import pathlib
+import sys
 
 
 def test_create_run_with_env_code(tmpdir):
     import os
+    import subprocess
     from pathlib import Path
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
-    from sema4ai_ls_core import run_with_env
-    from sema4ai_ls_core import run_and_save_pid
+
+    from sema4ai_ls_core import run_and_save_pid, run_with_env
 
     robocorp_home = tmpdir.join("robohome")
     robo_env = {
@@ -76,11 +76,11 @@ def test_create_run_with_env_code(tmpdir):
 
 
 def test_delete_old(tmpdir):
-    from sema4ai_ls_core.run_with_env import _compute_path_for_env
-    from sema4ai_ls_core.run_with_env import _delete_in_thread
     import datetime
     import os
     import time
+
+    from sema4ai_ls_core.run_with_env import _compute_path_for_env, _delete_in_thread
 
     base_dir = str(tmpdir.join("run"))
     f0 = pathlib.Path(_compute_path_for_env(base_dir))
@@ -105,8 +105,9 @@ def test_delete_old(tmpdir):
 
 
 def test_run_and_save_pid_raw(tmpdir):
-    from sema4ai_ls_core import run_and_save_pid
     import threading
+
+    from sema4ai_ls_core import run_and_save_pid
     from sema4ai_ls_core.basic import wait_for_condition
 
     target_file = tmpdir.join("write_pid_to.txt")

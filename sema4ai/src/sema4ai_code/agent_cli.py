@@ -1,4 +1,5 @@
 import os
+import typing
 import weakref
 from pathlib import Path
 from typing import Any, Optional
@@ -7,23 +8,31 @@ from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.monitor import IMonitor
 from sema4ai_ls_core.protocols import (
+    ActionResult,
     ActionResultDict,
     IConfig,
     IConfigProvider,
+    IEndPoint,
     IWorkspace,
+    LaunchActionResult,
 )
 
-from sema4ai_code.protocols import ActionResult, AgentCliResult
 from sema4ai_code.tools import Tool
 
+if typing.TYPE_CHECKING:
+    from sema4ai_code.action_server import ActionServer
+
 log = get_logger(__name__)
+
+AGENT_CLI_VERSION = "v0.0.17"
 
 
 def download_agent_cli(
     location: str,
-    agent_cli_version="v0.0.9",
+    agent_cli_version=AGENT_CLI_VERSION,
     force: bool = False,
     sys_platform: Optional[str] = None,
+    endpoint: Optional[IEndPoint] = None,
 ) -> None:
     """
     Downloads Agent CLI to the given location. Note that it doesn't overwrite it if it
@@ -43,25 +52,28 @@ def download_agent_cli(
         agent_cli_version,
         force=force,
         sys_platform=sys_platform,
+        endpoint=endpoint,
     )
 
 
-def get_default_agent_cli_location(version: str = "") -> str:
+def get_default_agent_cli_location() -> str:
     from sema4ai_code.tools import get_default_tool_location
 
-    return get_default_tool_location(Tool.AGENT_CLI, version)
+    return get_default_tool_location(Tool.AGENT_CLI)
 
 
 def get_agent_package_actions_sub_directory() -> str:
     """
     Returns the directory containing Agents' actions inside of an Agent Package.
     """
+
     return "actions"
 
 
 class AgentCli:
-    def __init__(self, config_provider: IConfigProvider):
+    def __init__(self, config_provider: IConfigProvider, action_server: "ActionServer"):
         self._config_provider = weakref.ref(config_provider)
+        self._action_server = action_server
 
     def _get_str_optional_setting(self, setting_name) -> Any:
         config_provider = self._config_provider()
@@ -81,14 +93,7 @@ class AgentCli:
         Args:
             download_if_missing: If true, it will attempt to download the Agent CLI if missing.
         """
-        from sema4ai_code import settings
-
-        agent_cli_location = self._get_str_optional_setting(
-            settings.SEMA4AI_AGENT_CLI_LOCATION
-        )
-
-        if not agent_cli_location:
-            agent_cli_location = get_default_agent_cli_location()
+        agent_cli_location = get_default_agent_cli_location()
 
         if download_if_missing and not os.path.exists(agent_cli_location):
             download_agent_cli(agent_cli_location)
@@ -99,7 +104,8 @@ class AgentCli:
         self,
         args: list[str],
         timeout: float = 35,
-    ) -> AgentCliResult:
+        env: Optional[dict[str, str]] = None,
+    ) -> LaunchActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Agent CLI command.
 
@@ -107,59 +113,11 @@ class AgentCli:
             args: The list of arguments to be passed to the command.
             timeout: The timeout for running the command (in seconds).
         """
-        from subprocess import CalledProcessError, TimeoutExpired, list2cmdline, run
-
-        from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
+        from sema4ai_ls_core.process import launch
 
         agent_cli_location = self.get_agent_cli_location()
 
-        kwargs = build_subprocess_kwargs(None, env=os.environ.copy())
-        args = [agent_cli_location] + args
-        cmdline = list2cmdline([str(x) for x in args])
-
-        # Not sure why, but (just when running in VSCode) something as:
-        # launching sys.executable actually got stuck unless a \n was written
-        # (even if stdin was closed it wasn't enough).
-        # -- note: this issue seems to be particular to Windows
-        # (VSCode + Windows Defender + python).
-        input_data = "\n".encode("utf-8")
-
-        try:
-            output = run(
-                args,
-                timeout=timeout,
-                check=True,
-                capture_output=True,
-                input=input_data,
-                **kwargs,
-            )
-        except CalledProcessError as e:
-            stdout = as_str(e.stdout)
-            stderr = as_str(e.stderr)
-
-            error_message = (
-                f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
-            )
-
-            log.exception(error_message)
-
-            return AgentCliResult(cmdline, success=False, message=error_message)
-
-        except TimeoutExpired:
-            error_message = f"Timed out ({timeout}s elapsed) when running: {cmdline}"
-            log.exception(error_message)
-
-            return AgentCliResult(cmdline, success=False, message=error_message)
-
-        except Exception:
-            error_message = f"Error running {cmdline}"
-            log.exception(error_message)
-
-            return AgentCliResult(cmdline, success=False, message=error_message)
-
-        stdout_output = output.stdout.decode("utf-8", "replace")
-
-        return AgentCliResult(cmdline, success=True, message=None, result=stdout_output)
+        return launch(args=[agent_cli_location] + args, timeout=timeout, env=env)
 
     def get_version(self) -> ActionResult[str]:
         """
@@ -234,6 +192,17 @@ class AgentCli:
 
         return True, ""
 
+    def _get_env_for_agent_cli_with_action_server(self) -> dict[str, str]:
+        action_server_location = self._action_server.get_action_server_location(
+            download_if_missing=True
+        )
+        log.info(f"Action server location: {action_server_location}")
+
+        env = os.environ.copy()
+        # Environment variable for the action server location is needed for the agent cli.
+        env["ACTION_SERVER_BIN_PATH"] = action_server_location
+        return env
+
     def pack_agent_package(
         self, directory: str, workspace: IWorkspace, monitor: IMonitor
     ) -> ActionResultDict:
@@ -262,7 +231,10 @@ class AgentCli:
             "--output-dir",
             directory,
         ]
-        command_result = self._run_agent_cli_command(args)
+
+        env = self._get_env_for_agent_cli_with_action_server()
+
+        command_result = self._run_agent_cli_command(args, env=env)
 
         if not command_result.success:
             return ActionResult(

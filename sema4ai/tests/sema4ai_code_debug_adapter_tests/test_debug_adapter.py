@@ -154,13 +154,13 @@ def not_supported_test_launch_in_external_terminal(
     now so that we have an easy way of tracking the RCC process pid).
     """
     import os
+    import subprocess
 
     from sema4ai_ls_core.basic import as_str
     from sema4ai_ls_core.debug_adapter_core.dap.dap_schema import (
         RunInTerminalRequest,
         TerminatedEvent,
     )
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
 
     debugger_api.initialize(rcc_config_location=rcc_config_location)
 

@@ -3,12 +3,19 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from sema4ai_ls_core.constants import Null
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IProgressReporter
 
 log = get_logger(__name__)
 
 
-def download_with_resume(url: str, target: Path, make_executable: bool) -> Path:
+def download_with_resume(
+    url: str,
+    target: Path,
+    make_executable: bool,
+    progress_reporter: IProgressReporter | Null,
+) -> Path:
     """
     Downloads a file from a URL to a target path with resume support.
     """
@@ -21,11 +28,13 @@ def download_with_resume(url: str, target: Path, make_executable: bool) -> Path:
     except Exception:
         pass
 
+    curr_downloaded = 0
+
     chunk_size = 1024 * 5
     with _open_urllib(url) as response:
         content_size = int(response.getheader("Content-Length") or -1)
         try:
-            with open(url, "wb") as stream:
+            with open(target, "wb") as stream:
                 while True:
                     chunk = response.read(chunk_size)
                     if not chunk:
@@ -34,12 +43,24 @@ def download_with_resume(url: str, target: Path, make_executable: bool) -> Path:
                         # that was the case).
                         break
                     stream.write(chunk)
+                    curr_downloaded += len(chunk)
+
+                    if content_size > 0:
+                        # Now, convert to a string showing only 2 decimals.
+                        total_mb = f"{content_size / 1024 / 1024:.2f}"
+                    else:
+                        total_mb = "unknown"
+                    progress_reporter.set_additional_info(
+                        f"Downloaded {curr_downloaded / 1024 / 1024:.2f} MB of {total_mb} MB"
+                    )
         except Exception:
             # Non-resumable case, just raise.
             if content_size <= 0:
+                log.exception("Error downloading (no resume possible)")
                 raise
             # Otherwise, keep on going to resume the download if it still
             # hasn't finished.
+            log.exception("Error downloading (will try to resume)")
 
     MAX_TRIES = 10
     for i in range(MAX_TRIES):
@@ -52,7 +73,7 @@ def download_with_resume(url: str, target: Path, make_executable: bool) -> Path:
                     f"Resuming download of '{url}' to '{target}' (downloaded {curr_file_size} of {content_size} (bytes))"
                 )
                 try:
-                    _resume_download(url, target, chunk_size)
+                    _resume_download(url, target, chunk_size, progress_reporter)
                 except Exception:
                     if i == MAX_TRIES - 1:
                         raise
@@ -92,7 +113,12 @@ def _get_file_size(filename: str | Path) -> int:
     return file_size
 
 
-def _resume_download(url: str, filename: str | Path, chunk_size: int = 1024):
+def _resume_download(
+    url: str,
+    filename: str | Path,
+    chunk_size: int,
+    progress_reporter: IProgressReporter | Null,
+):
     """Downloads a file in chunks with resume support.
 
     Args:
@@ -117,6 +143,10 @@ def _resume_download(url: str, filename: str | Path, chunk_size: int = 1024):
             if not chunk:
                 break
             stream.write(chunk)
+            downloaded_size += len(chunk)
+            progress_reporter.set_additional_info(
+                f"Downloaded {downloaded_size / 1024 / 1024:.2f} MB of {content_size / 1024 / 1024:.2f} MB"
+            )
 
 
 class HTTPError(Exception):

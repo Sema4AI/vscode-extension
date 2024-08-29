@@ -5,9 +5,9 @@ The default timeout is 100 seconds and it can be customized
 with a 'RUN_TESTS_TIMEOUT' environment variable.
 """
 
-import sys
 import os
 import subprocess
+import sys
 import time
 from contextlib import contextmanager
 
@@ -84,7 +84,9 @@ def main():
                         pids.append(s.pid)
 
                     try:
-                        from sema4ai_ls_core.basic import kill_process_and_subprocesses
+                        from sema4ai_ls_core.process import (
+                            kill_process_and_subprocesses,
+                        )
                     except:
                         # Automatically add it to the path if not there.
                         sys.path.append(
@@ -95,7 +97,9 @@ def main():
                                 "src",
                             )
                         )
-                        from sema4ai_ls_core.basic import kill_process_and_subprocesses
+                        from sema4ai_ls_core.process import (
+                            kill_process_and_subprocesses,
+                        )
 
                     kill_process_and_subprocesses(pid)
 

@@ -170,7 +170,7 @@ import { RobotOutputViewProvider } from "./output/outView";
 import { setupDebugSessionOutViewIntegration } from "./output/outViewRunIntegration";
 import { showInspectorUI } from "./inspector/inspectorView";
 import { IAppRoutes } from "./inspector/protocols";
-import { actionServerCloudLogin, downloadLatestActionServer, startActionServer } from "./actionServer";
+import { actionServerCloudLogin, downloadOrGetActionServerLocation, startActionServer } from "./actionServer";
 import {
     askAndRunRobocorpActionFromActionPackage,
     createActionPackage,
@@ -357,13 +357,13 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE, () => createPackage());
     C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
-            const location = await downloadLatestActionServer();
+            const location = await downloadOrGetActionServerLocation();
             if (location) {
                 // If it failed a message should've been displayed already.
-                window.showInformationMessage(`The latest action server was downloaded to: ${location}`);
+                window.showInformationMessage(`Action Server downloaded to: ${location}`);
             }
         } catch (error) {
-            logError("Error downloading latest action server", error, "ERR_DOWNLOAD_ACTION_SERVER");
+            logError("Error downloading Action Server", error, "ERR_DOWNLOAD_ACTION_SERVER");
             window.showErrorMessage(
                 "There was an error downloading the action server. See `OUTPUT > Sema4.ai` for more information."
             );

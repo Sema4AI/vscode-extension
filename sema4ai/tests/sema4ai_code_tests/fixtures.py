@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import Any, Iterator
 
 import pytest
-from sema4ai_code.protocols import ActionResult, IRcc
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
+from sema4ai_code.protocols import ActionResult, IRcc
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.inspector.web._web_inspector import PickedLocatorTypedDict
@@ -134,6 +134,7 @@ def cached_conda_cloud():
 @pytest.fixture(scope="session", autouse=True)
 def patch_conda_forge_cloud_setup(cached_conda_cloud):
     from pytest import MonkeyPatch
+
     from sema4ai_code.robocorp_language_server import RobocorpLanguageServer
 
     def _create_conda_cloud(self, _cache_dir: str):
@@ -168,8 +169,9 @@ def config_provider(
     rcc_config_location: str,
     robocorp_home: str,
 ):
-    from sema4ai_code.robocorp_config import RobocorpConfig
     from sema4ai_ls_core.ep_providers import DefaultConfigurationProvider
+
+    from sema4ai_code.robocorp_config import RobocorpConfig
 
     config = RobocorpConfig()
 
@@ -248,7 +250,7 @@ _PACKAGE_INFO_WS_1: dict = {
 
 
 class RccPatch(object):
-    def __init__(self, monkeypatch, tmpdir):
+    def __init__(self, monkeypatch, tmpdir) -> None:
         from sema4ai_code.rcc import Rcc
 
         self.monkeypatch = monkeypatch
@@ -429,13 +431,13 @@ def language_server_initialized(
 def patch_pypi_cloud(monkeypatch):
     import datetime
 
-    from sema4ai_code import hover
-    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
-
     from sema4ai_code_tests.deps.cloud_mock_data import (
         JQ_PYPI_MOCK_DATA,
         RPAFRAMEWORK_PYPI_MOCK_DATA,
     )
+
+    from sema4ai_code import hover
+    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -461,10 +463,10 @@ def patch_pypi_cloud(monkeypatch):
 def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     import datetime
 
+    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
+
     from sema4ai_code import hover
     from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
-
-    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -493,19 +495,6 @@ def action_server_location() -> str:
 
     location = get_default_action_server_location()
     download_action_server(location, force=False)
-    return location
-
-
-@pytest.fixture
-def action_server_location_without_templates_handling() -> str:
-    from sema4ai_code.action_server import (
-        download_action_server,
-        get_default_action_server_location,
-    )
-
-    version = "0.9.0"
-    location = get_default_action_server_location(version)
-    download_action_server(location, action_server_version=version, force=False)
     return location
 
 
@@ -562,11 +551,12 @@ def tk_process(datadir) -> Iterator[subprocess.Popen]:
     """
     Note: kills existing tk processes prior to starting.
     """
+    from sema4ai_ls_core.process import kill_process_and_subprocesses
+
     from sema4ai_code.inspector.windows.robocorp_windows import (
         find_window,
         find_windows,
     )
-    from sema4ai_ls_core.basic import kill_process_and_subprocesses
 
     # Ensure no tk processes when we start...
     windows_found = list(

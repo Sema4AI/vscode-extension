@@ -1,15 +1,13 @@
 import re
 import threading
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, cast, Protocol
+from typing import Any, Callable, List, Optional, Protocol, Tuple, TypedDict, cast
 
 from JABWrapper.context_tree import ContextNode
 from JABWrapper.jab_wrapper import JavaWindow
-
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.core_log import get_logger
 
 from sema4ai_code.inspector.java.robocorp_java._inspector import ColletedTreeTypedDict
-
 
 log = get_logger(__name__)
 
@@ -184,12 +182,11 @@ def to_unique_locator(elem: LocatorNodeInfoTypedDict):
 
 
 class JavaInspector:
-    def __init__(self):
-        import threading
+    def __init__(self) -> None:
+        from sema4ai_code.inspector.java.highlighter import TkHandlerThread
         from sema4ai_code.inspector.java.robocorp_java._inspector import (
             ElementInspector,
         )
-        from sema4ai_code.inspector.java.highlighter import TkHandlerThread
 
         self._element_inspector = ElementInspector()
         self._tk_handler_thread: TkHandlerThread = TkHandlerThread()
@@ -203,7 +200,7 @@ class JavaInspector:
         self.__enable_switch()
 
     @staticmethod
-    def __inject_access_bridge_path():
+    def __inject_access_bridge_path() -> None:
         # TODO: change the Exceptions to something more specific
         import os
 
@@ -229,7 +226,7 @@ class JavaInspector:
             )
 
     @staticmethod
-    def __enable_switch():
+    def __enable_switch() -> None:
         import os
         import subprocess
 

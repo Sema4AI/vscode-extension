@@ -17,8 +17,8 @@
 import json
 from typing import Optional
 
-from sema4ai_ls_core.debug_adapter_core.dap import dap_base_schema as base_schema
 from sema4ai_ls_core.core_log import get_log_level, get_logger
+from sema4ai_ls_core.debug_adapter_core.dap import dap_base_schema as base_schema
 
 log = get_logger(__name__)
 
@@ -35,7 +35,7 @@ class DebugAdapterComm(object):
     needed).
     """
 
-    def __init__(self, write_to_client_queue):
+    def __init__(self, write_to_client_queue) -> None:
         self.write_to_client_queue = write_to_client_queue
         self._launch_process = None  # : :type self._launch_process: LaunchProcess
         self._supports_run_in_terminal = False

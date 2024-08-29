@@ -18,13 +18,12 @@
 import itertools
 import os.path
 import threading
-import traceback
 from functools import partial
 from pathlib import Path
 from typing import Callable, List, Optional
 
-from sema4ai_ls_core.protocols import IConfig
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IConfig
 
 log = get_logger(__name__)
 
@@ -46,7 +45,7 @@ def _notify_on_exited_pid(on_exit, pid):
     try:
         import time
 
-        from sema4ai_ls_core.basic import is_process_alive
+        from sema4ai_ls_core.process import is_process_alive
 
         log.debug("Waiting for pid to exit (_notify_on_exited_pid).")
 
@@ -102,12 +101,12 @@ class LaunchProcess(object):
         from sema4ai_ls_core import yaml_wrapper
         from sema4ai_ls_core.basic import as_str
         from sema4ai_ls_core.config import Config
+        from sema4ai_ls_core.core_log import get_log_level
         from sema4ai_ls_core.debug_adapter_core.dap.dap_schema import (
             OutputEvent,
             OutputEventBody,
         )
         from sema4ai_ls_core.protocols import ActionResult
-        from sema4ai_ls_core.core_log import get_log_level
 
         from sema4ai_code.plugins.resolve_interpreter import get_conda_config_path
         from sema4ai_code.protocols import IRobotYamlEnvInfo
@@ -421,13 +420,13 @@ class LaunchProcess(object):
         import tempfile
 
         from sema4ai_ls_core import run_and_save_pid, run_with_env
+        from sema4ai_ls_core.core_log import get_log_level
         from sema4ai_ls_core.debug_adapter_core.dap.dap_schema import (
             OutputEvent,
             OutputEventBody,
             RunInTerminalRequest,
             RunInTerminalRequestArguments,
         )
-        from sema4ai_ls_core.core_log import get_log_level
 
         from sema4ai_code_debug_adapter.constants import (
             TERMINAL_EXTERNAL,
@@ -541,7 +540,7 @@ class LaunchProcess(object):
             t.start()
 
     def disconnect(self, disconnect_request):
-        from sema4ai_ls_core.basic import kill_process_and_subprocesses
+        from sema4ai_ls_core.process import kill_process_and_subprocesses
 
         if self._popen is not None:
             if self._popen.returncode is None:

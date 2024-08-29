@@ -1,14 +1,18 @@
 def test_system_mutex():
-    from sema4ai_ls_core.system_mutex import SystemMutex
-    from sema4ai_ls_core.system_mutex import timed_acquire_mutex
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
+    import subprocess
     import sys
-    import pytest
-    import time
     import threading
+    import time
     import weakref
+
+    import pytest
     from _pytest.outcomes import Failed
-    from sema4ai_ls_core.system_mutex import _mutex_name_to_info
+
+    from sema4ai_ls_core.system_mutex import (
+        SystemMutex,
+        _mutex_name_to_info,
+        timed_acquire_mutex,
+    )
 
     mutex_name = "mutex_name_test_system_mutex"
 
@@ -119,9 +123,10 @@ def test_gen_mutex_name_from_path():
 
 
 def test_system_mutex_error_on_timeout():
-    from sema4ai_ls_core.system_mutex import SystemMutex
     import os
     import threading
+
+    from sema4ai_ls_core.system_mutex import SystemMutex
 
     mutex = SystemMutex("test_system_mutex_error_on_timeout")
     assert mutex.get_mutex_aquired()
@@ -141,9 +146,9 @@ def test_system_mutex_error_on_timeout():
 
 
 def test_system_mutex_timed_acquire_no_error_on_timeout():
-    from sema4ai_ls_core.system_mutex import SystemMutex
     import threading
-    from sema4ai_ls_core.system_mutex import timed_acquire_mutex
+
+    from sema4ai_ls_core.system_mutex import SystemMutex, timed_acquire_mutex
 
     event_mutex_acquired = threading.Event()
     event_terminate_thread = threading.Event()
@@ -187,11 +192,12 @@ def test_system_mutex_timed_acquire_no_error_on_timeout():
 
 
 def test_system_mutex_locked_on_subprocess():
+    import subprocess
     import sys
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
-    from sema4ai_ls_core.basic import kill_process_and_subprocesses
-    from sema4ai_ls_core.system_mutex import SystemMutex
+
     from sema4ai_ls_core.basic import wait_for_condition
+    from sema4ai_ls_core.process import kill_process_and_subprocesses
+    from sema4ai_ls_core.system_mutex import SystemMutex
 
     code = """
 import sys

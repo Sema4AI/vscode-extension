@@ -5,7 +5,7 @@ from typing import Iterable, List, Optional, Union
 
 from sema4ai_ls_core.command_dispatcher import _SubCommandDispatcher
 from sema4ai_ls_core.core_log import get_logger
-from sema4ai_ls_core.subprocess_wrapper import LaunchActionResultDict
+from sema4ai_ls_core.protocols import ActionResultDict
 
 from sema4ai_code import commands
 
@@ -117,13 +117,11 @@ class _PreRunScripts:
         return bool(self._get_pre_run_scripts(params["robot"]))
 
     @pre_run_scripts_command_dispatcher(commands.SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL)
-    def _run_pre_run_scripts_internal(
-        self, params: dict
-    ) -> Optional[LaunchActionResultDict]:
+    def _run_pre_run_scripts_internal(self, params: dict) -> Optional[ActionResultDict]:
         import os
         import shlex
 
-        from sema4ai_ls_core.subprocess_wrapper import launch
+        from sema4ai_ls_core.process import launch
 
         pre_run_scripts = self._get_pre_run_scripts(params["robot"])
         if pre_run_scripts:

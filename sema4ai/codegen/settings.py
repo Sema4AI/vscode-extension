@@ -110,18 +110,6 @@ SETTINGS = [
         "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown.",
         setting_type="boolean",
     ),
-    Setting(
-        "sema4ai.actionServer.location",
-        "",
-        "Specifies the location of the action-server executable.",
-        setting_type="string",
-    ),
-    Setting(
-        "sema4ai.agentCli.location",
-        "",
-        "Specifies the location of the agent-cli executable.",
-        setting_type="string",
-    ),
 ]
 
 

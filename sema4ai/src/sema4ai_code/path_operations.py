@@ -31,8 +31,8 @@ from pathlib import Path, PurePath
 from queue import Queue  # noqa
 from typing import Iterable, Iterator, Optional, TypeVar
 
-from sema4ai_ls_core.protocols import ITimeoutHandle  # noqa
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import ITimeoutHandle  # noqa
 
 __all__ = ["Path", "PurePath"]
 
@@ -365,10 +365,10 @@ class PathsRemover(threading.Thread):
         self.daemon = True
         self.queue = queue
 
-    def run(self):
+    def run(self) -> None:
         while True:
             path: Path = self.queue.get()
             try:
                 rm_rf(path)
-            except:
+            except BaseException:
                 log.exception("Error removing: {path}")
