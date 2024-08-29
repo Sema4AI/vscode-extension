@@ -59,7 +59,9 @@ def get_tool_version(tool: Tool, location: str) -> LaunchActionResult:
     return launch((location,) + version_command)
 
 
-def verify_tool_downloaded_ok(tool: Tool, location: str, force: bool) -> bool:
+def verify_tool_downloaded_ok(
+    tool: Tool, location: str, force: bool, make_run_check: bool
+) -> bool:
     if location in _checked_downloaded_tools and not force:
         if os.path.isfile(location):
             return True  # Already checked: just do simpler check.
@@ -76,14 +78,17 @@ def verify_tool_downloaded_ok(tool: Tool, location: str, force: bool) -> bool:
 
     # Actually execute it to make sure it works (in windows right after downloading
     # it may not be ready, so, retry a few times).
-    times = 5
-    timeout = 1
-    for _ in range(times):
-        version_result = get_tool_version(tool, location)
-        if version_result.success:
-            _checked_downloaded_tools.add(location)
-            return True
-        time.sleep(timeout / times)
+    if not make_run_check:
+        _checked_downloaded_tools.add(location)
+    else:
+        times = 5
+        timeout = 1
+        for _ in range(times):
+            version_result = get_tool_version(tool, location)
+            if version_result.success:
+                _checked_downloaded_tools.add(location)
+                return True
+            time.sleep(timeout / times)
 
     log.info(f"Tool {location} failed to execute. Details: {version_result.message}")
 
@@ -127,7 +132,9 @@ def download_tool(
         sys_platform = sys.platform
 
     if not force:
-        if verify_tool_downloaded_ok(tool, location, force=force):
+        if verify_tool_downloaded_ok(
+            tool, location, force=force, make_run_check=sys_platform == sys.platform
+        ):
             return
 
     tool_info = get_tool_info(tool)
@@ -136,7 +143,9 @@ def download_tool(
         # If other call was already in progress, we need to check it again,
         # as to not overwrite it when force was equal to False.
         if not force:
-            if verify_tool_downloaded_ok(tool, location, force=force):
+            if verify_tool_downloaded_ok(
+                tool, location, force=force, make_run_check=sys_platform == sys.platform
+            ):
                 return
 
         if endpoint is not None:
@@ -164,7 +173,9 @@ def download_tool(
                 progress_reporter=progress_reporter,
             )
 
-        if not verify_tool_downloaded_ok(tool, location, force=True):
+        if not verify_tool_downloaded_ok(
+            tool, location, force=True, make_run_check=sys_platform == sys.platform
+        ):
             raise Exception(
                 f"After downloading {tool!r} failed to execute tool (location: {location})."
             )
