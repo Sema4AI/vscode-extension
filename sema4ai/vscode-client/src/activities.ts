@@ -46,7 +46,8 @@ import {
     isActionPackage,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
-    verifyIfPathOkToCreatePackage, isAgentPackage,
+    verifyIfPathOkToCreatePackage,
+    isAgentPackage,
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
 import { getSelectedRobot } from "./viewsSelection";
@@ -220,7 +221,6 @@ export async function listAndAskRobotSelection(
         if (opts.showTaskPackages && isTaskPackage) {
             return true;
         }
-        
 
         return false;
     };
