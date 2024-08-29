@@ -88,7 +88,7 @@ def download_with_resume(
 
     if make_executable:
         st = os.stat(target)
-        os.chmod(target, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        os.chmod(target, st.st_mode | stat.S_IEXEC)
 
     return target
 
