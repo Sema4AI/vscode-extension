@@ -143,7 +143,7 @@ export const findActionPackagePath = async (): Promise<Uri | undefined> => {
     const selected = await listAndAskRobotSelection(
         "Please select the Action Package from which the Action Server should load actions.",
         "Unable to start Action Server because no Action Package was found in the workspace.",
-        { showActionPackages: true, showTaskPackages: false }
+        { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
     );
     if (!selected) {
         return;

@@ -152,6 +152,7 @@
         "onCommand:sema4ai.createAgentPackage.internal",
         "onCommand:sema4ai.packAgentPackage",
         "onCommand:sema4ai.packAgentPackage.internal",
+        "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -921,6 +922,11 @@
             {
                 "command": "sema4ai.packAgentPackage",
                 "title": "Pack Agent Package",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
+                "title": "Publish Agent Package to Sema4.ai Studio",
                 "category": "Sema4.ai"
             }
         ],

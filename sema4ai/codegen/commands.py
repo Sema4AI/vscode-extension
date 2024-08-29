@@ -937,6 +937,12 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.agentPackagePublishToSema4AIStudioApp",
+        "Publish Agent Package to Sema4.ai Studio",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 

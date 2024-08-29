@@ -46,7 +46,7 @@ import {
     isActionPackage,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
-    verifyIfPathOkToCreatePackage,
+    verifyIfPathOkToCreatePackage, isAgentPackage,
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
 import { getSelectedRobot } from "./viewsSelection";
@@ -56,6 +56,7 @@ import { createAgentPackage } from "./robo/agentPackage";
 export interface ListOpts {
     showTaskPackages: boolean;
     showActionPackages: boolean;
+    showAgentPackages: boolean;
 }
 
 export async function cloudLogin(): Promise<boolean> {
@@ -208,14 +209,20 @@ export async function listAndAskRobotSelection(
     const filter = (entry: LocalPackageMetadataInfo) => {
         const isActionPkg = isActionPackage(entry);
         const isTaskPackage = !isActionPkg;
+        const isAgentPkg = isAgentPackage(entry);
 
-        if (!opts.showActionPackages && isActionPkg) {
-            return false;
+        if (opts.showAgentPackages && isAgentPkg) {
+            return true;
         }
-        if (!opts.showTaskPackages && isTaskPackage) {
-            return false;
+        if (opts.showActionPackages && isActionPkg) {
+            return true;
         }
-        return true;
+        if (opts.showTaskPackages && isTaskPackage) {
+            return true;
+        }
+        
+
+        return false;
     };
 
     robotsInfo = robotsInfo.filter(filter);
