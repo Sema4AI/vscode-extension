@@ -5,31 +5,30 @@ import typing
 import weakref
 from concurrent.futures import Future
 from pathlib import Path
-from typing import Literal, Optional, TypedDict, Any
+from typing import Any, Literal, Optional, TypedDict
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
-
 from sema4ai_ls_core.protocols import (
+    ActionResult,
     IConfig,
     IConfigProvider,
+    IEndPoint,
+    LaunchActionResult,
 )
 
 from sema4ai_code.protocols import (
-    ActionResult,
     ActionServerListOrgsResultDict,
     ActionServerPackageBuildResultDict,
     ActionServerPackageUploadStatusDict,
-    ActionServerResult,
     ActionServerVerifyLoginResultDict,
     ActionTemplate,
 )
 
-from sema4ai_code.tools import Tool
-
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
+ACTION_SERVER_VERSION = "0.19.0"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
@@ -75,9 +74,10 @@ def is_port_free(port: int) -> bool:
 
 def download_action_server(
     location: str,
-    action_server_version="latest",
+    action_server_version=ACTION_SERVER_VERSION,
     force: bool = False,
     sys_platform: Optional[str] = None,
+    endpoint: Optional[IEndPoint] = None,
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -89,7 +89,7 @@ def download_action_server(
         force: Whether we should overwrite an existing installation.
         sys_platform: The target platform of downloaded artifact.
     """
-    from sema4ai_code.tools import download_tool
+    from sema4ai_code.tools import Tool, download_tool
 
     download_tool(
         Tool.ACTION_SERVER,
@@ -97,13 +97,14 @@ def download_action_server(
         action_server_version,
         force=force,
         sys_platform=sys_platform,
+        endpoint=endpoint,
     )
 
 
-def get_default_action_server_location(version: str = "") -> str:
+def get_default_action_server_location() -> str:
     from sema4ai_code.tools import Tool, get_default_tool_location
 
-    return get_default_tool_location(Tool.ACTION_SERVER, version)
+    return get_default_tool_location(Tool.ACTION_SERVER)
 
 
 if typing.TYPE_CHECKING:
@@ -148,9 +149,6 @@ class ActionServerAsService:
         ssl_keyfile: str = "",
         ssl_certfile: str = "",
     ):
-        self.action_server_location = action_server_location
-        self.port = port
-
         self._action_server_location = action_server_location
         self._port = port
         self._datadir = datadir
@@ -473,14 +471,7 @@ class ActionServer:
         Args:
             download_if_missing: If true, it will attempt to download the Action Server if missing.
         """
-        from sema4ai_code import settings
-
-        action_server_location = self._get_str_optional_setting(
-            settings.SEMA4AI_ACTION_SERVER_LOCATION
-        )
-
-        if not action_server_location:
-            action_server_location = get_default_action_server_location()
+        action_server_location = get_default_action_server_location()
 
         if download_if_missing and not os.path.exists(action_server_location):
             download_action_server(action_server_location)
@@ -491,68 +482,17 @@ class ActionServer:
         self,
         args: list[str],
         timeout: float = 35,
-    ) -> ActionServerResult:
+    ) -> LaunchActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Action Server command.
         Args:
             args: The list of arguments to be passed to the command.
             timeout: The timeout for running the command (in seconds).
         """
-        from subprocess import CalledProcessError, TimeoutExpired, list2cmdline, run
-
-        from sema4ai_ls_core.basic import as_str, build_subprocess_kwargs
+        from sema4ai_ls_core.process import launch
 
         action_server_location = self.get_action_server_location()
-
-        kwargs = build_subprocess_kwargs(None, env=os.environ.copy())
-        args = [action_server_location] + args
-        cmdline = list2cmdline([str(x) for x in args])
-
-        # Not sure why, but (just when running in VSCode) something as:
-        # launching sys.executable actually got stuck unless a \n was written
-        # (even if stdin was closed it wasn't enough).
-        # -- note: this issue seems to be particular to Windows
-        # (VSCode + Windows Defender + python).
-        input_data = "\n".encode("utf-8")
-
-        try:
-            output = run(
-                args,
-                timeout=timeout,
-                check=True,
-                capture_output=True,
-                input=input_data,
-                **kwargs,
-            )
-        except CalledProcessError as e:
-            stdout = as_str(e.stdout)
-            stderr = as_str(e.stderr)
-
-            error_message = (
-                f"Error running: {cmdline}\n\nStdout: {stdout}\nStderr: {stderr}"
-            )
-
-            log.exception(error_message)
-
-            return ActionServerResult(cmdline, success=False, message=error_message)
-
-        except TimeoutExpired:
-            error_message = f"Timed out ({timeout}s elapsed) when running: {cmdline}"
-            log.exception(error_message)
-
-            return ActionServerResult(cmdline, success=False, message=error_message)
-
-        except Exception:
-            error_message = f"Error running {cmdline}"
-            log.exception(error_message)
-
-            return ActionServerResult(cmdline, success=False, message=error_message)
-
-        stdout_output = output.stdout.decode("utf-8", "replace")
-
-        return ActionServerResult(
-            cmdline, success=True, message=None, result=stdout_output
-        )
+        return launch(args=[action_server_location] + args, timeout=timeout)
 
     def get_version(self) -> ActionResult[str]:
         """
@@ -569,8 +509,6 @@ class ActionServer:
         """
         Returns the list of available Action templates.
         """
-        import json
-
         command_result = self._run_action_server_command(
             ["new", "list-templates", "--json"]
         )
@@ -597,9 +535,7 @@ class ActionServer:
 
         return ActionResult(success=True, message=None, result=templates)
 
-    def create_action_package(
-        self, directory: str, template: Optional[str]
-    ) -> ActionResult:
+    def create_action_package(self, directory: str, template: str) -> ActionResult:
         """
         Creates a new Action package under given directory, using specified template.
 
@@ -624,9 +560,18 @@ class ActionServer:
             int(x) for x in version_result.result.strip().split(".")[:2]
         )
 
-        # Action Server < v10 does not support templates handling, therefore we skip the parameter.
+        if not template:
+            return ActionResult(
+                success=False,
+                message="Template name must be provided and may not be empty.",
+            )
+
+        # Action Server < v10 is not supported.
         if version_tuple <= (0, 10):
-            args = ["new", f"--name={directory}"]
+            return ActionResult(
+                success=False,
+                message="Action Server version is too old. Please update.",
+            )
         else:
             args = ["new", f"--name={directory}", f"--template={template}"]
 

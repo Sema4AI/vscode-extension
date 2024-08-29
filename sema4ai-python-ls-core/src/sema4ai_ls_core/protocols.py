@@ -957,7 +957,7 @@ class ActionResult(Generic[T]):
         return ActionResult(success=True, message=None, result=result)
 
 
-class RCCActionResult(ActionResult[str]):
+class LaunchActionResult(ActionResult[T]):
     # A string-representation of the command line.
     command_line: str
 
@@ -966,7 +966,7 @@ class RCCActionResult(ActionResult[str]):
         command_line: str,
         success: bool,
         message: Optional[str] = None,
-        result: Optional[str] = None,
+        result: Optional[T] = None,
     ):
         ActionResult.__init__(self, success, message, result)
         self.command_line = command_line

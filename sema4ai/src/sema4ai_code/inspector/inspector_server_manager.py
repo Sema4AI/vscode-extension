@@ -5,12 +5,9 @@ import threading
 from functools import partial
 from typing import Optional
 
-from sema4ai_ls_core.basic import (
-    is_process_alive,
-    kill_process_and_subprocesses,
-    log_and_silence_errors,
-)
+from sema4ai_ls_core.basic import log_and_silence_errors
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.process import is_process_alive, kill_process_and_subprocesses
 
 from sema4ai_code.inspector.client import InspectorApiClient
 

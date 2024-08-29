@@ -17,13 +17,13 @@
 # limitations under the License.
 import os
 import queue
+import subprocess
 import sys
 import threading
 from typing import Iterable, Optional
 
 import pytest  # type: ignore
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
-from sema4ai_ls_core.subprocess_wrapper import subprocess
 from sema4ai_ls_core.unittest_tools.fixtures import TIMEOUT
 
 __file__ = os.path.abspath(__file__)
@@ -70,7 +70,7 @@ def dap_process_stderr_file(dap_logs_dir):
 
 @pytest.fixture
 def dap_process(dap_log_file, dap_process_stderr_file):
-    from sema4ai_ls_core.basic import kill_process_and_subprocesses
+    from sema4ai_ls_core.process import kill_process_and_subprocesses
 
     from sema4ai_code_debug_adapter import __main__
 

@@ -1,147 +1,32 @@
-import { SEMA4AI_ACTION_SERVER_LOCATION, getActionserverLocation, setActionserverLocation } from "./robocorpSettings";
-import { fileExists, makeDirs } from "./files";
-import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, workspace, commands } from "vscode";
+import { CancellationToken, Progress, ProgressLocation, Terminal, Uri, window, commands } from "vscode";
 import * as roboCommands from "./robocorpCommands";
 import { createEnvWithRobocorpHome, getRobocorpHome } from "./rcc";
 import path = require("path");
 import { OUTPUT_CHANNEL } from "./channel";
 import * as http from "http";
 import { listAndAskRobotSelection } from "./activities";
-import { compareVersions } from "./common";
-import { showSelectOneStrQuickPick } from "./ask";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
-import { Tool, getExecutableFileName, getToolVersion, downloadTool } from "./tools";
-
-// Update so that Sema4.ai requests the latest version of the action server.
-const LATEST_ACTION_SERVER_VERSION = "0.17.0";
+import { Tool, getToolVersion, downloadTool } from "./tools";
 
 const ACTION_SERVER_DEFAULT_PORT = 8082;
 const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
 
-function downloadActionServer(internalActionServerLocation: string): Thenable<string> {
-    return window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: "Downloading action server",
-            cancellable: false,
-        },
-        (): Promise<string> => downloadTool(Tool.ActionServer, internalActionServerLocation)
-    );
+let globalLocation: string | undefined = undefined;
+
+function downloadActionServer(): Thenable<string> {
+    return downloadTool(Tool.ActionServer);
 }
-
-const getInternalActionServerDirLocation = async (): Promise<string> => {
-    const robocorpHome: string = await getRobocorpHome();
-    return path.join(robocorpHome, "action-server-vscode");
-};
-
-const getInternalActionServerLocation = async (tmpFlag: string = "") => {
-    return path.join(await getInternalActionServerDirLocation(), getExecutableFileName(Tool.ActionServer, tmpFlag));
-};
 
 export const getActionServerVersion = async (): Promise<string> => {
     return getToolVersion(Tool.ActionServer);
 };
 
-let verifiedActionServerVersions: Map<string, boolean> = new Map();
-
-export const downloadLatestActionServer = async (): Promise<string | undefined> => {
-    const versionedLocation = await getInternalActionServerLocation(`-${LATEST_ACTION_SERVER_VERSION}`);
-
-    OUTPUT_CHANNEL.appendLine(`Downloading latest Action Server to ${versionedLocation}.`);
-    await makeDirs(path.dirname(versionedLocation));
-    const savedLocation = await downloadActionServer(versionedLocation);
-
-    /**
-     * If failed, savedLocation will be nullish - at this point we simply exit the function,
-     * as appropriate error notifications have already been shown.
-     */
-    if (!savedLocation || savedLocation !== versionedLocation) {
-        return;
-    }
-
-    OUTPUT_CHANNEL.appendLine(`Downloaded latest Action Server to ${versionedLocation}.`);
-
-    await setActionserverLocation(savedLocation);
-
-    return savedLocation;
-};
-
 export const downloadOrGetActionServerLocation = async (): Promise<string | undefined> => {
-    const location = await internalDownloadOrGetActionServerLocation();
-    if (!location) {
-        return location;
+    if (globalLocation) {
+        return globalLocation;
     }
-
-    const verifiedAlready = verifiedActionServerVersions.get(location);
-
-    if (!verifiedAlready) {
-        verifiedActionServerVersions.set(location, true);
-        const actionServerVersion = await getActionServerVersion();
-
-        const expected = LATEST_ACTION_SERVER_VERSION;
-        const compare = compareVersions(expected, actionServerVersion);
-        if (compare > 0) {
-            const DOWNLOAD = "Download new";
-            const selection = await showSelectOneStrQuickPick(
-                [DOWNLOAD, "Keep current"],
-                "How would you like to proceed.",
-                `Old version of Action Server detected (${actionServerVersion}). Expected '${expected}' or newer.`
-            );
-            if (selection === DOWNLOAD) {
-                return await downloadLatestActionServer();
-            }
-        }
-    }
-    return location;
-};
-
-const internalDownloadOrGetActionServerLocation = async (): Promise<string | undefined> => {
-    const actionServerLocationInSettings = getActionserverLocation();
-    const configName = SEMA4AI_ACTION_SERVER_LOCATION;
-    let message: string;
-
-    if (!actionServerLocationInSettings) {
-        message =
-            "The action-server executable is not currently specified in the `" +
-            configName +
-            "` setting. How would you like to proceed?";
-    } else if (!(await fileExists(actionServerLocationInSettings))) {
-        message =
-            "The action-server executable specified in the `" +
-            configName +
-            "` does not point to an existing file. How would you like to proceed?";
-    } else {
-        // Ok, found in settings.
-        return actionServerLocationInSettings;
-    }
-
-    if (message) {
-        const DOWNLOAD_TO_INTERNAL_LOCATION = "Download";
-        const SPECIFY_LOCATION = "Specify Location";
-        const option = await window.showInformationMessage(
-            message,
-            { "modal": true },
-            DOWNLOAD_TO_INTERNAL_LOCATION,
-            SPECIFY_LOCATION
-        );
-        if (option === DOWNLOAD_TO_INTERNAL_LOCATION) {
-            return await downloadLatestActionServer();
-        } else if (option === SPECIFY_LOCATION) {
-            let uris: Uri[] | undefined = await window.showOpenDialog({
-                "canSelectFolders": false,
-                "canSelectFiles": true,
-                "canSelectMany": false,
-                "openLabel": `Select the action-server executable`,
-            });
-            if (uris && uris.length === 1) {
-                const f = uris[0].fsPath;
-
-                await setActionserverLocation(f);
-
-                return f;
-            }
-        }
-    }
+    globalLocation = await downloadActionServer();
+    return globalLocation;
 };
 
 export const isActionServerAlive = async (port: number = ACTION_SERVER_DEFAULT_PORT) => {

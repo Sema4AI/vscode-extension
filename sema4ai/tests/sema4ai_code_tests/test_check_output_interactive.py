@@ -6,10 +6,6 @@ import pytest
 
 @pytest.mark.parametrize("check_timeout", [True, False])
 def test_check_output_interactive(check_timeout):
-    from sema4ai_code.subprocess_check_output_interactive import (
-        check_output_interactive,
-    )
-
     timeout_in_seconds = 10000 if check_timeout else 1
     code = f"""import time
 import sys
@@ -35,6 +31,8 @@ print('the end')
         stderr.append(content.strip())
 
     def check():
+        from sema4ai_ls_core.process import check_output_interactive
+
         boutput = check_output_interactive(
             [sys.executable, "-c", code],
             timeout=None if (not check_timeout) else 1,

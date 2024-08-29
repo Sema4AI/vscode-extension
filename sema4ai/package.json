@@ -231,16 +231,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown."
-                },
-                "sema4ai.actionServer.location": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Specifies the location of the action-server executable."
-                },
-                "sema4ai.agentCli.location": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Specifies the location of the agent-cli executable."
                 }
             }
         },

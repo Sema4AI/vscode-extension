@@ -23,19 +23,18 @@ Copyright: Brainwy Software
 Author: Fabio Zadrozny
 """
 
+import io
 import re
 import sys
 import tempfile
+import threading
 import time
 import traceback
 import weakref
+from typing import ContextManager
 
 from sema4ai_ls_core.constants import NULL
 from sema4ai_ls_core.core_log import get_logger
-import threading
-from typing import ContextManager
-import io
-
 
 log = get_logger(__name__)
 
@@ -188,8 +187,8 @@ if sys.platform == "win32":
             self._release_mutex()
 
 else:  # Linux
-    import os
     import fcntl  # @UnresolvedImport
+    import os
 
     class SystemMutex(object):
         def __init__(
@@ -241,7 +240,7 @@ else:  # Linux
                             curr_pid = "<unable to get locking pid>"
 
                         try:
-                            from sema4ai_ls_core.basic import is_process_alive
+                            from sema4ai_ls_core.process import is_process_alive
 
                             is_alive = is_process_alive(int(curr_pid))
                         except:

@@ -83,7 +83,9 @@ def _test_check_manual():
             print(version_info)
 
 
-def test_conda_cloud(datadir):
+def test_conda_cloud(datadir) -> None:
+    from typing import Callable
+
     from sema4ai_ls_core.basic import wait_for_condition
 
     from sema4ai_code.vendored_deps.package_deps.conda_cloud import CondaCloud, State
@@ -94,7 +96,7 @@ def test_conda_cloud(datadir):
 
     original_download = conda_cloud._download
 
-    def create_mock_download():
+    def create_mock_download() -> Callable[[str, Path, str], tuple[Path, str]]:
         # Just download once. Get from cache afterwards.
         download_cache: dict = {}
 
@@ -117,7 +119,7 @@ def test_conda_cloud(datadir):
 
         return mock_download
 
-    conda_cloud._download = create_mock_download()
+    conda_cloud._download = create_mock_download()  # type: ignore
 
     event = threading.Event()
 

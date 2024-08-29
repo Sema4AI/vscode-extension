@@ -541,33 +541,3 @@ class IRcc(Protocol):
         self, robot_yaml: Path, space_name: str, no_build: bool
     ) -> ActionResult[str]:
         pass
-
-
-class ActionServerResult(ActionResult[str]):
-    # A string-representation of the command line.
-    command_line: str
-
-    def __init__(
-        self,
-        command_line: str,
-        success: bool,
-        message: Optional[str] = None,
-        result: Optional[str] = None,
-    ):
-        ActionResult.__init__(self, success, message, result)
-        self.command_line = command_line
-
-
-class AgentCliResult(ActionResult[str]):
-    # A string-representation of the command line.
-    command_line: str
-
-    def __init__(
-        self,
-        command_line: str,
-        success: bool,
-        message: Optional[str] = None,
-        result: Optional[str] = None,
-    ):
-        ActionResult.__init__(self, success, message, result)
-        self.command_line = command_line

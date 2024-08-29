@@ -37,10 +37,10 @@ def start_server_process(args=(), python_exe=None, env=None):
         i.e.:
             ["-vv", "--log-file=%s" % log_file]
     """
+    import subprocess
     import threading
 
     from sema4ai_ls_core.core_log import get_logger
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
 
     log = get_logger(__name__)
 

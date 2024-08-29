@@ -189,7 +189,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
         self._action_server = ActionServer(self)
-        self._agent_cli = AgentCli(self)
+        self._agent_cli = AgentCli(self, self._action_server)
 
         weak_self = weakref.ref(self)  # Avoid cyclic ref.
 
@@ -442,7 +442,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return cache_lru_list
 
-    def _get_sort_key_info(self):
+    def _get_sort_key_info(self) -> dict:
         try:
             cache_lru_list: List[PackageInfoInLRUDict] = self._dir_cache.load(
                 self.PACKAGE_ACCESS_LRU_CACHE_KEY, list
@@ -450,7 +450,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         except KeyError:
             cache_lru_list = []
         DEFAULT_SORT_KEY = 10
-        ws_id_and_pack_id_to_lru_index: Dict = {}
+        ws_id_and_pack_id_to_lru_index: dict = {}
         for i, entry in enumerate(cache_lru_list):
             if i >= DEFAULT_SORT_KEY:
                 break
@@ -880,7 +880,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return f"Expected: {directory} to be a directory."
         return None
 
-    def _add_package_info_to_access_lru(self, workspace_id, package_id, directory):
+    def _add_package_info_to_access_lru(
+        self, workspace_id, package_id, directory
+    ) -> None:
         try:
             lst: List[PackageInfoInLRUDict] = self._dir_cache.load(
                 self.PACKAGE_ACCESS_LRU_CACHE_KEY, list
@@ -1438,7 +1440,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL)
     def _list_action_templates(self) -> ActionResultDict:
-        return self._action_server.get_action_templates().as_dict()
+        return require_monitor(partial(self._list_action_templates_threaded))
+
+    def _list_action_templates_threaded(self, monitor: IMonitor) -> ActionResultDict:
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint, "Collecting action server templates", self._dir_cache
+        ):
+            return self._action_server.get_action_templates().as_dict()
 
     @command_dispatcher(commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL)
     def _create_action_package(
@@ -1447,6 +1457,13 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         directory = params["directory"]
         template = params["template"]
 
+        return require_monitor(
+            partial(self._create_action_package_threaded, directory, template)
+        )
+
+    def _create_action_package_threaded(
+        self, directory: str, template: str, monitor: IMonitor
+    ) -> ActionResultDict:
         return self._action_server.create_action_package(directory, template).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL)
@@ -1550,7 +1567,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         location = params["location"] if params else self._rcc.get_rcc_location(False)
 
         try:
-            download_rcc(location)
+            download_rcc(location, endpoint=self._endpoint)
         except Exception as e:
             return {
                 "success": False,
@@ -1573,7 +1590,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
         try:
-            download_action_server(location)
+            download_action_server(location, endpoint=self._endpoint)
         except Exception as e:
             return {
                 "success": False,
@@ -1596,7 +1613,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
         try:
-            download_agent_cli(location)
+            download_agent_cli(location, endpoint=self._endpoint)
         except Exception as e:
             return {
                 "success": False,

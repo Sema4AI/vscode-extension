@@ -8,13 +8,15 @@ from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, list2cmdline
 from typing import Any, Dict, List, Optional, Set
 
-from sema4ai_ls_core.basic import as_str, implements, is_process_alive
+from sema4ai_ls_core.basic import as_str, implements
 from sema4ai_ls_core.constants import NULL
 from sema4ai_ls_core.core_log import get_log_level, get_logger
+from sema4ai_ls_core.process import is_process_alive
 from sema4ai_ls_core.protocols import (
     IConfig,
     IConfigProvider,
-    RCCActionResult,
+    IEndPoint,
+    LaunchActionResult,
     Sentinel,
     check_implements,
 )
@@ -42,7 +44,10 @@ ACCOUNT_NAME = "sema4ai"
 
 
 def download_rcc(
-    location: str, force: bool = False, sys_platform: Optional[str] = None
+    location: str,
+    force: bool = False,
+    sys_platform: Optional[str] = None,
+    endpoint: Optional[IEndPoint] = None,
 ) -> None:
     """
     Downloads rcc to the given location. Note that we don't overwrite it if it
@@ -57,7 +62,12 @@ def download_rcc(
 
     RCC_VERSION = "v18.1.5"
     download_tool(
-        Tool.RCC, location, RCC_VERSION, force=force, sys_platform=sys_platform
+        Tool.RCC,
+        location,
+        RCC_VERSION,
+        force=force,
+        sys_platform=sys_platform,
+        endpoint=endpoint,
     )
 
 
@@ -218,7 +228,7 @@ class Rcc(object):
         stderr=Sentinel.SENTINEL,
         show_interactive_output: bool = False,
         hide_in_log: Optional[str] = None,
-    ) -> RCCActionResult:
+    ) -> LaunchActionResult[str]:
         """
         Returns an ActionResult where the result is the stdout of the executed command.
 
@@ -230,10 +240,11 @@ class Rcc(object):
             If given sets the stderr redirection (by default it's subprocess.PIPE,
             but users could change it to something as subprocess.STDOUT).
         """
+        import subprocess
         from subprocess import check_output
 
         from sema4ai_ls_core.basic import build_subprocess_kwargs
-        from sema4ai_ls_core.subprocess_wrapper import subprocess
+        from sema4ai_ls_core.process import check_output_interactive
 
         if stderr is Sentinel.SENTINEL:
             stderr = subprocess.PIPE
@@ -288,10 +299,6 @@ class Rcc(object):
                         get_current_progress_reporter,
                     )
 
-                    from sema4ai_code.subprocess_check_output_interactive import (
-                        check_output_interactive,
-                    )
-
                     progress_reporter = get_current_progress_reporter()
 
                     def on_output(content):
@@ -304,7 +311,7 @@ class Rcc(object):
                                 progress_reporter.set_additional_info(
                                     content.decode("utf-8", "replace")
                                 )
-                        except:
+                        except BaseException:
                             log.exception("Error reporting interactive output.")
 
                     boutput = check_output_interactive(
@@ -326,7 +333,7 @@ class Rcc(object):
             if log_errors:
                 log.exception(msg)
             if not error_msg:
-                return RCCActionResult(cmdline, success=False, message=msg)
+                return LaunchActionResult(cmdline, success=False, message=msg)
             else:
                 additional_info = [error_msg]
                 if stdout or stderr:
@@ -345,19 +352,19 @@ class Rcc(object):
                         additional_info.append("\nDetails: ")
                         additional_info.append(stderr)
 
-                return RCCActionResult(
+                return LaunchActionResult(
                     cmdline, success=False, message="".join(additional_info)
                 )
 
         except TimeoutExpired:
             msg = f"Timed out ({timeout}s elapsed) when running: {cmdline}"
             log.exception(msg)
-            return RCCActionResult(cmdline, success=False, message=msg)
+            return LaunchActionResult(cmdline, success=False, message=msg)
 
         except Exception:
             msg = f"Error running: {cmdline}"
             log.exception(msg)
-            return RCCActionResult(cmdline, success=False, message=msg)
+            return LaunchActionResult(cmdline, success=False, message=msg)
 
         output = boutput.decode("utf-8", "replace")
 
@@ -369,7 +376,7 @@ class Rcc(object):
                 msg = msg.replace(hide_in_log, "<HIDDEN_IN_LOG>")
             log.info(msg)
 
-        return RCCActionResult(cmdline, success=True, message=None, result=output)
+        return LaunchActionResult(cmdline, success=True, message=None, result=output)
 
     @implements(IRcc.get_template_names)
     def get_template_names(self) -> ActionResult[List[RobotTemplate]]:
@@ -558,7 +565,7 @@ class Rcc(object):
                     )
 
                     return account
-        except:
+        except BaseException:
             log.exception("Error loading credentials from: %s", output)
 
         # Found no valid credential
@@ -721,7 +728,7 @@ class Rcc(object):
             try:
                 robot_id = activity_info["id"]
                 robot_name = activity_info["name"]
-            except:
+            except BaseException:
                 log.critical(
                     f"Error getting robot id/name from {args}:\nOutput:\n{output}"
                 )
@@ -769,7 +776,7 @@ class Rcc(object):
     def cloud_create_robot(
         self, workspace_id: str, robot_name: str
     ) -> ActionResult[str]:
-        from sema4ai_ls_core.subprocess_wrapper import subprocess
+        import subprocess
 
         args = ["cloud", "new"]
         args.extend(["--workspace", workspace_id])
@@ -909,7 +916,7 @@ class Rcc(object):
                                     env_json_path.read_text("utf-8", "replace")
                                 )
                                 environ.update(env_json_contents)
-                            except:
+                            except BaseException:
                                 log.exception(
                                     f"Unable to load environment information from {env_json_path}."
                                 )
@@ -919,7 +926,7 @@ class Rcc(object):
                                 raise RuntimeError(
                                     f"Expected environment to be a dict. Found: {type(environ)}"
                                 )
-                            except RuntimeError as e:
+                            except RuntimeError:
                                 log.exception()
                                 proceed_to_create_env = True
                                 break
@@ -1035,7 +1042,7 @@ class Rcc(object):
                 space_info.state_path.write_text(SpaceState.ENV_READY.value, "utf-8")
                 try:
                     os.remove(space_info.damaged_path)
-                except:
+                except BaseException:
                     pass
                 space_info.update_last_usage()
 
@@ -1051,7 +1058,7 @@ class Rcc(object):
                     )
                     for key, val in env_json_contents.items():
                         environ[str(key)] = str(val)
-                except:
+                except BaseException:
                     log.exception(f"Error loading json from: {env_json_path}")
 
             return ActionResult(True, None, RobotInfoEnv(environ, space_info))

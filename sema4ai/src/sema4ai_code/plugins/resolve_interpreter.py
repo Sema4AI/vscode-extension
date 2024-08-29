@@ -28,7 +28,11 @@ try:
         get_current_progress_reporter,
         progress_context,
     )
-    from sema4ai_ls_core.protocols import IEndPoint, RCCActionResult, check_implements
+    from sema4ai_ls_core.protocols import (
+        IEndPoint,
+        LaunchActionResult,
+        check_implements,
+    )
 
     from sema4ai_code.protocols import IRobotYamlEnvInfo
 
@@ -54,7 +58,7 @@ except ImportError:
     )
     from robocorp_ls_core.protocols import (  # type: ignore
         IEndPoint,
-        RCCActionResult,
+        LaunchActionResult,
         check_implements,
     )
     from robocorp_ls_core.robotframework_log import get_logger  # type: ignore
@@ -146,7 +150,7 @@ class _CachedInterpreterInfo(object):
         interpreter_id = str(robot_yaml_file_info.file_path)
         progress_reporter = get_current_progress_reporter()
 
-        def on_env_creation_error(result: RCCActionResult):
+        def on_env_creation_error(result: LaunchActionResult):
             import tempfile
 
             # Note: called only on environment creation (not on all failures).

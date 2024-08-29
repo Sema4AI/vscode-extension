@@ -1,10 +1,12 @@
-from contextlib import contextmanager
 import os
 import sys
 import threading
-from sema4ai_ls_core.options import USE_TIMEOUTS, NO_TIMEOUT
-import pytest
+from contextlib import contextmanager
 from typing import Optional
+
+import pytest
+
+from sema4ai_ls_core.options import NO_TIMEOUT, USE_TIMEOUTS
 
 TIMEOUT: Optional[float]
 _curr_pytest_timeout = os.getenv("PYTEST_TIMEOUT")
@@ -35,6 +37,7 @@ def _print_threads_after_timeout():
 
     def dump_threads_after_timeout():
         import time
+
         from sema4ai_ls_core.unittest_tools.monitor import dump_threads
 
         time.sleep(
@@ -71,8 +74,7 @@ def communicate_lang_server(
 
         language_server_client_class = LanguageServerClient
 
-    from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamWriter
-    from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamReader
+    from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
     w = JsonRpcStreamWriter(write_to, sort_keys=True)
     r = JsonRpcStreamReader(read_from)
@@ -96,6 +98,7 @@ def start_language_server_tcp(
     Yields a language server client.
     """
     import socket
+
     from sema4ai_ls_core.unittest_tools.monitor import dump_threads
 
     class _LanguageServerConfig(object):
@@ -162,9 +165,9 @@ def _stderr_reader(stderr, buf):
 
 @contextmanager
 def create_language_server_process(log_file, __main__module):
-    from sema4ai_ls_core.basic import kill_process_and_subprocesses
+    import subprocess
 
-    from sema4ai_ls_core.subprocess_wrapper import subprocess
+    from sema4ai_ls_core.process import kill_process_and_subprocesses
 
     language_server_process = subprocess.Popen(
         [
