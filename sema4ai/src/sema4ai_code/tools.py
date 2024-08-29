@@ -80,6 +80,7 @@ def verify_tool_downloaded_ok(
     # it may not be ready, so, retry a few times).
     if not make_run_check:
         _checked_downloaded_tools.add(location)
+        return True
     else:
         times = 5
         timeout = 1
@@ -89,10 +90,11 @@ def verify_tool_downloaded_ok(
                 _checked_downloaded_tools.add(location)
                 return True
             time.sleep(timeout / times)
+        log.info(
+            f"Tool {location} failed to execute. Details: {version_result.message}"
+        )
 
-    log.info(f"Tool {location} failed to execute. Details: {version_result.message}")
-
-    return False
+        return False
 
 
 # Entries should be the location of the tools
