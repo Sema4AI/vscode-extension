@@ -6,6 +6,7 @@ import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
+import { SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP } from "./robocorpCommands";
 
 let _globalSentMetric: boolean = false;
 
@@ -254,7 +255,25 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 });
                 return children;
             } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
-                return [];
+                return [
+                    {
+                        "label": "Open Agent Spec (agent-spec.yaml)",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "go-to-file",
+                        "type": RobotEntryType.OpenAgentSpecYaml,
+                        "parent": element,
+                    },
+                    {
+                        "label": "Publish to Sema4.ai Studio",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "desktop-download",
+                        "type": RobotEntryType.PublishAgentToSema4AIStudioApp,
+                        "parent": element,
+                        "tooltip": "Publishes the Agent Package to the Sema4.ai Studio application",
+                    },
+                ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
                     {
@@ -605,6 +624,12 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Publish Package to Sema4.ai Studio",
                 "command": roboCommands.SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.PublishAgentToSema4AIStudioApp) {
+            treeItem.command = {
+                "title": "Publish Agent Package to Sema4.ai Studio",
+                "command": roboCommands.SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
