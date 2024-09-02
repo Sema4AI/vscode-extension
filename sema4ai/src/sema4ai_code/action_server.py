@@ -28,7 +28,7 @@ from sema4ai_code.protocols import (
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
-ACTION_SERVER_VERSION = "0.19.0"
+ACTION_SERVER_VERSION = "0.20.0"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
@@ -492,7 +492,8 @@ class ActionServer:
         from sema4ai_ls_core.process import launch
 
         action_server_location = self.get_action_server_location()
-        return launch(args=[action_server_location] + args, timeout=timeout)
+        env: dict[str, str] = {"SEMA4AI_SKIP_UPDATE_CHECK": "1"}
+        return launch(args=[action_server_location] + args, timeout=timeout, env=env)
 
     def get_version(self) -> ActionResult[str]:
         """

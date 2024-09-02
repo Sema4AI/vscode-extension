@@ -567,7 +567,7 @@ def launch(
     stderr=Sentinel.SENTINEL,
     show_interactive_output: bool = False,
     hide_in_log: Optional[str] = None,
-    env: Optional[dict] = None,
+    env: Optional[dict[str, str]] = None,
     **kwargs,
 ) -> LaunchActionResult:
     """
