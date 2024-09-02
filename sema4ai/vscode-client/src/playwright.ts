@@ -22,7 +22,7 @@ export async function openPlaywrightRecorder(useTreeSelected: boolean = false): 
             robot = await listAndAskRobotSelection(
                 "Please select the Task or Action Package where the locators should be saved.",
                 "Unable to open Inspector (no Task or Action Package detected in the Workspace).",
-                { showActionPackages: true, showTaskPackages: true }
+                { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
             );
             if (!robot) {
                 return;

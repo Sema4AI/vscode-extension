@@ -35,6 +35,7 @@ export const debounce = (func, wait) => {
 
 export interface PackageEntry {
     filePath: string;
+    packageType?: string;
 }
 
 export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) => {
@@ -42,7 +43,7 @@ export const isActionPackage = (entry: PackageEntry | LocalPackageMetadataInfo) 
 };
 
 export const isAgentPackage = (entry: PackageEntry | LocalPackageMetadataInfo) => {
-    return entry.filePath.endsWith("agent-spec.yaml");
+    return entry.packageType === PackageType.Agent;
 };
 
 export async function getWorkspacePackages(): Promise<WorkspacePackagesInfo> {
