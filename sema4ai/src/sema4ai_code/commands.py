@@ -60,7 +60,7 @@ SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR = "sema4ai.editRobocorpInspectorLocator"
 SEMA4AI_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL = "sema4ai.copyLocatorToClipboard.internal"  # Copy locator name to clipboard
 SEMA4AI_OPEN_ROBOT_TREE_SELECTION = "sema4ai.openRobotTreeSelection"  # Configure Task Package (robot.yaml)
 SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION = "sema4ai.openRobotCondaTreeSelection"  # Configure Dependencies (conda.yaml)
-SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION = "sema4ai.openPackageYamlTreeSelection"  # Configure Action Package (package.yaml)
+SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION = "sema4ai.openPackageYamlTreeSelection"  # Configure Action Package
 SEMA4AI_OPEN_EXTERNALLY = "sema4ai.openExternally"  # Open externally
 SEMA4AI_OPEN_IN_VS_CODE = "sema4ai.openInVSCode"  # Open in VSCode
 SEMA4AI_REVEAL_IN_EXPLORER = "sema4ai.revealInExplorer"  # Reveal in File Explorer
@@ -134,7 +134,7 @@ SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage"  # Create Agent Pack
 SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal"  # Calls Agent Server to create new Agent Package
 SEMA4AI_PACK_AGENT_PACKAGE = "sema4ai.packAgentPackage"  # Pack Agent Package
 SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL = "sema4ai.packAgentPackage.internal"  # Pack Agent Package (internal)
-SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection"  # Open Agent Runbook
+SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection"  # Edit Runbook
 SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.agentPackagePublishToSema4AIStudioApp"  # Publish Agent Package to Sema4.ai Studio
 
 ALL_SERVER_COMMANDS = [

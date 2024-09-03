@@ -594,7 +594,7 @@
             },
             {
                 "command": "sema4ai.openPackageYamlTreeSelection",
-                "title": "Configure Action Package (package.yaml)",
+                "title": "Configure Action Package",
                 "category": "Sema4.ai",
                 "icon": "$(list-tree)"
             },
@@ -927,7 +927,7 @@
             },
             {
                 "command": "sema4ai.openRunbookTreeSelection",
-                "title": "Open Agent Runbook",
+                "title": "Edit Runbook",
                 "category": "Sema4.ai",
                 "icon": "$(go-to-file)"
             },
@@ -1487,10 +1487,10 @@
         "adm-zip": "^0.5.9",
         "http-proxy-agent": "^2.1.0",
         "https-proxy-agent": "^2.2.4",
-        "js-yaml": "^4.1.0",
         "path-exists": "^4.0.0",
         "rimraf": "^3.0.2",
         "vscode-languageclient": "^7.0.0",
-        "vscode-nls": "^4.1.2"
+        "vscode-nls": "^4.1.2",
+        "js-yaml": "^4.1.0"
     }
 }

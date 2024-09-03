@@ -208,7 +208,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             } else if (element.type === RobotEntryType.ActionPackage) {
                 let children: RobotEntry[] = [
                     {
-                        "label": "Configure Action",
+                        "label": "Configure Action Package",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "go-to-file",
@@ -551,7 +551,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenPackageYaml) {
             treeItem.command = {
-                "title": "Configure Action",
+                "title": "Configure Action Package",
                 "command": roboCommands.SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION,
                 "arguments": [element],
             };
