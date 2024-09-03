@@ -153,6 +153,7 @@ import {
     SEMA4AI_CREATE_AGENT_PACKAGE,
     SEMA4AI_PACK_AGENT_PACKAGE,
     SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
+    SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -180,8 +181,8 @@ import {
     openMetadata,
 } from "./robo/actionPackage";
 import { oauth2Logout } from "./robo/oauth2InInput";
-import { createAgentPackage, packAgentPackage } from "./robo/agentPackage";
-import { getSema4AIStudioURLForFolderPath } from "./deepLink";
+import { createAgentPackage, selectAndPackAgentPackage, packAgentPackage } from "./robo/agentPackage";
+import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -482,7 +483,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, openMetadata);
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
     C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
-    C.register(SEMA4AI_PACK_AGENT_PACKAGE, packAgentPackage);
+    C.register(SEMA4AI_PACK_AGENT_PACKAGE, selectAndPackAgentPackage);
     C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
 }
 
@@ -721,7 +722,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         const selected = await listAndAskRobotSelection(
             "Please select the Task/Action Package for which you'd like to rebuild the environment",
             "Unable to continue because no Action Package was found in the workspace.",
-            { showActionPackages: true, showTaskPackages: false }
+            { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
         );
 
         const result = await resolveInterpreter(selected.filePath);
@@ -736,7 +737,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         const selected = await listAndAskRobotSelection(
             "Please select the Task/Action Package that you'd like to be published to the Sema4.ai Studio",
             "Unable to continue because no Action Package was found in the workspace.",
-            { showActionPackages: true, showTaskPackages: false }
+            { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
         );
 
         if (selected) {
@@ -749,6 +750,31 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             }
         } else {
             vscode.window.showErrorMessage(`Please open an Action Package and try again`);
+        }
+    });
+
+    C.register(SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async () => {
+        const selected = await listAndAskRobotSelection(
+            "Please select the Agent Package that you'd like to be published to the Sema4.ai Studio",
+            "Unable to continue because no Agent Package was found in the workspace.",
+            { showActionPackages: false, showTaskPackages: false, showAgentPackages: true }
+        );
+
+        if (selected) {
+            const packResult = await packAgentPackage(selected);
+            if (!packResult) {
+                return;
+            }
+
+            const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentZipPath(packResult.zipPath);
+            const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
+            if (opened) {
+                vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
+            } else {
+                vscode.window.showErrorMessage(`Publishing to Sema4.ai Studio failed`);
+            }
+        } else {
+            vscode.window.showErrorMessage(`Please open an Agent Package and try again`);
         }
     });
 

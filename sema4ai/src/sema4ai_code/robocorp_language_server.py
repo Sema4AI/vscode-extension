@@ -1653,8 +1653,16 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 "result": None,
             }
         return require_monitor(
-            partial(self._agent_cli.pack_agent_package, directory, ws)
+            partial(self._pack_agent_package_threaded, directory, ws)
         )
+
+    def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint, "Building Action Package", self._dir_cache
+        ):
+            return self._agent_cli.pack_agent_package(directory, ws, monitor)
 
     def forward_msg(self, msg: dict) -> None:
         method = msg["method"]

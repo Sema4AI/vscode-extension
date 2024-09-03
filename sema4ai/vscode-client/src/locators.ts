@@ -31,7 +31,7 @@ export async function removeLocator(locator?: LocatorEntry) {
         robot = await listAndAskRobotSelection(
             "Please select the Task or Action Package where the locator should be removed.",
             "Unable to remove locator (no Task or Action Package detected in the Workspace).",
-            { showActionPackages: true, showTaskPackages: true }
+            { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
         );
         if (!robot) {
             OUTPUT_CHANNEL.appendLine("Warning: Trying to delete locator when there is no robot selected");

@@ -75,7 +75,33 @@ export const createAgentPackage = async (): Promise<void> => {
     }
 };
 
-export const packAgentPackage = async (): Promise<void> => {
+export const packAgentPackage = async (packageInfo: LocalPackageMetadataInfo): Promise<{ zipPath: string } | null> => {
+    const targetDir = packageInfo.directory;
+
+    try {
+        const result: ActionResult<string> = await commands.executeCommand(
+            roboCommands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
+            { directory: targetDir }
+        );
+
+        if (!result.success) {
+            throw new Error(result.message || "An unexpected error occurred during the packaging process.");
+        }
+
+        return { zipPath: result.result };
+    } catch (error) {
+        const errorMsg = `Failed to package the agent at: ${targetDir}`;
+        logError(errorMsg, error, "ERR_PACK_ACTION_PACKAGE");
+
+        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
+        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
+        window.showErrorMessage(detailedErrorMsg);
+    }
+
+    return null;
+};
+
+export const selectAndPackAgentPackage = async (): Promise<void> => {
     const agentCli = getAgentCliLocation();
     if (!agentCli) {
         return;
@@ -120,26 +146,9 @@ export const packAgentPackage = async (): Promise<void> => {
         );
     }
 
-    const targetDir = packageInfo.directory;
-
-    try {
-        const result: ActionResult<string> = await commands.executeCommand(
-            roboCommands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
-            { directory: targetDir }
-        );
-
-        if (!result.success) {
-            throw new Error(result.message || "An unexpected error occurred during the packaging process.");
-        }
-
-        window.showInformationMessage(`Package successfully packed at:\n${targetDir}`);
-        await commands.executeCommand("revealInExplorer", Uri.file(result.result));
-    } catch (error) {
-        const errorMsg = `Failed to package the agent at: ${targetDir}`;
-        logError(errorMsg, error, "ERR_PACK_ACTION_PACKAGE");
-
-        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
-        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
-        window.showErrorMessage(detailedErrorMsg);
+    const result = await packAgentPackage(packageInfo);
+    if (result) {
+        window.showInformationMessage(`Package successfully packed at:\n${result.zipPath}`);
+        await commands.executeCommand("revealInExplorer", Uri.file(result.zipPath));
     }
 };

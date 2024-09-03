@@ -29,6 +29,8 @@
         "editor.formatOnType": true,
         "editor.formatOnSave": true,
         "python.pydev.sortImportsOnFormat": "isort",
+        "python.pydev.docstring.character": "\"",
+        "python.pydev.docstring.style": "google",
 
         "python.autoComplete.extraPaths": [
             "src",

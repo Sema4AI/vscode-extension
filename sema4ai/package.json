@@ -153,6 +153,7 @@
         "onCommand:sema4ai.packAgentPackage",
         "onCommand:sema4ai.packAgentPackage.internal",
         "onCommand:sema4ai.openRunbookTreeSelection",
+        "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -929,6 +930,10 @@
                 "title": "Open Agent Runbook",
                 "category": "Sema4.ai",
                 "icon": "$(go-to-file)"
+            },
+                "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
+                "title": "Publish Agent Package to Sema4.ai Studio",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {

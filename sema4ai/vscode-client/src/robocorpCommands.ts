@@ -134,3 +134,4 @@ export const SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage
 export const SEMA4AI_PACK_AGENT_PACKAGE = "sema4ai.packAgentPackage";  // Pack Agent Package
 export const SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL = "sema4ai.packAgentPackage.internal";  // Pack Agent Package (internal)
 export const SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection";  // Open Agent Runbook
+export const SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.agentPackagePublishToSema4AIStudioApp";  // Publish Agent Package to Sema4.ai Studio

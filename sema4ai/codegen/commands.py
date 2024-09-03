@@ -945,6 +945,12 @@ COMMANDS = [
         hide_from_command_palette=True,
         icon="$(go-to-file)",
     ),
+    Command(
+        "sema4ai.agentPackagePublishToSema4AIStudioApp",
+        "Publish Agent Package to Sema4.ai Studio",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 
