@@ -46,6 +46,7 @@ export enum RobotEntryType {
     AgentPackageOrganizationForActions = "AgentPackageOrganizationForActions",
     OpenAgentSpecYaml = "OpenAgentSpecYaml",
     ActionsInAgentPackage = "ActionsInAgentPackage",
+    OpenRunbook = "OpenRunbook",
 }
 
 export interface CloudEntry {

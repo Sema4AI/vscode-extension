@@ -937,6 +937,14 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.openRunbookTreeSelection",
+        "Open Agent Runbook",
+        add_to_package_json=True,
+        server_handled=False,
+        hide_from_command_palette=True,
+        icon="$(go-to-file)",
+    ),
 ]
 
 

@@ -152,6 +152,7 @@
         "onCommand:sema4ai.createAgentPackage.internal",
         "onCommand:sema4ai.packAgentPackage",
         "onCommand:sema4ai.packAgentPackage.internal",
+        "onCommand:sema4ai.openRunbookTreeSelection",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -922,6 +923,12 @@
                 "command": "sema4ai.packAgentPackage",
                 "title": "Pack Agent Package",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.openRunbookTreeSelection",
+                "title": "Open Agent Runbook",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
             }
         ],
         "menus": {
@@ -1436,6 +1443,10 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageMetadata.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openRunbookTreeSelection",
                     "when": "false"
                 }
             ]

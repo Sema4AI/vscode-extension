@@ -25,6 +25,7 @@ import * as path from "path";
 import { fileExists, uriExists, verifyFileExists } from "./files";
 import { createDefaultInputJson, getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
 import { OUTPUT_CHANNEL } from "./channel";
+import * as yaml from "js-yaml";
 
 export async function editInput(actionRobotEntry?: RobotEntry) {
     if (!actionRobotEntry) {
@@ -82,6 +83,39 @@ export async function openPackageTreeSelection(robot?: RobotEntry) {
         if (await uriExists(packageYamlUri)) {
             vscode.window.showTextDocument(packageYamlUri);
             return;
+        }
+    }
+}
+
+export async function openRunbookTreeSelection(robot?: RobotEntry) {
+    const selectedRobot = robot ?? getSelectedRobot();
+
+    if (!selectedRobot) {
+        return;
+    }
+
+    const agentYamlPath = path.join(selectedRobot.robot.directory, "agent-spec.yaml");
+    const agentYamlUri = vscode.Uri.file(agentYamlPath);
+
+    if (!(await uriExists(agentYamlUri))) {
+        return;
+    }
+
+    const yamlContent = await vscode.workspace.fs.readFile(agentYamlUri);
+    const yamlString = yamlContent.toString();
+
+    const parsedYaml = yaml.load(yamlString);
+    const runbookPath = parsedYaml["agent-package"]?.agents?.[0]?.runbook ?? null;
+
+    if (runbookPath) {
+        const fullRunbookPath = path.join(selectedRobot.robot.directory, runbookPath);
+        const runbookUri = vscode.Uri.file(fullRunbookPath);
+
+        if (await uriExists(runbookUri)) {
+            vscode.window.showTextDocument(runbookUri);
+            return;
+        } else {
+            vscode.window.showErrorMessage(`Runbook file not found: ${fullRunbookPath}`);
         }
     }
 }

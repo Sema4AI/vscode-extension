@@ -134,6 +134,7 @@ SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage"  # Create Agent Pack
 SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal"  # Calls Agent Server to create new Agent Package
 SEMA4AI_PACK_AGENT_PACKAGE = "sema4ai.packAgentPackage"  # Pack Agent Package
 SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL = "sema4ai.packAgentPackage.internal"  # Pack Agent Package (internal)
+SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection"  # Open Agent Runbook
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
