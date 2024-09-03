@@ -1487,6 +1487,7 @@
         "adm-zip": "^0.5.9",
         "http-proxy-agent": "^2.1.0",
         "https-proxy-agent": "^2.2.4",
+        "js-yaml": "^4.1.0",
         "path-exists": "^4.0.0",
         "rimraf": "^3.0.2",
         "vscode-languageclient": "^7.0.0",
