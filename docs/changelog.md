@@ -1,5 +1,11 @@
 ## Unreleased
 
+- New Dependency: Added `js-yaml`.
+- New Command: `Open Agent Runbook`.
+- Renamed Commands:
+  - Open Agent Spec (agent-spec.yaml) → Configure Agent
+  - Configure Action Package (package.yaml) → Configure Action
+- UI Update: Moved `Configure Agent` and `Configure Action` from the `Commands` section to the top level of the agent/action.
 - Hover for `agent-spec.yaml` (using new spec format for v2)
 - Code analysis for `agent-spec.yaml` (using new spec format for v2)
 - New dependency required: tree-sitter
