@@ -931,6 +931,7 @@
                 "category": "Sema4.ai",
                 "icon": "$(go-to-file)"
             },
+            {
                 "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
                 "title": "Publish Agent Package to Sema4.ai Studio",
                 "category": "Sema4.ai"
