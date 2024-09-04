@@ -254,7 +254,26 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 });
                 return children;
             } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
-                return [];
+                return [
+                    {
+                        "label": "Export Agent Package (zip)",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "desktop-download",
+                        "type": RobotEntryType.ExportAgentPackage,
+                        "parent": element,
+                        "tooltip": "Exports the Agent Package as a ZIP archive",
+                    },
+                    {
+                        "label": "Publish to Sema4.ai Studio",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "desktop-download",
+                        "type": RobotEntryType.PublishAgentToSema4AIStudioApp,
+                        "parent": element,
+                        "tooltip": "Publishes the Agent Package to the Sema4.ai Studio application",
+                    },
+                ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
                     {
@@ -605,6 +624,18 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Publish Package to Sema4.ai Studio",
                 "command": roboCommands.SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.PublishAgentToSema4AIStudioApp) {
+            treeItem.command = {
+                "title": "Publish Agent Package to Sema4.ai Studio",
+                "command": roboCommands.SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.ExportAgentPackage) {
+            treeItem.command = {
+                "title": "Export Agent Package (zip)",
+                "command": roboCommands.SEMA4AI_PACK_AGENT_PACKAGE,
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {

@@ -46,7 +46,9 @@ export enum RobotEntryType {
     AgentPackageOrganizationForActions = "AgentPackageOrganizationForActions",
     OpenAgentSpecYaml = "OpenAgentSpecYaml",
     ActionsInAgentPackage = "ActionsInAgentPackage",
+    PublishAgentToSema4AIStudioApp = "PublishAgentToSema4AIStudioApp",
     OpenRunbook = "OpenRunbook",
+    ExportAgentPackage = "ExportAgentPackage",
 }
 
 export interface CloudEntry {
