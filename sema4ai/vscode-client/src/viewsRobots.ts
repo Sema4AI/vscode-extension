@@ -256,14 +256,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
                 return [
                     {
-                        "label": "Open Agent Spec (agent-spec.yaml)",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "go-to-file",
-                        "type": RobotEntryType.OpenAgentSpecYaml,
-                        "parent": element,
-                    },
-                    {
                         "label": "Export Agent Package (zip)",
                         "uri": element.uri,
                         "robot": element.robot,
