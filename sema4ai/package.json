@@ -153,6 +153,7 @@
         "onCommand:sema4ai.packAgentPackage",
         "onCommand:sema4ai.packAgentPackage.internal",
         "onCommand:sema4ai.openRunbookTreeSelection",
+        "onCommand:sema4ai.getRunbookPathFromAgentSpec.internal",
         "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
@@ -1490,7 +1491,6 @@
         "path-exists": "^4.0.0",
         "rimraf": "^3.0.2",
         "vscode-languageclient": "^7.0.0",
-        "vscode-nls": "^4.1.2",
-        "js-yaml": "^4.1.0"
+        "vscode-nls": "^4.1.2"
     }
 }

@@ -20,6 +20,7 @@ from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 from sema4ai_code import commands
 from sema4ai_code.inspector.inspector_language_server import InspectorLanguageServer
 from sema4ai_code.protocols import (
+    ActionResult,
     ActionResultDict,
     ActionResultDictLocalRobotMetadata,
     ActionResultDictLocatorsJson,
@@ -43,6 +44,7 @@ from sema4ai_code.protocols import (
     CreateAgentPackageParamsDict,
     CreateRobotParamsDict,
     DownloadToolDict,
+    GetRunbookPathFromAgentSpecDict,
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
@@ -1655,6 +1657,30 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(
             partial(self._pack_agent_package_threaded, directory, ws)
         )
+
+    @command_dispatcher(commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL)
+    def _get_runbook_path_from_agent_spec(
+        self, params: GetRunbookPathFromAgentSpecDict
+    ) -> ActionResultDict:
+        agent_spec_path = params["agent_spec_path"]
+
+        import yaml
+
+        with open(agent_spec_path, "r") as yaml_file:
+            yaml_content = yaml.safe_load(yaml_file)
+
+        try:
+            runbook_path = yaml_content["agent-package"]["agents"][0]["runbook"]
+        except Exception:
+            return ActionResult(
+                success=False, message="Runbook entry was not found in the agent spec."
+            ).as_dict()
+
+        return ActionResult(
+            success=True,
+            message=None,
+            result=runbook_path,
+        ).as_dict()
 
     def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
         from sema4ai_ls_core.progress_report import progress_context

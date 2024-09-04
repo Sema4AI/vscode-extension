@@ -148,7 +148,6 @@ def get_json_contents():
             "rimraf": "^3.0.2",
             "vscode-languageclient": "^7.0.0",
             "vscode-nls": "^4.1.2",
-            "js-yaml": "^4.1.0",
         },
     }
     return base_package_contents
