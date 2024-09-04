@@ -5,7 +5,7 @@ import {
     TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE,
 } from "./robocorpViews";
 import * as vscode from "vscode";
-import { ExtensionContext } from "vscode";
+import { commands, ExtensionContext } from "vscode";
 import { runRobotRCC, uploadRobot } from "./activities";
 import { createRccTerminal } from "./rccTerminal";
 import { RobotContentTreeDataProvider } from "./viewsRobotContent";
@@ -25,6 +25,8 @@ import * as path from "path";
 import { fileExists, uriExists, verifyFileExists } from "./files";
 import { createDefaultInputJson, getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
 import { OUTPUT_CHANNEL } from "./channel";
+import { ActionResult } from "./protocols";
+import * as roboCommands from "./robocorpCommands";
 
 export async function editInput(actionRobotEntry?: RobotEntry) {
     if (!actionRobotEntry) {
@@ -83,6 +85,43 @@ export async function openPackageTreeSelection(robot?: RobotEntry) {
             vscode.window.showTextDocument(packageYamlUri);
             return;
         }
+    }
+}
+
+export async function openRunbookTreeSelection(robot?: RobotEntry) {
+    const selectedRobot = robot ?? getSelectedRobot();
+
+    if (!selectedRobot) {
+        vscode.window.showErrorMessage("Unable to open runbook: no agent selected.");
+        return;
+    }
+
+    const agentYamlPath = path.join(selectedRobot.robot.directory, "agent-spec.yaml");
+    const agentYamlUri = vscode.Uri.file(agentYamlPath);
+
+    if (!(await uriExists(agentYamlUri))) {
+        vscode.window.showErrorMessage(`Agent spec file not found in path: ${agentYamlPath}`);
+        return;
+    }
+
+    const result: ActionResult<string> = await commands.executeCommand(
+        roboCommands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
+        { agent_spec_path: agentYamlPath }
+    );
+
+    if (!result.success) {
+        vscode.window.showErrorMessage(`${result.message}`);
+        return;
+    }
+
+    const fullRunbookPath = path.join(selectedRobot.robot.directory, result.result);
+    const runbookUri = vscode.Uri.file(fullRunbookPath);
+
+    if (await uriExists(runbookUri)) {
+        vscode.window.showTextDocument(runbookUri);
+        return;
+    } else {
+        vscode.window.showErrorMessage(`Runbook file not found: ${fullRunbookPath}`);
     }
 }
 

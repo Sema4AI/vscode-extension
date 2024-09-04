@@ -9,17 +9,6 @@ from typing import Dict, List, Optional
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
-from sema4ai_ls_core.basic import wait_for_condition
-from sema4ai_ls_core.callbacks import Callback
-from sema4ai_ls_core.ep_resolve_interpreter import (
-    DefaultInterpreterInfo,
-    IInterpreterInfo,
-)
-from sema4ai_ls_core.pluginmanager import PluginManager
-from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
-
 from sema4ai_code.inspector.common import (
     STATE_CLOSED,
     STATE_NOT_PICKING,
@@ -32,6 +21,17 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_ls_core.basic import wait_for_condition
+from sema4ai_ls_core.callbacks import Callback
+from sema4ai_ls_core.ep_resolve_interpreter import (
+    DefaultInterpreterInfo,
+    IInterpreterInfo,
+)
+from sema4ai_ls_core.pluginmanager import PluginManager
+from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
+
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1072,9 +1072,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1345,14 +1346,13 @@ def test_profile_import(
     datadir,
     disable_rcc_diagnostics,
 ):
-    from sema4ai_ls_core import uris
-
     from sema4ai_code.commands import (
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
         SEMA4AI_PROFILE_IMPORT_INTERNAL,
         SEMA4AI_PROFILE_LIST_INTERNAL,
         SEMA4AI_PROFILE_SWITCH_INTERNAL,
     )
+    from sema4ai_ls_core import uris
 
     result = language_server_initialized.execute_command(
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
@@ -1671,10 +1671,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -2308,7 +2309,6 @@ def test_create_and_pack_agent_package(
     assert os.path.exists(agent_cli_location)
 
     import yaml
-
     from sema4ai_code import commands
 
     language_server = language_server_initialized
@@ -2371,3 +2371,62 @@ def test_create_and_pack_agent_package(
     assert (
         "Missing required entry: agent-package/agents/description." in result["message"]
     )
+
+
+def test_get_runbook_from_agent_spec(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    import yaml
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )
+
+    with open(f"{target_directory}/agent-spec.yaml", "r+") as stream:
+        agent_spec = yaml.safe_load(stream.read())
+        agent_spec["agent-package"]["agents"][0]["runbook"] = "runbook.md"
+        stream.seek(0)
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
+        [
+            {
+                "agent_spec_path": str(Path(target_directory) / "agent-spec.yaml"),
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert result["result"] == "runbook.md"
+
+    with open(f"{target_directory}/agent-spec.yaml", "w") as stream:
+        del agent_spec["agent-package"]["agents"][0]["runbook"]
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
+        [
+            {
+                "agent_spec_path": str(Path(target_directory) / "agent-spec.yaml"),
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert result["message"] == "Runbook entry was not found in the agent spec."

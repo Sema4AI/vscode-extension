@@ -339,6 +339,10 @@ class CreateAgentPackageParamsDict(TypedDict):
     directory: str
 
 
+class GetRunbookPathFromAgentSpecDict(TypedDict):
+    agent_spec_path: str
+
+
 class IRccWorkspace(Protocol):
     @property
     def workspace_id(self) -> str:

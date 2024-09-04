@@ -152,6 +152,7 @@ import {
     SEMA4AI_OAUTH2_LOGOUT,
     SEMA4AI_CREATE_AGENT_PACKAGE,
     SEMA4AI_PACK_AGENT_PACKAGE,
+    SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
     SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
@@ -483,6 +484,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
     C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
     C.register(SEMA4AI_PACK_AGENT_PACKAGE, selectAndPackAgentPackage);
+    C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
 }
 
 async function clearEnvAndRestart() {

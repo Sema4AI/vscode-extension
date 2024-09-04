@@ -461,7 +461,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.openPackageYamlTreeSelection",
-        "Configure Action Package (package.yaml)",
+        "Configure Action Package",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,
@@ -934,6 +934,20 @@ COMMANDS = [
     Command(
         "sema4ai.packAgentPackage.internal",
         "Pack Agent Package (internal)",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
+    Command(
+        "sema4ai.openRunbookTreeSelection",
+        "Edit Runbook",
+        add_to_package_json=True,
+        server_handled=False,
+        hide_from_command_palette=True,
+        icon="$(go-to-file)",
+    ),
+    Command(
+        "sema4ai.getRunbookPathFromAgentSpec.internal",
+        "Get Runbook Path from Agent Spec (internal)",
         add_to_package_json=False,
         server_handled=True,
     ),

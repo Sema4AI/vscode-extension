@@ -152,6 +152,8 @@
         "onCommand:sema4ai.createAgentPackage.internal",
         "onCommand:sema4ai.packAgentPackage",
         "onCommand:sema4ai.packAgentPackage.internal",
+        "onCommand:sema4ai.openRunbookTreeSelection",
+        "onCommand:sema4ai.getRunbookPathFromAgentSpec.internal",
         "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
@@ -593,7 +595,7 @@
             },
             {
                 "command": "sema4ai.openPackageYamlTreeSelection",
-                "title": "Configure Action Package (package.yaml)",
+                "title": "Configure Action Package",
                 "category": "Sema4.ai",
                 "icon": "$(list-tree)"
             },
@@ -923,6 +925,12 @@
                 "command": "sema4ai.packAgentPackage",
                 "title": "Pack Agent Package",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.openRunbookTreeSelection",
+                "title": "Edit Runbook",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
             },
             {
                 "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
@@ -1442,6 +1450,10 @@
                 },
                 {
                     "command": "sema4ai.actionServerPackageMetadata.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openRunbookTreeSelection",
                     "when": "false"
                 }
             ]

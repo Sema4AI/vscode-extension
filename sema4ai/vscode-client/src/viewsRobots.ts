@@ -206,7 +206,17 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     },
                 ];
             } else if (element.type === RobotEntryType.ActionPackage) {
-                let children: RobotEntry[] = [];
+                let children: RobotEntry[] = [
+                    {
+                        "label": "Configure Action Package",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "go-to-file",
+                        "type": RobotEntryType.OpenPackageYaml,
+                        "parent": element,
+                    },
+                ];
+
                 try {
                     let result: ActionResult<undefined> = await vscode.commands.executeCommand(
                         roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
@@ -234,7 +244,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 } catch (error) {
                     logError("Error collecting actions.", error, "ACT_COLLECT_ACTIONS");
                 }
-
                 children.push({
                     "label": "Commands",
                     "uri": element.uri,
@@ -245,16 +254,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 });
                 return children;
             } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
-                return [
-                    {
-                        "label": "Open Agent Spec (agent-spec.yaml)",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "go-to-file",
-                        "type": RobotEntryType.OpenAgentSpecYaml,
-                        "parent": element,
-                    },
-                ];
+                return [];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
                     {
@@ -265,14 +265,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "type": RobotEntryType.StartActionServer,
                         "parent": element,
                         "tooltip": "Start the Action Server for the actions in the action package",
-                    },
-                    {
-                        "label": "Configure Action Package (package.yaml)",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "go-to-file",
-                        "type": RobotEntryType.OpenPackageYaml,
-                        "parent": element,
                     },
                     {
                         "label": "Rebuild Package Environment",
@@ -390,6 +382,23 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 return ret;
             } else if (element.type === RobotEntryType.AgentPackage) {
                 const ret = [];
+                ret.push({
+                    "label": "Configure Agent",
+                    "uri": element.uri,
+                    "robot": element.robot,
+                    "iconPath": "go-to-file",
+                    "type": RobotEntryType.OpenAgentSpecYaml,
+                    "parent": element,
+                });
+                ret.push({
+                    "label": "Edit Runbook",
+                    "uri": element.uri,
+                    "robot": element.robot,
+                    "iconPath": "go-to-file",
+                    "type": RobotEntryType.OpenRunbook,
+                    "parent": element,
+                });
+
                 if (element.robot.organizations) {
                     for (const org of element.robot.organizations) {
                         ret.push({
@@ -521,8 +530,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenAgentSpecYaml) {
             treeItem.command = {
-                "title": "Open Agent Spec (agent-spec.yaml)",
+                "title": "Configure Agent",
                 "command": roboCommands.SEMA4AI_OPEN_ROBOT_TREE_SELECTION,
+                "arguments": [element],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.OpenRunbook) {
+            treeItem.command = {
+                "title": "Edit Runbook",
+                "command": roboCommands.SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
                 "arguments": [element],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -535,7 +551,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.OpenPackageYaml) {
             treeItem.command = {
-                "title": "Configure Action Package (package.yaml)",
+                "title": "Configure Action Package",
                 "command": roboCommands.SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION,
                 "arguments": [element],
             };
