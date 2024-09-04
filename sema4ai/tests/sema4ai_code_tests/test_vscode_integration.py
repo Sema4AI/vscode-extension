@@ -2371,3 +2371,62 @@ def test_create_and_pack_agent_package(
     assert (
         "Missing required entry: agent-package/agents/description." in result["message"]
     )
+
+
+def test_get_runbook_from_agent_spec(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    import yaml
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+            }
+        ],
+    )
+
+    with open(f"{target_directory}/agent-spec.yaml", "r+") as stream:
+        agent_spec = yaml.safe_load(stream.read())
+        agent_spec["agent-package"]["agents"][0]["runbook"] = "runbook.md"
+        stream.seek(0)
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
+        [
+            {
+                "agent_spec_path": str(Path(target_directory) / "agent-spec.yaml"),
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert result["result"] == "runbook.md"
+
+    with open(f"{target_directory}/agent-spec.yaml", "w") as stream:
+        del agent_spec["agent-package"]["agents"][0]["runbook"]
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
+        [
+            {
+                "agent_spec_path": str(Path(target_directory) / "agent-spec.yaml"),
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert result["message"] == "Runbook entry was not found in the agent spec."
