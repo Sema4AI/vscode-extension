@@ -15,6 +15,8 @@
 - Location for agent cli and action server is no longer customizable
   - It's now always downloaded in a default path in the extension.
   - Current version: `0.0.19`
+- Add `Publish Agent  to Studio` command
+- Add `Export Agent Pack` sidebar command
 
 ## New in 2.4.2 (2024-08-26)
 
