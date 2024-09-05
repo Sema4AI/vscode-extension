@@ -297,6 +297,7 @@ class LaunchProcess(object):
                 workspace_args.append("--account")
                 workspace_args.append("sema4ai")
 
+            # Run rcc task run --robot <robot> --space <space> ...
             cmdline = (
                 [
                     rcc_executable,
@@ -331,6 +332,8 @@ class LaunchProcess(object):
                 cmdline.append("-e")
                 cmdline.append(use_path)
 
+            cmdline.append("--bundled")
+            cmdline.append("--sema4ai")
             cmdline.append("--controller")
             cmdline.append("Sema4aiCode")
 
