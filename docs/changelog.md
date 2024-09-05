@@ -17,6 +17,7 @@
   - Current version: `0.0.19`
 - Add `Publish Agent  to Studio` command
 - Add `Export Agent Pack` sidebar command
+- When running `rcc task run`, add `--bundled` and `--sema4ai` flags.
 
 ## New in 2.4.2 (2024-08-26)
 
