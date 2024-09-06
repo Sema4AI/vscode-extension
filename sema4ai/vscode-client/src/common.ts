@@ -12,12 +12,22 @@ export type GetPackageTargetDirectoryMessages = {
     useWorkspaceFolderPrompt: string;
     useChildFolderPrompt: string;
     provideNamePrompt: string;
+    commandType: string;
 };
 
 export type WorkspacePackagesInfo = {
     agentPackages: LocalPackageMetadataInfo[];
     taskActionPackages: LocalPackageMetadataInfo[];
 };
+
+export type PackageTargetAndNameResult = {
+    targetDir: string | null;
+    name: string | null;
+};
+
+export const isActionPackageCommand = "isActionPackageCommand";
+export const isAgetPackageCommand = "isAgentPackageCommand";
+export const isTaskPackageCommand = "isTaskPackageCommand";
 
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
@@ -82,14 +92,20 @@ export async function areTherePackagesInWorkspace(): Promise<boolean> {
     return workspacePackages.taskActionPackages.length > 0 && workspacePackages.agentPackages.length > 0;
 }
 
-export async function getPackageTargetDirectory(
+export function toKebabCase(str: string): string {
+    return str
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-") // Replace spaces and non-alphanumeric characters with hyphens
+        .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+}
+
+export async function getPackageTargetDirectoryAndName(
     ws: WorkspaceFolder,
     messages: GetPackageTargetDirectoryMessages
-): Promise<string | null> {
+): Promise<PackageTargetAndNameResult> {
     const packagesInDirectory = await areTherePackagesInWorkspace();
 
     let useWorkspaceFolder = false;
-
     if (!packagesInDirectory) {
         const useWorkspaceFolderLabel = "Use workspace folder (recommended)";
 
@@ -110,29 +126,33 @@ export async function getPackageTargetDirectory(
             }
         );
 
-        /* Operation cancelled. */
-        if (!target) {
-            return null;
-        }
+        // Operation cancelled
+        if (!target) return { targetDir: null, name: null };
+        // if (!target) return null;
 
         useWorkspaceFolder = target["label"] === useWorkspaceFolderLabel;
     }
 
-    if (!useWorkspaceFolder) {
-        const name = await getPackageDirectoryName(messages.provideNamePrompt);
-
-        /* Operation cancelled. */
-        if (!name) {
-            return null;
-        }
-
-        return join(ws.uri.fsPath, name);
+    // If using the workspace folder and it's a task package command, we don't need the name
+    if (useWorkspaceFolder && messages.commandType === isTaskPackageCommand) {
+        return { targetDir: ws.uri.fsPath, name: null };
+        // return ws.uri.fsPath;
     }
 
-    return ws.uri.fsPath;
+    const name = await getPackageName(messages.provideNamePrompt);
+    if (!name) return { targetDir: null, name: null }; // Handle cancellation
+    // if (!name) return null; // Handle cancellation
+
+    // Keep the functionality for tasks the same
+    const kebabCaseName = isTaskPackageCommand ? name : toKebabCase(name);
+    return {
+        targetDir: useWorkspaceFolder ? ws.uri.fsPath : join(ws.uri.fsPath, kebabCaseName),
+        name,
+    };
+    // return useWorkspaceFolder ? ws.uri.fsPath : join(ws.uri.fsPath, name);
 }
 
-export async function getPackageDirectoryName(prompt: string): Promise<string | null> {
+export async function getPackageName(prompt: string): Promise<string | null> {
     const name = await window.showInputBox({
         "value": "Example",
         "prompt": prompt,

@@ -2,11 +2,12 @@ import { commands, window, WorkspaceFolder, Uri } from "vscode";
 import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
-    getPackageTargetDirectory,
+    getPackageTargetDirectoryAndName,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     getWorkspacePackages,
+    isAgetPackageCommand,
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
@@ -27,11 +28,12 @@ export const createAgentPackage = async (): Promise<void> => {
         return;
     }
 
-    const targetDir = await getPackageTargetDirectory(ws, {
+    const { targetDir, name } = await getPackageTargetDirectoryAndName(ws, {
         title: "Where do you want to create the Agent Package?",
         useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
         useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Agent Package folder name.",
+        provideNamePrompt: "Please provide the name for the Agent Package.",
+        commandType: isAgetPackageCommand,
     });
 
     /* Operation cancelled. */
@@ -58,6 +60,7 @@ export const createAgentPackage = async (): Promise<void> => {
             roboCommands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
             {
                 "directory": targetDir,
+                "name": name,
             }
         );
 

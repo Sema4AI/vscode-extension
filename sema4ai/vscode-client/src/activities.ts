@@ -42,12 +42,13 @@ import {
 import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
-    getPackageTargetDirectory,
+    getPackageTargetDirectoryAndName,
     isActionPackage,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     isAgentPackage,
+    isTaskPackageCommand,
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
 import { getSelectedRobot } from "./viewsSelection";
@@ -772,8 +773,8 @@ export async function createRobot() {
                     { action: "proceed", label: "Proceed", detail: "Proceed with Task Package Creation" },
                 ],
                 "",
-                `${msgStart} already created in the workspace and Task Packages 
-                don't usually interact with Agent Packages. 
+                `${msgStart} already created in the workspace and Task Packages
+                don't usually interact with Agent Packages.
                 Are you sure you want to create a Task Package instead of an Action Package whose actions can be used in an Agent?`
             );
             if (!confirmCreateTaskInAgent || confirmCreateTaskInAgent.action === "cancel") {
@@ -800,11 +801,12 @@ export async function createRobot() {
         return;
     }
 
-    const targetDir = await getPackageTargetDirectory(ws, {
+    const { targetDir } = await getPackageTargetDirectoryAndName(ws, {
         title: "Where do you want to create the Task Package?",
         useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
         useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Task Package folder name.",
+        provideNamePrompt: "Please provide the name for the Task Package folder.",
+        commandType: isTaskPackageCommand,
     });
 
     /* Operation cancelled. */
