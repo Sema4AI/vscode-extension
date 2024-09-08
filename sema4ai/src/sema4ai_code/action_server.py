@@ -28,7 +28,7 @@ from sema4ai_code.protocols import (
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
-ACTION_SERVER_VERSION = "0.20.0"
+ACTION_SERVER_VERSION = "0.23.1"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
@@ -124,10 +124,6 @@ def get_default_action_server_settings_dir() -> Path:
     return get_default_sema4ai_home() / "action-server"
 
 
-def get_default_oauth2_settings_file() -> Path:
-    return get_default_action_server_settings_dir() / "oauth2-settings.yaml"
-
-
 class ActionServerAsService:
     """
     This class is meant to be used in the use-case where the action server
@@ -210,10 +206,10 @@ class ActionServerAsService:
         """
         Provides the default kwargs that should be used for a urlopen call.
         """
-        if is_debugger_active():
-            kwargs["timeout"] = None
+        # if is_debugger_active():
+        #     kwargs["timeout"] = None
 
-        elif "timeout" not in kwargs:
+        if "timeout" not in kwargs:
             kwargs["timeout"] = DEFAULT_TIMEOUT
 
         if self._use_https:
@@ -275,8 +271,10 @@ class ActionServerAsService:
           headers: A dictionary of headers to send with the request. (Optional)
           timeout: The timeout in seconds for the request. (Optional)
         """
+        import time
         import urllib.parse
         import urllib.request
+        from urllib.error import URLError
 
         url = self.build_full_url(url)
         # Build the full URL with query parameters
@@ -289,10 +287,19 @@ class ActionServerAsService:
             use_headers.update(headers)
         kwargs = self._urlopen_kwargs(timeout=timeout)
 
-        response = urllib.request.urlopen(
-            urllib.request.Request(url, headers=use_headers),
-            **kwargs,
-        )
+        timeout_at = time.time() + (timeout or 0)
+        while True:
+            try:
+                response = urllib.request.urlopen(
+                    urllib.request.Request(url, headers=use_headers),
+                    **kwargs,
+                )
+                break
+            except URLError:
+                if time.time() > timeout_at:
+                    raise RuntimeError(f"Error trying to access url: {url}")
+                time.sleep(1 / 3.0)
+
         if response.status != 200:
             raise RuntimeError(
                 f"Error. Found status: {response.status} ({response.msg}) when accessing: {url}."
@@ -448,6 +455,9 @@ class ActionServerAsService:
 class ActionServer:
     def __init__(self, config_provider: IConfigProvider):
         self._config_provider = weakref.ref(config_provider)
+        self._cached_user_config_path: Optional[Path] = None
+        self._cached_sema4ai_oauth2_config: Optional[dict] = None
+        self._cached_sema4ai_oauth2_config_str: Optional[str] = None
 
     def _get_str_optional_setting(self, setting_name) -> Any:
         config_provider = self._config_provider()
@@ -477,6 +487,61 @@ class ActionServer:
             download_action_server(action_server_location)
 
         return action_server_location
+
+    def get_user_oauth2_config_file(self) -> Path:
+        if (
+            self._cached_user_config_path is None
+            or not self._cached_user_config_path.exists()
+        ):
+            action_result = self._run_action_server_command(
+                ["oauth2", "user-config-path"], timeout=10
+            )
+            if not action_result.success:
+                # If not provided we don't really have a way to recover...
+                raise RuntimeError(action_result.message)
+            if not action_result.result:
+                raise RuntimeError(
+                    "Output of `action-server oauth2 user-config-path` is empty."
+                )
+            p = action_result.result.strip()
+            self._cached_user_config_path = Path(p)
+        return self._cached_user_config_path
+
+    def get_sema4ai_oauth2_config_str(self) -> str:
+        self.get_sema4ai_oauth2_config()
+        assert (
+            self._cached_sema4ai_oauth2_config_str
+        ), "Expected sema4ai oauth2 config to be set at this point."
+        return self._cached_sema4ai_oauth2_config_str
+
+    def get_sema4ai_oauth2_config(self) -> dict:
+        import yaml
+
+        if not self._cached_sema4ai_oauth2_config:
+            action_result = self._run_action_server_command(
+                ["oauth2", "sema4ai-config"], timeout=10
+            )
+            if not action_result.success:
+                raise RuntimeError(action_result.message)
+
+            if not action_result.result:
+                raise RuntimeError(
+                    "Output of `action-server oauth2 sema4ai-config` is empty."
+                )
+            try:
+                oauth2_config = yaml.safe_load(action_result.result)
+            except Exception:
+                raise RuntimeError(
+                    "Sema4ai oauth2 settings gotten from the action server don't seem to be valid. "
+                    f"Found: {action_result.result}"
+                )
+            self._cached_sema4ai_oauth2_config = oauth2_config
+            self._cached_sema4ai_oauth2_config_str = action_result.result
+
+        assert (
+            self._cached_sema4ai_oauth2_config
+        ), "Expected sema4ai oauth2 config to be set at this point."
+        return self._cached_sema4ai_oauth2_config
 
     def _run_action_server_command(
         self,

@@ -54,6 +54,11 @@ jobs:
     - name: poetry install
       working-directory: ./sema4ai
       run: poetry install
+    - name: Run codegen
+      run: python -m dev codegen
+      working-directory: ./sema4ai
+      env:
+        PYTHONPATH: src
     - name: Test
       working-directory: ./sema4ai/tests
       env:

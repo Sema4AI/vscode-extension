@@ -20,21 +20,21 @@ jobs:
       - name: Install pip deps
         run: |
           python -m pip install --upgrade pip fire poetry
-          
+
           cd sema4ai
-          
+
           poetry config virtualenvs.prefer-active-python true
           poetry install
-          
+
       - name: Install prettier
         run: |
           npm install -g prettier@2.4.1
-          
+
       - name: Prettier Sema4.ai (yarn prettier --write vscode-client/**/*.ts to format files locally)
         working-directory: ./sema4ai
         if: always()
         run: prettier --check vscode-client/**/*.ts
-        
+
       - name: ruff format check sema4ai
         working-directory: ./sema4ai
         if: always()
@@ -43,7 +43,13 @@ jobs:
           ls -la
           # Fix with python -m dev ruff_format --format
           poetry run python -m dev ruff_format
-          
+
+      - name: Update codegen deps
+        run: python -m dev codegen
+        working-directory: ./sema4ai
+        env:
+          PYTHONPATH: src
+
       - name: mypy sema4ai
         if: always()
         working-directory: ./sema4ai
@@ -56,5 +62,3 @@ jobs:
         run: |
           poetry install
           poetry run mypy --follow-imports=silent --show-column-numbers $PWD/src $PWD/tests
-                    
-          

@@ -37,6 +37,11 @@ jobs:
         working-directory: ./sema4ai
         run: poetry install
       - run: npm install -g vsce@2.15.0
+      - name: Run codegen
+        run: python -m dev codegen
+        working-directory: ./sema4ai
+        env:
+          PYTHONPATH: src
 
       - name: Check tag version
         run: python -m dev check-tag-version
