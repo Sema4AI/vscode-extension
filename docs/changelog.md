@@ -18,7 +18,7 @@
 - Add `Publish Agent  to Studio` command
 - Add `Export Agent Pack` sidebar command
 - When running `rcc task run`, add `--bundled` and `--sema4ai` flags.
-- Upgrade to `Action Server` to `0.23.1`
+- Upgrade to `Action Server` to `0.23.2`
 - Accept OAuth2 without `clientSecret` (using `pkce` flow).
 - The yaml for `OAuth2` is now different (saved in new location with new structure).
   - There's now a `mode` which can specify `mode: sema4ai` to use `Sema4.ai` provided configuration (without `clientSecret` required).

@@ -28,7 +28,7 @@ from sema4ai_code.protocols import (
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
-ACTION_SERVER_VERSION = "0.23.1"
+ACTION_SERVER_VERSION = "0.23.2"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
@@ -295,8 +295,14 @@ class ActionServerAsService:
                     **kwargs,
                 )
                 break
-            except URLError:
-                if time.time() > timeout_at:
+            except URLError as e:
+                code = getattr(e, "code", -1)
+                if code != -1:
+                    # If we had an actual http failure don't retry.
+                    raise RuntimeError(f"Error trying to access url: {url}")
+
+                elif time.time() > timeout_at:
+                    # The connection wasn't even completed, retry.
                     raise RuntimeError(f"Error trying to access url: {url}")
                 time.sleep(1 / 3.0)
 
