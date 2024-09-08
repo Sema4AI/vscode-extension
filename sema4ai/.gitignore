@@ -2,3 +2,4 @@
 /.vscode/settings.json
 /.ruff_cache/
 LICENSE.txt
+/src/sema4ai_code/_oauth2_config.py

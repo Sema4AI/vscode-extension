@@ -109,7 +109,13 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
         return;
     }
 
-    const parsed = JSON.parse(contents);
+    let parsed;
+    try {
+        parsed = JSON.parse(contents);
+    } catch (error) {
+        const msg = `Unable to parse ${targetInput} as JSON.`;
+        throw new Error(msg);
+    }
     const secrets = {};
     const request = parsed["vscode:request:oauth2"];
     if (request) {
