@@ -11,7 +11,7 @@
 - Update `robocorp-trustore` dependency to 0.9.1
 - No longer use `requests` (due to breakage with truststore)
 - Make downloads with resume
-- Update `agent-cli` to `v0.0.17`
+- Update `agent-cli` to `v0.0.19`
 - Location for agent cli and action server is no longer customizable
   - It's now always downloaded in a default path in the extension.
   - Current version: `0.0.19`
@@ -22,6 +22,7 @@
 - Accept OAuth2 without `clientSecret` (using `pkce` flow).
 - The yaml for `OAuth2` is now different (saved in new location with new structure).
   - There's now a `mode` which can specify `mode: sema4ai` to use `Sema4.ai` provided configuration (without `clientSecret` required).
+- New command: `Sema4.ai: Import Agent Package (Zip)`.
 
 ## New in 2.4.2 (2024-08-26)
 

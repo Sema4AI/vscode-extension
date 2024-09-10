@@ -957,6 +957,12 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=False,
     ),
+    Command(
+        "sema4ai.agentPackageImport",
+        "Import Agent Package (Zip)",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 

@@ -154,6 +154,7 @@ import {
     SEMA4AI_PACK_AGENT_PACKAGE,
     SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
     SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+    SEMA4AI_AGENT_PACKAGE_IMPORT,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -181,7 +182,12 @@ import {
     openMetadata,
 } from "./robo/actionPackage";
 import { oauth2Logout } from "./robo/oauth2InInput";
-import { createAgentPackage, selectAndPackAgentPackage, packAgentPackage } from "./robo/agentPackage";
+import {
+    createAgentPackage,
+    selectAndPackAgentPackage,
+    packAgentPackage,
+    importAgentPackage,
+} from "./robo/agentPackage";
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 
 interface InterpreterInfo {
@@ -483,6 +489,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, openMetadata);
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
     C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
+    C.register(SEMA4AI_AGENT_PACKAGE_IMPORT, importAgentPackage);
     C.register(SEMA4AI_PACK_AGENT_PACKAGE, selectAndPackAgentPackage);
     C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
 }

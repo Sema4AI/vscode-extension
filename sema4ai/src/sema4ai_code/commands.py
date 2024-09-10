@@ -137,6 +137,7 @@ SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL = "sema4ai.packAgentPackage.internal"  # Pac
 SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection"  # Edit Runbook
 SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL = "sema4ai.getRunbookPathFromAgentSpec.internal"  # Get Runbook Path from Agent Spec (internal)
 SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.agentPackagePublishToSema4AIStudioApp"  # Publish Agent Package to Sema4.ai Studio
+SEMA4AI_AGENT_PACKAGE_IMPORT = "sema4ai.agentPackageImport"  # Import Agent Package (Zip)
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,

@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 log = get_logger(__name__)
 
-AGENT_CLI_VERSION = "v0.0.17"
+AGENT_CLI_VERSION = "v0.0.19"
 
 
 def download_agent_cli(
@@ -202,6 +202,32 @@ class AgentCli:
         # Environment variable for the action server location is needed for the agent cli.
         env["ACTION_SERVER_BIN_PATH"] = action_server_location
         return env
+
+    def import_agent_package(
+        self, agent_package_zip: str, target_dir: str, monitor: IMonitor
+    ) -> ActionResult[str]:
+        # Usage:
+        # agent-cli package extract [flags]
+
+        # Flags:
+        # -h, --help                help for extract
+        #     --output-dir string   Set the output directory. (default ".")
+        #     --overwrite           The contents will be extracted to a non-empty directory
+        #     --package string      The .zip file that should be extracted. (default "agent-package.zip")
+        env = self._get_env_for_agent_cli_with_action_server()
+        command_result = self._run_agent_cli_command(
+            [
+                "package",
+                "extract",
+                "--output-dir",
+                target_dir,
+                "--overwrite",
+                "--package",
+                agent_package_zip,
+            ],
+            env=env,
+        )
+        return command_result
 
     def pack_agent_package(
         self, directory: str, workspace: IWorkspace, monitor: IMonitor

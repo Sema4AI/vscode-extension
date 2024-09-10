@@ -334,7 +334,7 @@ export async function basicValidations(
             }
         }
 
-        let uriResult = await window.showOpenDialog({
+        let uriResult: Uri[] | undefined = await window.showOpenDialog({
             "canSelectFolders": true,
             "canSelectFiles": false,
             "canSelectMany": false,

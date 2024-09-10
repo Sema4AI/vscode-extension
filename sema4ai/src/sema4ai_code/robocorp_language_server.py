@@ -396,6 +396,38 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_workspace__execute_command(self, command=None, arguments=()) -> Any:
         return command_dispatcher.dispatch(self, command, arguments)
 
+    def m_import_agent_package_from_zip(
+        self, target_dir: Optional[str] = None, agent_package_zip: Optional[str] = None
+    ) -> ActionResultDict:
+        if not target_dir:
+            return ActionResult.make_failure(
+                f"target_dir not sent in arguments."
+            ).as_dict()
+        if not agent_package_zip:
+            return ActionResult.make_failure(
+                f"agent_package_zip not sent in arguments."
+            ).as_dict()
+
+        return require_monitor(
+            partial(
+                self._import_agent_package_from_zip_threaded,
+                agent_package_zip,
+                target_dir,
+            )
+        )
+
+    def _import_agent_package_from_zip_threaded(
+        self, agent_package_zip: str, target_dir: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint, "Importing Agent Package", self._dir_cache
+        ):
+            return self._agent_cli.import_agent_package(
+                agent_package_zip, target_dir, monitor
+            ).as_dict()
+
     @command_dispatcher(commands.SEMA4AI_CONFIGURATION_DIAGNOSTICS_INTERNAL)
     def _configuration_diagnostics_internal(
         self, params: ConfigurationDiagnosticsDict
@@ -1604,8 +1636,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": location}
 
     @command_dispatcher(commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL)
-    def _agent_cli_download(
-        self, params: Optional[DownloadToolDict] = None
+    def _agent_cli_download(self, params: Optional[DownloadToolDict] = None):
+        return require_monitor(partial(self._agent_cli_download_threaded, params))
+
+    def _agent_cli_download_threaded(
+        self, params: Optional[DownloadToolDict], monitor: IMonitor
     ) -> ActionResultDict:
         from sema4ai_code.agent_cli import download_agent_cli
 
