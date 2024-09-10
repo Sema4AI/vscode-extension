@@ -451,5 +451,6 @@ class _OAuth2(object):
                 self._action_server_as_service.start_for_oauth2()
                 # Initialize and make a request to wait for it to be live.
                 self._action_server_as_service.get_config(timeout=60)
+                log.info("Action Server live (responded first request).")
 
             return self._action_server_as_service
