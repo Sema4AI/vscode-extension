@@ -201,11 +201,18 @@ class Process:
         self, read_stderr: bool = True, read_stdout: bool = True, **kwargs
     ) -> None:
         new_kwargs = build_subprocess_kwargs(
-            self._cwd, self._env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            self._cwd,
+            self._env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
         )
         new_kwargs.update(kwargs)
         log.info(
-            "Subprocess start [args=%s,cwd=%s,uid=%d]", self._args, self._cwd, self._uid
+            "Subprocess start [args=%s,cwd=%s,uid=%d]",
+            subprocess.list2cmdline(self._args),
+            self._cwd,
+            self._uid,
         )
         proc = self._proc = _popen_raise(self._args, **new_kwargs)
         log.info("Subprocess started [pid=%s,uid=%d]", proc.pid, self._uid)
@@ -323,30 +330,35 @@ def _popen_raise(cmdline, **kwargs):
 
 
 def _stdin_write(process, input):
-    if process.stdin is not None:
-        if input:
-            try:
-                process.stdin.write(input)
-            except BrokenPipeError:
-                pass  # communicate() must ignore broken pipe errors.
-            except OSError as exc:
-                if exc.errno == errno.EINVAL:
-                    # bpo-19612, bpo-30418: On Windows, stdin.write() fails
-                    # with EINVAL if the child process exited or if the child
-                    # process is still running but closed the pipe.
-                    pass
-                else:
-                    raise
+    if process.stdin is None:
+        log.critical(
+            "Unable to write to stdin in `_stdin_write` because process.stdin is None."
+        )
+        return
 
+    if input:
         try:
-            process.stdin.close()
+            process.stdin.write(input)
         except BrokenPipeError:
             pass  # communicate() must ignore broken pipe errors.
         except OSError as exc:
             if exc.errno == errno.EINVAL:
+                # bpo-19612, bpo-30418: On Windows, stdin.write() fails
+                # with EINVAL if the child process exited or if the child
+                # process is still running but closed the pipe.
                 pass
             else:
                 raise
+
+    try:
+        process.stdin.close()
+    except BrokenPipeError:
+        pass  # communicate() must ignore broken pipe errors.
+    except OSError as exc:
+        if exc.errno == errno.EINVAL:
+            pass
+        else:
+            raise
 
 
 def _call(cmdline, **kwargs):
