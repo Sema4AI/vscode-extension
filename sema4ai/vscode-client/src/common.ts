@@ -128,7 +128,6 @@ export async function getPackageTargetDirectoryAndName(
 
         // Operation cancelled
         if (!target) return { targetDir: null, name: null };
-        // if (!target) return null;
 
         useWorkspaceFolder = target["label"] === useWorkspaceFolderLabel;
     }
@@ -136,20 +135,15 @@ export async function getPackageTargetDirectoryAndName(
     // If using the workspace folder and it's a task package command, we don't need the name
     if (useWorkspaceFolder && messages.commandType === isTaskPackageCommand) {
         return { targetDir: ws.uri.fsPath, name: null };
-        // return ws.uri.fsPath;
     }
 
     const name = await getPackageName(messages.provideNamePrompt);
     if (!name) return { targetDir: null, name: null }; // Handle cancellation
-    // if (!name) return null; // Handle cancellation
 
-    // Keep the functionality for tasks the same
-    const kebabCaseName = isTaskPackageCommand ? name : toKebabCase(name);
     return {
-        targetDir: useWorkspaceFolder ? ws.uri.fsPath : join(ws.uri.fsPath, kebabCaseName),
+        targetDir: useWorkspaceFolder ? ws.uri.fsPath : join(ws.uri.fsPath, toKebabCase(name)),
         name,
     };
-    // return useWorkspaceFolder ? ws.uri.fsPath : join(ws.uri.fsPath, name);
 }
 
 export async function getPackageName(prompt: string): Promise<string | null> {

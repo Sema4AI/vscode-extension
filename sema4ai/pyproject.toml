@@ -2,15 +2,13 @@
 name = "sema4ai"
 version = "2.4.2"
 description = "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development"
-authors = [
-    "Fabio Zadrozny <fabio@robocorp.com>",
-]
+authors = ["Fabio Zadrozny <fabio@robocorp.com>"]
 readme = "README.md"
 repository = "https://github.com/Sema4AI/vscode-extension/"
 license = "Apache-2.0"
 packages = [
-    {include = "sema4ai_code", from = "src"},
-    {include = "sema4ai_code_debug_adapter", from = "src"}
+    { include = "sema4ai_code", from = "src" },
+    { include = "sema4ai_code_debug_adapter", from = "src" },
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -45,9 +43,10 @@ java-access-bridge-wrapper = "^1.2.0"
 ruff = "^0.1.14"
 tree-sitter = "^0.22.3"
 tree-sitter-yaml = "^0.6.0"
+ruamel-yaml = "^0.18.6"
 
 [tool.poetry.group.dev.dependencies]
-sema4ai-python-ls-core = {path = "../sema4ai-python-ls-core/", develop = true}
+sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
 
 fire = "*"
 
@@ -117,6 +116,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.robocorp.log]
 log_filter_rules = [
-    {name = "sema4ai_code", kind = "full_log"},
-    {name = "sema4ai_ls_core", kind = "full_log"},
+    { name = "sema4ai_code", kind = "full_log" },
+    { name = "sema4ai_ls_core", kind = "full_log" },
 ]

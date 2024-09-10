@@ -536,13 +536,16 @@ class ActionServer:
 
         return ActionResult(success=True, message=None, result=templates)
 
-    def create_action_package(self, directory: str, template: str) -> ActionResult:
+    def create_action_package(
+        self, directory: str, template: str, name: str
+    ) -> ActionResult:
         """
         Creates a new Action package under given directory, using specified template.
 
         Args:
             directory: The directory to create the Action package in.
             template: The template to use for the new Action package.
+            name: The name of the Action package.
         """
 
         def get_error_message(result_message: str) -> str:
@@ -579,6 +582,20 @@ class ActionServer:
         command_result = self._run_action_server_command(args)
 
         if command_result.success:
+            from ruamel.yaml import YAML
+
+            yaml = YAML()
+            yaml.preserve_quotes = True
+            package_path = f"{directory}/package.yaml"
+
+            with open(package_path) as stream:
+                package_yaml = yaml.load(stream.read())
+
+            package_yaml["name"] = name
+
+            with open(package_path, "w") as file:
+                yaml.dump(package_yaml, file)
+
             return ActionResult(success=True, message=None)
         else:
             return ActionResult(

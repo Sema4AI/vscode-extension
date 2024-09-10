@@ -201,6 +201,7 @@ def test_list_local_robots(
         [
             {
                 "directory": f"{ws_root_path}/agent1",
+                "name": "Test agent",
             }
         ],
     )
@@ -226,11 +227,13 @@ def test_list_local_robots(
 
     assert result["success"]
     folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
-    assert set([x["name"] for x in folder_info_lst]) == {
-        "example",
-        "example2",
-        "agent1",
-    }
+    assert sorted(set([x["name"] for x in folder_info_lst])) == sorted(
+        {
+            "Test agent",
+            "example",
+            "example2",
+        }
+    )
     for info in folder_info_lst:
         if info["name"] == "agent1":
             name_to_org = dict(
@@ -256,7 +259,7 @@ def test_list_local_agent_packages_with_sub_packages(
     assert os.path.exists(agent_cli_location)
     language_server = language_server_initialized
 
-    agent_package_name = "test_agent"
+    agent_package_name = "Test Agent"
 
     # We create one Action package to test whether the command correctly ignores it.
     action_package_name_one = "action_package_one"
@@ -279,6 +282,7 @@ def test_list_local_agent_packages_with_sub_packages(
         [
             {
                 "directory": agent_package_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -289,6 +293,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_one}",
                 "template": "minimal",
+                "name": "Minimal Action 1",
             }
         ],
     )
@@ -299,6 +304,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_two}",
                 "template": "minimal",
+                "name": "Minimal Action 2",
             }
         ],
     )
@@ -309,6 +315,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_two}/{action_package_name_three}",
                 "template": "minimal",
+                "name": "Minimal Action 3",
             }
         ],
     )
@@ -414,6 +421,7 @@ def test_list_local_agent_packages_cache(
         [
             {
                 "directory": agent_package_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -424,6 +432,7 @@ def test_list_local_agent_packages_cache(
             {
                 "directory": f"{agent_actions_directory}/{organization_name}/{action_package_name_one}",
                 "template": "minimal",
+                "name": "Minimal Action 1",
             }
         ],
     )
@@ -1878,28 +1887,22 @@ def test_create_action_package(
 
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target,
-                "template": "minimal",
-            }
-        ],
+        [{"directory": target, "template": "minimal", "name": "My first action"}],
     )["result"]
 
     assert result["success"]
     assert not result["message"]
     assert os.path.exists(target + "/package.yaml")
 
+    with open(target + "/package.yaml", "r") as f:
+        content = f.read()
+    assert "My first action" in content
+
     # When creating a package in a directory that is not empty,
     # we expect an error to be returned.
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target,
-                "template": "minimal",
-            }
-        ],
+        [{"directory": target, "template": "minimal", "name": "My second action"}],
     )["result"]
 
     assert not result["success"]
@@ -1926,6 +1929,7 @@ def test_create_action_package_without_templates_handling(
                 "action_server_location": get_default_action_server_location(),
                 "directory": target,
                 "template": "",
+                "name": "My first action",
             }
         ],
     )["result"]
@@ -2325,6 +2329,7 @@ def test_create_and_pack_agent_package(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent",
             }
         ],
     )["result"]
@@ -2344,6 +2349,7 @@ def test_create_and_pack_agent_package(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent 2",
             }
         ],
     )["result"]
@@ -2393,6 +2399,7 @@ def test_get_runbook_from_agent_spec(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -2417,7 +2424,7 @@ def test_get_runbook_from_agent_spec(
 
     with open(f"{target_directory}/agent-spec.yaml", "w") as stream:
         del agent_spec["agent-package"]["agents"][0]["runbook"]
-        yaml.dump(agent_spec, stream, default_flow_style=False)
+        yaml.dump(agent_spec, stream, default_flow_style=False, sort_keys=False)
 
     result = language_server.execute_command(
         commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,

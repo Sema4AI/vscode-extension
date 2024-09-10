@@ -130,12 +130,13 @@ class AgentCli:
 
         return ActionResult(success=True, message=None, result=command_result.result)
 
-    def create_agent_package(self, directory: str) -> ActionResult[str]:
+    def create_agent_package(self, directory: str, name: str) -> ActionResult[str]:
         """
         Create a new Agent package under given directory.
 
         Args:
             directory: The directory to create the Agent package in.
+            name: string, the name of the agent package.
         """
         args = ["project", "new", "--path", directory]
         command_result = self._run_agent_cli_command(args)
@@ -145,6 +146,21 @@ class AgentCli:
                 success=False,
                 message=f"Error creating Agent package.\n{command_result.message}",
             )
+
+        from ruamel.yaml import YAML
+
+        yaml = YAML()
+        yaml.preserve_quotes = True
+        package_path = f"{directory}/agent-spec.yaml"
+
+        # Add prompted name to agent spec yaml
+        with open(package_path) as stream:
+            agent_spec = yaml.load(stream.read())
+
+        agent_spec["agent-package"]["agents"][0]["name"] = name
+
+        with open(package_path, "w") as file:
+            yaml.dump(agent_spec, file)
 
         return ActionResult(success=True, message=None)
 
