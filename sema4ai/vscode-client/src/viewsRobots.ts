@@ -16,7 +16,11 @@ function empty<T>(array: T[]) {
 function getRobotLabel(robotInfo: LocalPackageMetadataInfo): string {
     let label: string = undefined;
     if (robotInfo.yamlContents) {
-        label = robotInfo.yamlContents["name"];
+        if (isAgentPackage(robotInfo)) {
+            label = robotInfo.yamlContents?.["agent-package"]?.["agents"]?.[0]?.["name"] ?? null;
+        } else {
+            label = robotInfo.yamlContents["name"];
+        }
     }
     if (!label) {
         if (robotInfo.directory) {

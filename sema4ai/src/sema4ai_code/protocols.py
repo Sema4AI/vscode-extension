@@ -258,6 +258,7 @@ class CreateRobotParamsDict(TypedDict):
 class CreateActionPackageParamsDict(TypedDict):
     directory: str
     template: str
+    name: str
 
 
 class RunInRccParamsDict(TypedDict):
@@ -337,6 +338,7 @@ class DownloadToolDict(TypedDict):
 
 class CreateAgentPackageParamsDict(TypedDict):
     directory: str
+    name: str
 
 
 class GetRunbookPathFromAgentSpecDict(TypedDict):

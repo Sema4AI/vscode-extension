@@ -170,18 +170,17 @@ class WorkspaceManager:
                 try:
 
                     def get_package_metadata(yaml_file_path: Path):
-                        name = yaml_file_path.parent.name
-
                         with yaml_file_path.open("r", encoding="utf-8") as stream:
                             yaml_contents = yaml_wrapper.load(stream)
 
-                            # Agent Packages do not have names defined in the YAML file,
-                            # therefore we use directory name.
-                            name = (
-                                os.path.basename(sub)
-                                if package_yaml_name == PackageYamlName.AGENT
-                                else yaml_contents.get("name", name)
-                            )
+                        name = yaml_contents.get("name", yaml_file_path.parent.name)
+                        if package_yaml_name == PackageYamlName.AGENT:
+                            try:
+                                name = yaml_contents["agent-package"]["agents"][0][
+                                    "name"
+                                ]
+                            except Exception:
+                                pass
 
                         robot_metadata: LocalPackageMetadataInfoDict = {
                             "packageType": self._package_type_by_package_yaml_name(

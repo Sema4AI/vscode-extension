@@ -1491,15 +1491,18 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ) -> ActionResultDict:
         directory = params["directory"]
         template = params["template"]
+        name = params["name"]
 
         return require_monitor(
-            partial(self._create_action_package_threaded, directory, template)
+            partial(self._create_action_package_threaded, directory, template, name)
         )
 
     def _create_action_package_threaded(
-        self, directory: str, template: str, monitor: IMonitor
+        self, directory: str, template: str, name: str, monitor: IMonitor
     ) -> ActionResultDict:
-        return self._action_server.create_action_package(directory, template).as_dict()
+        return self._action_server.create_action_package(
+            directory, template, name
+        ).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL)
     def _action_server_login(self, params: ActionServerLoginDict) -> ActionResultDict:
@@ -1674,8 +1677,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self, params: CreateAgentPackageParamsDict
     ) -> ActionResultDict:
         directory = params["directory"]
+        name = params["name"]
 
-        return self._agent_cli.create_agent_package(directory).as_dict()
+        return self._agent_cli.create_agent_package(directory, name).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL)
     def _pack_agent_package(

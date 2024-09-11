@@ -22,17 +22,19 @@ import {
     ActionServerPackageBuildOutput,
     ActionServerPackageUploadStatusOutput,
     PackageYamlName,
+    PackageType,
 } from "../protocols";
 import {
-    compareVersions,
-    getPackageDirectoryName,
-    getPackageTargetDirectory,
+    getPackageName,
+    getPackageTargetDirectoryAndName,
     getPackageYamlNameFromDirectory,
     getWorkspacePackages,
     isActionPackage,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
+    PackageTargetAndNameResult,
+    toKebabCase,
     isAgentPackage,
 } from "../common";
 import { slugify } from "../slugify";
@@ -42,12 +44,10 @@ import * as path from "path";
 import { OUTPUT_CHANNEL, logError } from "../channel";
 import {
     downloadOrGetActionServerLocation,
-    getActionServerVersion,
     verifyLogin,
     listOrganizations,
     findActionPackagePath,
 } from "../actionServer";
-import { createEnvWithRobocorpHome, getRobocorpHome } from "../rcc";
 import { loginToAuth2WhereRequired } from "./oauth2InInput";
 
 export interface QuickPickItemAction extends QuickPickItem {
@@ -274,9 +274,9 @@ export async function runActionFromActionPackage(
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | null> {
+async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTargetAndNameResult> {
     if (await verifyIfIsPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
-        return null;
+        return { targetDir: null, name: null }; // Early return if it's already a package directory
     }
 
     const [rootPackageYaml, workspacePackages] = await Promise.all([
@@ -284,99 +284,75 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<string | 
         getWorkspacePackages(),
     ]);
 
-    let targetDir = "";
+    const insideAgentPackage = "Inside Agent Package";
 
-    let useAgentPackage = false;
-    let packageInfo: LocalPackageMetadataInfo;
+    // Case 1: Root level agent, use the agent package directly
+    if (rootPackageYaml === PackageYamlName.Agent) {
+        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
+    }
+    // Case 2: Multiple agents, ask the user for action package level selection
+    else if (workspacePackages?.agentPackages?.length) {
+        const actionPackageLevelSelection = await window.showQuickPick(
+            [
+                {
+                    label: insideAgentPackage,
+                    detail: "Action Package will be created inside an Agent Package",
+                },
+                {
+                    label: "Workspace (root) level",
+                    detail: "Action Package will be created at workspace root level",
+                },
+            ],
+            {
+                placeHolder: "Where do you want to create the Action Package?",
+                ignoreFocusOut: true,
+            }
+        );
 
-    if (workspacePackages?.agentPackages?.length) {
-        /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
-        if (rootPackageYaml === PackageYamlName.Agent) {
-            packageInfo = workspacePackages.agentPackages[0];
-            useAgentPackage = true;
-        } else {
-            const insideAgentPackageLabel = "Inside Agent Package";
+        if (!actionPackageLevelSelection) return null; // Operation cancelled
 
-            const actionPackageLevelSelection = await window.showQuickPick(
-                [
-                    {
-                        "label": insideAgentPackageLabel,
-                        "detail": "Action Package will be created inside an Agent Package",
-                    },
-                    {
-                        "label": "Workspace (root) level",
-                        "detail": "Action Package will be created at workspace root level",
-                    },
-                ],
+        // If the user wants to create inside an agent package, prompt for which one
+        if (actionPackageLevelSelection["label"] === insideAgentPackage) {
+            const packageName = await window.showQuickPick(
+                workspacePackages.agentPackages.map((pkg) => pkg.name),
                 {
                     placeHolder: "Where do you want to create the Action Package?",
                     ignoreFocusOut: true,
                 }
             );
 
-            /* Operation cancelled. */
-            if (!actionPackageLevelSelection) {
-                return null;
-            }
+            if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
 
-            useAgentPackage = actionPackageLevelSelection["label"] === insideAgentPackageLabel;
-
-            if (useAgentPackage) {
-                const packageName = await window.showQuickPick(
-                    workspacePackages.agentPackages.map((agentPackage) => agentPackage.name),
-                    {
-                        placeHolder: "Where do you want to create the Action Package?",
-                        ignoreFocusOut: true,
-                    }
-                );
-
-                /* Operation cancelled. */
-                if (!packageName) {
-                    return null;
-                }
-
-                packageInfo = workspacePackages.agentPackages.find((agentPackage) => agentPackage.name === packageName);
-            }
+            const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
+            return await handleAgentLevelPackageCreation(packageInfo);
         }
     }
 
-    if (useAgentPackage) {
-        const organizationDirectoryName = await window.showQuickPick(
-            packageInfo.organizations.map((organization) => organization.name),
-            {
-                placeHolder: "Which organization do you want to create the Action Package in?",
-                ignoreFocusOut: true,
-            }
-        );
-
-        /* Operation cancelled. */
-        if (!organizationDirectoryName) {
-            return null;
-        }
-
-        const packageDirectoryName = await getPackageDirectoryName(
-            "Please provide the name for the Action Package folder name."
-        );
-
-        /* Operation cancelled. */
-        if (!packageDirectoryName) {
-            return null;
-        }
-
-        targetDir = path.join(packageInfo.directory, "actions", organizationDirectoryName, packageDirectoryName);
-    } else {
-        targetDir = await getPackageTargetDirectory(ws, {
-            title: "Where do you want to create the Action Package?",
-            useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
-            useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
-            provideNamePrompt: "Please provide the name for the Action Package folder name.",
-        });
-    }
-
-    return targetDir || null;
+    // Case 3: Create at the root level, because there's no agent package or the user selected it
+    return await handleRootLevelPackageCreation(ws);
 }
 
-export async function createActionPackage(parentFolderUri?: vscode.Uri) {
+async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<PackageTargetAndNameResult> {
+    return await getPackageTargetDirectoryAndName(ws, {
+        title: "Where do you want to create the Action Package?",
+        useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
+        useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
+        provideNamePrompt: "Please provide the name for the Action Package.",
+        commandType: PackageType.Action,
+    });
+}
+
+async function handleAgentLevelPackageCreation(
+    packageInfo: LocalPackageMetadataInfo
+): Promise<PackageTargetAndNameResult | null> {
+    const packageName = await getPackageName("Please provide the name for the Action Package.");
+    if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
+
+    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
+    return { targetDir: dirName, name: packageName };
+}
+
+export async function createActionPackage() {
     // We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
@@ -389,21 +365,11 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
         return;
     }
 
-    let targetDir = "";
+    const { targetDir, name } = await askActionPackageTargetDir(ws);
 
-    if (parentFolderUri) {
-        const name = await getPackageDirectoryName("Please provide the name for the Action Package folder name.");
-        if (!name) {
-            return;
-        }
-        targetDir = path.join(parentFolderUri.fsPath, name);
-    } else {
-        targetDir = await askActionPackageTargetDir(ws);
-
-        // Operation cancelled or directory conflict detected.
-        if (!targetDir) {
-            return;
-        }
+    // Operation cancelled or directory conflict detected.
+    if (!targetDir) {
+        return;
     }
 
     // Now, let's validate if we can indeed create an Action Package in the given folder.
@@ -439,6 +405,7 @@ export async function createActionPackage(parentFolderUri?: vscode.Uri) {
             {
                 "directory": targetDir,
                 "template": template,
+                "name": name,
             }
         );
 

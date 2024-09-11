@@ -9,17 +9,6 @@ from typing import Dict, List, Optional
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
-from sema4ai_ls_core.basic import wait_for_condition
-from sema4ai_ls_core.callbacks import Callback
-from sema4ai_ls_core.ep_resolve_interpreter import (
-    DefaultInterpreterInfo,
-    IInterpreterInfo,
-)
-from sema4ai_ls_core.pluginmanager import PluginManager
-from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
-
 from sema4ai_code.inspector.common import (
     STATE_CLOSED,
     STATE_NOT_PICKING,
@@ -32,6 +21,17 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_ls_core.basic import wait_for_condition
+from sema4ai_ls_core.callbacks import Callback
+from sema4ai_ls_core.ep_resolve_interpreter import (
+    DefaultInterpreterInfo,
+    IInterpreterInfo,
+)
+from sema4ai_ls_core.pluginmanager import PluginManager
+from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
+
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -201,6 +201,7 @@ def test_list_local_robots(
         [
             {
                 "directory": f"{ws_root_path}/agent1",
+                "name": "Test agent",
             }
         ],
     )
@@ -226,11 +227,13 @@ def test_list_local_robots(
 
     assert result["success"]
     folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
-    assert set([x["name"] for x in folder_info_lst]) == {
-        "example",
-        "example2",
-        "agent1",
-    }
+    assert sorted(set([x["name"] for x in folder_info_lst])) == sorted(
+        {
+            "Test agent",
+            "example",
+            "example2",
+        }
+    )
     for info in folder_info_lst:
         if info["name"] == "agent1":
             name_to_org = dict(
@@ -256,7 +259,7 @@ def test_list_local_agent_packages_with_sub_packages(
     assert os.path.exists(agent_cli_location)
     language_server = language_server_initialized
 
-    agent_package_name = "test_agent"
+    agent_package_name = "Test Agent"
 
     # We create one Action package to test whether the command correctly ignores it.
     action_package_name_one = "action_package_one"
@@ -279,6 +282,7 @@ def test_list_local_agent_packages_with_sub_packages(
         [
             {
                 "directory": agent_package_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -289,6 +293,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_one}",
                 "template": "minimal",
+                "name": "Minimal Action 1",
             }
         ],
     )
@@ -299,6 +304,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_one}/{action_package_name_two}",
                 "template": "minimal",
+                "name": "Minimal Action 2",
             }
         ],
     )
@@ -309,6 +315,7 @@ def test_list_local_agent_packages_with_sub_packages(
             {
                 "directory": f"{agent_actions_directory}/{organization_two}/{action_package_name_three}",
                 "template": "minimal",
+                "name": "Minimal Action 3",
             }
         ],
     )
@@ -414,6 +421,7 @@ def test_list_local_agent_packages_cache(
         [
             {
                 "directory": agent_package_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -424,6 +432,7 @@ def test_list_local_agent_packages_cache(
             {
                 "directory": f"{agent_actions_directory}/{organization_name}/{action_package_name_one}",
                 "template": "minimal",
+                "name": "Minimal Action 1",
             }
         ],
     )
@@ -1072,9 +1081,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1345,14 +1355,13 @@ def test_profile_import(
     datadir,
     disable_rcc_diagnostics,
 ):
-    from sema4ai_ls_core import uris
-
     from sema4ai_code.commands import (
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
         SEMA4AI_PROFILE_IMPORT_INTERNAL,
         SEMA4AI_PROFILE_LIST_INTERNAL,
         SEMA4AI_PROFILE_SWITCH_INTERNAL,
     )
+    from sema4ai_ls_core import uris
 
     result = language_server_initialized.execute_command(
         SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
@@ -1671,10 +1680,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -1877,28 +1887,22 @@ def test_create_action_package(
 
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target,
-                "template": "minimal",
-            }
-        ],
+        [{"directory": target, "template": "minimal", "name": "My first action"}],
     )["result"]
 
     assert result["success"]
     assert not result["message"]
     assert os.path.exists(target + "/package.yaml")
 
+    with open(target + "/package.yaml", "r") as f:
+        content = f.read()
+    assert "My first action" in content
+
     # When creating a package in a directory that is not empty,
     # we expect an error to be returned.
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target,
-                "template": "minimal",
-            }
-        ],
+        [{"directory": target, "template": "minimal", "name": "My second action"}],
     )["result"]
 
     assert not result["success"]
@@ -1925,6 +1929,7 @@ def test_create_action_package_without_templates_handling(
                 "action_server_location": get_default_action_server_location(),
                 "directory": target,
                 "template": "",
+                "name": "My first action",
             }
         ],
     )["result"]
@@ -2308,7 +2313,6 @@ def test_create_and_pack_and_import_agent_package(
     assert os.path.exists(agent_cli_location)
 
     import yaml
-
     from sema4ai_code import commands
 
     language_server = language_server_initialized
@@ -2325,6 +2329,7 @@ def test_create_and_pack_and_import_agent_package(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent",
             }
         ],
     )["result"]
@@ -2344,6 +2349,7 @@ def test_create_and_pack_and_import_agent_package(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent 2",
             }
         ],
     )["result"]
@@ -2405,7 +2411,6 @@ def test_get_runbook_from_agent_spec(
     tmpdir,
 ) -> None:
     import yaml
-
     from sema4ai_code import commands
 
     language_server = language_server_initialized
@@ -2421,6 +2426,7 @@ def test_get_runbook_from_agent_spec(
         [
             {
                 "directory": target_directory,
+                "name": "Test Agent",
             }
         ],
     )
@@ -2445,7 +2451,7 @@ def test_get_runbook_from_agent_spec(
 
     with open(f"{target_directory}/agent-spec.yaml", "w") as stream:
         del agent_spec["agent-package"]["agents"][0]["runbook"]
-        yaml.dump(agent_spec, stream, default_flow_style=False)
+        yaml.dump(agent_spec, stream, default_flow_style=False, sort_keys=False)
 
     result = language_server.execute_command(
         commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,

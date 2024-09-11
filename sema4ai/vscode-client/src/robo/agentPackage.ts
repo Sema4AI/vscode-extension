@@ -2,19 +2,20 @@ import { commands, window, WorkspaceFolder, Uri } from "vscode";
 import { getAgentCliLocation } from "../agentCli";
 import { askForWs } from "../ask";
 import {
-    getPackageTargetDirectory,
+    getPackageTargetDirectoryAndName,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     getWorkspacePackages,
+    PackageTargetAndNameResult,
 } from "../common";
-import { ActionResult, LocalPackageMetadataInfo } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageType } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
 import { langServer } from "../extension";
 
-const obtainTargetDirForAgentPackage = async (title: string): Promise<string | undefined> => {
+const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<PackageTargetAndNameResult> => {
     const ws = await askForWs();
     const isWorkspacePackageDirectory = ws ? await verifyIfIsPackageDirectory(ws.uri) : null;
 
@@ -22,11 +23,12 @@ const obtainTargetDirForAgentPackage = async (title: string): Promise<string | u
         return undefined;
     }
 
-    const targetDir = await getPackageTargetDirectory(ws, {
+    const { targetDir, name } = await getPackageTargetDirectoryAndName(ws, {
         title,
         useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
         useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Agent Package folder name.",
+        provideNamePrompt: "Please provide the name for the Agent Package.",
+        commandType: PackageType.Agent,
     });
 
     // Operation cancelled.
@@ -47,7 +49,7 @@ const obtainTargetDirForAgentPackage = async (title: string): Promise<string | u
     }
 
     await makeDirs(targetDir);
-    return targetDir;
+    return { targetDir: targetDir, name: name };
 };
 
 export const importAgentPackage = async (): Promise<void> => {
@@ -66,9 +68,7 @@ export const importAgentPackage = async (): Promise<void> => {
         return;
     }
 
-    const targetDir: string | undefined = await obtainTargetDirForAgentPackage(
-        "Where do you want to import the Agent Package?"
-    );
+    const { targetDir } = await obtainTargetDirAndNameForAgentPackage("Where do you want to import the Agent Package?");
 
     if (!targetDir) {
         return;
@@ -99,7 +99,7 @@ export const importAgentPackage = async (): Promise<void> => {
 export const createAgentPackage = async (): Promise<void> => {
     getAgentCliLocation(); // Starts getting agent cli in promise.
 
-    const targetDir: string | undefined = await obtainTargetDirForAgentPackage(
+    const { targetDir, name } = await obtainTargetDirAndNameForAgentPackage(
         "Where do you want to create the Agent Package?"
     );
 
@@ -113,6 +113,7 @@ export const createAgentPackage = async (): Promise<void> => {
             roboCommands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
             {
                 "directory": targetDir,
+                "name": name,
             }
         );
 
