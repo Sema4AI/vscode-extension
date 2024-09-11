@@ -32,9 +32,13 @@ import {
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
+<<<<<<< feature/agent-name-from-spec
     isActionPackageCommand,
     PackageTargetAndNameResult,
     toKebabCase,
+=======
+    isAgentPackage,
+>>>>>>> master
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -90,9 +94,26 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
         // Only use action packages.
+        const agentPackages = robotsInfo.filter((r) => {
+            return isAgentPackage(r);
+        });
         robotsInfo = robotsInfo.filter((r) => {
             return isActionPackage(r);
         });
+
+        if (agentPackages) {
+            for (const agentPackage of agentPackages) {
+                if (agentPackage.organizations) {
+                    for (const organization of agentPackage.organizations) {
+                        if (organization.actionPackages) {
+                            for (const actionPackage of organization.actionPackages) {
+                                robotsInfo.push(actionPackage);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if (!robotsInfo || robotsInfo.length == 0) {

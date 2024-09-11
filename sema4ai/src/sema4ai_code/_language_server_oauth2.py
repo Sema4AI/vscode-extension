@@ -19,76 +19,7 @@ oauth2_command_dispatcher = _SubCommandDispatcher("_oauth2")
 if typing.TYPE_CHECKING:
     from concurrent.futures import Future
 
-    from sema4ai_code.action_server import ActionServerAsService
-
-_DEFAULT_OAUTH2_YAML_SETTINGS_FILE_CONTENTS = """
-# The "devServerInfo" information is only used to require tokens from VSCode:
-#
-# This is the server information which will be used to create a server
-# which will be used to collect the OAuth2 tokens as needed.
-# Note that this is ONLY USED WHEN tokens are requested from 
-# a separate application, such as VSCode, as when the action
-# server is manually started it'll use host/port provided when
-# it was initialized.
-devServerInfo:
-  redirectUri: "http://localhost:4567/oauth2/redirect/"
-  # If the redirectUri starts with `https`, ssl information is
-  # needed. In this case it's possible to either set `sslSelfSigned`
-  # to true to automatically create a self-signed certificate or
-  # set the `sslKeyfile` and `sslCertfile` to be used to serve
-  # the page.
-  #
-  # Note: the redirectUri needs to be specified here and in the service.
-  # Keep in mind that the port must not be used by any other service
-  # in the machine and it must match the format below (where only
-  # <protocol> and <port> can be configured, the remainder must be kept as is):
-  #
-  # <protocol>://localhost:<port>/oauth2/redirect/
-  #
-  # Disclaimer: if using a self-signed certificate, the browser may complain
-  # and an exception needs to be accepted to proceed to the site unless
-  # the self-signed certificate is imported in the system.
-  sslSelfSigned: false
-  sslKeyfile: ""
-  sslCertfile: ""
-
-# Details for each provider need to be manually set.
-#
-# The following providers just require "clientId" and "clientSecret":
-# - google, github, slack, and hubspot
-#
-# The following providers require "server", "clientId" and "clientSecret":
-# - microsoft, zendesk
-#
-# Any other provider besides those also needs to specify
-# "server", "tokenEndpoint" and "authorizationEndpoint"
-#
-# Note: if the "tokenEndpoint"/"authorizationEndpoint" are relative,
-# the "server" is prefixed to it to get the absolute version.
-#
-# google:
-#   clientId: "XXXX-YYYYYYYYY.apps.googleusercontent.com"
-#   clientSecret: "XXXXX-yyyyyyyyyyyyyyyy"
-#
-# slack:
-#   clientId: "XXXXXXXXXXXX.YYYYYYYYYYY"
-#   clientSecret: "zzzzzzzzzzzzzzz"
-#
-# hubspot:
-#   clientId: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#   clientSecret: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#
-# microsoft:
-#   clientId: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#   clientSecret: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#   server: "https://<service.microsoft.com>"
-#
-# custom:
-#   clientId: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#   clientSecret: "xxxxxx-yyyyy-zzzz-aaaa-bbbbbbbbbbbbb"
-#   server: "https://<service.microsoft.com>"
-
-"""
+    from sema4ai_code.action_server import ActionServer, ActionServerAsService
 
 
 @dataclass
@@ -146,6 +77,7 @@ class _OAuth2(object):
         rcc: IRcc,
         feedback,
         lsp_messages: LSPMessages,
+        action_server: "ActionServer",
     ):
         from sema4ai_code._language_server_feedback import _Feedback
         from sema4ai_code.action_server import ActionServerAsService
@@ -157,9 +89,15 @@ class _OAuth2(object):
         self._action_server_as_service: Optional[ActionServerAsService] = None
         self._lock = threading.Lock()
         self._lsp_messages = lsp_messages
+        self._action_server = action_server
 
         base_command_dispatcher.register_sub_command_dispatcher(
             oauth2_command_dispatcher
+        )
+        from ._oauth2 import set_get_sema4ai_oauth2_config_callback
+
+        set_get_sema4ai_oauth2_config_callback(
+            self._action_server.get_sema4ai_oauth2_config_str
         )
 
     def oauth2_logout(
@@ -167,23 +105,25 @@ class _OAuth2(object):
     ) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
-        from sema4ai_code.action_server import get_default_oauth2_settings_file
         from sema4ai_code.vendored_deps.oauth2_settings import (
-            get_oauthlib2_global_settings,
+            get_oauthlib2_user_settings,
         )
 
-        oauth2_settings_file = get_default_oauth2_settings_file()
+        oauth2_settings_file = self._get_default_oauth2_settings_file()
         try:
             # Raises an error if it's not Ok
-            oauth2_global_contents = get_oauthlib2_global_settings(
+            oauth2_user_contents = get_oauthlib2_user_settings(
                 str(oauth2_settings_file)
             )
         except Exception as e:
             msg = f"Bad configuration in {oauth2_settings_file}.\nDetails: {e}"
             log.exception(msg)
+            self.open_oauth2_settings()
             return ActionResult.make_failure(message=msg).as_dict()
         try:
-            data = self._collect_info(oauth2_global_contents, oauth2_settings_file)
+            data = self._collect_info(
+                oauth2_user_contents, oauth2_settings_file, provider=provider
+            )
         except Exception as e:
             return ActionResult.make_failure(message=str(e)).as_dict()
 
@@ -197,24 +137,25 @@ class _OAuth2(object):
     ) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
-        from sema4ai_code.action_server import get_default_oauth2_settings_file
         from sema4ai_code.vendored_deps.oauth2_settings import (
-            get_oauthlib2_global_settings,
+            get_oauthlib2_user_settings,
         )
 
-        oauth2_settings_file = get_default_oauth2_settings_file()
+        oauth2_settings_file = self._get_default_oauth2_settings_file()
         try:
             # Raises an error if it's not Ok
-            oauth2_global_contents = get_oauthlib2_global_settings(
+            oauth2_user_contents = get_oauthlib2_user_settings(
                 str(oauth2_settings_file)
             )
         except Exception as e:
             msg = f"Bad configuration in {oauth2_settings_file}.\nDetails: {e}"
             log.exception(msg)
+            self.open_oauth2_settings()
             return ActionResult.make_failure(message=msg).as_dict()
         try:
-            data = self._collect_info(oauth2_global_contents, oauth2_settings_file)
+            data = self._collect_info(oauth2_user_contents, oauth2_settings_file)
         except Exception as e:
+            log.exception("Error collecting OAuth2 status.")
             return ActionResult.make_failure(message=str(e)).as_dict()
 
         action_server = self.get_action_server_for_oauth2(action_server_location, data)
@@ -236,60 +177,124 @@ class _OAuth2(object):
             reference_id_path.write_text(reference_id)
         return reference_id
 
-    def _collect_info(
-        self, oauth2_global_contents: dict, oauth2_settings_file: Path
-    ) -> _Data:
+    def _get_redirect_uri(self, requires_https: bool) -> tuple[int, str]:
+        """
+        Args:
+            requires_https: Whether https is required.
+        Returns:
+            tuple with (port, protocol), where protocol is `http` or `https`.
+        """
         from urllib.parse import urlparse
 
-        # If we got here the settings seem ok, so, proceed to call the action server
-        dev_server_info = oauth2_global_contents.get("devServerInfo")
-        if not dev_server_info:
-            msg = (
-                f"'devServerInfo' is not properly configured in {oauth2_settings_file}."
-            )
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+        from sema4ai_code.action_server import is_port_free
 
-        if not isinstance(dev_server_info, dict):
-            msg = f"'devServerInfo' is expected to be a dict in {oauth2_settings_file}."
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+        oauth2_config = self._action_server.get_sema4ai_oauth2_config()
+        redirect_urls = oauth2_config["oauth2Config"]["redirectUrls"]
+        redirect_urls = tuple(x.strip() for x in redirect_urls.split(","))
 
-        redirect_uri = dev_server_info.get("redirectUri")
-        if not isinstance(redirect_uri, str):
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) is not properly configured in {oauth2_settings_file}."
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+        checked_ports = set()
+        for redirect_url in redirect_urls:
+            parsed_url = urlparse(redirect_url)
+            protocol = parsed_url.scheme
+            port = parsed_url.port
+            path = parsed_url.path
 
-        parsed_url = urlparse(redirect_uri)
-        protocol = parsed_url.scheme
-        port = parsed_url.port
-        path = parsed_url.path
+            if protocol not in ("http", "https"):
+                msg = f"'oauth2Config/redirectUrls' ({redirect_url}) must start with 'http' or 'https' in Sema4.ai oauth2 config."
+                raise RuntimeError(msg)
 
-        if protocol not in ("http", "https"):
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must start with 'http' or 'https' in {oauth2_settings_file}."
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+            if not port:
+                msg = f"'oauth2Config/redirectUrls' ({redirect_url}) must specify the port (something as http://localhost:port/sema4ai/oauth2/) in Sema4.ai oauth2 config."
+                raise RuntimeError(msg)
 
-        if not port:
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must specify the port (something as http://localhost:port/oauth2/redirect/) {oauth2_settings_file}."
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+            if path != "/sema4ai/oauth2/":
+                msg = f"'oauth2Config/redirectUrls' ({redirect_url}) must end with '/sema4ai/oauth2/' in Sema4.ai oauth2 config."
+                raise RuntimeError(msg)
 
-        if path != "/oauth2/redirect/":
-            msg = f"'devServerInfo/redirectUri' ({redirect_uri}) must end with '/oauth2/redirect/' in {oauth2_settings_file}."
-            self.open_oauth2_settings()
-            raise RuntimeError(msg)
+            if requires_https and protocol != "https":
+                continue
+            elif protocol != "http":
+                continue
 
-        ssl_self_signed = dev_server_info.get("sslSelfSigned", False)
-        ssl_keyfile = dev_server_info.get("sslKeyfile", "")
-        ssl_certfile = dev_server_info.get("sslCertfile", "")
+            if is_port_free(port):
+                return (port, protocol)
+            checked_ports.add(port)
+
+        raise RuntimeError(
+            f"Found no free ports to start OAuth2 flow (checked ports: {checked_ports}).\nConfigured redirect urls: {redirect_urls}."
+        )
+
+    def _collect_info(
+        self,
+        oauth2_user_contents: dict,
+        oauth2_settings_file: Path,
+        provider: Optional[str] = None,
+    ) -> _Data:
+        """
+        Args:
+            provider: if given the settings provided will be based on the given
+                provider to determine if https should be used (otherwise it'll
+                default to http instead of https).
+        """
+
+        ssl_self_signed = False
+        ssl_keyfile = ""
+        ssl_certfile = ""
+        requires_https = False
+        if provider:
+            # If the provider is passed then it's possible to determine if https is needed.
+            oauth2_config = oauth2_user_contents.get("oauth2Config")
+            if not oauth2_config:
+                msg = f"'oauth2Config' is not properly configured in {oauth2_settings_file}."
+                self.open_oauth2_settings()
+                raise RuntimeError(msg)
+
+            if not isinstance(oauth2_config, dict):
+                msg = f"'oauth2Config' is expected to be a dict in {oauth2_settings_file}."
+                self.open_oauth2_settings()
+                raise RuntimeError(msg)
+
+            providers = oauth2_config.get("providers")
+            if not providers or not isinstance(providers, dict):
+                msg = f"'oauth2Config/providers' is expected to be a (non-empty) dict in {oauth2_settings_file}."
+                self.open_oauth2_settings()
+                raise RuntimeError(msg)
+
+            provider_info = providers.get(provider)
+            if not provider_info or not isinstance(provider_info, dict):
+                msg = f"oauth2Config/providers/{provider} is expected to be a (non-empty) dict in {oauth2_settings_file}."
+                self.open_oauth2_settings()
+                raise RuntimeError(msg)
+
+            mode = provider_info.get("mode")
+            if mode not in ("custom", "sema4ai"):
+                msg = f"mode for provider: {provider} is expected to be 'custom' or 'sema4ai' in {oauth2_settings_file}."
+                self.open_oauth2_settings()
+                raise RuntimeError(msg)
+
+            if mode == "sema4ai":
+                try:
+                    sema4ai_oauth2_config = (
+                        self._action_server.get_sema4ai_oauth2_config()
+                    )
+                    providers = sema4ai_oauth2_config["oauth2Config"]["providers"]
+                except Exception:
+                    raise RuntimeError("Error in Sema4.ai OAuth2 config.")
+                provider_info = providers.get(provider)
+
+            requires_https = provider_info.get("requiresHttps", False)
+            if requires_https:
+                ssl_self_signed = oauth2_config.get("sslSelfSigned", False)
+                ssl_keyfile = oauth2_config.get("sslKeyfile", "")
+                ssl_certfile = oauth2_config.get("sslCertfile", "")
 
         extension_datadir = self._rcc.get_robocorp_code_datadir()
         cwd = extension_datadir / "oauth2" / "cwd"
         datadir = extension_datadir / "oauth2" / "datadir"
         cwd.mkdir(parents=True, exist_ok=True)
         datadir.mkdir(parents=True, exist_ok=True)
+
+        port, protocol = self._get_redirect_uri(requires_https)
 
         return _Data(
             cwd=cwd,
@@ -303,14 +308,7 @@ class _OAuth2(object):
 
     @oauth2_command_dispatcher(commands.SEMA4AI_OAUTH2_OPEN_SETTINGS)
     def open_oauth2_settings(self, *args, **kwargs) -> None:
-        from sema4ai_code.action_server import get_default_oauth2_settings_file
-
-        oauth_2_settings_file = get_default_oauth2_settings_file()
-        if not oauth_2_settings_file.exists():
-            # Create default
-            oauth_2_settings_file.write_text(
-                _DEFAULT_OAUTH2_YAML_SETTINGS_FILE_CONTENTS
-            )
+        oauth_2_settings_file = self._get_default_oauth2_settings_file()
 
         self._lsp_messages.show_document(
             {
@@ -319,6 +317,9 @@ class _OAuth2(object):
                 "takeFocus": True,
             }
         )
+
+    def _get_default_oauth2_settings_file(self) -> Path:
+        return self._action_server.get_user_oauth2_config_file()
 
     def oauth2_login(
         self,
@@ -331,28 +332,28 @@ class _OAuth2(object):
 
         from sema4ai_ls_core.protocols import ActionResult
 
-        from sema4ai_code.action_server import get_default_oauth2_settings_file
         from sema4ai_code.vendored_deps.oauth2_settings import (
-            get_oauthlib2_global_settings,
-            get_oauthlib2_provider_settings,
+            get_oauthlib2_user_settings,
         )
 
-        oauth2_settings_file = get_default_oauth2_settings_file()
+        oauth2_settings_file = self._get_default_oauth2_settings_file()
         try:
             # Raises an error if it's not Ok
-            oauth2_global_contents = get_oauthlib2_global_settings(
+            oauth2_user_contents = get_oauthlib2_user_settings(
                 str(oauth2_settings_file)
             )
-            get_oauthlib2_provider_settings(provider, str(oauth2_settings_file))
         except Exception as e:
-            self.open_oauth2_settings()
-            msg = f"Bad configuration in {oauth2_settings_file} for provider: {provider}.\nDetails: {e}"
+            msg = f"Bad configuration in {oauth2_settings_file}.\nDetails: {e}"
             log.exception(msg)
+            self.open_oauth2_settings()
             return ActionResult.make_failure(message=msg).as_dict()
 
         try:
-            data = self._collect_info(oauth2_global_contents, oauth2_settings_file)
+            data = self._collect_info(
+                oauth2_user_contents, oauth2_settings_file, provider=provider
+            )
         except Exception as e:
+            log.exception("Error collecting OAuth2 information.")
             return ActionResult.make_failure(message=str(e)).as_dict()
 
         action_server = self.get_action_server_for_oauth2(action_server_location, data)
@@ -450,5 +451,6 @@ class _OAuth2(object):
                 self._action_server_as_service.start_for_oauth2()
                 # Initialize and make a request to wait for it to be live.
                 self._action_server_as_service.get_config(timeout=60)
+                log.info("Action Server live (responded first request).")
 
             return self._action_server_as_service

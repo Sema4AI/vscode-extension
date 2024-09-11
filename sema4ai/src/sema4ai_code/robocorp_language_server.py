@@ -223,6 +223,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._rcc,
             self._feedback,
             lsp_messages=self._lsp_messages,
+            action_server=self._action_server,
         )
 
         self._pm = PluginManager()
