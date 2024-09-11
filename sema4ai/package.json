@@ -155,6 +155,7 @@
         "onCommand:sema4ai.openRunbookTreeSelection",
         "onCommand:sema4ai.getRunbookPathFromAgentSpec.internal",
         "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
+        "onCommand:sema4ai.agentPackageImport",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -935,6 +936,11 @@
             {
                 "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
                 "title": "Publish Agent Package to Sema4.ai Studio",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.agentPackageImport",
+                "title": "Import Agent Package (Zip)",
                 "category": "Sema4.ai"
             }
         ],

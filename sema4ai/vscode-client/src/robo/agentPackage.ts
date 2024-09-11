@@ -7,40 +7,36 @@ import {
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     getWorkspacePackages,
+    PackageTargetAndNameResult,
 } from "../common";
-import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageType } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
+import { langServer } from "../extension";
 
-export const createAgentPackage = async (): Promise<void> => {
-    /* We make sure Agent Server exists - if not, getAgentServerLocation will ask user to download it.  */
-    const agentCli = getAgentCliLocation();
-    if (!agentCli) {
-        return;
-    }
-
+const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<PackageTargetAndNameResult> => {
     const ws = await askForWs();
     const isWorkspacePackageDirectory = ws ? await verifyIfIsPackageDirectory(ws.uri) : null;
 
     if (!ws || isWorkspacePackageDirectory) {
-        return;
+        return undefined;
     }
 
     const { targetDir, name } = await getPackageTargetDirectoryAndName(ws, {
-        title: "Where do you want to create the Agent Package?",
+        title,
         useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
         useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
         provideNamePrompt: "Please provide the name for the Agent Package.",
         commandType: PackageType.Agent,
     });
 
-    /* Operation cancelled. */
+    // Operation cancelled.
     if (!targetDir) {
-        return;
+        return undefined;
     }
 
-    /* Now, let's validate if we can indeed create an Agent Package in the given folder. */
+    // Now, let's validate if we can indeed create an Agent Package in the given folder.
     const op = await verifyIfPathOkToCreatePackage(targetDir);
     switch (op) {
         case "force":
@@ -53,6 +49,64 @@ export const createAgentPackage = async (): Promise<void> => {
     }
 
     await makeDirs(targetDir);
+    return { targetDir: targetDir, name: name };
+};
+
+export const importAgentPackage = async (): Promise<void> => {
+    getAgentCliLocation(); // Starts getting agent cli in promise.
+
+    let uriResult: Uri[] | undefined = await window.showOpenDialog({
+        "canSelectFolders": false,
+        "canSelectFiles": true,
+        "canSelectMany": false,
+        "openLabel": "Import Agent Package",
+        "filters": {
+            "Agent Packages": ["zip"],
+        },
+    });
+    if (!uriResult || uriResult.length != 1) {
+        return;
+    }
+
+    const { targetDir } = await obtainTargetDirAndNameForAgentPackage("Where do you want to import the Agent Package?");
+
+    if (!targetDir) {
+        return;
+    }
+
+    const agentPackageZip = uriResult[0].fsPath;
+    OUTPUT_CHANNEL.appendLine(`Importing Agent Package from zip: ${agentPackageZip} into folder: ${targetDir}`);
+
+    try {
+        const result = await langServer.sendRequest<ActionResult<string>>("importAgentPackageFromZip", {
+            target_dir: targetDir,
+            agent_package_zip: agentPackageZip,
+        });
+        if (!result.success) {
+            throw new Error(result.message || "Unknown error");
+        }
+
+        refreshFilesExplorer();
+        window.showInformationMessage("Agent Package successfully imported in:\n" + targetDir);
+    } catch (err) {
+        const errorMsg = "Error importing Agent Package. Target: " + targetDir + " File: " + uriResult;
+        logError(errorMsg, err, "ERR_IMPORT_ACTION_PACKAGE");
+        OUTPUT_CHANNEL.appendLine(errorMsg);
+        window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai` for more details).");
+    }
+};
+
+export const createAgentPackage = async (): Promise<void> => {
+    getAgentCliLocation(); // Starts getting agent cli in promise.
+
+    const { targetDir, name } = await obtainTargetDirAndNameForAgentPackage(
+        "Where do you want to create the Agent Package?"
+    );
+
+    // Operation cancelled.
+    if (!targetDir) {
+        return;
+    }
 
     try {
         const result: ActionResult<string> = await commands.executeCommand(
@@ -104,10 +158,7 @@ export const packAgentPackage = async (packageInfo: LocalPackageMetadataInfo): P
 };
 
 export const selectAndPackAgentPackage = async (): Promise<void> => {
-    const agentCli = getAgentCliLocation();
-    if (!agentCli) {
-        return;
-    }
+    getAgentCliLocation(); // Starts getting agent cli in promise.
 
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {

@@ -60,8 +60,16 @@ def get_tool_version(tool: Tool, location: str) -> LaunchActionResult:
 
 
 def verify_tool_downloaded_ok(
-    tool: Tool, location: str, force: bool, make_run_check: bool
+    tool: Tool, location: str, force: bool, make_run_check: bool, version: str
 ) -> bool:
+    """
+    Args:
+        version: If `make_run_check` is True, the version is matched against the
+            downloaded version (and if it doesn't match `False` will be returned).
+
+    Returns:
+        True if everything is ok and False otherwise.
+    """
     if location in _checked_downloaded_tools and not force:
         if os.path.isfile(location):
             return True  # Already checked: just do simpler check.
@@ -87,8 +95,18 @@ def verify_tool_downloaded_ok(
         for _ in range(times):
             version_result = get_tool_version(tool, location)
             if version_result.success:
-                _checked_downloaded_tools.add(location)
-                return True
+                if (
+                    version_result.result
+                    and version_result.result.strip() == version.strip()
+                ):
+                    _checked_downloaded_tools.add(location)
+                    return True
+                else:
+                    log.info(
+                        f"The currently downloaded version of {location} ({version_result.result!r}) "
+                        f"does not match the required version for the vscode extension: {version}"
+                    )
+                    return False
             time.sleep(timeout / times)
         log.info(
             f"Tool {location} failed to execute. Details: {version_result.message}"
@@ -135,18 +153,26 @@ def download_tool(
 
     if not force:
         if verify_tool_downloaded_ok(
-            tool, location, force=force, make_run_check=sys_platform == sys.platform
+            tool,
+            location,
+            force=force,
+            make_run_check=sys_platform == sys.platform,
+            version=tool_version,
         ):
             return
 
     tool_info = get_tool_info(tool)
     ctx: _GeneratorContextManager[IProgressReporter] | Null
-    with timed_acquire_mutex(tool_info.mutex_name, timeout=120):
+    with timed_acquire_mutex(tool_info.mutex_name, timeout=300):
         # If other call was already in progress, we need to check it again,
         # as to not overwrite it when force was equal to False.
         if not force:
             if verify_tool_downloaded_ok(
-                tool, location, force=force, make_run_check=sys_platform == sys.platform
+                tool,
+                location,
+                force=force,
+                make_run_check=sys_platform == sys.platform,
+                version=tool_version,
             ):
                 return
 
@@ -176,10 +202,14 @@ def download_tool(
             )
 
         if not verify_tool_downloaded_ok(
-            tool, location, force=True, make_run_check=sys_platform == sys.platform
+            tool,
+            location,
+            force=True,
+            make_run_check=sys_platform == sys.platform,
+            version=tool_version,
         ):
             raise Exception(
-                f"After downloading {tool!r} failed to execute tool (location: {location})."
+                f"After downloading {tool!r} the verification failed (location: {location})!"
             )
 
 
