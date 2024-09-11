@@ -32,13 +32,10 @@ import {
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
-<<<<<<< feature/agent-name-from-spec
     isActionPackageCommand,
     PackageTargetAndNameResult,
     toKebabCase,
-=======
     isAgentPackage,
->>>>>>> master
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -291,7 +288,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTa
 
     // Case 1: Root level agent, use the agent package directly
     if (rootPackageYaml === PackageYamlName.Agent) {
-        return await handleAgentPackageCreation(workspacePackages.agentPackages[0]);
+        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
     }
     // Case 2: Multiple agents, ask the user for action package level selection
     else if (workspacePackages?.agentPackages?.length) {
@@ -327,7 +324,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTa
             if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
 
             const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
-            return await handleAgentPackageCreation(packageInfo);
+            return await handleAgentLevelPackageCreation(packageInfo);
         }
     }
 
@@ -345,13 +342,13 @@ async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<Pack
     });
 }
 
-async function handleAgentPackageCreation(
+async function handleAgentLevelPackageCreation(
     packageInfo: LocalPackageMetadataInfo
 ): Promise<PackageTargetAndNameResult | null> {
     const packageName = await getPackageName("Please provide the name for the Action Package.");
     if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
 
-    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
+    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName), "0.0.1");
     return { targetDir: dirName, name: packageName };
 }
 
