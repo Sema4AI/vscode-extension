@@ -348,7 +348,7 @@ async function handleAgentLevelPackageCreation(
     const packageName = await getPackageName("Please provide the name for the Action Package.");
     if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
 
-    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName), "0.0.1");
+    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
     return { targetDir: dirName, name: packageName };
 }
 
