@@ -22,6 +22,7 @@ import {
     ActionServerPackageBuildOutput,
     ActionServerPackageUploadStatusOutput,
     PackageYamlName,
+    PackageType,
 } from "../protocols";
 import {
     getPackageName,
@@ -32,7 +33,6 @@ import {
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
-    isActionPackageCommand,
     PackageTargetAndNameResult,
     toKebabCase,
     isAgentPackage,
@@ -338,7 +338,7 @@ async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<Pack
         useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
         useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
         provideNamePrompt: "Please provide the name for the Action Package.",
-        commandType: isActionPackageCommand,
+        commandType: PackageType.Action,
     });
 }
 

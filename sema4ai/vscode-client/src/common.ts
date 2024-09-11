@@ -25,10 +25,6 @@ export type PackageTargetAndNameResult = {
     name: string | null;
 };
 
-export const isActionPackageCommand = "isActionPackageCommand";
-export const isAgetPackageCommand = "isAgentPackageCommand";
-export const isTaskPackageCommand = "isTaskPackageCommand";
-
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
 
@@ -133,7 +129,7 @@ export async function getPackageTargetDirectoryAndName(
     }
 
     // If using the workspace folder and it's a task package command, we don't need the name
-    if (useWorkspaceFolder && messages.commandType === isTaskPackageCommand) {
+    if (useWorkspaceFolder && messages.commandType === PackageType.Task) {
         return { targetDir: ws.uri.fsPath, name: null };
     }
 

@@ -48,11 +48,8 @@ import {
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     isAgentPackage,
-    isTaskPackageCommand,
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
-import { getSelectedRobot } from "./viewsSelection";
-import { RobotEntryType } from "./viewsCommon";
 import { createAgentPackage } from "./robo/agentPackage";
 
 export interface ListOpts {
@@ -806,7 +803,7 @@ export async function createRobot() {
         useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
         useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
         provideNamePrompt: "Please provide the name for the Task Package folder.",
-        commandType: isTaskPackageCommand,
+        commandType: PackageType.Task,
     });
 
     /* Operation cancelled. */

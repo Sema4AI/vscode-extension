@@ -7,9 +7,8 @@ import {
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     getWorkspacePackages,
-    isAgetPackageCommand,
 } from "../common";
-import { ActionResult, LocalPackageMetadataInfo, PackageYamlName } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
@@ -33,7 +32,7 @@ export const createAgentPackage = async (): Promise<void> => {
         useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
         useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
         provideNamePrompt: "Please provide the name for the Agent Package.",
-        commandType: isAgetPackageCommand,
+        commandType: PackageType.Agent,
     });
 
     /* Operation cancelled. */
