@@ -1,0 +1,12 @@
+- code: action_package_info_unsynchronized
+  message: 'Expected agent-package/agents/action-packages/version to match the version
+    in the action package being referenced (''1.1.1''). Found in spec: ''0.0.1'''
+  range:
+    end:
+      character: 30
+      line: 18
+    start:
+      character: 16
+      line: 18
+  severity: 1
+  source: sema4ai

@@ -1,0 +1,12 @@
+- code: action_package_info_unsynchronized
+  message: 'Expected agent-package/agents/action-packages/type to match the type in
+    the action package being referenced (''zip''). Found in spec: ''folder'''
+  range:
+    end:
+      character: 28
+      line: 17
+    start:
+      character: 16
+      line: 17
+  severity: 1
+  source: sema4ai

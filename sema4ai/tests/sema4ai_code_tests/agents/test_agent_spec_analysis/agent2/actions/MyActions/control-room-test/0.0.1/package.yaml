@@ -1,5 +1,5 @@
 # Required: A short name for the action package
-name: Check it
+name: Control Room Test
 
 # Required: A description of what's in the action package.
 description: Used for testing

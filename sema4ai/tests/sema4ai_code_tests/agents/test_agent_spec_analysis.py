@@ -61,6 +61,89 @@ def bad_agent_items(agent_path):
     )
 
 
+def v2_bad_type(agent_path):
+    agent_spec = agent_path / "agent-spec.yaml"
+    update(agent_spec, lambda txt: txt.replace("type: zip", "type: folder"))
+
+
+def v2_bad_action_package_version(agent_path):
+    package_yaml = (
+        agent_path
+        / "actions"
+        / "MyActions"
+        / "control-room-test"
+        / "0.0.1"
+        / "package.yaml"
+    )
+    txt = package_yaml.read_text()
+    package_yaml.write_text(txt.replace("version: 0.0.1", "version: 1.1.1"))
+
+
+def update(package_yaml, replace_func):
+    txt = package_yaml.read_text()
+    new = replace_func(txt)
+    assert txt != new
+    package_yaml.write_text(new)
+
+
+def v2_bad_action_package_name(agent_path):
+    package_yaml = agent_path / "agent-spec.yaml"
+
+    update(
+        package_yaml,
+        lambda txt: txt.replace("name: Control Room Test", "name: Some other name"),
+    )
+
+
+def v2_unreferenced_action_package(agent_path):
+    import shutil
+
+    zip_path = (
+        agent_path
+        / "actions"
+        / "MyActions"
+        / "control-room-test"
+        / "0.0.1"
+        / "0.0.1.zip"
+    )
+    new_zip_path = (
+        agent_path
+        / "actions"
+        / "MyActions"
+        / "control-room-test"
+        / "0.0.1"
+        / "new-path.zip"
+    )
+    shutil.move(zip_path, new_zip_path)
+
+
+def check(agent_name: str, datadir, scenario, data_regression) -> None:
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.jsonrpc.monitor import Monitor
+    from sema4ai_ls_core.watchdog_wrapper import create_observer
+    from sema4ai_ls_core.workspace import Workspace
+
+    from sema4ai_code.agents.collect_agent_spec_diagnostics import (
+        collect_agent_spec_diagnostics,
+    )
+
+    agent1 = Path(datadir) / agent_name
+
+    scenario(agent1)
+
+    workspace = Workspace(
+        uris.from_fs_path(str(agent1)), create_observer("dummy", None)
+    )
+    monitor = Monitor()
+    found = list(
+        collect_agent_spec_diagnostics(
+            workspace, uris.from_fs_path(str(agent1 / "agent-spec.yaml")), monitor
+        )
+    )
+
+    data_regression.check(found)
+
+
 @pytest.mark.parametrize(
     "scenario",
     [
@@ -74,58 +157,25 @@ def bad_agent_items(agent_path):
     ],
 )
 def test_agent_spec_analysis(datadir, scenario, data_regression) -> None:
-    from sema4ai_ls_core import uris
-    from sema4ai_ls_core.jsonrpc.monitor import Monitor
-    from sema4ai_ls_core.watchdog_wrapper import create_observer
-    from sema4ai_ls_core.workspace import Workspace
-
-    from sema4ai_code.agents.collect_agent_spec_diagnostics import (
-        collect_agent_spec_diagnostics,
-    )
-
-    agent1 = Path(datadir) / "agent1"
-
-    scenario(agent1)
-
-    workspace = Workspace(
-        uris.from_fs_path(str(agent1)), create_observer("dummy", None)
-    )
-    monitor = Monitor()
-    found = list(
-        collect_agent_spec_diagnostics(
-            workspace, uris.from_fs_path(str(agent1 / "agent-spec.yaml")), monitor
-        )
-    )
-
-    data_regression.check(found)
+    check("agent1", datadir, scenario, data_regression)
 
 
 @pytest.mark.parametrize(
     "scenario",
-    [ok, v2_bad_architecture],
+    [
+        ok,
+        v2_bad_architecture,
+        v2_bad_action_package_version,
+        v2_bad_action_package_name,
+    ],
 )
 def test_agent_spec_analysis_v2(datadir, scenario, data_regression) -> None:
-    from sema4ai_ls_core import uris
-    from sema4ai_ls_core.jsonrpc.monitor import Monitor
-    from sema4ai_ls_core.watchdog_wrapper import create_observer
-    from sema4ai_ls_core.workspace import Workspace
+    check("agent2", datadir, scenario, data_regression)
 
-    from sema4ai_code.agents.collect_agent_spec_diagnostics import (
-        collect_agent_spec_diagnostics,
-    )
 
-    agent1 = Path(datadir) / "agent2"
-
-    scenario(agent1)
-
-    workspace = Workspace(
-        uris.from_fs_path(str(agent1)), create_observer("dummy", None)
-    )
-    monitor = Monitor()
-    found = list(
-        collect_agent_spec_diagnostics(
-            workspace, uris.from_fs_path(str(agent1 / "agent-spec.yaml")), monitor
-        )
-    )
-
-    data_regression.check(found)
+@pytest.mark.parametrize(
+    "scenario",
+    [ok, v2_bad_type, v2_bad_action_package_name, v2_unreferenced_action_package],
+)
+def test_agent_spec_analysis_v2_agent3(datadir, scenario, data_regression) -> None:
+    check("agent3", datadir, scenario, data_regression)

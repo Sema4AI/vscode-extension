@@ -15,14 +15,10 @@ agent-package:
           action-packages:
               - name: Control Room Test
                 organization: MyActions
-                type: folder
+                type: zip
                 version: 0.0.1
                 whitelist: get_time_now
-                path: MyActions/control-room-test/0.0.1
-          knowledge:
-              - name: molkky-game-rules.pdf
-                embedded: true
-                digest: 4fab7e5b454977f5c8b557000ac55e32e13f7bfe923aaf83f41b1a97ca56b915
+                path: MyActions/control-room-test/0.0.1/0.0.1.zip
           metadata:
               mode: worker
               worker-config:
