@@ -1,3 +1,4 @@
+import enum
 import typing
 import weakref
 from dataclasses import dataclass
@@ -10,7 +11,8 @@ from sema4ai_ls_core.core_log import get_logger
 if typing.TYPE_CHECKING:
     from tree_sitter import Node, Tree
 
-    from sema4ai_code.agents.list_actions_from_agent import ActionPackageInFilesystem
+    from .list_actions_from_agent import ActionPackageInFilesystem
+
 
 log = get_logger(__name__)
 
@@ -154,11 +156,90 @@ def load_spec(json_spec: dict[str, Any]) -> dict[str, Entry]:
 T = TypeVar("T")
 
 
+class Severity(enum.Enum):
+    critical = "critical"
+    warning = "warning"
+    info = "info"
+
+
+def _create_range_from_location(
+    start_line: int,
+    start_col: int,
+    end_line: Optional[int] = None,
+    end_col: Optional[int] = None,
+) -> dict:
+    """
+    If the end_line and end_col aren't passed we consider
+    that the location should go up until the end of the line.
+    """
+    if end_line is None:
+        assert end_col is None
+        end_line = start_line + 1
+        end_col = 0
+    assert end_col is not None
+    dct: dict = {
+        "start": {
+            "line": start_line,
+            "character": start_col,
+        },
+        "end": {
+            "line": end_line,
+            "character": end_col,
+        },
+    }
+    return dct
+
+
 @dataclass
 class Error:
     message: str
     node: Optional["Node"] = None
     code: Optional[ErrorCode] = None
+    severity: Severity = Severity.critical
+
+    def as_diagostic(self, agent_node) -> dict:
+        from typing import Sequence
+
+        use_location: Sequence[int]
+        error = self
+
+        if not error.node:
+            use_location = (0, 0, 1, 0)
+            if agent_node is not None:
+                if agent_node.key.location:
+                    use_location = agent_node.key.location
+        else:
+            start_line, start_col = (
+                error.node.start_point.row,
+                error.node.start_point.column,
+            )
+            end_line, end_col = (
+                error.node.end_point.row,
+                error.node.end_point.column,
+            )
+            use_location = start_line, start_col, end_line, end_col
+
+        use_range = _create_range_from_location(*use_location)
+
+        if error.severity == Severity.critical:
+            severity = 1
+        elif error.severity == Severity.warning:
+            severity = 2
+        elif error.severity == Severity.info:
+            severity = 3
+        else:
+            raise RuntimeError(f"Unexpected severity: {error.severity}")
+
+        diagnostic = {
+            "range": use_range,
+            "severity": severity,
+            "source": "sema4ai",
+            "message": error.message,
+        }
+
+        if error.code:
+            diagnostic["code"] = error.code.value
+        return diagnostic
 
 
 class TreeNode(Generic[T]):
@@ -788,10 +869,11 @@ class Validator:
                     if report_error_at_node is not None
                     else None,
                     code=ErrorCode.action_package_info_unsynchronized,
+                    severity=Severity.warning,
                 )
 
     def validate(self, node: "Node") -> Iterator[Error]:
-        from sema4ai_code.agents.list_actions_from_agent import list_actions_from_agent
+        from .list_actions_from_agent import list_actions_from_agent
 
         self._action_packages_found_in_filesystem = list_actions_from_agent(
             self._agent_root_dir

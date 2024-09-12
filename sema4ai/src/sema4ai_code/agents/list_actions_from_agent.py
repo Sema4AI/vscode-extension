@@ -43,6 +43,10 @@ class ActionPackageInFilesystem:
         import yaml
 
         try:
+            if self.is_zip() and self.package_yaml_contents is None:
+                raise RuntimeError(
+                    "It was not possible to load the agent-spec.yaml from the referenced .zip file."
+                )
             if self.package_yaml_contents is not None:
                 contents = yaml.safe_load(self.package_yaml_contents)
             else:
@@ -58,10 +62,15 @@ class ActionPackageInFilesystem:
 
             self._loaded_yaml = contents
             return self._loaded_yaml
-        except Exception:
-            log.error(f"Error getting {self.package_yaml_path} as yaml.")
+        except Exception as e:
+            if self.is_zip():
+                log.error(
+                    f"Error getting agent-spec.yaml from {self.zip_path} as yaml."
+                )
+            else:
+                log.error(f"Error getting {self.package_yaml_path} as yaml.")
 
-            self._loaded_yaml_error = "Unable to load package.yaml as yaml"
+            self._loaded_yaml_error = str(e)
             raise
 
     def get_version(self) -> str:
