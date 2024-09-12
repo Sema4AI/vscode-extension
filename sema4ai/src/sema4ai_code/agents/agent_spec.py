@@ -101,7 +101,7 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   "agent-package/agents/action-packages/name": {
     "description": "The name of the action package. Example: \"my-action-package\"",
     "required": true,
-    "expected-type": "string"
+    "expected-type": "action_package_name_link"
   },
   "agent-package/agents/action-packages/organization": {
     "description": "The organization that provided the action. Example: \"MyActions\"",
@@ -112,14 +112,14 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "description": "The type of the action package distribution. Accepted values are \"zip\" and \"folder\"",
     "required": true,
     "expected-type": {
-      "type": "enum",
+      "type": "zip_or_folder_based_on_path",
       "values": ["zip", "folder"]
     }
   },
   "agent-package/agents/action-packages/version": {
     "description": "Version of the action package. Example: \"1.3.0\"",
     "required": true,
-    "expected-type": "string"
+    "expected-type": "action_package_version_link"
   },
   "agent-package/agents/action-packages/whitelist": {
     "description": "Whitelist of actions (comma-separated string) accepted in the action package. An empty string value for whitelist implies usage of all actions. Example: action1, action2",

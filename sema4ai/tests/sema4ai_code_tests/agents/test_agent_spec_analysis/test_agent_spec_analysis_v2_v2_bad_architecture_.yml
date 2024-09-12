@@ -2,10 +2,10 @@
     (found 'bad-architecture').
   range:
     end:
-      character: 36
-      line: 12
+      character: 40
+      line: 11
     start:
-      character: 6
-      line: 12
+      character: 10
+      line: 11
   severity: 1
   source: sema4ai

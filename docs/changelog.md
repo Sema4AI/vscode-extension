@@ -23,6 +23,12 @@
 - The yaml for `OAuth2` is now different (saved in new location with new structure).
   - There's now a `mode` which can specify `mode: sema4ai` to use `Sema4.ai` provided configuration (without `clientSecret` required).
 - New command: `Sema4.ai: Import Agent Package (Zip)`.
+- Additional validations in the `agent-spec.yaml` to verify that the information is in sync with linked action packages:
+  - Check if the `zip`, `folder` type matches the actual referenced type
+  - Check if the action package `name` matches the referenced value
+  - Check if the action package `version` matches the referenced value
+  - Checks that all the actions found under `actions` are properly referenced in the `agent-spec.yaml`
+  - Note: handles both .zip and expanded action packages.
 
 ## New in 2.4.2 (2024-08-26)
 

@@ -1,0 +1,22 @@
+- message: Expected agent-package/agents/action-packages/path to map to a file named
+    'MyActions/control-room-test/0.0.1/0.0.1.zip' relative to "dir('agent-spec.yaml')//actions".
+  range:
+    end:
+      character: 65
+      line: 20
+    start:
+      character: 16
+      line: 20
+  severity: 1
+  source: sema4ai
+- code: action_package_info_unsynchronized
+  message: 'Action Package path not referenced in the `agent-spec.yaml`: ''MyActions/control-room-test/0.0.1/new-path.zip''.'
+  range:
+    end:
+      character: 65
+      line: 20
+    start:
+      character: 10
+      line: 14
+  severity: 1
+  source: sema4ai

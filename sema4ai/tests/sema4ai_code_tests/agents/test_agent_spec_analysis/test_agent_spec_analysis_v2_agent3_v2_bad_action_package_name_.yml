@@ -1,0 +1,13 @@
+- code: action_package_info_unsynchronized
+  message: 'Expected agent-package/agents/action-packages/name to match the name in
+    the action package being referenced (''Control Room Test''). Found in spec: ''Some
+    other name'''
+  range:
+    end:
+      character: 37
+      line: 15
+    start:
+      character: 16
+      line: 15
+  severity: 1
+  source: sema4ai

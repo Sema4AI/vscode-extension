@@ -271,6 +271,9 @@ def validate_agent(
                 "source": "sema4ai",
                 "message": error.message,
             }
+
+            if error.code:
+                diagnostic["code"] = error.code.value
             yield diagnostic
 
     else:
