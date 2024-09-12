@@ -18,5 +18,5 @@
     start:
       character: 10
       line: 14
-  severity: 1
+  severity: 2
   source: sema4ai

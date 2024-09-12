@@ -36,6 +36,7 @@ import {
     PackageTargetAndNameResult,
     toKebabCase,
     isAgentPackage,
+    ActionPackageTargetInfo,
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -274,9 +275,9 @@ export async function runActionFromActionPackage(
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTargetAndNameResult> {
+async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPackageTargetInfo> {
     if (await verifyIfIsPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
-        return { targetDir: null, name: null }; // Early return if it's already a package directory
+        return { targetDir: null, name: null, agentSpecPath: null }; // Early return if it's already a package directory
     }
 
     const [rootPackageYaml, workspacePackages] = await Promise.all([
@@ -286,9 +287,12 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTa
 
     const insideAgentPackage = "Inside Agent Package";
 
-    // Case 1: Root level agent, use the agent package directly
+    // Case 1: Existing root level agent, use the agent package directly
     if (rootPackageYaml === PackageYamlName.Agent) {
-        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
+        return {
+            ...(await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0])),
+            agentSpecPath: vscode.Uri.joinPath(ws.uri, PackageYamlName.Agent).fsPath,
+        };
     }
     // Case 2: Multiple agents, ask the user for action package level selection
     else if (workspacePackages?.agentPackages?.length) {
@@ -309,7 +313,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTa
             }
         );
 
-        if (!actionPackageLevelSelection) return null; // Operation cancelled
+        if (!actionPackageLevelSelection) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
         // If the user wants to create inside an agent package, prompt for which one
         if (actionPackageLevelSelection["label"] === insideAgentPackage) {
@@ -321,15 +325,22 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<PackageTa
                 }
             );
 
-            if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
+            if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
             const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
-            return await handleAgentLevelPackageCreation(packageInfo);
+            return {
+                ...(await handleAgentLevelPackageCreation(packageInfo)),
+                agentSpecPath: vscode.Uri.joinPath(vscode.Uri.file(packageInfo.directory), PackageYamlName.Agent)
+                    .fsPath,
+            };
         }
     }
 
     // Case 3: Create at the root level, because there's no agent package or the user selected it
-    return await handleRootLevelPackageCreation(ws);
+    return {
+        ...(await handleRootLevelPackageCreation(ws)),
+        agentSpecPath: null,
+    };
 }
 
 async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<PackageTargetAndNameResult> {
@@ -365,7 +376,7 @@ export async function createActionPackage() {
         return;
     }
 
-    const { targetDir, name } = await askActionPackageTargetDir(ws);
+    const { targetDir, name, agentSpecPath } = await askActionPackageTargetDir(ws);
 
     // Operation cancelled or directory conflict detected.
     if (!targetDir) {
@@ -415,6 +426,19 @@ export async function createActionPackage() {
 
         refreshFilesExplorer();
         window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
+
+        // Check action was created inside agent, refresh the agent spec to include this action
+        if (agentSpecPath) {
+            const refreshResult: ActionResult<unknown> = await commands.executeCommand(
+                roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+                {
+                    "agent_spec_path": agentSpecPath,
+                }
+            );
+            if (!refreshResult.success) {
+                throw new Error(result.message || "Unknown error");
+            }
+        }
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");

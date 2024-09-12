@@ -38,13 +38,13 @@ from sema4ai_code.protocols import (
     ActionServerPackageUploadDict,
     ActionServerPackageUploadStatusDict,
     ActionServerVerifyLoginResultDict,
+    AgentSpecPathDict,
     CloudListWorkspaceDict,
     ConfigurationDiagnosticsDict,
     CreateActionPackageParamsDict,
     CreateAgentPackageParamsDict,
     CreateRobotParamsDict,
     DownloadToolDict,
-    GetRunbookPathFromAgentSpecDict,
     IRccRobotMetadata,
     IRccWorkspace,
     ListActionsParams,
@@ -60,6 +60,7 @@ from sema4ai_code.protocols import (
     WorkItem,
     WorkspaceInfoDict,
 )
+from sema4ai_code.refresh_agent_spec_helper import update_agent_spec
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
     IPyPiCloud,
@@ -1700,7 +1701,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL)
     def _get_runbook_path_from_agent_spec(
-        self, params: GetRunbookPathFromAgentSpecDict
+        self, params: AgentSpecPathDict
     ) -> ActionResultDict:
         agent_spec_path = params["agent_spec_path"]
 
@@ -1721,6 +1722,17 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             message=None,
             result=runbook_path,
         ).as_dict()
+
+    @command_dispatcher(commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL)
+    def _refresh_agent_spec(self, params: AgentSpecPathDict) -> ActionResultDict:
+        try:
+            update_agent_spec(Path(params["agent_spec_path"]))
+        except Exception as e:
+            return ActionResult(
+                success=False, message=f"Failed to refresh the agent configuration: {e}"
+            ).as_dict()
+
+        return ActionResult(success=True, message=None).as_dict()
 
     def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
         from sema4ai_ls_core.progress_report import progress_context

@@ -156,6 +156,7 @@
         "onCommand:sema4ai.getRunbookPathFromAgentSpec.internal",
         "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onCommand:sema4ai.agentPackageImport",
+        "onCommand:sema4ai.refreshAgentSpec.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",

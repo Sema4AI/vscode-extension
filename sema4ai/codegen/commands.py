@@ -963,6 +963,12 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=False,
     ),
+    Command(
+        "sema4ai.refreshAgentSpec.internal",
+        "Refresh Agent Spec (internal)",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 

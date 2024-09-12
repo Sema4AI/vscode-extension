@@ -25,6 +25,10 @@ export type PackageTargetAndNameResult = {
     name: string | null;
 };
 
+export type ActionPackageTargetInfo = PackageTargetAndNameResult & {
+    agentSpecPath: string | null;
+};
+
 export const debounce = (func, wait) => {
     let timeout: NodeJS.Timeout;
 
