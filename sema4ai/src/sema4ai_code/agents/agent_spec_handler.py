@@ -637,6 +637,7 @@ class Validator:
                         ):
                             version_in_filesystem = (
                                 package_info_in_filesystem.get_version()
+                                or "Unable to get version from package.yaml"
                             )
                             version_in_agent_package = self._get_value_text(yaml_node)
                             if version_in_filesystem != version_in_agent_package:
@@ -649,7 +650,10 @@ class Validator:
                             spec_node.data.expected_type.expected_type
                             == _ExpectedTypeEnum.action_package_name_link
                         ):
-                            name_in_filesystem = package_info_in_filesystem.get_name()
+                            name_in_filesystem = (
+                                package_info_in_filesystem.get_name()
+                                or "Unable to get name from package.yaml"
+                            )
                             name_in_agent_package = self._get_value_text(yaml_node)
                             if name_in_filesystem != name_in_agent_package:
                                 yield Error(
@@ -735,9 +739,7 @@ class Validator:
                         node=yaml_node.data.node,
                     )
                 else:
-                    relative_to: Optional[
-                        str
-                    ] = spec_node.data.expected_type.relative_to
+                    relative_to: str | None = spec_node.data.expected_type.relative_to
                     assert (
                         relative_to
                     ), f"Expected relative_to to be set in {spec_node.data.path}"

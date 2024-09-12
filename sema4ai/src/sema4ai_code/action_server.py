@@ -667,7 +667,7 @@ class ActionServer:
             with open(package_path, "w") as file:
                 yaml.dump(package_yaml, file)
 
-            return ActionResult(success=True, message=None)
+            return ActionResult(success=True, message=None, result=package_path)
         else:
             return ActionResult(
                 success=False, message=get_error_message(command_result.message or "")

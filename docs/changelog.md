@@ -1,12 +1,20 @@
 ## Unreleased
 
-- New Command: `Open Agent Runbook`.
+- New command: `Sema4.ai: Import Agent Package (Zip)`.
+- New Command: `Sema4.ai: Open Agent Runbook`.
+- When an action package is created inside an agent, the agent spec is updated accordingly.
 - Renamed Commands:
   - Open Agent Spec (agent-spec.yaml) → Configure Agent
   - Configure Action Package (package.yaml) → Configure Action Package
 - UI Update: Moved `Configure Agent` and `Configure Action Package` from the `Commands` section to the top level of the agent/action.
 - Hover for `agent-spec.yaml` (using new spec format for v2)
 - Code analysis for `agent-spec.yaml` (using new spec format for v2)
+  - Basic analysis for the full spec based on paths/types
+  - Checks if the `zip`, `folder` type matches the actual referenced type
+  - Checks if the action package `name` matches the referenced value
+  - Checks if the action package `version` matches the referenced value
+  - Checks that all the actions found under `actions` are properly referenced in the `agent-spec.yaml`
+  - Note: handles both .zip and expanded action packages.
 - New dependency required: `tree-sitter`
 - Update `robocorp-trustore` dependency to 0.9.1
 - No longer use `requests` (due to breakage with truststore)
@@ -22,13 +30,6 @@
 - Accept OAuth2 without `clientSecret` (using `pkce` flow).
 - The yaml for `OAuth2` is now different (saved in new location with new structure).
   - There's now a `mode` which can specify `mode: sema4ai` to use `Sema4.ai` provided configuration (without `clientSecret` required).
-- New command: `Sema4.ai: Import Agent Package (Zip)`.
-- Additional validations in the `agent-spec.yaml` to verify that the information is in sync with linked action packages:
-  - Check if the `zip`, `folder` type matches the actual referenced type
-  - Check if the action package `name` matches the referenced value
-  - Check if the action package `version` matches the referenced value
-  - Checks that all the actions found under `actions` are properly referenced in the `agent-spec.yaml`
-  - Note: handles both .zip and expanded action packages.
 
 ## New in 2.4.2 (2024-08-26)
 

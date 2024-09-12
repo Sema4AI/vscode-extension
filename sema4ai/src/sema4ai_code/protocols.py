@@ -341,7 +341,7 @@ class CreateAgentPackageParamsDict(TypedDict):
     name: str
 
 
-class GetRunbookPathFromAgentSpecDict(TypedDict):
+class AgentSpecPathDict(TypedDict):
     agent_spec_path: str
 
 

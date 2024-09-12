@@ -10,6 +10,7 @@ log = get_logger(__name__)
 @dataclass
 class ActionPackageInFilesystem:
     relative_path: str
+    organization: str
 
     package_yaml_path: Optional[Path] = None
     zip_path: Optional[Path] = None
@@ -73,21 +74,23 @@ class ActionPackageInFilesystem:
             self._loaded_yaml_error = str(e)
             raise
 
-    def get_version(self) -> str:
+    def get_version(self) -> str | None:
         try:
             contents = self.get_as_dict()
-        except Exception as e:
-            return str(e)
+        except Exception:
+            return None
 
-        return str(contents.get("version", "Unable to get version from package.yaml"))
+        version = contents.get("version")
+        return str(version) if version is not None else None
 
-    def get_name(self) -> str:
+    def get_name(self) -> str | None:
         try:
             contents = self.get_as_dict()
-        except Exception as e:
-            return str(e)
+        except Exception:
+            return None
 
-        return str(contents.get("name", "Unable to get name from package.yaml"))
+        name = contents.get("name")
+        return str(name) if name is not None else None
 
 
 def list_actions_from_agent(
@@ -109,19 +112,24 @@ def list_actions_from_agent(
         for package_yaml in actions_dir.rglob("package.yaml"):
             package_yaml = package_yaml.absolute()
             relative_path: str = package_yaml.parent.relative_to(actions_dir).as_posix()
+            organization = package_yaml.relative_to(actions_dir).parts[0]
             found[package_yaml] = ActionPackageInFilesystem(
-                package_yaml_path=package_yaml, relative_path=relative_path
+                package_yaml_path=package_yaml,
+                relative_path=relative_path,
+                organization=organization,
             )
 
         for zip_path in actions_dir.rglob("*.zip"):
             zip_path = zip_path.absolute()
             package_yaml_contents = get_package_yaml_from_zip(zip_path)
             relative_path = zip_path.relative_to(actions_dir).as_posix()
+            organization = zip_path.relative_to(actions_dir).parts[0]
             found[zip_path] = ActionPackageInFilesystem(
                 package_yaml_path=None,
                 zip_path=zip_path,
                 package_yaml_contents=package_yaml_contents,
                 relative_path=relative_path,
+                organization=organization,
             )
 
     return found
