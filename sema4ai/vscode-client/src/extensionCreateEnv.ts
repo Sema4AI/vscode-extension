@@ -390,17 +390,28 @@ export async function basicValidations(
     }
     let canProceed: boolean = true;
     for (const failedCheck of rccDiagnostics.failedChecks) {
+        let func;
         if (failedCheck.status == STATUS_FATAL) {
             canProceed = false;
+            func = window.showErrorMessage;
         }
-        let func = window.showErrorMessage;
         if (failedCheck.status == STATUS_WARNING) {
-            func = window.showWarningMessage;
+            if (failedCheck.category == 1030 && failedCheck.type == "OS") {
+                // No pop-up but added to the output so that is visible in support logs
+                OUTPUT_CHANNEL.appendLine("RCC diagostics warning/info: " + failedCheck.message);
+            } else {
+                func = window.showWarningMessage;
+            }
         }
-        if (failedCheck.url) {
-            func(failedCheck.message, "Open troubleshoot URL").then(createOpenUrl(failedCheck));
-        } else {
-            func(failedCheck.message);
+
+        if (func) {
+            // Warning or error pop-up will be shown
+            // Add link to help if available
+            if (failedCheck.url) {
+                func(failedCheck.message, "Open troubleshoot URL").then(createOpenUrl(failedCheck));
+            } else {
+                func(failedCheck.message);
+            }
         }
     }
     if (!canProceed) {
