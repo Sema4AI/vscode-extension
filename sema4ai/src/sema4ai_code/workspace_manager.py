@@ -173,9 +173,6 @@ class WorkspaceManager:
         ):
             yield action_package_metadata
 
-        # if action_package_metadata is not None:
-        #     organization["actionPackages"].append(action_package_metadata)
-
     def _get_package_metadata(
         self,
         yaml_file_names: list[PackageYamlName],
