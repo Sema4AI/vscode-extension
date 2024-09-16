@@ -6,6 +6,7 @@ import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
+import path = require("path");
 
 let _globalSentMetric: boolean = false;
 
@@ -622,12 +623,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Rebuild Package Environment",
                 "command": roboCommands.SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
+                "arguments": [vscode.Uri.file(element.robot.directory)],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackagePublishToSema4AIStudioApp) {
             treeItem.command = {
                 "title": "Publish Package to Sema4.ai Studio",
                 "command": roboCommands.SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+                "arguments": [vscode.Uri.file(path.join(element.robot.directory, "package.yaml"))],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PublishAgentToSema4AIStudioApp) {
@@ -646,6 +649,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Build Action Package (zip) in Workspace",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
+                "arguments": [vscode.Uri.file(element.robot.directory)],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageMetadata) {

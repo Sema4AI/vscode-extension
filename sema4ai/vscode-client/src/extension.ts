@@ -725,14 +725,20 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     // i.e.: allow other extensions to also use our feedback api.
     C.registerWithoutStub(SEMA4AI_FEEDBACK_INTERNAL, (name: string, value: string) => feedback(name, value));
 
-    C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async () => {
-        const selected = await listAndAskRobotSelection(
-            "Please select the Task/Action Package for which you'd like to rebuild the environment",
-            "Unable to continue because no Action Package was found in the workspace.",
-            { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
-        );
+    C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async (actionPackagePath?: vscode.Uri) => {
+        if (!actionPackagePath) {
+            const selected = await listAndAskRobotSelection(
+                "Please select the Task/Action Package for which you'd like to rebuild the environment",
+                "Unable to continue because no Action Package was found in the workspace.",
+                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
+            );
+            if (!selected) {
+                return;
+            }
+            actionPackagePath = vscode.Uri.file(selected.filePath);
+        }
 
-        const result = await resolveInterpreter(selected.filePath);
+        const result = await resolveInterpreter(actionPackagePath.fsPath);
         if (result.success) {
             vscode.window.showInformationMessage(`Environment built & cached. Python interpreter loaded.`);
         } else {
@@ -740,23 +746,26 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         }
     });
 
-    C.register(SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async () => {
-        const selected = await listAndAskRobotSelection(
-            "Please select the Task/Action Package that you'd like to be published to the Sema4.ai Studio",
-            "Unable to continue because no Action Package was found in the workspace.",
-            { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
-        );
-
-        if (selected) {
-            const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(selected.filePath);
-            const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
-            if (opened) {
-                vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
-            } else {
-                vscode.window.showErrorMessage(`Publishing to Sema4.ai Studio failed`);
+    C.register(SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async (actionPackagePath?: vscode.Uri) => {
+        if (!actionPackagePath) {
+            const selected = await listAndAskRobotSelection(
+                "Please select the Task/Action Package that you'd like to be published to the Sema4.ai Studio",
+                "Unable to continue because no Action Package was found in the workspace.",
+                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
+            );
+            if (!selected) {
+                vscode.window.showErrorMessage(`Please open an Action Package and try again`);
+                return;
             }
+            actionPackagePath = vscode.Uri.file(selected.filePath);
+        }
+
+        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
+        const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
+        if (opened) {
+            vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
         } else {
-            vscode.window.showErrorMessage(`Please open an Action Package and try again`);
+            vscode.window.showErrorMessage(`Publishing to Sema4.ai Studio failed`);
         }
     });
 
