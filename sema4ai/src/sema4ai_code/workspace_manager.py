@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
-from typing import DefaultDict, Dict, List, Optional, Tuple, cast
+from typing import DefaultDict, Dict, List, Optional, Tuple
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -124,13 +124,13 @@ class WorkspaceManager:
                 continue
 
             action_packages: DefaultDict[
-                str, List[Tuple[str, LocalAgentPackageOrganizationInfoDict]]
+                str, List[Tuple[str, LocalPackageMetadataInfoDict]]
             ] = defaultdict(list)
 
             # Organization name is the name of the directory the Action Package exists in.
             organization_name = os.path.basename(org_directory)
 
-            organization = {
+            organization: LocalAgentPackageOrganizationInfoDict = {
                 "name": organization_name,
                 "actionPackages": [],
             }
@@ -138,13 +138,9 @@ class WorkspaceManager:
             for action_package_metadata in self._get_action_package_from_dir(
                 org_directory, curr_cache, new_cache
             ):
-                log.info(
-                    f"[metadata] {action_package_metadata}",
-                )
-
                 action_packages[action_package_metadata["name"]].append(
                     (
-                        cast(str, action_package_metadata["yamlContents"]["version"]),
+                        str(action_package_metadata["yamlContents"]["version"]),
                         action_package_metadata,
                     )
                 )
@@ -154,9 +150,9 @@ class WorkspaceManager:
                     organization["actionPackages"].append(action_versions[0][1])
                 else:
                     for [version_number, action_package] in action_versions:
-                        action_package[
-                            "name"
-                        ] = f"{action_package['name']}/v{version_number}"
+                        action_package["name"] = (
+                            f"{action_package['name']}/v{version_number}"
+                        )
 
                         organization["actionPackages"].append(action_package)
                         log.info(f"[debug 2] {action_package}")
