@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
-from typing import DefaultDict, Dict, List, Optional, Tuple
+from typing import DefaultDict, Dict, List, Optional, Tuple, cast
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -144,7 +144,7 @@ class WorkspaceManager:
 
                 action_packages[action_package_metadata["name"]].append(
                     (
-                        action_package_metadata["yamlContents"]["version"],
+                        cast(str, action_package_metadata["yamlContents"]["version"]),
                         action_package_metadata,
                     )
                 )
@@ -197,9 +197,9 @@ class WorkspaceManager:
         the new cache).
         """
 
-        cached_file_info: Optional[
-            CachedFileInfo[LocalPackageMetadataInfoDict]
-        ] = curr_cache.get(sub)
+        cached_file_info: Optional[CachedFileInfo[LocalPackageMetadataInfoDict]] = (
+            curr_cache.get(sub)
+        )
         if cached_file_info is not None:
             if cached_file_info.is_cache_valid():
                 new_cache[sub] = cached_file_info
