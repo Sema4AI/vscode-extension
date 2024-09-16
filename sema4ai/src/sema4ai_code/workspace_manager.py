@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
-from typing import Dict, List, Optional
+from typing import DefaultDict, Dict, List, Optional, Tuple
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -123,7 +123,9 @@ class WorkspaceManager:
             if not org_directory.is_dir():
                 continue
 
-            action_packages = defaultdict(list)
+            action_packages: DefaultDict[
+                str, List[Tuple[str, LocalAgentPackageOrganizationInfoDict]]
+            ] = defaultdict(list)
 
             # Organization name is the name of the directory the Action Package exists in.
             organization_name = os.path.basename(org_directory)
