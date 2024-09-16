@@ -390,17 +390,18 @@ export async function basicValidations(
     }
     let canProceed: boolean = true;
     for (const failedCheck of rccDiagnostics.failedChecks) {
-        let func;
         if (failedCheck.status == STATUS_FATAL) {
             canProceed = false;
-            func = window.showErrorMessage;
         }
+        
+        let func = window.showWarningMessage;
+
         if (failedCheck.status == STATUS_WARNING) {
             if (failedCheck.category == 1030 && failedCheck.type == "OS") {
-                // No pop-up but added to the output so that is visible in support logs
+                // These warnings have no actionable thing for the user to do.
+                // No pop-up but added to the output, so that is visible in support logs
                 OUTPUT_CHANNEL.appendLine("RCC diagostics warning/info: " + failedCheck.message);
-            } else {
-                func = window.showWarningMessage;
+                func = undefined;
             }
         }
 
