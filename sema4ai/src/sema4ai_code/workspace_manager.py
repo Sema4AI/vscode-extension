@@ -1,9 +1,7 @@
 import os
 from collections import defaultdict
-from collections.abc import Iterator
 from pathlib import Path
-from pprint import pformat
-from typing import DefaultDict, Dict, List, Optional, Tuple
+from typing import DefaultDict, Dict, List, Optional, Tuple, Iterator
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -158,7 +156,6 @@ class WorkspaceManager:
                         log.info(f"[debug 2] {action_package}")
 
             organizations.append(organization)
-            log.info(f"[organizations] {pformat(organizations)}")
 
         return organizations
 
