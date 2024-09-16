@@ -393,7 +393,7 @@ export async function basicValidations(
         if (failedCheck.status == STATUS_FATAL) {
             canProceed = false;
         }
-        
+
         let func = window.showWarningMessage;
 
         if (failedCheck.status == STATUS_WARNING) {
