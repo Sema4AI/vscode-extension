@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -123,9 +123,7 @@ class WorkspaceManager:
             if not org_directory.is_dir():
                 continue
 
-            action_packages: Dict[List[Tuple[str, LocalPackageMetadataInfoDict]]] = (
-                defaultdict(list)
-            )
+            action_packages = defaultdict(list)
 
             # Organization name is the name of the directory the Action Package exists in.
             organization_name = os.path.basename(org_directory)
@@ -153,7 +151,7 @@ class WorkspaceManager:
                 if len(action_versions) == 1:
                     organization["actionPackages"].append(action_versions[0][1])
                 else:
-                    for version_number, action_package in action_versions:
+                    for [version_number, action_package] in action_versions:
                         action_package["name"] = (
                             f"{action_package['name']}/v{version_number}"
                         )
