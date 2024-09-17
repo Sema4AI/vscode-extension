@@ -828,7 +828,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.actionServerPackageBuild",
-        "Build Action Package to Workspace",
+        "Build Action Package (zip)",
         server_handled=False,
         hide_from_command_palette=False,
     ),
@@ -864,13 +864,13 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.actionServerPackageMetadata",
-        "Open the Action Package OpenAPI Spec (metadata.json)",
+        "Preview the Package OpenAPI Spec (metadata.json)",
         server_handled=False,
         hide_from_command_palette=False,
     ),
     Command(
         "sema4ai.actionServerPackageMetadata.internal",
-        "Open the Action Package OpenAPI Spec (metadata.json) (internal)",
+        "Preview the Package OpenAPI Spec (metadata.json) (internal)",
         server_handled=True,
         hide_from_command_palette=True,
     ),

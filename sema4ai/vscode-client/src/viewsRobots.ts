@@ -299,24 +299,28 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Rebuilds the current Python package environment",
                     },
-                    {
-                        "label": "Publish to Sema4.ai Studio",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "desktop-download",
-                        "type": RobotEntryType.PackagePublishToSema4AIStudioApp,
-                        "parent": element,
-                        "tooltip": "Publishes the Action Package to the Sema4.ai Studio application",
-                    },
-                    {
-                        "label": "Build Action Package (zip)",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "archive",
-                        "type": RobotEntryType.PackageBuildToWorkspace,
-                        "parent": element,
-                        "tooltip": "Builds the Action Package .zip file in the workspace folder",
-                    },
+                    ...(element.parent?.parent?.label.toLowerCase().replace(".", "") !== "sema4ai"
+                        ? [
+                              {
+                                  "label": "Publish to Sema4.ai Studio",
+                                  "uri": element.uri,
+                                  "robot": element.robot,
+                                  "iconPath": "desktop-download",
+                                  "type": RobotEntryType.PackagePublishToSema4AIStudioApp,
+                                  "parent": element,
+                                  "tooltip": "Publishes the Action Package to the Sema4.ai Studio application",
+                              },
+                              {
+                                  "label": "Build Action Package (zip)",
+                                  "uri": element.uri,
+                                  "robot": element.robot,
+                                  "iconPath": "archive",
+                                  "type": RobotEntryType.PackageBuildToWorkspace,
+                                  "parent": element,
+                                  "tooltip": "Builds the Action Package .zip file in the workspace folder",
+                              },
+                          ]
+                        : []),
                     {
                         "label": "Preview the Package OpenAPI Spec (metadata.json)",
                         "uri": element.uri,
