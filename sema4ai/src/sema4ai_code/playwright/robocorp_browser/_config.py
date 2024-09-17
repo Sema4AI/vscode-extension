@@ -22,12 +22,12 @@ class _BrowserConfig:
     def __init__(
         self,
         browser_engine: BrowserEngine = BrowserEngine.CHROMIUM,
-        install: Optional[bool] = None,
-        headless: Optional[bool] = None,
+        install: bool | None = None,
+        headless: bool | None = None,
         slowmo: int = 0,
         screenshot: str = "only-on-failure",
         isolated: bool = False,
-        persistent_context_directory: Optional[Union[str, Path]] = None,
+        persistent_context_directory: str | Path | None = None,
         skip_playwright_stop: bool = False,
     ):
         """
@@ -87,24 +87,24 @@ class _BrowserConfig:
         return self._browser_engine
 
     @browser_engine.setter
-    def browser_engine(self, value: Union[BrowserEngine, str]):
+    def browser_engine(self, value: BrowserEngine | str):
         self._browser_engine = BrowserEngine(value)
 
     @property
-    def install(self) -> Optional[bool]:
+    def install(self) -> bool | None:
         return self._install
 
     @install.setter
-    def install(self, value: Optional[bool]):
+    def install(self, value: bool | None):
         assert value is None or isinstance(value, bool)
         self._install = value
 
     @property
-    def headless(self) -> Optional[bool]:
+    def headless(self) -> bool | None:
         return self._headless
 
     @headless.setter
-    def headless(self, value: Optional[bool]):
+    def headless(self, value: bool | None):
         assert value is None or isinstance(value, bool)
         self._headless = value
 
@@ -137,11 +137,11 @@ class _BrowserConfig:
         self._isolated = value
 
     @property
-    def persistent_context_directory(self) -> Optional[Union[str, Path]]:
+    def persistent_context_directory(self) -> str | Path | None:
         return self._persistent_context_directory
 
     @persistent_context_directory.setter
-    def persistent_context_directory(self, value: Optional[Union[str, Path]]):
+    def persistent_context_directory(self, value: str | Path | None):
         self._persistent_context_directory = value
 
 

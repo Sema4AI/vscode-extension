@@ -71,7 +71,7 @@ def test_workspace_memory_cache(tmpdir, small_vs_sleep):
     from sema4ai_ls_core.basic import wait_for_condition
 
     root_uri = uris.from_fs_path(str(tmpdir))
-    workspace_folders: List[IWorkspaceFolder] = [
+    workspace_folders: list[IWorkspaceFolder] = [
         WorkspaceFolder(root_uri, os.path.basename(str(tmpdir)))
     ]
     fs_observer = watchdog_wrapper.create_observer(

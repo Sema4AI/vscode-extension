@@ -7,7 +7,8 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Protocol, Sequence, TypeVar, Union
+from typing import Dict, List, Optional, Protocol, TypeVar, Union
+from collections.abc import Sequence
 
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.core_log import get_logger
@@ -162,15 +163,15 @@ class Process:
 
     def __init__(
         self,
-        args: List[str],
-        cwd: Optional[PathLike] = None,
-        env: Optional[Dict[str, str]] = None,
+        args: list[str],
+        cwd: PathLike | None = None,
+        env: dict[str, str] | None = None,
     ):
         self._args = args
         self._uid = next(self._UID)
         self._cwd = cwd or Path.cwd()
         self._env = {**os.environ, **(env or {})}
-        self._proc: Optional[subprocess.Popen] = None
+        self._proc: subprocess.Popen | None = None
         self.on_stderr = Callback()
         self.on_stdout = Callback()
 
@@ -190,7 +191,7 @@ class Process:
             )
         return self._proc.poll()
 
-    def join(self, timeout: Optional[int] = None):
+    def join(self, timeout: int | None = None):
         if self._proc is None:
             raise RuntimeError(
                 "Process is still None (start() not called before join)."
@@ -451,7 +452,7 @@ class IProgressReporter(Protocol):
 def check_output_interactive(
     *popenargs,
     timeout=None,
-    progress_reporter: Optional[IProgressReporter] = None,
+    progress_reporter: IProgressReporter | None = None,
     on_stderr=lambda *args, **kwargs: None,
     on_stdout=lambda *args, **kwargs: None,
     **kwargs,
@@ -483,10 +484,10 @@ def check_output_interactive(
     kwargs["stderr"] = subprocess.PIPE
     kwargs["stdin"] = subprocess.PIPE  # Needed to write '\n' to stdin.
 
-    stdout_contents: List[bytes] = []
-    stderr_contents: List[bytes] = []
+    stdout_contents: list[bytes] = []
+    stderr_contents: list[bytes] = []
 
-    def stream_reader(stream, callback, contents_list: List[bytes]):
+    def stream_reader(stream, callback, contents_list: list[bytes]):
         for line in iter(stream.readline, b""):
             if not line:
                 break
@@ -536,7 +537,7 @@ def check_output_interactive(
         for t in threads:
             t.start()
 
-        retcode: Optional[int]
+        retcode: int | None
         try:
             try:
                 retcode = process.wait(timeout)
@@ -549,7 +550,7 @@ def check_output_interactive(
                     try:
                         kill_process_and_subprocesses(process.pid)
                     except BaseException:
-                        log.exception("Error killing pid: %s" % (process.pid,))
+                        log.exception(f"Error killing pid: {process.pid}")
 
                     retcode = process.wait()
                 raise
@@ -570,16 +571,16 @@ def check_output_interactive(
 
 
 def launch(
-    args: Union[Sequence[str], str],
+    args: Sequence[str] | str,
     timeout: float = 35,
     error_msg: str = "",
     mutex_name=None,
-    cwd: Optional[str] = None,
+    cwd: str | None = None,
     log_errors=True,
     stderr=Sentinel.SENTINEL,
     show_interactive_output: bool = False,
-    hide_in_log: Optional[str] = None,
-    env: Optional[dict[str, str]] = None,
+    hide_in_log: str | None = None,
+    env: dict[str, str] | None = None,
     **kwargs,
 ) -> LaunchActionResult:
     """

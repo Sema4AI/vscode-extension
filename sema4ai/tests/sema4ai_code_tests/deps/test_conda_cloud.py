@@ -84,7 +84,7 @@ def _test_check_manual():
 
 
 def test_conda_cloud(datadir) -> None:
-    from typing import Callable
+    from collections.abc import Callable
 
     from sema4ai_ls_core.basic import wait_for_condition
 

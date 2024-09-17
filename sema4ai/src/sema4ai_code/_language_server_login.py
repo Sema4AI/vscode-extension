@@ -9,7 +9,7 @@ log = get_logger(__name__)
 login_command_dispatcher = _SubCommandDispatcher("_login")
 
 
-class _Login(object):
+class _Login:
     def __init__(
         self,
         dir_cache,

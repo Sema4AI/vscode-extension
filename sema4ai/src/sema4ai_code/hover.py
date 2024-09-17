@@ -15,7 +15,7 @@ from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
 from sema4ai_code.vendored_deps.package_deps._pip_deps import PipDepInfo
 
 # Can be used in tests to force a date.
-FORCE_DATETIME_NOW: Optional[datetime.datetime] = None
+FORCE_DATETIME_NOW: datetime.datetime | None = None
 
 
 def hover_on_conda_yaml(
@@ -24,7 +24,7 @@ def hover_on_conda_yaml(
     col: int,
     pypi_cloud: IPyPiCloud,
     conda_cloud: ICondaCloud,
-) -> Optional[HoverTypedDict]:
+) -> HoverTypedDict | None:
     from sema4ai_ls_core.protocols import IDocumentSelection
 
     from sema4ai_code.vendored_deps.package_deps.analyzer import CondaYamlAnalyzer
@@ -35,7 +35,7 @@ def hover_on_conda_yaml(
     if pip_dep is not None:
         return _hover_handle_pip_dep(pypi_cloud, pip_dep)
 
-    conda_dep: Optional[CondaDepInfo] = analyzer.find_conda_dep_at(sel.line, sel.col)
+    conda_dep: CondaDepInfo | None = analyzer.find_conda_dep_at(sel.line, sel.col)
     if conda_dep is not None:
         return _hover_handle_conda_dep(conda_cloud, conda_dep)
     return None
@@ -47,7 +47,7 @@ def hover_on_package_yaml(
     col: int,
     pypi_cloud: IPyPiCloud,
     conda_cloud: ICondaCloud,
-) -> Optional[HoverTypedDict]:
+) -> HoverTypedDict | None:
     from sema4ai_ls_core.protocols import IDocumentSelection
 
     from sema4ai_code.vendored_deps.package_deps.analyzer import PackageYamlAnalyzer
@@ -58,7 +58,7 @@ def hover_on_package_yaml(
     if pip_dep is not None:
         return _hover_handle_pip_dep(pypi_cloud, pip_dep)
 
-    conda_dep: Optional[CondaDepInfo] = analyzer.find_conda_dep_at(sel.line, sel.col)
+    conda_dep: CondaDepInfo | None = analyzer.find_conda_dep_at(sel.line, sel.col)
     if conda_dep is not None:
         return _hover_handle_conda_dep(conda_cloud, conda_dep)
     return None
@@ -66,7 +66,7 @@ def hover_on_package_yaml(
 
 def _create_conda_requirements_desc_parts(
     version_info: CondaVersionInfo,
-) -> List[str]:
+) -> list[str]:
     """
     Args:
         versions_info: Note that we get multiple versions because conda
@@ -79,7 +79,7 @@ def _create_conda_requirements_desc_parts(
     )
 
     desc_parts = []
-    sub_to_dep_names: Dict[str, Set] = {}
+    sub_to_dep_names: dict[str, set] = {}
 
     for (
         subdir,
@@ -148,7 +148,7 @@ def _create_conda_requirements_desc_parts(
 
 def _hover_handle_conda_dep(
     conda_cloud: ICondaCloud, conda_dep: CondaDepInfo
-) -> Optional[HoverTypedDict]:
+) -> HoverTypedDict | None:
     from sema4ai_code.vendored_deps.package_deps.conda_cloud import (
         sort_conda_versions,
         timestamp_to_datetime,
@@ -192,8 +192,8 @@ def _hover_handle_conda_dep(
 
         desc_parts = [f"# {conda_dep.name}"]
         last_year = current_datetime - datetime.timedelta(days=365)
-        last_year_version_infos: List[CondaVersionInfo] = []
-        all_version_infos: List[CondaVersionInfo] = []
+        last_year_version_infos: list[CondaVersionInfo] = []
+        all_version_infos: list[CondaVersionInfo] = []
 
         for version in sort_conda_versions(versions):
             version_info = sqlite_queries.query_version_info(
@@ -215,7 +215,7 @@ def _hover_handle_conda_dep(
             desc_parts.append("\nNote: no releases in the last 12 months.")
 
         if all_version_infos:
-            last_version_info: Optional[CondaVersionInfo] = all_version_infos[-1]
+            last_version_info: CondaVersionInfo | None = all_version_infos[-1]
             if last_version_info:
                 desc_parts.append(
                     f"\nLast release version: `{last_version_info.version}` done at: "
@@ -267,15 +267,15 @@ def _hover_handle_pip_dep(
         for constraint in pip_dep.constraints:
             # Check any constraint ('==', '<', '>'), etc.
             local_version = constraint[1]
-            specified_release_data: Optional[ReleaseData] = (
-                package_data.get_release_data(local_version)
+            specified_release_data: ReleaseData | None = package_data.get_release_data(
+                local_version
             )
             if specified_release_data is not None:
                 desc_parts.append(
                     f"Version `{local_version}` was released at: `{format_date_from_pypi(specified_release_data.upload_time)}`"
                 )
 
-    last_release_data: Optional[ReleaseData] = package_data.get_last_release_data()
+    last_release_data: ReleaseData | None = package_data.get_last_release_data()
     if last_release_data:
         desc_parts.append(
             f"\nLast release version: `{last_release_data.version_str}` done at: `{format_date_from_pypi(last_release_data.upload_time)}`."
@@ -328,7 +328,7 @@ def format_date(d: datetime.datetime) -> str:
     return f"{d.year:02}-{d.month:02}-{d.day:02}"
 
 
-def format_date_from_pypi(d: Optional[str]) -> str:
+def format_date_from_pypi(d: str | None) -> str:
     if not d:
         return "<Unknown>"
     try:

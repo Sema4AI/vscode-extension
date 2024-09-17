@@ -1,4 +1,3 @@
-# coding: utf-8
 # patterns.py: Common wildcard searching/filtering functionality for files.
 #
 # Copyright (C) 2010 Yesudeep Mangalapilly <yesudeep@gmail.com>
@@ -26,7 +25,7 @@ def _match_path(path, included_patterns, excluded_patterns, case_sensitive):
 
     common_patterns = included_patterns & excluded_patterns
     if common_patterns:
-        raise ValueError('conflicting patterns `{}` included and excluded'.format(common_patterns))
+        raise ValueError(f'conflicting patterns `{common_patterns}` included and excluded')
     return (any(path.match(p) for p in included_patterns)
             and not any(path.match(p) for p in excluded_patterns))
 

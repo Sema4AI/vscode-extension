@@ -13,7 +13,7 @@ def _unquote(text):
     return text
 
 
-def parse(locator: LocatorType, path: Optional[str] = None) -> Locator:
+def parse(locator: LocatorType, path: str | None = None) -> Locator:
     """Parse locator string literal into a ``Locator`` instance.
 
     For example: "image:path/to/image.png" -> ImageLocator(path="path/to/image-png")

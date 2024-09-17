@@ -89,9 +89,9 @@ def install_browser(engine: BrowserEngine, force=False, interactive=False):
         # something).
 
         stdout_lines_lock = threading.Lock()
-        stdout_lines: List[bytes] = []
+        stdout_lines: list[bytes] = []
 
-        def _stream_reader(stream: BinaryIO, lst: List[bytes]) -> None:
+        def _stream_reader(stream: BinaryIO, lst: list[bytes]) -> None:
             try:
                 while True:
                     line: bytes = stream.readline()

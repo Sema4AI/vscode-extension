@@ -4,7 +4,8 @@ import weakref
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generic, Iterator, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar
+from collections.abc import Iterator
 
 from sema4ai_ls_core.core_log import get_logger
 
@@ -56,13 +57,13 @@ class _ExpectedType:
 
     # If a "string" type, the recommended values may be provided
     # (this means that any string value is accepted, but the recommended values can be used to help the user).
-    recommended_values: Optional[list[str]] = None
+    recommended_values: list[str] | None = None
 
     # If an "enum" type, the accepted values should be provided.
-    enum_values: Optional[list[str]] = None
+    enum_values: list[str] | None = None
 
     # If a "file" type, the relative path to the file (based on the agent root dir) should be provided.
-    relative_to: Optional[str] = None
+    relative_to: str | None = None
 
     def __post_init__(self) -> None:
         if self.expected_type == "file":
@@ -165,8 +166,8 @@ class Severity(enum.Enum):
 def _create_range_from_location(
     start_line: int,
     start_col: int,
-    end_line: Optional[int] = None,
-    end_col: Optional[int] = None,
+    end_line: int | None = None,
+    end_col: int | None = None,
 ) -> dict:
     """
     If the end_line and end_col aren't passed we consider
@@ -194,11 +195,11 @@ def _create_range_from_location(
 class Error:
     message: str
     node: Optional["Node"] = None
-    code: Optional[ErrorCode] = None
+    code: ErrorCode | None = None
     severity: Severity = Severity.critical
 
     def as_diagostic(self, agent_node) -> dict:
-        from typing import Sequence
+        from collections.abc import Sequence
 
         use_location: Sequence[int]
         error = self
@@ -243,12 +244,12 @@ class Error:
 
 
 class TreeNode(Generic[T]):
-    _parent: Optional[weakref.ref["TreeNode[T]"]] = None
+    _parent: weakref.ref["TreeNode[T]"] | None = None
 
     def __init__(self, name: str, parent: Optional["TreeNode[T]"] = None):
         self.name = name
         self._children: dict[str, "TreeNode[T]"] = {}
-        self._data: Optional[T] = None
+        self._data: T | None = None
         if parent:
             self._parent = weakref.ref(parent)
         else:
@@ -552,8 +553,8 @@ class Validator:
     def _verify_yaml_matches_spec(
         self,
         spec_node: _SpecTreeNode,
-        yaml_node: Optional[_YamlTreeNode],
-        parent_node: Optional[_YamlTreeNode],
+        yaml_node: _YamlTreeNode | None,
+        parent_node: _YamlTreeNode | None,
     ) -> Iterator[Error]:
         if spec_node.parent is None:
             assert yaml_node is not None, "Expected yaml node to be provided for root."
@@ -822,7 +823,7 @@ class Validator:
                     )
                 return p
 
-    def _get_value_text(self, node: _YamlTreeNode) -> Optional[str]:
+    def _get_value_text(self, node: _YamlTreeNode) -> str | None:
         value_node = node.data.node.child_by_field_name("value")
         if value_node is None:
             return None

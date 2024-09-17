@@ -1,6 +1,7 @@
 import time
 import typing
-from typing import Iterator, List, Optional
+from typing import List, Optional
+from collections.abc import Iterator
 
 from ._control_element import ControlElement
 from .protocols import Locator
@@ -120,8 +121,8 @@ class Desktop(ControlElement):
         self,
         locator: Locator,
         search_depth: int = 1,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
         foreground: bool = True,
         move_cursor_to_center: bool = True,
     ) -> "WindowElement":
@@ -171,9 +172,9 @@ class Desktop(ControlElement):
         self,
         locator: Locator,
         search_depth: int = 1,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         wait_for_window: bool = False,
-    ) -> List["WindowElement"]:
+    ) -> list["WindowElement"]:
         """
         Finds windows matching the given locator.
 
@@ -223,9 +224,9 @@ class Desktop(ControlElement):
         self,
         locator: Locator,
         search_depth: int = 1,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         wait_for_window: bool = False,
-        wait_time: Optional[float] = 0,
+        wait_time: float | None = 0,
         use_close_button: bool = False,
         close_button_locator: Locator = "control:ButtonControl name:Close",
     ) -> int:
@@ -356,8 +357,8 @@ class Desktop(ControlElement):
     def wait_for_active_window(
         self,
         locator: Locator,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "WindowElement":
         """
         Waits for a window with the given locator to be made active.
@@ -474,7 +475,7 @@ class Desktop(ControlElement):
         source: "ControlElement",
         target: "ControlElement",
         speed: float = 1.0,
-        hold_ctrl: Optional[bool] = False,
+        hold_ctrl: bool | None = False,
         wait_time: float = 1.0,
     ):
         """Drag and drop the source element into target element.

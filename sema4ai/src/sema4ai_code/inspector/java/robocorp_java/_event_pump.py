@@ -35,7 +35,7 @@ class EventPumpThread(threading.Thread):
             # Use non blocing API here so that the thread can quit.
             if PeekMessage(message, 0, 0, 0, REMOVE_FROM_QUEUE):
                 TranslateMessage(message)
-                log.debug("Dispatching msg={}".format(repr(message)))
+                log.debug(f"Dispatching msg={repr(message)}")
                 DispatchMessage(message)
                 return True
         except Exception as err:

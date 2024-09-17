@@ -9,10 +9,10 @@ from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
-    class TypedDict(object):
+    class TypedDict:
         pass
 
 else:
@@ -37,12 +37,12 @@ class LocalPackageMetadataInfoDict(TypedDict, total=False):
     filePath: str  # The path to the YAML file
     name: str  # The name of the package
     yamlContents: dict  # The contents of the YAML file
-    organizations: Optional[List["LocalAgentPackageOrganizationInfoDict"]]
+    organizations: list["LocalAgentPackageOrganizationInfoDict"] | None
 
 
 class LocalAgentPackageOrganizationInfoDict(TypedDict):
     name: str  # Name of the organization.
-    actionPackages: List[
+    actionPackages: list[
         LocalPackageMetadataInfoDict
     ]  # Action Packages specific to given organization.
 
@@ -75,7 +75,7 @@ class WorkspaceInfoDict(TypedDict):
     organizationName: str
     workspaceName: str
     workspaceId: str
-    packages: List[PackageInfoDict]
+    packages: list[PackageInfoDict]
 
 
 class ActionServerVerifyLoginInfoDict(TypedDict):
@@ -88,50 +88,50 @@ T = TypeVar("T")
 
 class ActionResultDictRobotLaunch(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[Dict[str, Any]]
+    )  # if success == False, this can be some message to show to the user
+    result: dict[str, Any] | None
 
 
 class ActionResultDictLocatorsJson(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[Tuple[Any, Path]]
+    )  # if success == False, this can be some message to show to the user
+    result: tuple[Any, Path] | None
 
 
 class ActionResultDictLocatorsJsonInfo(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocatorEntryInfoDict]]
+    )  # if success == False, this can be some message to show to the user
+    result: list[LocatorEntryInfoDict] | None
 
 
 class ActionResultDictLocalRobotMetadata(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[LocalPackageMetadataInfoDict]]
+    )  # if success == False, this can be some message to show to the user
+    result: list[LocalPackageMetadataInfoDict] | None
 
 
 class ActionServerVerifyLoginResultDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[ActionServerVerifyLoginInfoDict]
+    )  # if success == False, this can be some message to show to the user
+    result: ActionServerVerifyLoginInfoDict | None
 
 
 class ActionServerListOrgsResultDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[str]]
+    )  # if success == False, this can be some message to show to the user
+    result: list[str] | None
 
 
 class ActionServerPackageBuildInfo(TypedDict):
@@ -140,9 +140,9 @@ class ActionServerPackageBuildInfo(TypedDict):
 
 class ActionServerPackageBuildResultDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
+    )  # if success == False, this can be some message to show to the user
     result: ActionServerPackageBuildInfo
 
 
@@ -155,8 +155,8 @@ class ActionServerPackageUploadStatus(TypedDict):
     id: str
     name: str
     url: str
-    version: Optional[str]
-    changes: Optional[str]
+    version: str | None
+    changes: str | None
     status: (
         Literal["unknown"]
         | Literal["pending"]
@@ -165,14 +165,14 @@ class ActionServerPackageUploadStatus(TypedDict):
         | Literal["completed"]
         | Literal["published"]
     )
-    error: Optional[ActionPackageUploadStatusError]
+    error: ActionPackageUploadStatusError | None
 
 
 class ActionServerPackageUploadStatusDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
+    )  # if success == False, this can be some message to show to the user
     result: ActionServerPackageUploadStatus
 
 
@@ -190,18 +190,18 @@ class WorkItemsInfo(TypedDict):
     # Full path to the place where output work items are located
     output_folder_path: str
 
-    input_work_items: List[WorkItem]
-    output_work_items: List[WorkItem]
+    input_work_items: list[WorkItem]
+    output_work_items: list[WorkItem]
 
     new_output_workitem_path: str
 
 
 class ActionResultDictWorkItems(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[WorkItemsInfo]
+    )  # if success == False, this can be some message to show to the user
+    result: WorkItemsInfo | None
 
 
 class ListWorkItemsParams(TypedDict):
@@ -216,10 +216,10 @@ class ListActionsParams(TypedDict):
 
 class ListWorkspacesActionResultDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[List[WorkspaceInfoDict]]
+    )  # if success == False, this can be some message to show to the user
+    result: list[WorkspaceInfoDict] | None
 
 
 class RobotTemplate(TypedDict):
@@ -262,7 +262,7 @@ class CreateActionPackageParamsDict(TypedDict):
 
 
 class RunInRccParamsDict(TypedDict):
-    args: List[str]
+    args: list[str]
 
 
 class UploadRobotParamsDict(TypedDict):
@@ -296,8 +296,8 @@ class ActionServerLoginDict(TypedDict):
 
 
 class ActionServerAccessCredentialsDict(TypedDict):
-    access_credentials: Optional[str]
-    hostname: Optional[str]
+    access_credentials: str | None
+    hostname: str | None
 
 
 class ActionServerPackageBuildDict(TypedDict):
@@ -308,23 +308,23 @@ class ActionServerPackageBuildDict(TypedDict):
 class ActionServerPackageUploadDict(TypedDict):
     package_path: str
     organization_id: str
-    access_credentials: Optional[str]
-    hostname: Optional[str]
+    access_credentials: str | None
+    hostname: str | None
 
 
 class ActionServerPackageStatusDict(TypedDict):
     package_id: str
     organization_id: str
-    access_credentials: Optional[str]
-    hostname: Optional[str]
+    access_credentials: str | None
+    hostname: str | None
 
 
 class ActionServerPackageSetChangelogDict(TypedDict):
     package_id: str
     organization_id: str
     changelog_input: str
-    access_credentials: Optional[str]
-    hostname: Optional[str]
+    access_credentials: str | None
+    hostname: str | None
 
 
 class ActionServerPackageMetadataDict(TypedDict):
@@ -372,7 +372,7 @@ class IRccRobotMetadata(Protocol):
 class IRCCSpaceInfo(Protocol):
     space_name: str
 
-    def load_last_usage(self, none_if_not_found: bool = False) -> Optional[float]:
+    def load_last_usage(self, none_if_not_found: bool = False) -> float | None:
         pass
 
     def update_last_usage(self) -> float:
@@ -396,7 +396,7 @@ class IRCCSpaceInfo(Protocol):
 
 class IRobotYamlEnvInfo(Protocol):
     @property
-    def env(self) -> Dict[str, str]:
+    def env(self) -> dict[str, str]:
         pass
 
     @property
@@ -405,21 +405,21 @@ class IRobotYamlEnvInfo(Protocol):
 
 
 class IRccListener(Protocol):
-    def before_command(self, args: List[str]):
+    def before_command(self, args: list[str]):
         pass
 
 
 class IRcc(Protocol):
-    rcc_listeners: List[IRccListener]
+    rcc_listeners: list[IRccListener]
 
     @property
-    def endpoint(self) -> Optional[str]:
+    def endpoint(self) -> str | None:
         """
         Read-only property specifying the endopoint to be used (gotten from settings).
         """
 
     @property
-    def config_location(self) -> Optional[str]:
+    def config_location(self) -> str | None:
         """
         Read-only property specifying the config location to be used (gotten from settings).
         """
@@ -427,7 +427,7 @@ class IRcc(Protocol):
     def get_rcc_location(self, download_if_missing: bool = True) -> str:
         pass
 
-    def get_robocorp_home_from_settings(self) -> Optional[str]:
+    def get_robocorp_home_from_settings(self) -> str | None:
         """
         If ROBOCORP_HOME is defined from the settings, its location is returned,
         otherwise it returns None.
@@ -440,7 +440,7 @@ class IRcc(Protocol):
         Usually SEMA4AI_HOME/.sema4ai_code
         """
 
-    def get_template_names(self) -> ActionResult[List[RobotTemplate]]:
+    def get_template_names(self) -> ActionResult[list[RobotTemplate]]:
         pass
 
     def create_robot(self, template: str, directory: str) -> ActionResult:
@@ -474,14 +474,14 @@ class IRcc(Protocol):
     ) -> ActionResult[AuthorizeTokenDict]:
         pass
 
-    def cloud_list_workspaces(self) -> ActionResult[List[IRccWorkspace]]:
+    def cloud_list_workspaces(self) -> ActionResult[list[IRccWorkspace]]:
         """
         Note: needs connection to the cloud.
         """
 
     def cloud_list_workspace_robots(
         self, workspace_id: str
-    ) -> ActionResult[List[IRccRobotMetadata]]:
+    ) -> ActionResult[list[IRccRobotMetadata]]:
         """
         Note: needs connection to the cloud.
         """
@@ -500,7 +500,7 @@ class IRcc(Protocol):
         robot_yaml_path: Path,
         conda_yaml_path: Path,
         conda_yaml_contents: str,
-        env_json_path: Optional[Path],
+        env_json_path: Path | None,
         timeout=None,
         holotree_manager=None,
         on_env_creation_error=None,

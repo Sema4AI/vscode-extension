@@ -41,7 +41,7 @@ def add_arguments(parser):
     # is setup.
     # from sema4ai_code.options import Options as DefaultOptions
 
-    class DefaultOptions(object):
+    class DefaultOptions:
         host = "127.0.0.1"
         port = 1456
         verbose = 0

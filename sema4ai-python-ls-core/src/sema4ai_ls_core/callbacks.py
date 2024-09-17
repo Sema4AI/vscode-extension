@@ -3,7 +3,7 @@ from sema4ai_ls_core.core_log import get_logger
 log = get_logger(__name__)
 
 
-class Callback(object):
+class Callback:
     """
     Note that it's thread safe to register/unregister callbacks while callbacks
     are being notified, but it's not thread-safe to register/unregister at the

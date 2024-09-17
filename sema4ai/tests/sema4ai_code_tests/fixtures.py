@@ -3,7 +3,8 @@ import subprocess
 import sys
 import typing
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
+from collections.abc import Iterator
 
 import pytest
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
@@ -249,7 +250,7 @@ _PACKAGE_INFO_WS_1: dict = {
 }
 
 
-class RccPatch(object):
+class RccPatch:
     def __init__(self, monkeypatch, tmpdir) -> None:
         from sema4ai_code.rcc import Rcc
 

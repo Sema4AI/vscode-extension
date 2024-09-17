@@ -12,14 +12,14 @@ if typing.TYPE_CHECKING:
 
 @dataclass
 class LocationInfo:
-    query_locator: Optional[Locator]
-    depth: Optional[int]
-    child_pos: Optional[int]
-    path: Optional[str]
+    query_locator: Locator | None
+    depth: int | None
+    child_pos: int | None
+    path: str | None
 
 
 def build_from_locator_and_control_tree_node(
-    locator: Optional[str], tree_node: "ControlTreeNode"
+    locator: str | None, tree_node: "ControlTreeNode"
 ) -> LocationInfo:
     return LocationInfo(
         locator,
@@ -112,7 +112,7 @@ class _UIAutomationControlWrapper:
         )
 
     @property
-    def path(self) -> Optional[str]:
+    def path(self) -> str | None:
         return self.location_info.path
 
     def is_disposed(self) -> bool:

@@ -80,7 +80,7 @@ def main():
                             cmdline = s.cmdline()
                         except Exception as e:
                             cmdline = str(e)
-                        write("Subprocess leaked: %s (%s)\n" % (s, cmdline))
+                        write(f"Subprocess leaked: {s} ({cmdline})\n")
                         pids.append(s.pid)
 
                     try:

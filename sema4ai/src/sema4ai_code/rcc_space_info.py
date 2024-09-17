@@ -73,7 +73,7 @@ class RCCSpaceInfo:
     def requested_pid_path(self) -> Path:
         return self.space_path / "pid"
 
-    def load_last_usage(self, none_if_not_found: bool = False) -> Optional[float]:
+    def load_last_usage(self, none_if_not_found: bool = False) -> float | None:
         target = self.space_path / f"time_touch"
         if target.exists():
             last_usage = target.stat().st_mtime

@@ -1,5 +1,6 @@
 import typing
-from typing import Generic, Iterator, Optional, Set, TypeVar
+from typing import Generic, Optional, Set, TypeVar
+from collections.abc import Iterator
 
 from ._com_error import COMError
 
@@ -47,7 +48,7 @@ class ControlTreeNode(Generic[Y]):
 def iter_tree(
     root_ctrl: "Control",
     max_depth: int = 8,
-    only_depths: Optional[Set[int]] = None,
+    only_depths: set[int] | None = None,
 ) -> Iterator[ControlTreeNode["Control"]]:
     """
     Iterates the tree as a flattened iterator (the depth is available in the node).

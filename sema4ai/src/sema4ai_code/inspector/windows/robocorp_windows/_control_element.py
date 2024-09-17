@@ -6,7 +6,8 @@ import re
 import sys
 import typing
 from pathlib import Path
-from typing import Callable, Iterator, List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
+from collections.abc import Callable, Iterator
 
 from ._com_error import COMError
 from ._errors import ActionNotPossible, ElementNotFound
@@ -66,7 +67,7 @@ class ControlElement:
         self.location_info = self._wrapped.location_info
 
     @property
-    def path(self) -> Optional[str]:
+    def path(self) -> str | None:
         """
         Provides the relative path in which this element was found
 
@@ -120,9 +121,9 @@ class ControlElement:
 
     def _find_ui_automation_wrapper(
         self,
-        locator: Optional[LocatorStrAndOrSearchParams] = None,
+        locator: LocatorStrAndOrSearchParams | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> "_UIAutomationControlWrapper":
         """
         Internal API to find the control to interact with given a locator.
@@ -321,7 +322,7 @@ class ControlElement:
         return self._wrapped.height
 
     @property
-    def rectangle(self) -> Tuple[int, int, int, int]:
+    def rectangle(self) -> tuple[int, int, int, int]:
         """
         Returns:
             A tuple with (left, top, right, bottom) -- (all -1 if invalid).
@@ -434,7 +435,7 @@ class ControlElement:
         self,
         locator: Locator,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> "ControlElement":
         """
         This method may be used to find a control in the descendants of this
@@ -493,10 +494,10 @@ class ControlElement:
         self,
         locator: Locator,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         search_strategy: Literal["siblings", "all"] = "siblings",
         wait_for_element=False,
-    ) -> List["ControlElement"]:
+    ) -> list["ControlElement"]:
         """
         This method may be used to find multiple descendants of the current
         element matching the given locator.
@@ -553,8 +554,8 @@ class ControlElement:
         ]
 
     def _convert_locator_to_locator_and_or_search_params(
-        self, locator: Optional[Locator]
-    ) -> Optional[LocatorStrAndOrSearchParams]:
+        self, locator: Locator | None
+    ) -> LocatorStrAndOrSearchParams | None:
         if locator is None:
             return None
         from ._match_ast import collect_search_params
@@ -746,11 +747,11 @@ class ControlElement:
 
     def click(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "ControlElement":
         """
         Clicks an element using the mouse.
@@ -811,11 +812,11 @@ class ControlElement:
 
     def double_click(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "ControlElement":
         """
         Double-clicks an element using the mouse.
@@ -879,11 +880,11 @@ class ControlElement:
 
     def right_click(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "ControlElement":
         """
         Right-clicks an element using the mouse.
@@ -946,11 +947,11 @@ class ControlElement:
 
     def middle_click(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "ControlElement":
         """
         Middle-clicks an element using the mouse.
@@ -1015,11 +1016,11 @@ class ControlElement:
 
     def _mouse_click(
         self,
-        locator: Optional[Locator],
+        locator: Locator | None,
         search_depth: int,
         click_type: str,
-        wait_time: Optional[float],
-        timeout: Optional[float],
+        wait_time: float | None,
+        timeout: float | None,
     ) -> "ControlElement":
         click_wait_time: float = wait_time if wait_time is not None else _wait_time()
         if not locator:
@@ -1052,11 +1053,9 @@ class ControlElement:
                 )
 
             raise ActionNotPossible(
-                (
-                    f"Element {element!r} is not visible for clicking. Ensure the root "
-                    "window is the foreground window. If it is, consider doing a new "
-                    "search for this element as the current reference may no longer be valid."
-                )
+                f"Element {element!r} is not visible for clicking. Ensure the root "
+                "window is the foreground window. If it is, consider doing a new "
+                "search for this element as the current reference may no longer be valid."
             )
 
         log_message = f"{click_type}-ing element"
@@ -1073,9 +1072,9 @@ class ControlElement:
         self,
         value: str,
         *,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> "ControlElement":
         """
         Select a value on the passed element if such action is supported.
@@ -1135,14 +1134,14 @@ class ControlElement:
 
     def send_keys(
         self,
-        keys: Optional[str] = None,
+        keys: str | None = None,
         interval: float = DEFAULT_SEND_KEYS_INTERVAL,
         send_enter: bool = False,
         *,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-        wait_time: Optional[float] = None,
+        timeout: float | None = None,
+        wait_time: float | None = None,
     ) -> "ControlElement":
         """
         Sends the given keys to the element (simulates typing keys on the keyboard).
@@ -1225,7 +1224,7 @@ class ControlElement:
         control: "Control",
         keys: str,
         interval: float = DEFAULT_SEND_KEYS_INTERVAL,
-        wait_time: Optional[float] = None,
+        wait_time: float | None = None,
         send_enter: bool = False,
     ):
         if hasattr(control, "SendKeys"):
@@ -1241,11 +1240,11 @@ class ControlElement:
 
     def get_text(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-    ) -> Optional[str]:
+        timeout: float | None = None,
+    ) -> str | None:
         """
         Get text from element (for elements which allow the GetWindowText action).
 
@@ -1295,19 +1294,19 @@ class ControlElement:
     @staticmethod
     def _get_value_pattern(
         item: "Control",
-    ) -> Optional[Callable[[], PatternType]]:
-        get_pattern: Optional[Callable] = getattr(
+    ) -> Callable[[], PatternType] | None:
+        get_pattern: Callable | None = getattr(
             item, "GetValuePattern", getattr(item, "GetLegacyIAccessiblePattern", None)
         )
         return get_pattern
 
     def get_value(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-    ) -> Optional[str]:
+        timeout: float | None = None,
+    ) -> str | None:
         """
         Get value from element (usually used with combo boxes or text controls).
 
@@ -1368,7 +1367,7 @@ class ControlElement:
         action: str,
         get_value_pattern: Callable[[], PatternType],
         append: bool,
-        validator: Optional[Callable],
+        validator: Callable | None,
     ):
         func_name = get_value_pattern.__name__
         self.logger.debug(
@@ -1393,8 +1392,8 @@ class ControlElement:
         action: str,
         element: "ControlElement",
         append: bool,
-        locator: Optional[Locator],
-        validator: Optional[Callable],
+        locator: Locator | None,
+        validator: Callable | None,
     ):
         self.logger.debug(
             "Win:: %s the element value with `Send Keys`. (no patterns found)", action
@@ -1436,10 +1435,10 @@ class ControlElement:
         enter: bool = False,
         newline: bool = False,
         send_keys_fallback: bool = True,
-        validator: Optional[Callable] = set_value_validator,
-        locator: Optional[Locator] = None,
+        validator: Callable | None = set_value_validator,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> "ControlElement":
         """
         Set the value in the element (usually used with combo boxes or
@@ -1576,10 +1575,10 @@ class ControlElement:
 
     def screenshot_pil(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> Optional["Image"]:
         """
         Makes a screenshot of the given element and returns it as a PIL image.
@@ -1631,13 +1630,13 @@ class ControlElement:
 
     def screenshot(
         self,
-        filename: Union[str, Path],
+        filename: str | Path,
         *,
-        img_format: Optional[str] = None,
-        locator: Optional[Locator] = None,
+        img_format: str | None = None,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
-    ) -> Optional[str]:
+        timeout: float | None = None,
+    ) -> str | None:
         """
         Makes a screenshot of the given element and saves it into the given
         file.
@@ -1695,9 +1694,9 @@ class ControlElement:
         self,
         level="INFO",
         *,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> bool:
         """
         Makes a screenshot of the given element and saves it into the `log.html`
@@ -1761,10 +1760,10 @@ class ControlElement:
 
     def set_focus(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         *,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> "ControlElement":
         """
         Sets the view focus to the element (or elemen specified by the locator).

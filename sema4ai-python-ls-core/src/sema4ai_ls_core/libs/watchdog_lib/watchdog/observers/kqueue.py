@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 # Copyright 2011 Yesudeep Mangalapilly <yesudeep@gmail.com>
 # Copyright 2012 Google, Inc & contributors.
@@ -544,11 +543,10 @@ class KqueueEmitter(EventEmitter):
             # Kqueue does not specify the destination names for renames
             # to, so we have to process these using the a snapshot
             # of the directory.
-            for event in self._gen_renamed_events(src_path,
+            yield from self._gen_renamed_events(src_path,
                                                   descriptor.is_directory,
                                                   ref_snapshot,
-                                                  new_snapshot):
-                yield event
+                                                  new_snapshot)
         elif is_attrib_modified(kev):
             if descriptor.is_directory:
                 yield DirModifiedEvent(src_path)
@@ -620,8 +618,7 @@ class KqueueEmitter(EventEmitter):
                 # only if it doesn't already.
                 # A: It doesn't. So I've enabled this block.
                 if self.watch.is_recursive:
-                    for sub_event in generate_sub_moved_events(src_path, dest_path):
-                        yield sub_event
+                    yield from generate_sub_moved_events(src_path, dest_path)
         else:
             # If the new snapshot does not have an inode for the
             # old path, we haven't found the new name. Therefore,

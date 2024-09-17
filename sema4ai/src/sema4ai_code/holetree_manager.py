@@ -37,7 +37,8 @@ Each request for a space name creates a structure in the disk such as:
 """
 
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import List, Optional
+from collections.abc import Iterable
 
 from sema4ai_ls_core.core_log import get_logger
 
@@ -63,7 +64,7 @@ class HolotreeManager:
     def __init__(
         self,
         rcc: IRcc,
-        directory: Optional[Path] = None,
+        directory: Path | None = None,
         max_number_of_spaces: int = 10,
         timeout_for_updates_in_seconds: int = 10,
         # We can only reclaim a space after 2 hours without usage.
@@ -239,9 +240,9 @@ class HolotreeManager:
         conda_yaml_contents: str,
         require_timeout: bool = False,
     ) -> RCCSpaceInfo:
-        checked: List[str] = []
-        can_reuse: List[RCCSpaceInfo] = []
-        not_available: List[RCCSpaceInfo] = []
+        checked: list[str] = []
+        can_reuse: list[RCCSpaceInfo] = []
+        not_available: list[RCCSpaceInfo] = []
         for name in self._iter_target_space_names():
             checked.append(name)
             status = self._compute_status(name, conda_yaml_path, conda_yaml_contents)

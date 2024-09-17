@@ -2,7 +2,8 @@ import re
 import time
 from dataclasses import dataclass
 from re import Pattern
-from typing import Dict, Iterator, List, Literal, Optional, Protocol, Set, Tuple, Union
+from typing import Dict, List, Literal, Optional, Protocol, Set, Tuple, Union
+from collections.abc import Iterator
 
 from ._com_error import COMError
 from ._errors import ElementNotFound
@@ -17,7 +18,7 @@ from .protocols import Locator
 @dataclass
 class LocatorStrAndOrSearchParams:
     locator: Locator
-    or_search_params: Tuple[OrSearchParams, ...]
+    or_search_params: tuple[OrSearchParams, ...]
 
     def __str__(self):
         return self.locator
@@ -79,7 +80,7 @@ def _cmp_depth(el: ControlTreeNode["Control"], search_value) -> bool:
 
 
 def _cmp_executable(el: ControlTreeNode["Control"], search_value) -> bool:
-    executable: Optional[str] = None
+    executable: str | None = None
     try:
         from psutil import Process
 
@@ -93,7 +94,7 @@ def _cmp_executable(el: ControlTreeNode["Control"], search_value) -> bool:
     return executable.lower().endswith(search_value)
 
 
-_match_dispatch: Dict[Union[str, Pattern[str]], Union[str, ICompareFunc]] = {
+_match_dispatch: dict[str | Pattern[str], str | ICompareFunc] = {
     # Same thing
     "automationid": "AutomationId",
     "id": "AutomationId",
@@ -138,7 +139,7 @@ def _get_control_from_path(
     search_params: SearchType, root_control: "Control"
 ) -> "Control":
     # Follow a path in the tree of controls until reaching the final target.
-    path: List[int] = search_params["path"]
+    path: list[int] = search_params["path"]
     current = root_control
 
     for index, position in enumerate(path):
@@ -157,7 +158,7 @@ def _get_control_from_path(
 
 
 def _resolve_root(
-    root_element: Optional[_UIAutomationControlWrapper],
+    root_element: _UIAutomationControlWrapper | None,
 ) -> _UIAutomationControlWrapper:
     if root_element is None:
         return get_desktop_element()
@@ -182,9 +183,9 @@ def _resolve_root(
 
 
 def _find_ui_automation_wrappers(
-    locator: Optional[LocatorStrAndOrSearchParams] = None,
+    locator: LocatorStrAndOrSearchParams | None = None,
     search_depth: int = 8,
-    root_element: Optional[_UIAutomationControlWrapper] = None,
+    root_element: _UIAutomationControlWrapper | None = None,
     search_strategy: Literal["siblings", "all", "single"] = "single",
     timeout_monitor: Optional["TimeoutMonitor"] = None,
 ) -> Iterator[_UIAutomationControlWrapper]:
@@ -279,13 +280,13 @@ def _search_step(
     or_search_params: OrSearchParams,
     search_depth,
     timeout_monitor: Optional["TimeoutMonitor"],
-) -> Iterator[Tuple[ControlTreeNode["Control"], SearchType]]:
+) -> Iterator[tuple[ControlTreeNode["Control"], SearchType]]:
     from ._control_element import ControlElement
     from ._ui_automation_wrapper import build_from_locator_and_control_tree_node
 
-    errors: List[str] = []
+    errors: list[str] = []
 
-    keep_searching: List[SearchType] = []
+    keep_searching: list[SearchType] = []
     for s in or_search_params.parts:
         # First check the heuristics to match it directly.
         try:
@@ -344,14 +345,14 @@ def _search_step(
         raise ElementNotFound(f"Unable to find locator: {locator!r}")
 
     # It didn't find it yet, fallback to the tree search.
-    found_depths: List[int] = []
+    found_depths: list[int] = []
     for search_params in keep_searching:
         if "depth" in search_params:
             depth = int(search_params["depth"])
             found_depths.append(depth)
             search_depth = max(search_depth, depth)
 
-    only_depths: Optional[Set[int]] = None
+    only_depths: set[int] | None = None
     if len(found_depths) == len(keep_searching):
         # Ok, we can use it if it's the same for all (but otherwise, we need
         # iterate all as at least one of the conditions doesn't have a depth).
@@ -401,10 +402,10 @@ def _search_siblings(
 
 
 def find_ui_automation_wrapper(
-    locator: Optional[LocatorStrAndOrSearchParams] = None,
+    locator: LocatorStrAndOrSearchParams | None = None,
     search_depth: int = 8,
-    root_element: Optional[_UIAutomationControlWrapper] = None,
-    timeout: Optional[float] = None,
+    root_element: _UIAutomationControlWrapper | None = None,
+    timeout: float | None = None,
     wait_for_element: bool = True,
 ) -> _UIAutomationControlWrapper:
     if wait_for_element:
@@ -442,14 +443,14 @@ def find_ui_automation_wrapper(
 
 
 def find_ui_automation_wrappers(
-    locator: Optional[LocatorStrAndOrSearchParams] = None,
+    locator: LocatorStrAndOrSearchParams | None = None,
     search_depth: int = 8,
-    root_element: Optional[_UIAutomationControlWrapper] = None,
-    timeout: Optional[float] = None,
+    root_element: _UIAutomationControlWrapper | None = None,
+    timeout: float | None = None,
     search_strategy: Literal["siblings", "all"] = "siblings",
     wait_for_element: bool = False,
     timeout_monitor: Optional["TimeoutMonitor"] = None,
-) -> List[_UIAutomationControlWrapper]:
+) -> list[_UIAutomationControlWrapper]:
     """Get a list of elements matching the locator.
 
     By default, only the siblings (similar elements on the same level) are taken

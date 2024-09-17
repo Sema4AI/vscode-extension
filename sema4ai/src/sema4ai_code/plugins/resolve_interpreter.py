@@ -86,10 +86,10 @@ log = get_logger(__name__)
 
 _CachedFileMTimeInfo = namedtuple("_CachedFileMTimeInfo", "st_mtime, st_size, path")
 
-_CachedInterpreterMTime = Tuple[Optional[_CachedFileMTimeInfo], ...]
+_CachedInterpreterMTime = tuple[Optional[_CachedFileMTimeInfo], ...]
 
 
-def _get_mtime_cache_info(file_path: Path) -> Optional[_CachedFileMTimeInfo]:
+def _get_mtime_cache_info(file_path: Path) -> _CachedFileMTimeInfo | None:
     """
     Cache based on the time/size of a given path.
     """
@@ -102,14 +102,12 @@ def _get_mtime_cache_info(file_path: Path) -> Optional[_CachedFileMTimeInfo]:
         return None
 
 
-class _CachedFileInfo(object):
+class _CachedFileInfo:
     def __init__(self, file_path: Path):
         self.file_path = file_path
-        self.mtime_info: Optional[_CachedFileMTimeInfo] = _get_mtime_cache_info(
-            file_path
-        )
+        self.mtime_info: _CachedFileMTimeInfo | None = _get_mtime_cache_info(file_path)
         self.contents: str = file_path.read_text(encoding="utf-8", errors="replace")
-        self._yaml_contents: Optional[dict] = None
+        self._yaml_contents: dict | None = None
 
     @property
     def yaml_contents(self) -> dict:
@@ -130,12 +128,12 @@ class _CachedFileInfo(object):
         return self.mtime_info == _get_mtime_cache_info(self.file_path)
 
 
-class _CachedInterpreterInfo(object):
+class _CachedInterpreterInfo:
     def __init__(
         self,
         robot_yaml_file_info: _CachedFileInfo,
         conda_config_file_info: _CachedFileInfo,
-        env_json_path_file_info: Optional[_CachedFileInfo],
+        env_json_path_file_info: _CachedFileInfo | None,
         pm: PluginManager,
     ):
         from sema4ai_code.commands import SEMA4AI_SHOW_INTERPRETER_ENV_ERROR
@@ -257,7 +255,7 @@ Full error message
         if not result.success:
             raise RuntimeError(f"Unable to get env details. Error: {result.message}.")
 
-        robot_yaml_env_info: Optional[IRobotYamlEnvInfo] = result.result
+        robot_yaml_env_info: IRobotYamlEnvInfo | None = result.result
         if robot_yaml_env_info is None:
             raise RuntimeError(f"Unable to get env details. Error: {result.message}.")
 
@@ -265,7 +263,7 @@ Full error message
 
         root = str(robot_yaml_file_info.file_path.parent)
         pythonpath_lst = robot_yaml_file_info.yaml_contents.get("PYTHONPATH", [])
-        additional_pythonpath_entries: List[str] = []
+        additional_pythonpath_entries: list[str] = []
         if isinstance(pythonpath_lst, list):
             for v in pythonpath_lst:
                 additional_pythonpath_entries.append(os.path.join(root, str(v)))
@@ -281,8 +279,8 @@ Full error message
     def _obtain_mtime(
         self,
         robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: Optional[_CachedFileInfo],
-        env_json_path_file_info: Optional[_CachedFileInfo],
+        conda_config_file_info: _CachedFileInfo | None,
+        env_json_path_file_info: _CachedFileInfo | None,
     ) -> _CachedInterpreterMTime:
         return (
             robot_yaml_file_info.mtime_info,
@@ -293,22 +291,22 @@ Full error message
     def is_cache_valid(
         self,
         robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: Optional[_CachedFileInfo],
-        env_json_path_file_info: Optional[_CachedFileInfo],
+        conda_config_file_info: _CachedFileInfo | None,
+        env_json_path_file_info: _CachedFileInfo | None,
     ) -> bool:
         return self._mtime == self._obtain_mtime(
             robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
         )
 
 
-class _CacheInfo(object):
+class _CacheInfo:
     """
     As a new instance of the RobocorpResolveInterpreter is created for each call,
     we need to store cached info outside it.
     """
 
-    _cached_file_info: Dict[Path, _CachedFileInfo] = {}
-    _cached_interpreter_info: Dict[Path, _CachedInterpreterInfo] = {}
+    _cached_file_info: dict[Path, _CachedFileInfo] = {}
+    _cached_interpreter_info: dict[Path, _CachedInterpreterInfo] = {}
     _cache_hit_files = 0  # Just for testing
     _cache_hit_interpreter = 0  # Just for testing
 
@@ -336,10 +334,10 @@ class _CacheInfo(object):
         cls,
         robot_yaml_file_info: _CachedFileInfo,
         conda_config_file_info: _CachedFileInfo,
-        env_json_path_file_info: Optional[_CachedFileInfo],
+        env_json_path_file_info: _CachedFileInfo | None,
         pm: PluginManager,
     ) -> IInterpreterInfo:
-        interpreter_info: Optional[_CachedInterpreterInfo] = (
+        interpreter_info: _CachedInterpreterInfo | None = (
             cls._cached_interpreter_info.get(robot_yaml_file_info.file_path)
         )
         if interpreter_info is not None and interpreter_info.is_cache_valid(
@@ -391,7 +389,7 @@ class _CacheInfo(object):
             return interpreter_info.info
 
 
-class _TouchInfo(object):
+class _TouchInfo:
     def __init__(self):
         self._last_touch = 0
 
@@ -405,7 +403,7 @@ class _TouchInfo(object):
             self._last_touch = curr_time
             environ = info.get_environ()
             if environ:
-                temp_dir: Optional[str] = environ.get("TEMP")
+                temp_dir: str | None = environ.get("TEMP")
                 if temp_dir:
                     temp_dir_path = Path(temp_dir)
                     try:
@@ -438,8 +436,8 @@ class _PackageYamlCachedInfo:
         robot_yaml: Path,
         conda_yaml: Path,
         package_yaml_file_info: _CachedFileInfo,
-        cached_package_mtime_info: Optional[_CachedFileMTimeInfo],
-        cached_package_contents: Optional[str],
+        cached_package_mtime_info: _CachedFileMTimeInfo | None,
+        cached_package_contents: str | None,
     ):
         self.robot_yaml = robot_yaml
         self.conda_yaml = conda_yaml
@@ -453,13 +451,13 @@ class _PackageYamlCachedInfo:
             and package_yaml_file_info.contents == self.cached_package_contents
         )
 
-    def get_cached(self) -> Tuple[Path, Path]:
+    def get_cached(self) -> tuple[Path, Path]:
         return self.robot_yaml, self.conda_yaml
 
 
 class _CachePackage:
     def __init__(self) -> None:
-        self._cache: Dict[Path, "_PackageYamlCachedInfo"] = {}
+        self._cache: dict[Path, "_PackageYamlCachedInfo"] = {}
         self._hits = 0
 
     def get(self, key) -> Optional["_PackageYamlCachedInfo"]:
@@ -479,7 +477,7 @@ class _CachePackage:
 _cache_package = _CachePackage()
 
 
-class RobocorpResolveInterpreter(object):
+class RobocorpResolveInterpreter:
     """
     Resolves the interpreter based on the robot.yaml found.
     """
@@ -488,7 +486,7 @@ class RobocorpResolveInterpreter(object):
         self._pm = weak_pm
 
     @implements(EPResolveInterpreter.get_interpreter_info_for_doc_uri)
-    def get_interpreter_info_for_doc_uri(self, doc_uri) -> Optional[IInterpreterInfo]:
+    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
         info = self._compute_base_interpreter_info_for_doc_uri(doc_uri)
         if info is None:
             return None
@@ -496,7 +494,7 @@ class RobocorpResolveInterpreter(object):
 
     def _relocate_robot_root(
         self, interpreter_info: IInterpreterInfo
-    ) -> Optional[IInterpreterInfo]:
+    ) -> IInterpreterInfo | None:
         environ = interpreter_info.get_environ()
         if not environ:
             return interpreter_info
@@ -565,7 +563,7 @@ class RobocorpResolveInterpreter(object):
         self,
         package_yaml_file_info: _CachedFileInfo,
         cache: _CachePackage = _cache_package,
-    ) -> Optional[Tuple[Path, Path]]:
+    ) -> tuple[Path, Path] | None:
         import yaml
 
         from sema4ai_code.vendored_deps.action_package_handling import (
@@ -573,10 +571,10 @@ class RobocorpResolveInterpreter(object):
             create_hash,
         )
 
-        cached_info: Optional[_PackageYamlCachedInfo] = cache.get(
+        cached_info: _PackageYamlCachedInfo | None = cache.get(
             package_yaml_file_info.file_path
         )
-        package_mtime_info: Optional[_CachedFileMTimeInfo] = (
+        package_mtime_info: _CachedFileMTimeInfo | None = (
             package_yaml_file_info.mtime_info
         )
         if package_mtime_info is None:
@@ -648,7 +646,7 @@ environmentConfigs:
 
     def _compute_base_interpreter_info_for_doc_uri(
         self, doc_uri
-    ) -> Optional[IInterpreterInfo]:
+    ) -> IInterpreterInfo | None:
         try:
             pm = self._pm()
             if pm is None:
@@ -748,7 +746,7 @@ environmentConfigs:
 
 def get_conda_config_path(
     parent: Path, robot_yaml: Path, yaml_contents: dict
-) -> Optional[Path]:
+) -> Path | None:
     environments_config = yaml_contents.get("environmentConfigs")
     if environments_config:
         if isinstance(environments_config, (tuple, list)):

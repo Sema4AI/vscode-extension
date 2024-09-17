@@ -7,7 +7,8 @@ with native widgets on the Windows OS.
 import time
 import typing
 from functools import lru_cache
-from typing import Callable, List, Optional
+from typing import List, Optional
+from collections.abc import Callable
 
 from ._config import Config
 from ._control_element import ControlElement
@@ -118,8 +119,8 @@ def config() -> "Config":
 def find_window(
     locator: Locator,
     search_depth: int = 1,
-    timeout: Optional[float] = None,
-    wait_time: Optional[float] = None,
+    timeout: float | None = None,
+    wait_time: float | None = None,
     foreground: bool = True,
     move_cursor_to_center: bool = True,
 ) -> "WindowElement":
@@ -167,9 +168,9 @@ def find_window(
 def find_windows(
     locator: Locator = "regex:.*",
     search_depth: int = 1,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     wait_for_window: bool = False,
-) -> List["WindowElement"]:
+) -> list["WindowElement"]:
     """
     Finds all windows matching the given locator.
 
@@ -215,7 +216,7 @@ def find_windows(
 def wait_for_condition(
     condition: Callable[[], bool],
     timeout: float = 8.0,
-    msg: Optional[Callable[[], str]] = None,
+    msg: Callable[[], str] | None = None,
 ):
     """
     A helper function to wait for some condition.

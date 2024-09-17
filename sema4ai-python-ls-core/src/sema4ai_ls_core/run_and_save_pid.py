@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 
-def main(file_to_write_pid: str, args: List[str]):
+def main(file_to_write_pid: str, args: list[str]):
     """
     The first argument is where we should write the pid to. All the
     other arguments are used to make the launch.
@@ -48,7 +48,7 @@ def wait_for_pid_in_file(target_file: str, timeout: float = 20) -> int:
 
     p = Path(target_file)
 
-    def read_pid() -> Optional[int]:
+    def read_pid() -> int | None:
         if p.exists():
             txt = p.read_text("utf-8")
             if txt.endswith("\n"):

@@ -55,7 +55,7 @@ try:
     from enum import IntEnum
 except:
 
-    class IntEnum(object):
+    class IntEnum:
         pass
 
 
@@ -76,7 +76,7 @@ class Change(IntEnum):
     deleted = 3
 
 
-class _SingleVisitInfo(object):
+class _SingleVisitInfo:
     def __init__(self):
         self.count = 0
         self.visited_dirs = set()
@@ -84,7 +84,7 @@ class _SingleVisitInfo(object):
         self.last_sleep_time = time.time()
 
 
-class TrackedPath(object):
+class TrackedPath:
 
     __slots__ = ["path", "recursive"]
 
@@ -93,7 +93,7 @@ class TrackedPath(object):
         self.recursive = recursive
 
 
-class _PathWatcher(object):
+class _PathWatcher:
     """
     Helper to watch a single path.
     """
@@ -211,15 +211,15 @@ class _PathWatcher(object):
         )
 
 
-class Watcher(object):
+class Watcher:
 
     # By default (if accept_directory is not specified), these will be the
     # ignored directories.
-    ignored_dirs = {u".git", u"__pycache__", u".idea", u"node_modules", u".metadata"}
+    ignored_dirs = {".git", "__pycache__", ".idea", "node_modules", ".metadata"}
 
     # By default (if accept_file is not specified), these will be the
     # accepted files.
-    accepted_file_extensions: Tuple[str, ...] = ()
+    accepted_file_extensions: tuple[str, ...] = ()
 
     # Set to the target value for doing full scan of all files (adds a sleep inside the poll loop
     # which processes files to reach the target time).
@@ -330,7 +330,7 @@ class Watcher(object):
         # Sort by the path len so that the bigger paths come first (so,
         # if there's any nesting we want the nested paths to be visited
         # before the parent paths so that the max_recursion_level is correct).
-        paths: List[str] = sorted(set(p.path for p in paths), key=key)
+        paths: list[str] = sorted({p.path for p in paths}, key=key)
         path_watchers = set()
 
         single_visit_info = _SingleVisitInfo()
@@ -381,8 +381,7 @@ class Watcher(object):
             for entry in old_file_to_mtime:
                 append_change((Change.deleted, entry))
 
-            for change in changes:
-                yield change
+            yield from changes
 
             actual_time = time.time() - initial_time
             if self.print_poll_time:

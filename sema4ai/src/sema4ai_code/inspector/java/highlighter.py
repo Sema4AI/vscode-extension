@@ -2,9 +2,9 @@ import threading
 import logging
 from typing import (
     Any,
-    Callable,
     Optional,
 )
+from collections.abc import Callable
 import itertools
 from functools import partial
 
@@ -101,7 +101,7 @@ class _TkHandler:
         except IndexError:
             return None
 
-    def loop(self, on_loop_poll_callback: Optional[Callable[[], Any]]):
+    def loop(self, on_loop_poll_callback: Callable[[], Any] | None):
         assert self._current_thread == threading.current_thread()
 
         poll_5_times_per_second = int(1 / 5.0 * 1000)
@@ -154,7 +154,7 @@ class TkHandlerThread(threading.Thread):
         import queue
 
         self._queue: "queue.Queue[Callable[[], None]]" = queue.Queue()
-        self._tk_handler: Optional[_TkHandler] = None
+        self._tk_handler: _TkHandler | None = None
         self._quit_queue_loop = threading.Event()
 
     def run(self):

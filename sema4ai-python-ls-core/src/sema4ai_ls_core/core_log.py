@@ -30,7 +30,7 @@ from sema4ai_ls_core.protocols import ILog
 from typing import Dict
 from sema4ai_ls_core.constants import NULL
 
-name_to_logger: Dict[str, ILog] = {}
+name_to_logger: dict[str, ILog] = {}
 
 
 def _as_str(s):
@@ -46,7 +46,7 @@ except Exception:
     pass
 
 
-class _LogConfig(object):
+class _LogConfig:
     __slots__ = ["_lock", "__stream", "prefix", "log_level", "_log_file", "pid"]
 
     def __init__(self):
@@ -138,7 +138,7 @@ def close_logging_streams():
     _log_config.close_logging_streams()
 
 
-class _Logger(object):
+class _Logger:
     def __init__(self, name):
         self.name = name
 
@@ -180,7 +180,7 @@ class _Logger(object):
             try:
                 message = msg % args
             except Exception:
-                message = "%s - %s" % (msg, args)
+                message = f"{msg} - {args}"
         else:
             message = msg
 
@@ -218,7 +218,7 @@ def _current_config():
     return _log_config.prefix, _log_config.log_level, _log_config.log_file
 
 
-class _RestoreCtxManager(object):
+class _RestoreCtxManager:
     def __init__(self, config_to_restore):
         self._config_to_restore = config_to_restore
 

@@ -135,7 +135,7 @@ def path_to_url(path):
     return path
 
 
-url_attrs: Tuple[str, ...] = (
+url_attrs: tuple[str, ...] = (
     "scheme",
     "path",
     "query",

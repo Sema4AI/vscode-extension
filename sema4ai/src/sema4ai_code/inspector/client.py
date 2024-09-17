@@ -16,10 +16,10 @@ from sema4ai_ls_core.protocols import (
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
-    class TypedDict(object):
+    class TypedDict:
         def __init_subclass__(self, *args, **kwargs):
             pass
 
@@ -51,7 +51,7 @@ class InspectorApiClient(LanguageServerClientBase):
         self._check_process_alive()
         self._version = None
 
-        self.stats: Dict[str, int] = {}
+        self.stats: dict[str, int] = {}
 
     @implements(ILanguageServerClientBase.write)
     def write(self, contents):
@@ -100,14 +100,12 @@ class InspectorApiClient(LanguageServerClientBase):
         self,
         method_name,
         params: dict,
-        timeout: Union[int, Sentinel, None] = Sentinel.USE_DEFAULT_TIMEOUT,
-    ) -> Optional[Union[IResultMessage, IErrorMessage]]:
+        timeout: int | Sentinel | None = Sentinel.USE_DEFAULT_TIMEOUT,
+    ) -> IResultMessage | IErrorMessage | None:
         self._check_process_alive()
         return self.request(self._build_msg(method_name, params), timeout=timeout)
 
-    def send_async_message(
-        self, method_name, params: dict
-    ) -> Optional[IIdMessageMatcher]:
+    def send_async_message(self, method_name, params: dict) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """

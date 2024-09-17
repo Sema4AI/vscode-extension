@@ -22,7 +22,8 @@ import threading
 import weakref
 from functools import partial
 from pathlib import Path
-from typing import ContextManager, Dict, Optional, Sequence, Set
+from typing import ContextManager, Dict, Optional, Set
+from collections.abc import Sequence
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.jsonrpc.dispatchers import MethodDispatcher
@@ -42,13 +43,13 @@ from sema4ai_ls_core.lsp import LSPMessages
 log = get_logger(__name__)
 
 
-class _StreamHandlerWrapper(socketserver.StreamRequestHandler, object):
+class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
     """A wrapper class that is used to construct a custom handler class."""
 
     delegate = None
 
     def setup(self):
-        super(_StreamHandlerWrapper, self).setup()
+        super().setup()
         self.delegate = self.DELEGATE_CLASS(self.rfile, self.wfile)  # noqa
 
     def handle(self):
@@ -64,7 +65,7 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler, object):
         self.SHUTDOWN_CALL()  # noqa
 
 
-class _DummyStdin(object):
+class _DummyStdin:
     def __init__(self, original_stdin=sys.stdin, *args, **kwargs):
         try:
             self.encoding = sys.stdin.encoding
@@ -247,7 +248,7 @@ def run_in_new_thread(func, thread_name: str, daemon: bool = True):
     t.start()
 
 
-class BaseLintInfo(object):
+class BaseLintInfo:
     def __init__(
         self,
         lsp_messages: LSPMessages,
@@ -358,7 +359,7 @@ class BaseLintInfo(object):
         self._monitor.cancel()
 
 
-class BaseLintManager(object):
+class BaseLintManager:
     def __init__(self, lsp_messages, endpoint: IEndPoint, read_queue) -> None:
         import queue
 
@@ -369,15 +370,15 @@ class BaseLintManager(object):
         self._next_id = partial(next, itertools.count())
 
         self._lock = threading.Lock()
-        self._doc_id_to_info: Dict[str, BaseLintInfo] = {}  # requires lock
-        self._uris_to_lint: Set[str] = set()  # requires lock
+        self._doc_id_to_info: dict[str, BaseLintInfo] = {}  # requires lock
+        self._uris_to_lint: set[str] = set()  # requires lock
 
-        self._progress_context: Optional[ContextManager[IProgressReporter]] = None
-        self._progress_reporter: Optional[IProgressReporter] = None
+        self._progress_context: ContextManager[IProgressReporter] | None = None
+        self._progress_reporter: IProgressReporter | None = None
 
     def _create_curr_lint_info(
         self, doc_uri: str, is_saved: bool, timeout: float
-    ) -> Optional[BaseLintInfo]:
+    ) -> BaseLintInfo | None:
         # Note: this call must be done in the main thread.
         raise NotImplementedError(f"{self} must implement _create_curr_lint_info(...)")
 
@@ -451,11 +452,11 @@ class PythonLanguageServer(MethodDispatcher):
     Based on: https://github.com/palantir/python-language-server/blob/develop/pyls/python_ls.py
     """
 
-    __lint_manager: Optional[BaseLintManager]
+    __lint_manager: BaseLintManager | None
 
     def __init__(self, read_stream, write_stream) -> None:
         self._config: IConfig = self._create_config()
-        self._workspace: Optional[IWorkspace] = None
+        self._workspace: IWorkspace | None = None
         self.root_uri = None
         self.watching_thread = None
 
@@ -466,11 +467,11 @@ class PythonLanguageServer(MethodDispatcher):
 
         self._shutdown = False
 
-    def _create_lint_manager(self) -> Optional[BaseLintManager]:
+    def _create_lint_manager(self) -> BaseLintManager | None:
         return None
 
     @property
-    def _lint_manager(self) -> Optional[BaseLintManager]:
+    def _lint_manager(self) -> BaseLintManager | None:
         try:
             return self.__lint_manager
         except AttributeError:
@@ -479,7 +480,7 @@ class PythonLanguageServer(MethodDispatcher):
         return self.__lint_manager
 
     @property
-    def workspace(self) -> Optional[IWorkspace]:
+    def workspace(self) -> IWorkspace | None:
         return self._workspace
 
     @workspace.setter

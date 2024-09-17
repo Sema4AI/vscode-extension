@@ -1,7 +1,8 @@
 import pathlib
 import typing
 from dataclasses import dataclass
-from typing import Iterator, Optional, Union
+from typing import Optional, Union
+from collections.abc import Iterator
 
 from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
 from sema4ai_ls_core.protocols import IDocument, IMonitor, IWorkspace, Sentinel
@@ -37,7 +38,7 @@ def _get_node(data, key: str, msg: str) -> _EntryNode | _ErrorNode:
         str_with_location_capture,
     )
 
-    report_location: Optional[tuple] = None
+    report_location: tuple | None = None
     diagnostic: DiagnosticsTypedDict
 
     if isinstance(data, _EntryNode):
@@ -80,7 +81,7 @@ class _Analyzer:
 
         self._load_errors: list[DiagnosticsTypedDict] = []
         self._loaded_yaml = False
-        self._yaml_data: Optional[dict] = None
+        self._yaml_data: dict | None = None
 
     def _load_yaml(self) -> None:
         from yaml.error import MarkedYAMLError

@@ -12,11 +12,11 @@ from PIL import Image  # type: ignore
 
 
 class ImageSniperToolResult:
-    screenshot: Optional[str] = None
-    screen_resolution_width: Optional[int] = None
-    screen_resolution_height: Optional[int] = None
-    screen_pixel_ratio: Optional[int] = None
-    error: Optional[str] = None
+    screenshot: str | None = None
+    screen_resolution_width: int | None = None
+    screen_resolution_height: int | None = None
+    screen_pixel_ratio: int | None = None
+    error: str | None = None
 
 
 class SnippingTool:

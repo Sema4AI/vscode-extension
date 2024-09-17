@@ -12,7 +12,7 @@ log = get_logger(__name__)
 
 
 def create_run_with_env_code(
-    robo_env: Dict[str, str], base_executable_and_args: List[str]
+    robo_env: dict[str, str], base_executable_and_args: list[str]
 ) -> str:
     """
     :param robo_env:
@@ -24,7 +24,7 @@ def create_run_with_env_code(
         This is the executable which should be called (usually the path to python.exe)
     """
     set_vars = []
-    as_dict: Dict[str, str] = {}
+    as_dict: dict[str, str] = {}
     found_new_line = False
 
     for key, value in robo_env.items():
@@ -87,7 +87,7 @@ setlocal EnableDelayedExpansion
 _next_number: "partial[int]" = partial(next, itertools.count())
 
 
-def _compute_path_for_env(temp_dir: Optional[str] = None) -> pathlib.Path:
+def _compute_path_for_env(temp_dir: str | None = None) -> pathlib.Path:
     import tempfile
 
     if not temp_dir:
@@ -148,7 +148,7 @@ def disable_launch_env_script():
     )
 
 
-def _update_command_line_to_write_pid(cmdline: List[str], env: dict, write_pid_to: str):
+def _update_command_line_to_write_pid(cmdline: list[str], env: dict, write_pid_to: str):
     from sema4ai_ls_core import run_and_save_pid
 
     new_cmdline = [sys.executable, run_and_save_pid.__file__, write_pid_to] + cmdline
@@ -156,8 +156,8 @@ def _update_command_line_to_write_pid(cmdline: List[str], env: dict, write_pid_t
 
 
 def update_cmdline_and_env(
-    cmdline: List[str], env: Dict[str, str], write_pid_to: Optional[str] = None
-) -> Tuple[List[str], Dict[str, str]]:
+    cmdline: list[str], env: dict[str, str], write_pid_to: str | None = None
+) -> tuple[list[str], dict[str, str]]:
     """
     Ideally only this function is actually used from this module.
 

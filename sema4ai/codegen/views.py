@@ -29,8 +29,8 @@ class Menu:
     def __init__(
         self,
         command_id,
-        group: Optional[Union[MenuGroup, str]] = None,
-        when: Optional[str] = None,
+        group: MenuGroup | str | None = None,
+        when: str | None = None,
     ):
         self.command_id = command_id
         self.group = group

@@ -65,7 +65,7 @@ def test_web_inspector_change_urls(
     # -> The picker should be reinjected
     # ===========================================================================
     event = threading.Event()
-    found: List[PickedLocatorTypedDict] = []
+    found: list[PickedLocatorTypedDict] = []
 
     def on_picked(locator: PickedLocatorTypedDict):
         found.append(locator)

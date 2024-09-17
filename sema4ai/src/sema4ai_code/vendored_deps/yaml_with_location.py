@@ -8,8 +8,8 @@ from .ls_protocols import _RangeTypedDict
 def create_range_from_location(
     start_line: int,
     start_col: int,
-    end_line: Optional[int] = None,
-    end_col: Optional[int] = None,
+    end_line: int | None = None,
+    end_col: int | None = None,
 ) -> _RangeTypedDict:
     """
     If the end_line and end_col aren't passed we consider
@@ -35,7 +35,7 @@ def create_range_from_location(
 
 class str_with_location(str):
     # location: tuple(start_line, start_col, end_line, end_col)
-    location: Optional[tuple[int, int, int, int]] = None
+    location: tuple[int, int, int, int] | None = None
 
     @property
     def scalar(self):
@@ -70,7 +70,7 @@ class str_with_location_capture(str_with_location):
 
 class int_with_location(int):
     # location: tuple(start_line, start_col, end_line, end_col)
-    location: Optional[tuple[int, int, int, int]] = None
+    location: tuple[int, int, int, int] | None = None
 
     @property
     def scalar(self):
@@ -84,7 +84,7 @@ class int_with_location(int):
 
 class dict_with_location(dict):
     # location: tuple(start_line, start_col, end_line, end_col)
-    location: Optional[tuple[int, int, int, int]] = None
+    location: tuple[int, int, int, int] | None = None
 
 
 class LoaderWithLines(yaml.SafeLoader):

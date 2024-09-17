@@ -46,8 +46,8 @@ ACCOUNT_NAME = "sema4ai"
 def download_rcc(
     location: str,
     force: bool = False,
-    sys_platform: Optional[str] = None,
-    endpoint: Optional[IEndPoint] = None,
+    sys_platform: str | None = None,
+    endpoint: IEndPoint | None = None,
 ) -> None:
     """
     Downloads rcc to the given location. Note that we don't overwrite it if it
@@ -86,7 +86,7 @@ def get_default_app_home_location() -> Path:
     return Path(home_str)
 
 
-class RccRobotMetadata(object):
+class RccRobotMetadata:
     def __init__(self, robot_id: str, robot_name: str):
         self._robot_id = robot_id
         self._robot_name = robot_name
@@ -103,7 +103,7 @@ class RccRobotMetadata(object):
         _: IRccRobotMetadata = check_implements(self)
 
 
-class RccWorkspace(object):
+class RccWorkspace:
     def __init__(self, workspace_id: str, workspace_name: str, organization_name: str):
         self._workspace_id = workspace_id
         self._workspace_name = workspace_name
@@ -133,8 +133,8 @@ class AccountInfo:
     fullname: str
 
 
-class RobotInfoEnv(object):
-    def __init__(self, env: Dict[str, str], space_info: RCCSpaceInfo):
+class RobotInfoEnv:
+    def __init__(self, env: dict[str, str], space_info: RCCSpaceInfo):
         self.env = env
         self.space_info = space_info
 
@@ -142,27 +142,27 @@ class RobotInfoEnv(object):
         _: IRobotYamlEnvInfo = check_implements(self)
 
 
-class Rcc(object):
+class Rcc:
     # Note that this is stored in the class, not in the instance.
     # It should store the contents of conda which couldn't be resolved.
     # After being stored once here, it'll only be tried again when
     # the user restarts the language server (or changes the conda config).
-    broken_conda_configs: Dict[str, ActionResult] = {}
+    broken_conda_configs: dict[str, ActionResult] = {}
 
     def __init__(self, config_provider: IConfigProvider) -> None:
         self._config_provider = weakref.ref(config_provider)
 
-        self._last_verified_account_info: Optional[AccountInfo] = None
-        self.rcc_listeners: List[IRccListener] = []
-        self._feedback_metrics_reported: Set[str] = set()
+        self._last_verified_account_info: AccountInfo | None = None
+        self.rcc_listeners: list[IRccListener] = []
+        self._feedback_metrics_reported: set[str] = set()
 
     @property
-    def last_verified_account_info(self) -> Optional[AccountInfo]:
+    def last_verified_account_info(self) -> AccountInfo | None:
         return self._last_verified_account_info
 
     def _get_str_optional_setting(self, setting_name) -> Any:
         config_provider = self._config_provider()
-        config: Optional[IConfig] = None
+        config: IConfig | None = None
         if config_provider is not None:
             config = config_provider.config
 
@@ -170,7 +170,7 @@ class Rcc(object):
             return config.get_setting(setting_name, str, None)
         return None
 
-    def get_robocorp_home_from_settings(self) -> Optional[str]:
+    def get_robocorp_home_from_settings(self) -> str | None:
         from sema4ai_code.settings import SEMA4AI_HOME
 
         return self._get_str_optional_setting(SEMA4AI_HOME)
@@ -186,7 +186,7 @@ class Rcc(object):
         return directory
 
     @property
-    def config_location(self) -> Optional[str]:
+    def config_location(self) -> str | None:
         """
         @implements(IRcc.config_location)
         """
@@ -196,7 +196,7 @@ class Rcc(object):
         return self._get_str_optional_setting(settings.SEMA4AI_RCC_CONFIG_LOCATION)
 
     @property
-    def endpoint(self) -> Optional[str]:
+    def endpoint(self) -> str | None:
         """
         @implements(IRcc.endpoint)
         """
@@ -219,15 +219,15 @@ class Rcc(object):
 
     def _run_rcc(
         self,
-        args: List[str],
+        args: list[str],
         timeout: float = 35,
         error_msg: str = "",
         mutex_name=None,
-        cwd: Optional[str] = None,
+        cwd: str | None = None,
         log_errors=True,
         stderr=Sentinel.SENTINEL,
         show_interactive_output: bool = False,
-        hide_in_log: Optional[str] = None,
+        hide_in_log: str | None = None,
     ) -> LaunchActionResult[str]:
         """
         Returns an ActionResult where the result is the stdout of the executed command.
@@ -379,7 +379,7 @@ class Rcc(object):
         return LaunchActionResult(cmdline, success=True, message=None, result=output)
 
     @implements(IRcc.get_template_names)
-    def get_template_names(self) -> ActionResult[List[RobotTemplate]]:
+    def get_template_names(self) -> ActionResult[list[RobotTemplate]]:
         result = self._run_rcc("robot initialize -l --json".split())
         if not result.success:
             return ActionResult(success=False, message=result.message)
@@ -387,19 +387,19 @@ class Rcc(object):
         if result.result is None:
             return ActionResult(success=False, message="Output not available")
 
-        output: Dict[str, str] = {}
+        output: dict[str, str] = {}
         try:
             output = json.loads(result.result)
         except json.decoder.JSONDecodeError as e:
             return ActionResult(success=False, message=f"Invalid output format: {e}")
-        templates: List[RobotTemplate] = []
+        templates: list[RobotTemplate] = []
         for name, description in output.items():
             template: RobotTemplate = {"name": name, "description": description}
             templates.append(template)
 
         return ActionResult(success=True, message=None, result=templates)
 
-    def _add_config_to_args(self, args: List[str]) -> List[str]:
+    def _add_config_to_args(self, args: list[str]) -> list[str]:
         config_location = self.config_location
         if config_location:
             args.append("--config")
@@ -407,7 +407,7 @@ class Rcc(object):
 
         return args
 
-    def _add_account_to_args(self, args: List[str]) -> Optional[ActionResult]:
+    def _add_account_to_args(self, args: list[str]) -> ActionResult | None:
         """
         Adds the account to the args.
 
@@ -508,7 +508,7 @@ class Rcc(object):
         account = self.get_valid_account_info()
         return account is not None
 
-    def get_valid_account_info(self) -> Optional[AccountInfo]:
+    def get_valid_account_info(self) -> AccountInfo | None:
         self._last_verified_account_info = None
         args = [
             "config",
@@ -583,7 +583,7 @@ class Rcc(object):
         args.append("--minutes")
 
         config_provider = self._config_provider()
-        config: Optional[IConfig] = None
+        config: IConfig | None = None
         timeout = 30
         if config_provider is not None:
             config = config_provider.config
@@ -638,8 +638,8 @@ class Rcc(object):
             )
 
     @implements(IRcc.cloud_list_workspaces)
-    def cloud_list_workspaces(self) -> ActionResult[List[IRccWorkspace]]:
-        ret: List[IRccWorkspace] = []
+    def cloud_list_workspaces(self) -> ActionResult[list[IRccWorkspace]]:
+        ret: list[IRccWorkspace] = []
         args = ["cloud", "workspace"]
         args = self._add_config_to_args(args)
         error_action_result = self._add_account_to_args(args)
@@ -689,8 +689,8 @@ class Rcc(object):
     @implements(IRcc.cloud_list_workspace_robots)
     def cloud_list_workspace_robots(
         self, workspace_id: str
-    ) -> ActionResult[List[IRccRobotMetadata]]:
-        ret: List[IRccRobotMetadata] = []
+    ) -> ActionResult[list[IRccRobotMetadata]]:
+        ret: list[IRccRobotMetadata] = []
         args = ["cloud", "workspace"]
         args.extend(("--workspace", workspace_id))
 
@@ -835,7 +835,7 @@ class Rcc(object):
         robot_yaml_path: Path,
         conda_yaml_path: Path,
         conda_yaml_contents: str,
-        env_json_path: Optional[Path],
+        env_json_path: Path | None,
         timeout=None,
         holotree_manager=None,
         on_env_creation_error=None,
@@ -863,7 +863,7 @@ class Rcc(object):
             conda_yaml_path, conda_yaml_contents
         )
 
-        environ: Dict[str, str]
+        environ: dict[str, str]
 
         proceed_to_create_env = False
         with space_info.acquire_lock():
@@ -961,7 +961,7 @@ class Rcc(object):
                 )
 
         # It was just created, let's get the env info and save it as needed.
-        def return_failure(msg: Optional[str]) -> ActionResult[IRobotYamlEnvInfo]:
+        def return_failure(msg: str | None) -> ActionResult[IRobotYamlEnvInfo]:
             log.critical(
                 (
                     "Unable to create environment from:\n%s\n"
@@ -1018,7 +1018,7 @@ class Rcc(object):
                     on_env_creation_error(ret)
                 return return_failure(ret.message)
 
-            contents: Optional[str] = ret.result
+            contents: str | None = ret.result
             if not contents:
                 return return_failure("Unable to get output when getting environment.")
 
@@ -1148,7 +1148,7 @@ class Rcc(object):
 def make_numbered_in_temp(
     keep: int = 10,
     lock_timeout: float = -1,
-    tmpdir: Optional[Path] = None,
+    tmpdir: Path | None = None,
     register=None,
 ) -> Path:
     """

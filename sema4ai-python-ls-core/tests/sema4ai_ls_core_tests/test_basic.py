@@ -1,7 +1,7 @@
 def test_isinstance_name():
     from sema4ai_ls_core.basic import isinstance_name
 
-    class A(object):
+    class A:
         pass
 
     class B(A):

@@ -31,8 +31,8 @@ def download_agent_cli(
     location: str,
     agent_cli_version=AGENT_CLI_VERSION,
     force: bool = False,
-    sys_platform: Optional[str] = None,
-    endpoint: Optional[IEndPoint] = None,
+    sys_platform: str | None = None,
+    endpoint: IEndPoint | None = None,
 ) -> None:
     """
     Downloads Agent CLI to the given location. Note that it doesn't overwrite it if it
@@ -77,7 +77,7 @@ class AgentCli:
 
     def _get_str_optional_setting(self, setting_name) -> Any:
         config_provider = self._config_provider()
-        config: Optional[IConfig] = None
+        config: IConfig | None = None
         if config_provider is not None:
             config = config_provider.config
 
@@ -104,7 +104,7 @@ class AgentCli:
         self,
         args: list[str],
         timeout: float = 35,
-        env: Optional[dict[str, str]] = None,
+        env: dict[str, str] | None = None,
     ) -> LaunchActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Agent CLI command.

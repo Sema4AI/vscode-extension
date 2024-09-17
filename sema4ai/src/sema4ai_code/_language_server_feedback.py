@@ -3,7 +3,7 @@ from functools import partial
 from sema4ai_code.protocols import IRcc
 
 
-class _Feedback(object):
+class _Feedback:
     def __init__(self, rcc: IRcc):
         self.track = True
         self._rcc = rcc

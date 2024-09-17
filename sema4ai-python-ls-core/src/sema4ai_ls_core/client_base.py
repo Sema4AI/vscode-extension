@@ -11,18 +11,19 @@ from sema4ai_ls_core.protocols import (
     IMonitor,
     IRequestHandler,
 )
-from typing import Any, Union, Optional, List, Callable, Dict
+from typing import Any, Union, Optional, List, Dict
+from collections.abc import Callable
 from sema4ai_ls_core.callbacks import Callback
 
 log = get_logger(__name__)
 
 
-class _MessageMatcher(object):
+class _MessageMatcher:
     def __init__(self, remove_on_match: bool = True) -> None:
         self.event = threading.Event()
         self.msg = None
         self.remove_on_match = remove_on_match
-        self.on_message: Optional[Callback] = None
+        self.on_message: Callback | None = None
 
     def notify(self, msg):
         # msg can be None if the communication was finished in the meanwhile.
@@ -39,7 +40,7 @@ class _IdMessageMatcher(_MessageMatcher):
         self.message_id = message_id
 
     def __str__(self):
-        return "IdMatcher(%s)" % (self.message_id,)
+        return f"IdMatcher({self.message_id})"
 
     __repr__ = __str__
 
@@ -50,18 +51,18 @@ class _IdMessageMatcher(_MessageMatcher):
 
 
 class _PatternMessageMatcher(_MessageMatcher):
-    def __init__(self, message_pattern: Dict[str, Any], remove_on_match: bool = True):
+    def __init__(self, message_pattern: dict[str, Any], remove_on_match: bool = True):
         self.message_pattern = message_pattern
         _MessageMatcher.__init__(self, remove_on_match=remove_on_match)
 
-    def matches(self, msg: Dict[str, Any]):
+    def matches(self, msg: dict[str, Any]):
         for key, val in self.message_pattern.items():
             if msg.get(key) != val:
                 return False
         return True
 
     def __str__(self):
-        return "PatternMatcher(%s)" % (self.message_pattern,)
+        return f"PatternMatcher({self.message_pattern})"
 
     __repr__ = __str__
 
@@ -70,7 +71,7 @@ def wait_for_message_matcher(
     message_matcher: IIdMessageMatcher,
     request_cancel: Callable[[Any], None],
     timeout: float,
-    monitor: Optional[IMonitor],
+    monitor: IMonitor | None,
 ) -> bool:
     """
     Note: in the case where the monitor is cancelled the cancel is automatically
@@ -123,11 +124,11 @@ def wait_for_message_matcher(
 
 
 def wait_for_message_matchers(
-    message_matchers: List[Optional[IIdMessageMatcher]],
-    monitor: Optional[IMonitor],
+    message_matchers: list[IIdMessageMatcher | None],
+    monitor: IMonitor | None,
     request_cancel: Callable[[Any], None],
     timeout: float,
-) -> List[IIdMessageMatcher]:
+) -> list[IIdMessageMatcher]:
     """
     Note: in the case where the monitor is cancelled the cancel is automatically
     passed to the api too.
@@ -181,7 +182,7 @@ class _ReaderThread(threading.Thread):
         # Message matchers.
         self._id_message_matchers: dict = {}  # msg id-> matcher
         self._pattern_message_matchers: dict = {}  # id(matcher) -> matcher
-        self._request_handlers: Dict[str, List[IRequestHandler]] = {}
+        self._request_handlers: dict[str, list[IRequestHandler]] = {}
 
         self.on_message = Callback()
         if on_received_message is not None:
@@ -214,7 +215,7 @@ class _ReaderThread(threading.Thread):
         from sema4ai_ls_core.options import Setup
 
         notify_matchers = []
-        log.debug("Will handle read message: %s" % (msg,))
+        log.debug(f"Will handle read message: {msg}")
         with self._lock:
             for message_matcher in self._pattern_message_matchers.values():
                 if message_matcher.matches(msg):
@@ -261,8 +262,8 @@ class _ReaderThread(threading.Thread):
                 log.exception("Error processing: %s", msg)
 
     def obtain_pattern_message_matcher(
-        self, message_pattern: Dict[str, Any], remove_on_match: bool = True
-    ) -> Optional[_PatternMessageMatcher]:
+        self, message_pattern: dict[str, Any], remove_on_match: bool = True
+    ) -> _PatternMessageMatcher | None:
         """
         :param message_pattern:
             Obtains a matcher which will be notified when the given message pattern is
@@ -280,7 +281,7 @@ class _ReaderThread(threading.Thread):
             self._pattern_message_matchers[id(message_matcher)] = message_matcher
             return message_matcher
 
-    def obtain_id_message_matcher(self, message_id) -> Optional[IIdMessageMatcher]:
+    def obtain_id_message_matcher(self, message_id) -> IIdMessageMatcher | None:
         """
         :param message_id:
             Obtains a matcher which will be notified when the given message id is
@@ -300,13 +301,13 @@ class _ReaderThread(threading.Thread):
         self._request_handlers.setdefault(request_name, []).append(handler)
 
 
-class LanguageServerClientBase(object):
+class LanguageServerClientBase:
     """
     A base implementation for talking with a process that implements the language
     server.
     """
 
-    DEFAULT_TIMEOUT: Optional[int] = (
+    DEFAULT_TIMEOUT: int | None = (
         None  # The default if not redefined is not having a timeout.
     )
 
@@ -331,7 +332,7 @@ class LanguageServerClientBase(object):
         self._reader_thread.register_request_handler(message, handler)
 
     @implements(ILanguageServerClientBase.request_async)
-    def request_async(self, contents: dict) -> Optional[IIdMessageMatcher]:
+    def request_async(self, contents: dict) -> IIdMessageMatcher | None:
         message_id = contents["id"]
         message_matcher = self._reader_thread.obtain_id_message_matcher(message_id)
         if message_matcher is None:
@@ -346,7 +347,7 @@ class LanguageServerClientBase(object):
     def request(
         self,
         contents,
-        timeout: Union[int, Sentinel, None] = Sentinel.USE_DEFAULT_TIMEOUT,
+        timeout: int | Sentinel | None = Sentinel.USE_DEFAULT_TIMEOUT,
         default: Any = COMMUNICATION_DROPPED,
     ):
         """
@@ -376,12 +377,12 @@ class LanguageServerClientBase(object):
         if not self.write(contents):
             if timeout:
                 raise TimeoutError(
-                    "Request timed-out (%s) - no write: %s" % (timeout, contents)
+                    f"Request timed-out ({timeout}) - no write: {contents}"
                 )
             return default
 
         if not message_matcher.event.wait(timeout=timeout):
-            raise TimeoutError("Request timed-out (%s): %s" % (timeout, contents))
+            raise TimeoutError(f"Request timed-out ({timeout}): {contents}")
 
         return message_matcher.msg
 

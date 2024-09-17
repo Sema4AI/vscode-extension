@@ -1,5 +1,6 @@
 import typing
-from typing import Dict, Iterator, Optional, Iterable, Any
+from typing import Dict, Optional, Any
+from collections.abc import Iterator, Iterable
 
 T = typing.TypeVar("T")
 
@@ -9,8 +10,8 @@ class OrderedSet(typing.Generic[T]):
     A simple ordered set with a regular dict as a basis.
     """
 
-    def __init__(self, initial: Optional[Iterable[T]] = None) -> None:
-        self._dct: Dict[T, Any] = dict.fromkeys(initial or ())
+    def __init__(self, initial: Iterable[T] | None = None) -> None:
+        self._dct: dict[T, Any] = dict.fromkeys(initial or ())
 
     def add(self, obj: T) -> None:
         self._dct[obj] = True

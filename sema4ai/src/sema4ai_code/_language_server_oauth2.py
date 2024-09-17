@@ -44,7 +44,7 @@ def create_monitor_cancelled_future(monitor: IMonitor) -> "Future[Any]":
 
 
 def wait_first_future_completed(
-    futures: list["Future[Any]"], timeout: Optional[int] = None
+    futures: list["Future[Any]"], timeout: int | None = None
 ) -> set["Future[Any]"]:
     """
     Args:
@@ -69,7 +69,7 @@ def wait_first_future_completed(
     return done
 
 
-class _OAuth2(object):
+class _OAuth2:
     def __init__(
         self,
         endpoint: IEndPoint,
@@ -85,8 +85,8 @@ class _OAuth2(object):
         self._endpoint = endpoint
         self._rcc = rcc
         self._feedback: _Feedback = feedback
-        self._last_key: Optional[tuple] = None
-        self._action_server_as_service: Optional[ActionServerAsService] = None
+        self._last_key: tuple | None = None
+        self._action_server_as_service: ActionServerAsService | None = None
         self._lock = threading.Lock()
         self._lsp_messages = lsp_messages
         self._action_server = action_server
@@ -228,7 +228,7 @@ class _OAuth2(object):
         self,
         oauth2_user_contents: dict,
         oauth2_settings_file: Path,
-        provider: Optional[str] = None,
+        provider: str | None = None,
     ) -> _Data:
         """
         Args:

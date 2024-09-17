@@ -1,7 +1,7 @@
 import os.path
 
 
-class CasesFixture(object):
+class CasesFixture:
     def __init__(self, copy_to_dir: str, original_resources_dir: str):
         """
         Upon initialization copies the `original_resources_dir` to
@@ -33,7 +33,7 @@ class CasesFixture(object):
         """
         path = os.path.join(self.resources_dir, resources_relative_path)
         if must_exist:
-            assert os.path.exists(path), "%s does not exist." % (path,)
+            assert os.path.exists(path), f"{path} does not exist."
         return path
 
     def copy_to(self, case_name: str, dest_dir: str):

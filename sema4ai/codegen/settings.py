@@ -1,4 +1,4 @@
-class Setting(object):
+class Setting:
     def __init__(
         self,
         name,

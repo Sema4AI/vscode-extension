@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-LOG_FILENAME: Optional[str] = os.getenv("ROBOCORP_CODE_DAP_LOG_FILENAME", None)
+LOG_FILENAME: str | None = os.getenv("ROBOCORP_CODE_DAP_LOG_FILENAME", None)
 
 # Make sure that the log level is an int.
 try:

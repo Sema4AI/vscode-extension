@@ -12,12 +12,12 @@ class ActionPackageInFilesystem:
     relative_path: str
     organization: str
 
-    package_yaml_path: Optional[Path] = None
-    zip_path: Optional[Path] = None
-    package_yaml_contents: Optional[str] = None
+    package_yaml_path: Path | None = None
+    zip_path: Path | None = None
+    package_yaml_contents: str | None = None
 
-    _loaded_yaml: Optional[dict] = None
-    _loaded_yaml_error: Optional[str] = None
+    _loaded_yaml: dict | None = None
+    _loaded_yaml_error: str | None = None
 
     referenced_from_agent_spec: bool = False
 
@@ -135,7 +135,7 @@ def list_actions_from_agent(
     return found
 
 
-def get_package_yaml_from_zip(zip_path: Path) -> Optional[str]:
+def get_package_yaml_from_zip(zip_path: Path) -> str | None:
     """
     Provides the contents of the package.yaml in the zip or None if it
     couldn't be found.

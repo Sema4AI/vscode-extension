@@ -6,7 +6,7 @@ from typing import Any, Optional
 from PIL import Image
 
 
-def to_image(obj: Any) -> Optional[Image.Image]:
+def to_image(obj: Any) -> Image.Image | None:
     """Convert `obj` to instance of Pillow's Image class."""
     if obj is None or isinstance(obj, Image.Image):
         return obj

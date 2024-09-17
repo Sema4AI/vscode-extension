@@ -5,6 +5,6 @@ class Options(BaseOptions):
     pass
 
 
-class Setup(object):
+class Setup:
     # After parsing args it's replaced with the actual setup.
     options = Options()

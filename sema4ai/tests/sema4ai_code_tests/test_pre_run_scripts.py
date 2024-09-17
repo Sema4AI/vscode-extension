@@ -58,11 +58,11 @@ echo WORKED!
 """,
             "utf-8",
         )
-        current_permissions = os.stat((tmpdir / "call.sh")).st_mode
+        current_permissions = os.stat(tmpdir / "call.sh").st_mode
 
         # Make executable
         new_permissions = current_permissions | 0o111
-        os.chmod(str((tmpdir / "call.sh")), new_permissions)
+        os.chmod(str(tmpdir / "call.sh"), new_permissions)
 
     robot = Path(str(tmpdir)) / "robot.yaml"
     robot.write_text(content)

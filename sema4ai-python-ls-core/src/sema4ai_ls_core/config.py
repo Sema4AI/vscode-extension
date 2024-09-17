@@ -39,10 +39,10 @@ def flatten_keys(d: dict, parent_key="", all_options=frozenset(), result_dict=No
     return result_dict
 
 
-class Config(object):
-    ALL_OPTIONS: FrozenSet[str] = frozenset()
+class Config:
+    ALL_OPTIONS: frozenset[str] = frozenset()
 
-    def __init__(self, all_options: FrozenSet[str] = frozenset()):
+    def __init__(self, all_options: frozenset[str] = frozenset()):
         if all_options:
             self.ALL_OPTIONS = all_options
 
@@ -53,7 +53,7 @@ class Config(object):
         self._original_override_settings: dict = {}
 
         self._full_settings: dict = {}
-        self._workspace_dir: Optional[str] = None
+        self._workspace_dir: str | None = None
 
     @implements(IConfig.get_setting)
     def get_setting(self, key, expected_type, default=Sentinel.SENTINEL) -> Any:

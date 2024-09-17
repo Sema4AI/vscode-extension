@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 # Copyright 2011 Yesudeep Mangalapilly <yesudeep@gmail.com>
 # Copyright 2012 Google, Inc & contributors.
@@ -76,7 +75,7 @@ class ObservedWatch:
         return hash(self.key)
 
     def __repr__(self):
-        return "<%s: path=%s, is_recursive=%s>" % (
+        return "<{}: path={}, is_recursive={}>".format(
             type(self).__name__, self.path, self.is_recursive)
 
 

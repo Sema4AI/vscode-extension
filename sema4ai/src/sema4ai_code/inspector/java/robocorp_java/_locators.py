@@ -1,4 +1,5 @@
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Union
+from collections.abc import Sequence
 
 from JABWrapper.context_tree import (
     ContextNode,
@@ -30,7 +31,7 @@ def parse_locator(locator: str, strict_default=False):
         for condition in conditions:
             parts: Sequence[str] = condition.split(":", 1)
             name: str = parts[0] if len(parts) > 0 else ""
-            value: Union[str, int] = parts[1] if len(parts) > 1 else ""
+            value: str | int = parts[1] if len(parts) > 1 else ""
             if len(parts) == 1:
                 parts = ["name", parts[0]]
             elif parts[0].lower() == "strict":
@@ -51,8 +52,8 @@ def parse_locator(locator: str, strict_default=False):
 def find_elements_from_tree(
     context_tree: ContextNode,
     locator: str,
-    index: Optional[int] = None,
-) -> Union[ContextNode, List[ContextNode]]:
+    index: int | None = None,
+) -> ContextNode | list[ContextNode]:
     # TODO: from rpaframework, refactor if needed
     searches = parse_locator(locator)
     elements = []

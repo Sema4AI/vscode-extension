@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import Callable, Dict, Iterator, List, Optional, Union
+from typing import Dict, List, Optional, Union
+from collections.abc import Callable, Iterator
 
 from playwright.sync_api import (
     Browser,
@@ -37,8 +38,8 @@ class _BrowserConfig:
     def __init__(
         self,
         browser_engine: BrowserEngine = BrowserEngine.CHROMIUM,
-        install: Optional[bool] = None,
-        headless: Optional[bool] = None,
+        install: bool | None = None,
+        headless: bool | None = None,
         slowmo: int = 0,
         screenshot: str = "only-on-failure",
     ):
@@ -76,24 +77,24 @@ class _BrowserConfig:
         return self._browser_engine
 
     @browser_engine.setter
-    def browser_engine(self, value: Union[BrowserEngine, str]):
+    def browser_engine(self, value: BrowserEngine | str):
         self._browser_engine = BrowserEngine(value)
 
     @property
-    def install(self) -> Optional[bool]:
+    def install(self) -> bool | None:
         return self._install
 
     @install.setter
-    def install(self, value: Optional[bool]):
+    def install(self, value: bool | None):
         assert value is None or isinstance(value, bool)
         self._install = value
 
     @property
-    def headless(self) -> Optional[bool]:
+    def headless(self) -> bool | None:
         return self._headless
 
     @headless.setter
-    def headless(self, value: Optional[bool]):
+    def headless(self, value: bool | None):
         assert value is None or isinstance(value, bool)
         self._headless = value
 
@@ -136,7 +137,7 @@ def _get_auto_headless_state() -> bool:
 
 
 @session_cache
-def browser_type_launch_args() -> Dict:
+def browser_type_launch_args() -> dict:
     launch_options = {}
 
     # RPA_HEADLESS_MODE can be used to force whether running headless.
@@ -183,7 +184,7 @@ def _browser_type() -> BrowserType:
 def _browser_launcher() -> Callable[..., Browser]:
     browser_type: BrowserType = _browser_type()
 
-    def launch(**kwargs: Dict) -> Browser:
+    def launch(**kwargs: dict) -> Browser:
         launch_options = {**browser_type_launch_args(), **kwargs}
 
         if "channel" not in launch_options:
@@ -243,7 +244,7 @@ def browser_context_kwargs() -> dict:
 
 @task_cache
 def context(**kwargs) -> Iterator[BrowserContext]:
-    pages: List[Page] = []
+    pages: list[Page] = []
     all_kwargs: dict = {}
     all_kwargs.update(**browser_context_kwargs())
     all_kwargs.update(**kwargs)

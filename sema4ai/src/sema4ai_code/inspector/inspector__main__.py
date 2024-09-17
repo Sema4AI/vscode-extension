@@ -46,10 +46,10 @@ def start_server_process(args=(), python_exe=None, env=None):
 
     if python_exe:
         if not os.path.exists(python_exe):
-            raise RuntimeError("Expected %s to exist" % (python_exe,))
+            raise RuntimeError(f"Expected {python_exe} to exist")
 
     args = [python_exe or sys.executable, "-u", __file__] + list(args)
-    log.debug('Starting inspector process with args: "%s"' % ('" "'.join(args),))
+    log.debug('Starting inspector process with args: "{}"'.format('" "'.join(args)))
     environ = os.environ.copy()
     environ.pop("PYTHONPATH", "")
     environ.pop("PYTHONHOME", "")
@@ -63,7 +63,7 @@ def start_server_process(args=(), python_exe=None, env=None):
 
     env_log = ["Environ:"]
     for key, val in environ.items():
-        env_log.append("  %s=%s" % (key, val))
+        env_log.append(f"  {key}={val}")
 
     inspector_process = subprocess.Popen(
         args,
@@ -75,7 +75,7 @@ def start_server_process(args=(), python_exe=None, env=None):
     )
 
     t = threading.Thread(target=_stderr_reader, args=(inspector_process.stderr,))
-    t.name = "Stderr from Inspector Server api (%s)" % (args,)
+    t.name = f"Stderr from Inspector Server api ({args})"
     t.daemon = True
     t.start()
 
@@ -92,7 +92,7 @@ def main():
             import sema4ai_code
         except ImportError:
             # Automatically add it to the path if __main__ is being executed.
-            assert os.path.exists(src_folder), "Expected: %s to exist" % (src_folder,)
+            assert os.path.exists(src_folder), f"Expected: {src_folder} to exist"
             sys.path.append(src_folder)
             import sema4ai_code  # @UnusedImport
 

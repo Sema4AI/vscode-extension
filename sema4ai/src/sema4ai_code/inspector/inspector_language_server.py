@@ -21,7 +21,7 @@ class InspectorLanguageServer:
     def get_locators_json_path(self, directory: str) -> Path:
         return Path(directory) / "locators.json"
 
-    def m_kill_inspectors(self, inspector: Optional[str]) -> None:
+    def m_kill_inspectors(self, inspector: str | None) -> None:
         inspector_api_client = self._inspector_server_manager.get_inspector_api_client()
         inspector_api_client.send_sync_message(
             "killInspectors", dict(inspector=inspector)
@@ -342,7 +342,7 @@ class InspectorLanguageServer:
         )
 
     def m_image_inspector_start_pick(
-        self, minimize: Optional[bool], confidence_level: Optional[int]
+        self, minimize: bool | None, confidence_level: int | None
     ):
         inspector_api_client = self._inspector_server_manager.get_inspector_api_client()
         return partial(
@@ -356,7 +356,7 @@ class InspectorLanguageServer:
         return partial(inspector_api_client.send_sync_message, "imageStopPick", {})
 
     def m_image_inspector_validate_locator(
-        self, locator: dict, confidence_level: Optional[bool]
+        self, locator: dict, confidence_level: bool | None
     ):
         inspector_api_client = self._inspector_server_manager.get_inspector_api_client()
         return partial(

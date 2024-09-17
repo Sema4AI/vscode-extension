@@ -6,7 +6,7 @@ def test_command_dispatch():
 
     command_dispatcher = _CommandDispatcher()
 
-    class BaseCls(object):
+    class BaseCls:
         def __init__(self):
             self._sub = SubCls()
 
@@ -16,7 +16,7 @@ def test_command_dispatch():
 
     sub_dispatcher = _SubCommandDispatcher("_sub")
 
-    class SubCls(object):
+    class SubCls:
         @command_dispatcher("action2")
         def sub1(self):
             return "sub1"

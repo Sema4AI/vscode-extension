@@ -9,16 +9,14 @@ import typing
 from functools import partial
 from typing import (
     Any,
-    Callable,
-    Iterator,
     List,
     Literal,
     Optional,
-    Sequence,
     Set,
     Tuple,
     cast,
 )
+from collections.abc import Callable, Iterator, Sequence
 
 import _ctypes
 
@@ -202,7 +200,7 @@ class _TkHandler:
         except IndexError:
             return None
 
-    def loop(self, on_loop_poll_callback: Optional[Callable[[], Any]]):
+    def loop(self, on_loop_poll_callback: Callable[[], Any] | None):
         assert self._current_thread == threading.current_thread()
 
         poll_5_times_per_second = int(1 / 5.0 * 1000)
@@ -239,7 +237,7 @@ class _TkHandler:
         self._default_root.after(timeout, callback)
 
 
-def _extract_max_depth(params: str) -> Tuple[Optional[int], str]:
+def _extract_max_depth(params: str) -> tuple[int | None, str]:
     """
     Returns the max_depth and params without the max_depth.
     """
@@ -277,7 +275,7 @@ class _TkHandlerThread(threading.Thread):
         import queue
 
         self._queue: "queue.Queue[Callable[[], None]]" = queue.Queue()
-        self._tk_handler: Optional[_TkHandler] = None
+        self._tk_handler: _TkHandler | None = None
         self._quit_queue_loop = threading.Event()
 
     def run(self):
@@ -412,8 +410,8 @@ class UnreachableElementInParentHierarchy(Exception):
         self,
         msg: str,
         parent: ControlElement,
-        hierarchy: List["Control"],
-        partial_match: List["ControlElement"],
+        hierarchy: list["Control"],
+        partial_match: list["ControlElement"],
     ) -> None:
         """
         Args:
@@ -430,8 +428,8 @@ class UnreachableElementInParentHierarchy(Exception):
 
 
 def build_parent_hierarchy(
-    control: ControlElement, up_to_parent: Optional[ControlElement]
-) -> List["ControlTreeNode[ControlElement]"]:
+    control: ControlElement, up_to_parent: ControlElement | None
+) -> list["ControlTreeNode[ControlElement]"]:
     """
     Builds the parent hierarchy from the given control up to the given parent.
 
@@ -461,7 +459,7 @@ def build_parent_hierarchy(
     if up_to_parent is None:
         up_to_parent = ControlElement(get_desktop_element())
 
-    hierarchy: List["Control"] = []
+    hierarchy: list["Control"] = []
     curr: Optional["Control"] = control._wrapped.item
     if DEBUG:
         print("build_parent_hierarchy")
@@ -569,8 +567,8 @@ class _PickerThread(threading.Thread):
         self._tk_handler_thread = tk_handler_thread
 
     def _found_from_cursor_pos(
-        self, cursor_pos: Tuple[int, int], parent: Optional[ControlElement]
-    ) -> List["ControlTreeNode[ControlElement]"]:
+        self, cursor_pos: tuple[int, int], parent: ControlElement | None
+    ) -> list["ControlTreeNode[ControlElement]"]:
         """
         Args:
             parent: if None gets up to the desktop
@@ -604,9 +602,9 @@ class _PickerThread(threading.Thread):
 
     def _found_from_cursor_pos_with_point_in_parent(
         self,
-        parent: Optional[ControlElement] = None,
-        cursor: Optional[Tuple[int, int]] = None,
-        visited_handles: Optional[Set[int]] = None,
+        parent: ControlElement | None = None,
+        cursor: tuple[int, int] | None = None,
+        visited_handles: set[int] | None = None,
         depth: int = 1,
         parent_path: str = "",
     ) -> Iterator["ControlTreeNode[ControlElement]"]:
@@ -670,7 +668,7 @@ class _PickerThread(threading.Thread):
 
     def _do_pick(
         self, cursor_pos: CursorPos
-    ) -> Optional[List["ControlTreeNode[ControlElement]"]]:
+    ) -> list["ControlTreeNode[ControlElement]"] | None:
         """
         Returns the elements found in the given cursor position.
         """
@@ -838,8 +836,8 @@ class _CursorListenerThread(threading.Thread):
 class ElementInspector:
     def __init__(self, control_element: ControlElement):
         self.control_element = control_element
-        self._picker_thread: Optional[_PickerThread] = None
-        self._cursor_thread: Optional[_CursorListenerThread] = None
+        self._picker_thread: _PickerThread | None = None
+        self._cursor_thread: _CursorListenerThread | None = None
 
         self._tk_handler_thread: _TkHandlerThread = _TkHandlerThread()
         self._tk_handler_thread.start()
@@ -864,9 +862,9 @@ class ElementInspector:
 
     def start_highlight(
         self,
-        locator: Optional[Locator] = None,
+        locator: Locator | None = None,
         search_depth: int = 8,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         search_strategy: Literal["siblings", "all"] = "all",
     ) -> Sequence["ControlElement"]:
         """
@@ -941,7 +939,7 @@ class ElementInspector:
             self._cursor_thread.join()
             self._cursor_thread = None
 
-    def list_windows(self) -> List[WindowElement]:
+    def list_windows(self) -> list[WindowElement]:
         self._check_thread()
         from . import desktop
 

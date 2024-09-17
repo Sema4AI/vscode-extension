@@ -1,6 +1,7 @@
 import ast as ast_module
 from pathlib import Path
-from typing import Any, Iterator, List, Optional, Tuple, TypedDict
+from typing import Any, List, Optional, Tuple, TypedDict
+from collections.abc import Iterator
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
@@ -17,13 +18,13 @@ def _collect_py_files(root_path: Path) -> Iterator[Path]:
 
 
 def _iter_nodes(
-    node, internal_stack: Optional[List[Any]] = None, recursive=True
-) -> Iterator[Tuple[List[Any], Any]]:
+    node, internal_stack: list[Any] | None = None, recursive=True
+) -> Iterator[tuple[list[Any], Any]]:
     """
     :note: the yielded stack is actually always the same (mutable) list, so,
     clients that want to return it somewhere else should create a copy.
     """
-    stack: List[Any]
+    stack: list[Any]
     if internal_stack is None:
         stack = []
         if node.__class__.__name__ != "File":

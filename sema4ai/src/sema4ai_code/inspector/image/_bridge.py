@@ -30,14 +30,14 @@ def _base64_to_image(img: str):
 class ImageBridge:
     """Javascript API bridge for image template locators."""
 
-    def __init__(self, endpoint: Optional[IEndPoint] = None, logger=None) -> None:
+    def __init__(self, endpoint: IEndPoint | None = None, logger=None) -> None:
         self.endpoint = endpoint
 
         self.logger = (
             logger if logger is not None else logging.getLogger(self.__class__.__name__)
         )
 
-        self.snipping_process: Optional[subprocess.Popen] = None
+        self.snipping_process: subprocess.Popen | None = None
 
     def _launch_snipper(self):
         #: Create the appropriate environment and launch the process
@@ -91,7 +91,7 @@ class ImageBridge:
             self.endpoint.notify("$/imageInspectorState", {"state": STATE_CLOSED})
         return result
 
-    def pick(self, confidence: Optional[int] = None):
+    def pick(self, confidence: int | None = None):
         self.logger.debug("Image:: Starting interactive picker")
         if self.endpoint is not None:
             self.endpoint.notify("$/imageInspectorState", {"state": STATE_INITIALIZING})
@@ -118,7 +118,7 @@ class ImageBridge:
     def validate(
         self,
         image_base64: str,
-        confidence: Optional[int] = None,
+        confidence: int | None = None,
     ):
         needle = _base64_to_image(image_base64)
         matches = self._find_matches(needle, confidence)

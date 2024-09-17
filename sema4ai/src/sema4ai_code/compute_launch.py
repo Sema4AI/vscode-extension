@@ -10,15 +10,15 @@ log = get_logger(__name__)
 
 
 def _compute_action_package_launch(
-    name: Optional[str],
-    request: Optional[str],
-    additional_pythonpath_entries: Optional[List[str]],
-    env: Optional[Dict[str, str]],
-    python_exe: Optional[str],
+    name: str | None,
+    request: str | None,
+    additional_pythonpath_entries: list[str] | None,
+    env: dict[str, str] | None,
+    python_exe: str | None,
     package: str,
-    action_name: Optional[str],
-    uri: Optional[str],
-    json_input: Optional[str],
+    action_name: str | None,
+    uri: str | None,
+    json_input: str | None,
 ):
     from pathlib import Path
 
@@ -54,7 +54,7 @@ def _compute_action_package_launch(
     try:
         from sema4ai_ls_core import yaml_wrapper
 
-        with open(package, "r") as stream:
+        with open(package) as stream:
             yaml_contents = yaml_wrapper.load(stream)
 
         if not yaml_contents:
@@ -80,7 +80,7 @@ def _compute_action_package_launch(
     args = [str(c) for c in args]
     cwd = os.path.dirname(package)
 
-    result: Dict[str, Any]
+    result: dict[str, Any]
     result = {
         "type": "python",
         "name": name,
@@ -103,17 +103,17 @@ def _compute_action_package_launch(
 
 
 def compute_robot_launch_from_robocorp_code_launch(
-    name: Optional[str],
-    request: Optional[str],
-    task: Optional[str],
-    robot: Optional[str],
-    additional_pythonpath_entries: Optional[List[str]],
-    env: Optional[Dict[str, str]],
-    python_exe: Optional[str],
-    package: Optional[str] = None,
-    action_name: Optional[str] = None,
-    uri: Optional[str] = None,
-    json_input: Optional[str] = None,
+    name: str | None,
+    request: str | None,
+    task: str | None,
+    robot: str | None,
+    additional_pythonpath_entries: list[str] | None,
+    env: dict[str, str] | None,
+    python_exe: str | None,
+    package: str | None = None,
+    action_name: str | None = None,
+    uri: str | None = None,
+    json_input: str | None = None,
 ) -> ActionResultDictRobotLaunch:
     if not name:
         return {
@@ -147,13 +147,13 @@ def compute_robot_launch_from_robocorp_code_launch(
 
 
 def _compute_task_package_launch(
-    name: Optional[str],
-    request: Optional[str],
-    task: Optional[str],
-    robot: Optional[str],
-    additional_pythonpath_entries: Optional[List[str]],
-    env: Optional[Dict[str, str]],
-    python_exe: Optional[str],
+    name: str | None,
+    request: str | None,
+    task: str | None,
+    robot: str | None,
+    additional_pythonpath_entries: list[str] | None,
+    env: dict[str, str] | None,
+    python_exe: str | None,
 ):
     if not robot:
         return {
@@ -172,7 +172,7 @@ def _compute_task_package_launch(
     try:
         from sema4ai_ls_core import yaml_wrapper
 
-        with open(robot, "r") as stream:
+        with open(robot) as stream:
             yaml_contents = yaml_wrapper.load(stream)
 
         if not yaml_contents:
@@ -267,10 +267,10 @@ def _compute_task_package_launch(
     command = [str(c) for c in command]
     cwd = os.path.dirname(robot)
 
-    result: Dict[str, Any]
+    result: dict[str, Any]
 
     if command[:3] == ["python", "-m", "robot"]:
-        args: List[str] = command[3:]
+        args: list[str] = command[3:]
 
         if not args:
             return {

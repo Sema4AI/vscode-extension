@@ -9,7 +9,7 @@ from sema4ai_ls_core.core_log import get_logger
 log = get_logger(__name__)
 
 
-def _load_ignored_dirs_patterns(additional_dirs_to_ignore_str: Optional[str] = None):
+def _load_ignored_dirs_patterns(additional_dirs_to_ignore_str: str | None = None):
     ignored_dirs_patterns = set()
     if additional_dirs_to_ignore_str is None:
         additional_dirs_to_ignore_str = os.environ.get("ROBOTFRAMEWORK_LS_IGNORE_DIRS")
@@ -110,7 +110,7 @@ def glob_matches_path(path, pattern, sep=os.sep, altsep=os.altsep):
 
 
 def create_accept_directory_callable(
-    additional_dirs_to_ignore_str: Optional[str] = None,
+    additional_dirs_to_ignore_str: str | None = None,
 ):
     ignored_dirs = {
         "**/.git",
@@ -123,7 +123,7 @@ def create_accept_directory_callable(
 
     ignored_dirs.update(_load_ignored_dirs_patterns(additional_dirs_to_ignore_str))
 
-    def accept_directory(dir_path: str, *, cache: Dict[str, bool] = {}):
+    def accept_directory(dir_path: str, *, cache: dict[str, bool] = {}):
         try:
             return cache[dir_path]
         except KeyError:

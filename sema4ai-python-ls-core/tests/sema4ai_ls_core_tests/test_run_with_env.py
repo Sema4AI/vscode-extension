@@ -32,7 +32,7 @@ def test_create_run_with_env_code(tmpdir):
         )
     except:
         sys.stderr.write(
-            "Error when running: %s\n" % (" ".join(str(x) for x in cmdline),)
+            "Error when running: {}\n".format(" ".join(str(x) for x in cmdline))
         )
         raise
 

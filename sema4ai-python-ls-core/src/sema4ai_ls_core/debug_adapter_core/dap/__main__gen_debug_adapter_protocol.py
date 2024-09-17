@@ -48,7 +48,7 @@ def _get_noqa_for_var(prop_name):
     )
 
 
-class _OrderedSet(object):
+class _OrderedSet:
     # Not a good ordered set (just something to be small without adding any deps)
 
     def __init__(self, initial_contents=None):
@@ -92,7 +92,7 @@ class _OrderedSet(object):
         return "set([" + ", ".join(lst) + "])"
 
 
-class Ref(object):
+class Ref:
     def __init__(self, ref, ref_data):
         self.ref = ref
         self.ref_data = ref_data
@@ -279,7 +279,7 @@ def update_class_to_generate_register_dec(classes_to_generate, class_to_generate
                 if response_name == "ErrorResponse":
                     command = {"enum": ["error"]}
                 else:
-                    raise AssertionError("Unhandled: %s" % (response_name,))
+                    raise AssertionError(f"Unhandled: {response_name}")
 
         elif msg_type == "request":
             command = properties.get("command")
@@ -293,7 +293,7 @@ def update_class_to_generate_register_dec(classes_to_generate, class_to_generate
         if command:
             enum = command.get("enum")
             if enum and len(enum) == 1:
-                class_to_generate["register_request"] = "@register_%s(%r)\n" % (
+                class_to_generate["register_request"] = "@register_{}({!r})\n".format(
                     msg_type,
                     enum[0],
                 )
@@ -502,7 +502,7 @@ def update_class_to_generate_init(class_to_generate):
                 ref_data = ref.ref_data
                 if ref_data.get("is_enum", False):
                     init_body.append(
-                        "    assert %s in %s.VALID_VALUES" % (prop_name, str(ref))
+                        f"    assert {prop_name} in {str(ref)}.VALID_VALUES"
                     )
                     init_body.append(
                         "    self.%(prop_name)s = %(prop_name)s"
@@ -595,7 +595,7 @@ def update_class_to_generate_props(class_to_generate):
     def default(o):
         if isinstance(o, Ref):
             return o.ref
-        raise AssertionError("Unhandled: %s" % (o,))
+        raise AssertionError(f"Unhandled: {o}")
 
     properties = class_to_generate["properties"]
     class_to_generate["props"] = (
@@ -619,7 +619,7 @@ def update_class_to_generate_enums(class_to_generate):
     if class_to_generate.get("is_enum", False):
         enums = ""
         for enum in class_to_generate["enum_values"]:
-            enums += "    %s = %r\n" % (enum.upper(), enum)
+            enums += f"    {enum.upper()} = {enum!r}\n"
         enums += "\n"
         enums += (
             "    VALID_VALUES = %s\n\n"
@@ -635,8 +635,10 @@ def update_class_to_generate_objects(classes_to_generate, class_to_generate):
             create_new = val.copy()
             create_new.update(
                 {
-                    "name": "%s%s" % (class_to_generate["name"], key.title()),
-                    "description": '    "%s" of %s' % (key, class_to_generate["name"]),
+                    "name": "{}{}".format(class_to_generate["name"], key.title()),
+                    "description": '    "{}" of {}'.format(
+                        key, class_to_generate["name"]
+                    ),
                 }
             )
             if "properties" not in create_new:

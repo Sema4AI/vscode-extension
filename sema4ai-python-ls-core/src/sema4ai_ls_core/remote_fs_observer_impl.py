@@ -5,7 +5,8 @@ import time
 import random
 import threading
 from functools import partial
-from typing import Optional, List, Dict, Tuple, Sequence
+from typing import Optional, List, Dict, Tuple
+from collections.abc import Sequence
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.watchdog_wrapper import PathInfo, IFSCallback, IFSWatch
@@ -14,7 +15,7 @@ import os
 log = get_logger(__name__)
 
 
-class _RemoteFSWatch(object):
+class _RemoteFSWatch:
     """
     Holds together the information related to watching a filesystem path
     along with a way to stop watching it.
@@ -54,22 +55,22 @@ class _RemoteFSWatch(object):
         _: IFSWatch = check_implements(self)
 
 
-class RemoteFSObserver(object):
-    def __init__(self, backend: str, extensions: Optional[Tuple[str, ...]]):
+class RemoteFSObserver:
+    def __init__(self, backend: str, extensions: tuple[str, ...] | None):
         import subprocess
         from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamReader
         from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamWriter
 
-        self.process: Optional[subprocess.Popen] = None
-        self.port: Optional[int] = None
-        self.reader: Optional[JsonRpcStreamReader] = None
-        self.writer: Optional[JsonRpcStreamWriter] = None
-        self.reader_thread: Optional[threading.Thread] = None
+        self.process: subprocess.Popen | None = None
+        self.port: int | None = None
+        self.reader: JsonRpcStreamReader | None = None
+        self.writer: JsonRpcStreamWriter | None = None
+        self.reader_thread: threading.Thread | None = None
 
         self._counter: "partial[int]" = partial(next, itertools.count())
-        self._change_id_to_fs_watch: Dict[str, _RemoteFSWatch] = {}
+        self._change_id_to_fs_watch: dict[str, _RemoteFSWatch] = {}
 
-        self._socket: Optional[socket_module.socket] = None
+        self._socket: socket_module.socket | None = None
         self._backend = backend
         self._extensions = extensions
         self._initialized_event = threading.Event()
@@ -78,7 +79,7 @@ class RemoteFSObserver(object):
         return f"{os.getpid()} - {self._counter()} - {random.random()}"
 
     def start_server(
-        self, log_file: Optional[str] = None, verbose: Optional[int] = None
+        self, log_file: str | None = None, verbose: int | None = None
     ) -> int:
         """
         :return int:
@@ -247,10 +248,10 @@ class RemoteFSObserver(object):
 
     def notify_on_any_change(
         self,
-        paths: List[PathInfo],
+        paths: list[PathInfo],
         on_change: IFSCallback,
         call_args=(),
-        extensions: Optional[Sequence[str]] = None,
+        extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
         assert (
             self._initialized_event.is_set()

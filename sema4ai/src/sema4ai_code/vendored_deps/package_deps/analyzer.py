@@ -5,7 +5,8 @@ it a standalone package in the future (maybe with a command line UI).
 
 import pathlib
 import typing
-from typing import Iterator, List, Optional, Union
+from typing import List, Optional, Union
+from collections.abc import Iterator
 
 from ..ls_protocols import _DiagnosticSeverity, _DiagnosticsTypedDict
 from ._deps_protocols import ICondaCloud, IPyPiCloud
@@ -28,7 +29,7 @@ class BaseAnalyzer:
         contents: str,
         path: str,
         conda_cloud: ICondaCloud,
-        pypi_cloud: Optional[IPyPiCloud] = None,
+        pypi_cloud: IPyPiCloud | None = None,
     ):
         """
         Args:
@@ -41,8 +42,8 @@ class BaseAnalyzer:
         self.path = path
 
         self._loaded_yaml = False
-        self._load_errors: List[_DiagnosticsTypedDict] = []
-        self._yaml_data: Optional[dict] = None
+        self._load_errors: list[_DiagnosticsTypedDict] = []
+        self._yaml_data: dict | None = None
 
         if pypi_cloud is None:
             self._pypi_cloud = PyPiCloud()
@@ -258,13 +259,13 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         contents: str,
         path: str,
         conda_cloud: ICondaCloud,
-        pypi_cloud: Optional[IPyPiCloud] = None,
+        pypi_cloud: IPyPiCloud | None = None,
     ):
         from ._package_deps import PackageDepsConda, PackageDepsPip
 
         self._pip_deps = PackageDepsPip()
         self._conda_deps = PackageDepsConda()
-        self._additional_load_errors: List[_DiagnosticsTypedDict] = []
+        self._additional_load_errors: list[_DiagnosticsTypedDict] = []
 
         BaseAnalyzer.__init__(self, contents, path, conda_cloud, pypi_cloud=pypi_cloud)
 
@@ -422,7 +423,7 @@ class CondaYamlAnalyzer(BaseAnalyzer):
         contents: str,
         path: str,
         conda_cloud: ICondaCloud,
-        pypi_cloud: Optional[IPyPiCloud] = None,
+        pypi_cloud: IPyPiCloud | None = None,
     ):
         from ._conda_deps import CondaDeps
         from ._pip_deps import PipDeps

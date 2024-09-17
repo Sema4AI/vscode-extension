@@ -36,14 +36,12 @@ root = Path(__file__).parent.parent
 def _fix_contents_version(contents, version):
     import re
 
+    contents = re.sub(r"(version\s*=\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents)
     contents = re.sub(
-        r"(version\s*=\s*)\"\d+\.\d+\.\d+", r'\1"%s' % (version,), contents
+        r"(__version__\s*=\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
     contents = re.sub(
-        r"(__version__\s*=\s*)\"\d+\.\d+\.\d+", r'\1"%s' % (version,), contents
-    )
-    contents = re.sub(
-        r"(\"version\"\s*:\s*)\"\d+\.\d+\.\d+", r'\1"%s' % (version,), contents
+        r"(\"version\"\s*:\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
     return contents
@@ -57,13 +55,13 @@ def _fix_rcc_contents_version(contents, version):
     # RCC_VERSION = "v11.5.5"
     # const RCC_VERSION = "v11.5.5";
     contents = re.sub(
-        r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", r'\1"%s' % (version,), contents
+        r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
     return contents
 
 
-class Dev(object):
+class Dev:
     # CI call: python -m dev set-version
     def set_version(self, version):
         """
@@ -71,7 +69,7 @@ class Dev(object):
         """
 
         def update_version(version, filepath):
-            with open(filepath, "r") as stream:
+            with open(filepath) as stream:
                 contents = stream.read()
 
             new_contents = _fix_contents_version(contents, version)
@@ -89,7 +87,7 @@ class Dev(object):
         """
 
         def update_version(version, filepath):
-            with open(filepath, "r") as stream:
+            with open(filepath) as stream:
                 contents = stream.read()
 
             new_contents = _fix_rcc_contents_version(contents, version)
@@ -130,7 +128,7 @@ class Dev(object):
         version = version[version.rfind("-") + 1 :]
 
         if sema4ai_code.__version__ == version:
-            sys.stderr.write("Version matches (%s) (exit(0))\n" % (version,))
+            sys.stderr.write(f"Version matches ({version}) (exit(0))\n")
             sys.exit(0)
         else:
             sys.stderr.write(
@@ -172,7 +170,7 @@ class Dev(object):
             "sema4ai_ls_core",
         )
         vendored_dir = self.remove_vendor_robocorp_ls_core()
-        print("Copying from: %s to %s" % (src_core, vendored_dir))
+        print(f"Copying from: {src_core} to {vendored_dir}")
 
         shutil.copytree(src_core, vendored_dir)
         print("Finished vendoring.")
@@ -201,7 +199,7 @@ class Dev(object):
         import re
 
         readme = os.path.join(os.path.dirname(__file__), "README.md")
-        with open(readme, "r") as f:
+        with open(readme) as f:
             content = f.read()
 
         tag = self.get_tag()
@@ -246,7 +244,7 @@ class Dev(object):
             f.write(content)
 
         # Read the content back from LICENSE.txt for verification
-        with open(readme, "r") as f:
+        with open(readme) as f:
             written_content = f.read()
         assert "Sema4.ai End User License Agreement" in written_content
 

@@ -1,7 +1,8 @@
 import logging
 import sys
 import typing
-from typing import Generic, Iterator, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
+from collections.abc import Iterator
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def print_ast(node, stream=None, depth=0):
 
 
 def _iter_nodes(
-    node, internal_stack: Optional[list["TreeSitterNode"]] = None, recursive=True
+    node, internal_stack: list["TreeSitterNode"] | None = None, recursive=True
 ) -> Iterator[tuple[list["TreeSitterNode"], "TreeSitterNode"]]:
     """
     :note: the yielded stack is actually always the same (mutable) list, so,

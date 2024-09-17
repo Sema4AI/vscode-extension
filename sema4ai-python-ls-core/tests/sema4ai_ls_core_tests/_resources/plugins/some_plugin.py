@@ -2,7 +2,7 @@ from sema4ai_ls_core.pluginmanager import PluginManager
 from sema4ai_ls_core_tests.test_pluginmanager import EPFoo
 
 
-class FooExt(object):
+class FooExt:
     def Foo(self):
         return "from_plugin"
 

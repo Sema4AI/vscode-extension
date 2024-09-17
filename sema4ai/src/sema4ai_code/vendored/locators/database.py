@@ -55,7 +55,7 @@ class LocatorsDatabase:
     and serializing/deserializing database file.
     """
 
-    def __init__(self, path: Optional[Union[str, io.IOBase]] = None):
+    def __init__(self, path: str | io.IOBase | None = None):
         self.logger = logging.getLogger(__name__)
         self.path = path or self.default_path
         self.locators = {}
@@ -63,7 +63,7 @@ class LocatorsDatabase:
         self._invalid = {}
 
     @classmethod
-    def load_by_name(cls, name, path: Optional[str] = None) -> Locator:
+    def load_by_name(cls, name, path: str | None = None) -> Locator:
         """Load locator entry from database with given name."""
         database = cls(path)
         database.load()
