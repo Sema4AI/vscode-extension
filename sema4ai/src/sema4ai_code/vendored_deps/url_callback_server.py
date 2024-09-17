@@ -4,6 +4,7 @@ and provide a Future which will return when that host/port is accessed.
 
 To be used as a helper during OAuth2 authentication.
 """
+
 import os
 import ssl
 import sys

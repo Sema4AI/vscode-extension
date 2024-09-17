@@ -148,9 +148,9 @@ class WorkspaceManager:
                     organization["actionPackages"].append(action_versions[0][1])
                 else:
                     for [version_number, action_package] in action_versions:
-                        action_package[
-                            "name"
-                        ] = f"{action_package['name']}/v{version_number}"
+                        action_package["name"] = (
+                            f"{action_package['name']}/v{version_number}"
+                        )
 
                         organization["actionPackages"].append(action_package)
                         log.info(f"[debug 2] {action_package}")
@@ -187,9 +187,9 @@ class WorkspaceManager:
         the new cache).
         """
 
-        cached_file_info: Optional[
-            CachedFileInfo[LocalPackageMetadataInfoDict]
-        ] = curr_cache.get(sub)
+        cached_file_info: Optional[CachedFileInfo[LocalPackageMetadataInfoDict]] = (
+            curr_cache.get(sub)
+        )
         if cached_file_info is not None:
             if cached_file_info.is_cache_valid():
                 new_cache[sub] = cached_file_info

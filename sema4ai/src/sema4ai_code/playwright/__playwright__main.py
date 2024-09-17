@@ -1,6 +1,7 @@
 """
 Helper main which starts the playwright record
 """
+
 import errno
 import os
 import subprocess

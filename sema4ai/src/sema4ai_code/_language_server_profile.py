@@ -106,9 +106,9 @@ class _Profile(object):
     def _profile_list(self, *params) -> ActionResultDict:
         from sema4ai_ls_core.protocols import ActionResult
 
-        action_result: ActionResult[
-            ProfileListResultTypedDict
-        ] = self._rcc.profile_list()
+        action_result: ActionResult[ProfileListResultTypedDict] = (
+            self._rcc.profile_list()
+        )
         return action_result.as_dict()
 
     @profile_command_dispatcher(commands.SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL)
