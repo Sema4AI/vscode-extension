@@ -393,14 +393,26 @@ export async function basicValidations(
         if (failedCheck.status == STATUS_FATAL) {
             canProceed = false;
         }
-        let func = window.showErrorMessage;
+
+        let func = window.showWarningMessage;
+
         if (failedCheck.status == STATUS_WARNING) {
-            func = window.showWarningMessage;
+            if (failedCheck.category == 1030 && failedCheck.type == "OS") {
+                // These warnings have no actionable thing for the user to do.
+                // No pop-up but added to the output, so that is visible in support logs
+                OUTPUT_CHANNEL.appendLine("RCC diagostics warning/info: " + failedCheck.message);
+                func = undefined;
+            }
         }
-        if (failedCheck.url) {
-            func(failedCheck.message, "Open troubleshoot URL").then(createOpenUrl(failedCheck));
-        } else {
-            func(failedCheck.message);
+
+        if (func) {
+            // Warning or error pop-up will be shown
+            // Add link to help if available
+            if (failedCheck.url) {
+                func(failedCheck.message, "Open troubleshoot URL").then(createOpenUrl(failedCheck));
+            } else {
+                func(failedCheck.message);
+            }
         }
     }
     if (!canProceed) {
