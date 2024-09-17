@@ -185,6 +185,29 @@ export async function resolveInterpreter(targetRobot: string): Promise<ActionRes
     }
 }
 
+async function flattenRobotsAndActions(robotsInfo: LocalPackageMetadataInfo[]): Promise<LocalPackageMetadataInfo[]> {
+    const flattenedRobotsInfo: LocalPackageMetadataInfo[] = [];
+
+    robotsInfo.forEach((entry) => {
+        flattenedRobotsInfo.push(entry);
+
+        if (isAgentPackage(entry) && entry.organizations) {
+            entry.organizations.forEach((org) => {
+                if (org.name === "MyActions") {
+                    org.actionPackages.forEach((action) => {
+                        flattenedRobotsInfo.push({
+                            ...action,
+                            name: `${entry.name}/${action.name}`,
+                        });
+                    });
+                }
+            });
+        }
+    });
+
+    return flattenedRobotsInfo;
+}
+
 export async function listAndAskRobotSelection(
     selectionMessage: string,
     noRobotErrorMessage: string,
@@ -203,6 +226,10 @@ export async function listAndAskRobotSelection(
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(noRobotErrorMessage);
         return;
+    }
+
+    if (opts.showActionPackages) {
+        robotsInfo = await flattenRobotsAndActions(robotsInfo);
     }
 
     const filter = (entry: LocalPackageMetadataInfo) => {

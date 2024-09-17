@@ -869,7 +869,7 @@
             },
             {
                 "command": "sema4ai.actionServerPackageBuild",
-                "title": "Build Action Package to Workspace",
+                "title": "Build Action Package (zip)",
                 "category": "Sema4.ai"
             },
             {
@@ -899,12 +899,12 @@
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata",
-                "title": "Open the Action Package OpenAPI Spec (metadata.json)",
+                "title": "Preview the Package OpenAPI Spec (metadata.json)",
                 "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.actionServerPackageMetadata.internal",
-                "title": "Open the Action Package OpenAPI Spec (metadata.json) (internal)",
+                "title": "Preview the Package OpenAPI Spec (metadata.json) (internal)",
                 "category": "Sema4.ai"
             },
             {

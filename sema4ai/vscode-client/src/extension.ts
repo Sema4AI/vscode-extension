@@ -728,7 +728,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async (actionPackagePath?: vscode.Uri) => {
         if (!actionPackagePath) {
             const selected = await listAndAskRobotSelection(
-                "Please select the Task/Action Package for which you'd like to rebuild the environment",
+                "Please select the Action Package for which you'd like to rebuild the environment",
                 "Unable to continue because no Action Package was found in the workspace.",
                 { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
             );
@@ -749,7 +749,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     C.register(SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async (actionPackagePath?: vscode.Uri) => {
         if (!actionPackagePath) {
             const selected = await listAndAskRobotSelection(
-                "Please select the Task/Action Package that you'd like to be published to the Sema4.ai Studio",
+                "Please select the Action Package that you'd like to be published to the Sema4.ai Studio",
                 "Unable to continue because no Action Package was found in the workspace.",
                 { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
             );
