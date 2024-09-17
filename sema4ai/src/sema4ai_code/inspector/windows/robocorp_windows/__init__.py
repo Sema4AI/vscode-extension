@@ -3,6 +3,7 @@
 The `robocorp-windows` library is a library to be used to interact
 with native widgets on the Windows OS.
 """
+
 import time
 import typing
 from functools import lru_cache

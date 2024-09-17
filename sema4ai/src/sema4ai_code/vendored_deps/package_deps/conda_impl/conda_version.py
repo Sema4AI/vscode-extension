@@ -8,6 +8,7 @@ Object inheritance:
    :top-classes: conda.models.version.BaseSpec
    :parts: 1
 """
+
 from __future__ import annotations
 
 import operator as op

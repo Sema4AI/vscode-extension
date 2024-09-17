@@ -19,6 +19,7 @@
 https://github.com/microsoft/language-server-protocol/tree/gh-pages/_specifications
 https://microsoft.github.io/language-server-protocol/specification
 """
+
 from __future__ import annotations
 from typing import List, Union, Optional, Any, Tuple, Dict, Sequence
 import typing

@@ -44,9 +44,9 @@ def test_conda_cloud_index(datadir, data_regression):
                     [(x[0], x[1].decode("utf-8")) for x in build_and_depends]
                 )
                 new_subdir_to_build_and_depends[subdir] = new_lst
-            dct[
-                "subdir_to_build_and_depends_json_bytes"
-            ] = new_subdir_to_build_and_depends
+            dct["subdir_to_build_and_depends_json_bytes"] = (
+                new_subdir_to_build_and_depends
+            )
             infos.append(dct)
 
         data_regression.check(infos)

@@ -1,4 +1,4 @@
-""" An example robot. """
+"""An example robot."""
 
 
 def minimal_task():

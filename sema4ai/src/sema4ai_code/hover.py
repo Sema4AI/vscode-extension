@@ -267,9 +267,9 @@ def _hover_handle_pip_dep(
         for constraint in pip_dep.constraints:
             # Check any constraint ('==', '<', '>'), etc.
             local_version = constraint[1]
-            specified_release_data: Optional[
-                ReleaseData
-            ] = package_data.get_release_data(local_version)
+            specified_release_data: Optional[ReleaseData] = (
+                package_data.get_release_data(local_version)
+            )
             if specified_release_data is not None:
                 desc_parts.append(
                     f"Version `{local_version}` was released at: `{format_date_from_pypi(specified_release_data.upload_time)}`"

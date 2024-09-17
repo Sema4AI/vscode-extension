@@ -5,6 +5,7 @@ This makes it easier to start it under a debugger.
 
 The extension must have the "sema4ai.language-server.tcp-port" setting set to 1456.
 """
+
 import sys
 
 

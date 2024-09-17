@@ -2,6 +2,7 @@
 This module provides a way to create a service which will listen for changes
 on folders on the filesystem and will provide notifications of those to listeners.
 """
+
 import os
 import sys
 import argparse

@@ -267,22 +267,22 @@ class LaunchProcess(object):
             t.start()
 
             try:
-                robot_yaml_env_info: ActionResult[
-                    IRobotYamlEnvInfo
-                ] = rcc.get_robot_yaml_env_info(
-                    Path(robot_yaml),
-                    conda_yaml_path,
-                    conda_yaml_contents,
-                    env_json_path if exists_env_json else None,
+                robot_yaml_env_info: ActionResult[IRobotYamlEnvInfo] = (
+                    rcc.get_robot_yaml_env_info(
+                        Path(robot_yaml),
+                        conda_yaml_path,
+                        conda_yaml_contents,
+                        env_json_path if exists_env_json else None,
+                    )
                 )
             finally:
                 notify_event.set()
 
             if not robot_yaml_env_info.success:
                 return mark_invalid(robot_yaml_env_info.message)
-            robot_yaml_env_info_result: Optional[
-                IRobotYamlEnvInfo
-            ] = robot_yaml_env_info.result
+            robot_yaml_env_info_result: Optional[IRobotYamlEnvInfo] = (
+                robot_yaml_env_info.result
+            )
             if not robot_yaml_env_info_result:
                 return mark_invalid(
                     "Internal error: robot_yaml_env_info_result not available."

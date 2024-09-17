@@ -9,7 +9,9 @@ from .conda_impl import conda_match_spec, conda_version
 class CondaDepInfo:
     name: str  # The name of the dep (i.e.: python)
     value: str  # The full value of the dep (i.e.: python=3.7)
-    version_spec: str  # The version SPEC of the dep (as seen by conda: '3.7.*' or '>3.2')
+    version_spec: (
+        str  # The version SPEC of the dep (as seen by conda: '3.7.*' or '>3.2')
+    )
     dep_range: _RangeTypedDict
     error_msg: Optional[str] = None
 
