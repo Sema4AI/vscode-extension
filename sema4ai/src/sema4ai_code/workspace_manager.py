@@ -1,6 +1,7 @@
 import os
+from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import DefaultDict, Dict, List, Optional, Tuple, Iterator
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -83,7 +84,7 @@ class WorkspaceManager:
                     priority = 0
                 elif package_type == PackageType.ACTION.value:
                     priority = 1
-                return (priority, dct["name"].lower())
+                return priority, dct["name"].lower()
 
             robots.sort(key=get_key)
 
@@ -120,24 +121,57 @@ class WorkspaceManager:
             if not org_directory.is_dir():
                 continue
 
+            action_packages: DefaultDict[
+                str, List[Tuple[str, LocalPackageMetadataInfoDict]]
+            ] = defaultdict(list)
+
             # Organization name is the name of the directory the Action Package exists in.
             organization_name = os.path.basename(org_directory)
+
             organization: LocalAgentPackageOrganizationInfoDict = {
                 "name": organization_name,
                 "actionPackages": [],
             }
 
-            for sub in org_directory.iterdir():
-                action_package_metadata = self._get_package_metadata(
-                    [PackageYamlName.ACTION], sub, curr_cache, new_cache
+            for action_package_metadata in self._get_action_package_from_dir(
+                org_directory, curr_cache, new_cache
+            ):
+                action_packages[action_package_metadata["name"]].append(
+                    (
+                        str(action_package_metadata["yamlContents"]["version"]),
+                        action_package_metadata,
+                    )
                 )
 
-                if action_package_metadata is not None:
-                    organization["actionPackages"].append(action_package_metadata)
+            for action_name, action_versions in action_packages.items():
+                if len(action_versions) == 1:
+                    organization["actionPackages"].append(action_versions[0][1])
+                else:
+                    for [version_number, action_package] in action_versions:
+                        action_package[
+                            "name"
+                        ] = f"{action_package['name']}/v{version_number}"
+
+                        organization["actionPackages"].append(action_package)
+                        log.info(f"[debug 2] {action_package}")
 
             organizations.append(organization)
 
         return organizations
+
+    def _get_action_package_from_dir(
+        self, directory: Path, current_cache, new_cache
+    ) -> Iterator[LocalPackageMetadataInfoDict]:
+        for sub_directory in directory.iterdir():
+            if sub_directory.is_dir():
+                yield from self._get_action_package_from_dir(
+                    sub_directory, current_cache, new_cache
+                )
+
+        if action_package_metadata := self._get_package_metadata(
+            [PackageYamlName.ACTION], directory, current_cache, new_cache
+        ):
+            yield action_package_metadata
 
     def _get_package_metadata(
         self,
