@@ -36,14 +36,12 @@ root = Path(__file__).parent.parent
 def _fix_contents_version(contents, version):
     import re
 
+    contents = re.sub(r"(version\s*=\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents)
     contents = re.sub(
-        r"(version\s*=\s*)\"\d+\.\d+\.\d+", fr'\1"{version}', contents
+        r"(__version__\s*=\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
     contents = re.sub(
-        r"(__version__\s*=\s*)\"\d+\.\d+\.\d+", fr'\1"{version}', contents
-    )
-    contents = re.sub(
-        r"(\"version\"\s*:\s*)\"\d+\.\d+\.\d+", fr'\1"{version}', contents
+        r"(\"version\"\s*:\s*)\"\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
     return contents
@@ -57,7 +55,7 @@ def _fix_rcc_contents_version(contents, version):
     # RCC_VERSION = "v11.5.5"
     # const RCC_VERSION = "v11.5.5";
     contents = re.sub(
-        r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", fr'\1"{version}', contents
+        r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
     return contents

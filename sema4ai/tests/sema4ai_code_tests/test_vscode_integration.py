@@ -236,9 +236,7 @@ def test_list_local_robots(
     )
     for info in folder_info_lst:
         if info["name"] == "agent1":
-            name_to_org = {
-                org["name"]: org for org in (info["organizations"] or [])
-            }
+            name_to_org = {org["name"]: org for org in (info["organizations"] or [])}
 
             assert set(name_to_org.keys()) == {"MyActions", "Sema4.ai"}
             action_packages = name_to_org["MyActions"]["actionPackages"]

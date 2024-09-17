@@ -63,9 +63,7 @@ def on_rm_rf_error(func, path: str, exc, *, start_path: Path) -> bool:
         return False
 
     if not isinstance(excvalue, PermissionError):
-        warnings.warn(
-            f"(rm_rf) error removing {path}\n{exctype}: {excvalue}"
-        )
+        warnings.warn(f"(rm_rf) error removing {path}\n{exctype}: {excvalue}")
         return False
 
     if func not in (os.rmdir, os.remove, os.unlink):

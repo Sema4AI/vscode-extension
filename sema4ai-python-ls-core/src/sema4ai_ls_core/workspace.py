@@ -875,9 +875,7 @@ class Document:
 
         self._source = new.getvalue()
 
-    def apply_text_edits(
-        self, text_edits: list[TextEditTypedDict] | list[TextEdit]
-    ):
+    def apply_text_edits(self, text_edits: list[TextEditTypedDict] | list[TextEdit]):
         self._check_in_mutate_thread()
         sorted_text_edits = reversed(sorted(text_edits, key=_text_edit_key))
         text_edit: Any

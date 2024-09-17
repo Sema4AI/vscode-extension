@@ -636,7 +636,9 @@ def update_class_to_generate_objects(classes_to_generate, class_to_generate):
             create_new.update(
                 {
                     "name": "{}{}".format(class_to_generate["name"], key.title()),
-                    "description": '    "{}" of {}'.format(key, class_to_generate["name"]),
+                    "description": '    "{}" of {}'.format(
+                        key, class_to_generate["name"]
+                    ),
                 }
             )
             if "properties" not in create_new:

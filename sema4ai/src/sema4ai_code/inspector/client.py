@@ -105,9 +105,7 @@ class InspectorApiClient(LanguageServerClientBase):
         self._check_process_alive()
         return self.request(self._build_msg(method_name, params), timeout=timeout)
 
-    def send_async_message(
-        self, method_name, params: dict
-    ) -> IIdMessageMatcher | None:
+    def send_async_message(self, method_name, params: dict) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """

@@ -342,9 +342,7 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
     ) -> IIdMessageMatcher["CompletionResolveResponseTypedDict"] | None:
         pass
 
-    def request_find_definition(
-        self, doc_uri, line, col
-    ) -> IIdMessageMatcher | None:
+    def request_find_definition(self, doc_uri, line, col) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
@@ -368,9 +366,7 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
         :Note: async complete.
         """
 
-    def request_source_format(
-        self, text_document, options
-    ) -> IIdMessageMatcher | None:
+    def request_source_format(self, text_document, options) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """

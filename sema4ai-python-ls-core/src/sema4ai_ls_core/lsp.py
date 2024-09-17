@@ -495,9 +495,9 @@ class WorkspaceEditTypedDict(TypedDict, total=False):
     # Changes + resources changes (rename, delete, create)
     # Requires workspace.workspaceEdit.documentChanges client capability
     documentChanges: (
-        Sequence[TextDocumentEditTypedDict] |
-        Sequence[TextDocumentEditTypedDict] |
-        Sequence[CreateFileTypedDict]
+        Sequence[TextDocumentEditTypedDict]
+        | Sequence[TextDocumentEditTypedDict]
+        | Sequence[CreateFileTypedDict]
     )
 
     # Changes with descriptions
@@ -651,9 +651,7 @@ class CompletionItemTypedDict(TypedDict, total=False):
     detail: str | None
     #
     # A human-readable string that represents a doc-comment.
-    documentation: None | (
-        str | MarkupContentTypedDict | MonacoMarkdownStringTypedDict
-    )
+    documentation: None | (str | MarkupContentTypedDict | MonacoMarkdownStringTypedDict)
     #
     # Indicates if this item is deprecated.
     # @deprecated Use `tags` instead.

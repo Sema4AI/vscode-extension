@@ -3237,9 +3237,7 @@ def SendKeys(
                     ):
                         time.sleep(interval)
                         if debug:
-                            Logger.Write(
-                                f", sleep({interval})\n", writeToFile=False
-                            )
+                            Logger.Write(f", sleep({interval})\n", writeToFile=False)
                     else:
                         time.sleep(
                             hotkeyInterval
@@ -3252,9 +3250,7 @@ def SendKeys(
                 else:  # KeyboardEventFlag.KeyDown
                     time.sleep(hotkeyInterval)
                     if debug:
-                        Logger.Write(
-                            f", sleep({hotkeyInterval})\n", writeToFile=False
-                        )
+                        Logger.Write(f", sleep({hotkeyInterval})\n", writeToFile=False)
     # make sure hold keys are not pressed
     # win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
     # ctrl = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_CONTROL)
@@ -3437,9 +3433,7 @@ class Logger:
         printToStdout: bool.
         logFile: str, log file path.
         """
-        Logger.Write(
-            f"{log}\n", consoleColor, writeToFile, printToStdout, logFile
-        )
+        Logger.Write(f"{log}\n", consoleColor, writeToFile, printToStdout, logFile)
 
     @staticmethod
     def ColorfullyWrite(
@@ -6503,14 +6497,14 @@ def CreatePattern(patternId: int, pattern: "ctypes._Pointer[comtypes.IUnknown]")
 
 class Control:
     ValidKeys = {
-            "ControlType",
-            "ClassName",
-            "AutomationId",
-            "Name",
-            "SubName",
-            "RegexName",
-            "Depth",
-            "Compare",
+        "ControlType",
+        "ClassName",
+        "AutomationId",
+        "Name",
+        "SubName",
+        "RegexName",
+        "Depth",
+        "Compare",
     }
 
     def __init__(
@@ -7458,9 +7452,7 @@ class Control:
             SetCursorPos(x, y)
         return x, y
 
-    def MoveCursorToMyCenter(
-        self, simulateMove: bool = True
-    ) -> tuple[int, int] | None:
+    def MoveCursorToMyCenter(self, simulateMove: bool = True) -> tuple[int, int] | None:
         """
         Move cursor to control's center.
         Return Tuple[int, int], two ints tuple (x, y), the cursor positon relative to screen(0, 0) after moving.

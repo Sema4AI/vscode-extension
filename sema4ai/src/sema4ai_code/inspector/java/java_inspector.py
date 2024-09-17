@@ -18,10 +18,12 @@ MAX_ELEMENTS_TO_HIGHLIGHT = 20
 # ! For example - on Retina displays, the RESOLUTION_PIXEL_RATIO is 2
 RESOLUTION_PIXEL_RATIO = 1
 
+
 class JavaWindowInfoTypedDict(TypedDict):
     pid: int
     hwnd: int
     title: str
+
 
 class LocatorNodeInfoTypedDict(TypedDict):
     name: str

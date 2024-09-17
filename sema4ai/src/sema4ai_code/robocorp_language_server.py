@@ -1599,9 +1599,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         ).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL)
-    def _rcc_download(
-        self, params: DownloadToolDict | None = None
-    ) -> ActionResultDict:
+    def _rcc_download(self, params: DownloadToolDict | None = None) -> ActionResultDict:
         from sema4ai_code.rcc import download_rcc
 
         location = params["location"] if params else self._rcc.get_rcc_location(False)

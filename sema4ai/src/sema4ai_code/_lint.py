@@ -166,9 +166,7 @@ class _CurrLintInfo(BaseLintInfo):
         if doc_uri.endswith(".py"):
             ws: IWorkspace | None = robocorp_language_server.workspace
             if ws is not None:
-                doc: IDocument | None = ws.get_document(
-                    doc_uri, accept_from_file=True
-                )
+                doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
                 errors = []
                 if doc is not None:
                     source = doc.source

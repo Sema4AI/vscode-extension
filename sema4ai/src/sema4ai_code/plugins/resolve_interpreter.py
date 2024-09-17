@@ -105,9 +105,7 @@ def _get_mtime_cache_info(file_path: Path) -> _CachedFileMTimeInfo | None:
 class _CachedFileInfo:
     def __init__(self, file_path: Path):
         self.file_path = file_path
-        self.mtime_info: _CachedFileMTimeInfo | None = _get_mtime_cache_info(
-            file_path
-        )
+        self.mtime_info: _CachedFileMTimeInfo | None = _get_mtime_cache_info(file_path)
         self.contents: str = file_path.read_text(encoding="utf-8", errors="replace")
         self._yaml_contents: dict | None = None
 

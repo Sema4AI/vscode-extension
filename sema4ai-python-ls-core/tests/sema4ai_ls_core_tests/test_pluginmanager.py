@@ -77,13 +77,15 @@ def test_plugins():
 
     assert len(list(pm.iter_existing_instances(EPFoo))) == 2
     assert set(pm.iter_existing_instances(EPFoo)) == {
-        pm.get_instance(EPFoo, context="context2"), pm.get_instance(EPFoo)
+        pm.get_instance(EPFoo, context="context2"),
+        pm.get_instance(EPFoo),
     }
 
     # Request using a string.
     assert len(list(pm.iter_existing_instances("EPFoo"))) == 2
     assert set(pm.iter_existing_instances("EPFoo")) == {
-        pm.get_instance(EPFoo, context="context2"), pm.get_instance("EPFoo")
+        pm.get_instance(EPFoo, context="context2"),
+        pm.get_instance("EPFoo"),
     }
 
 

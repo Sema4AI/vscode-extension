@@ -1053,9 +1053,9 @@ class ControlElement:
                 )
 
             raise ActionNotPossible(
-                    f"Element {element!r} is not visible for clicking. Ensure the root "
-                    "window is the foreground window. If it is, consider doing a new "
-                    "search for this element as the current reference may no longer be valid."
+                f"Element {element!r} is not visible for clicking. Ensure the root "
+                "window is the foreground window. If it is, consider doing a new "
+                "search for this element as the current reference may no longer be valid."
             )
 
         log_message = f"{click_type}-ing element"

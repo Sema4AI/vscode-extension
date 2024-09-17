@@ -175,9 +175,7 @@ class LaunchProcess:
         try:
             if self._cwd is not None:
                 if not os.path.exists(self._cwd):
-                    return mark_invalid(
-                        f"cwd specified does not exist: {self._cwd}"
-                    )
+                    return mark_invalid(f"cwd specified does not exist: {self._cwd}")
         except:
             log.exception("Error")
             return mark_invalid(f"Error checking if cwd ({self._cwd}) exists.")

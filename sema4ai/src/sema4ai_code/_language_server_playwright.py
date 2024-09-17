@@ -36,9 +36,7 @@ class _Playwright:
         commands.SEMA4AI_OPEN_PLAYWRIGHT_RECORDER_INTERNAL,
         object,
     )
-    def _open_playwright_recorder(
-        self, params=None
-    ) -> ActionResultDict | partial:
+    def _open_playwright_recorder(self, params=None) -> ActionResultDict | partial:
         target_robot_uri = params.get("target_robot_uri")
         if not target_robot_uri:
             return ActionResultDict(

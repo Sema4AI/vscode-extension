@@ -15,6 +15,7 @@ class ColletedTreeTypedDict(TypedDict):
     matches: ContextNode | list[ContextNode]
     tree: ContextNode
 
+
 TFun = TypeVar("TFun", bound=Callable[..., Any])
 
 
