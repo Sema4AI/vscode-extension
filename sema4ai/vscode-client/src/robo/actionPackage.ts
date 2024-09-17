@@ -649,7 +649,7 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
         ): Promise<void> => {
             if (!actionPackagePath) {
                 progress.report({ message: "Choose action package" });
-                actionPackagePath = await findActionPackagePath();
+                actionPackagePath = await findActionPackagePath({ includeSemaOrg: false });
                 if (!actionPackagePath) {
                     return;
                 }
@@ -743,7 +743,7 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
         ): Promise<void> => {
             if (!actionPackagePath) {
                 progress.report({ message: "Choose action package" });
-                actionPackagePath = await findActionPackagePath();
+                actionPackagePath = await findActionPackagePath({ includeSemaOrg: false });
                 if (!actionPackagePath) {
                     return;
                 }

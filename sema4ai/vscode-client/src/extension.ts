@@ -751,7 +751,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             const selected = await listAndAskRobotSelection(
                 "Please select the Action Package that you'd like to be published to the Sema4.ai Studio",
                 "Unable to continue because no Action Package was found in the workspace.",
-                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
+                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false, includeSemaOrg: false }
             );
             if (!selected) {
                 vscode.window.showErrorMessage(`Please open an Action Package and try again`);
@@ -773,7 +773,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         const selected = await listAndAskRobotSelection(
             "Please select the Agent Package that you'd like to be published to the Sema4.ai Studio",
             "Unable to continue because no Agent Package was found in the workspace.",
-            { showActionPackages: false, showTaskPackages: false, showAgentPackages: true }
+            { showActionPackages: false, showTaskPackages: false, showAgentPackages: true, includeSemaOrg: false }
         );
 
         if (selected) {

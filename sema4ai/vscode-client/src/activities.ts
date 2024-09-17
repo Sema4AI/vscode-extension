@@ -52,10 +52,11 @@ import {
 import { createActionPackage } from "./robo/actionPackage";
 import { createAgentPackage } from "./robo/agentPackage";
 
-export interface ListOpts {
+export interface ListRobotSelectionOpts {
     showTaskPackages: boolean;
     showActionPackages: boolean;
     showAgentPackages: boolean;
+    includeSemaOrg?: boolean;
 }
 
 export async function cloudLogin(): Promise<boolean> {
@@ -185,7 +186,10 @@ export async function resolveInterpreter(targetRobot: string): Promise<ActionRes
     }
 }
 
-async function flattenRobotsAndActions(robotsInfo: LocalPackageMetadataInfo[]): Promise<LocalPackageMetadataInfo[]> {
+async function flattenRobotsAndActions(
+    robotsInfo: LocalPackageMetadataInfo[],
+    includeSemaOrg: boolean
+): Promise<LocalPackageMetadataInfo[]> {
     const flattenedRobotsInfo: LocalPackageMetadataInfo[] = [];
 
     robotsInfo.forEach((entry) => {
@@ -193,7 +197,7 @@ async function flattenRobotsAndActions(robotsInfo: LocalPackageMetadataInfo[]): 
 
         if (isAgentPackage(entry) && entry.organizations) {
             entry.organizations.forEach((org) => {
-                if (org.name === "MyActions") {
+                if (includeSemaOrg || org.name.toLowerCase().replace(".", "") !== "sema4ai") {
                     org.actionPackages.forEach((action) => {
                         flattenedRobotsInfo.push({
                             ...action,
@@ -211,7 +215,7 @@ async function flattenRobotsAndActions(robotsInfo: LocalPackageMetadataInfo[]): 
 export async function listAndAskRobotSelection(
     selectionMessage: string,
     noRobotErrorMessage: string,
-    opts: ListOpts
+    opts: ListRobotSelectionOpts
 ): Promise<LocalPackageMetadataInfo> {
     let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
@@ -229,7 +233,7 @@ export async function listAndAskRobotSelection(
     }
 
     if (opts.showActionPackages) {
-        robotsInfo = await flattenRobotsAndActions(robotsInfo);
+        robotsInfo = await flattenRobotsAndActions(robotsInfo, opts.includeSemaOrg ?? true);
     }
 
     const filter = (entry: LocalPackageMetadataInfo) => {

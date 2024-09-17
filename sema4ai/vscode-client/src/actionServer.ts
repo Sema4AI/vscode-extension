@@ -137,13 +137,13 @@ const startActionServerInternal = async (directory: Uri) => {
     actionServerTerminal.sendText(`${location} start --port=${ACTION_SERVER_DEFAULT_PORT}`);
 };
 
-export const findActionPackagePath = async (): Promise<Uri | undefined> => {
+export const findActionPackagePath = async ({ includeSemaOrg = true } = {}): Promise<Uri | undefined> => {
     // Need to list the action packages available to decide
     // which one to use for the action server.
     const selected = await listAndAskRobotSelection(
         "Please select the Action Package from which the Action Server should load actions.",
         "Unable to start Action Server because no Action Package was found in the workspace.",
-        { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
+        { showActionPackages: true, showTaskPackages: false, showAgentPackages: false, includeSemaOrg: includeSemaOrg }
     );
     if (!selected) {
         return;
