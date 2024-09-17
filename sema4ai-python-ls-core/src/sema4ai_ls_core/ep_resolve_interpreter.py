@@ -12,9 +12,9 @@ Given some structure as:
 /env2
     /robot.yaml
     /robot2.robot
-    
+
 We want to use the info on robot.yaml in env1 to say that a given set of
-libraries is needed, whereas the robot.yaml in env2 has another set of 
+libraries is needed, whereas the robot.yaml in env2 has another set of
 libraries (and each will have a different virtual environment managing it).
 
 Note that this implementation logic is not really builtin, rather, an external
@@ -22,16 +22,16 @@ contributor needs to add the extension point to do that.
 
 The usage of the extension point should do something as:
 
-    interpreter_info = ep.get_interpreter_info_for_doc_uri(doc_uri) 
+    interpreter_info = ep.get_interpreter_info_for_doc_uri(doc_uri)
     if interpreter_info is not None:
         interpreter_info.get_interpreter_id()
         interpreter_info.get_python_exe()
         interpreter_info.get_environ()
-        
+
 Later, it can decide to get rid of some server which handles a given python
 executable if there's no interpreter id using a given python executable anymore.
 
-Note: to add an extension, one needs to add it through a plugin using the 
+Note: to add an extension, one needs to add it through a plugin using the
 "robot.addPluginsDir" command.
 """
 

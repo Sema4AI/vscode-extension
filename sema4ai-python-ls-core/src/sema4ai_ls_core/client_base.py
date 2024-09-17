@@ -306,9 +306,9 @@ class LanguageServerClientBase(object):
     server.
     """
 
-    DEFAULT_TIMEOUT: Optional[
-        int
-    ] = None  # The default if not redefined is not having a timeout.
+    DEFAULT_TIMEOUT: Optional[int] = (
+        None  # The default if not redefined is not having a timeout.
+    )
 
     def __init__(self, writer, reader, on_received_message=None):
         """

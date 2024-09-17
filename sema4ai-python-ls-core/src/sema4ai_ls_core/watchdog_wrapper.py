@@ -1,6 +1,7 @@
 """
 Helper to wrap watchdog.
 """
+
 import warnings
 import os.path
 import sys
