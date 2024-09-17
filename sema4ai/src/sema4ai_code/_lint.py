@@ -28,8 +28,8 @@ def collect_package_yaml_diagnostics(
     conda_cloud: ICondaCloud,
     workspace: IWorkspace,
     conda_yaml_uri: str,
-    monitor: Optional[IMonitor],
-) -> List[DiagnosticsTypedDict]:
+    monitor: IMonitor | None,
+) -> list[DiagnosticsTypedDict]:
     from sema4ai_code.vendored_deps.package_deps import analyzer
 
     if not DiagnosticsConfig.analyze_versions:
@@ -52,8 +52,8 @@ def collect_conda_yaml_diagnostics(
     conda_cloud: ICondaCloud,
     workspace: IWorkspace,
     conda_yaml_uri: str,
-    monitor: Optional[IMonitor],
-) -> List[DiagnosticsTypedDict]:
+    monitor: IMonitor | None,
+) -> list[DiagnosticsTypedDict]:
     from sema4ai_code.vendored_deps.package_deps import analyzer
 
     if not DiagnosticsConfig.analyze_versions:
@@ -73,12 +73,12 @@ def collect_conda_yaml_diagnostics(
 
 def collect_rcc_configuration_diagnostics(
     rcc: IRcc, robot_yaml_fs_path
-) -> List[DiagnosticsTypedDict]:
+) -> list[DiagnosticsTypedDict]:
     import json
 
     from sema4ai_ls_core.lsp import DiagnosticSeverity
 
-    ret: List[DiagnosticsTypedDict] = []
+    ret: list[DiagnosticsTypedDict] = []
 
     if not DiagnosticsConfig.analyze_rcc:
         return ret
@@ -164,9 +164,9 @@ class _CurrLintInfo(BaseLintInfo):
         doc_uri = self.doc_uri
 
         if doc_uri.endswith(".py"):
-            ws: Optional[IWorkspace] = robocorp_language_server.workspace
+            ws: IWorkspace | None = robocorp_language_server.workspace
             if ws is not None:
-                doc: Optional[IDocument] = ws.get_document(
+                doc: IDocument | None = ws.get_document(
                     doc_uri, accept_from_file=True
                 )
                 errors = []
@@ -288,7 +288,7 @@ class LintManager(BaseLintManager):
     @overrides(BaseLintManager._create_curr_lint_info)
     def _create_curr_lint_info(
         self, doc_uri: str, is_saved: bool, timeout: float
-    ) -> Optional[BaseLintInfo]:
+    ) -> BaseLintInfo | None:
         # Note: this call must be done in the main thread.
         weak_lint_manager = weakref.ref(self)
 

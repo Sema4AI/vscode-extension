@@ -1,7 +1,8 @@
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import DefaultDict, Dict, List, Optional, Tuple, Iterator
+from typing import DefaultDict, Dict, List, Optional, Tuple
+from collections.abc import Iterator
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -26,23 +27,23 @@ class WorkspaceManager:
     def __init__(self, workspace: IWorkspace | None) -> None:
         self.workspace = workspace
 
-        self._local_list_robots_cache: Dict[
+        self._local_list_robots_cache: dict[
             Path, CachedFileInfo[LocalPackageMetadataInfoDict]
         ] = {}
 
-        self._local_list_agent_packages_cache: Dict[
+        self._local_list_agent_packages_cache: dict[
             Path, CachedFileInfo[LocalPackageMetadataInfoDict]
         ] = {}
 
-    def get_local_robots(self) -> List[LocalPackageMetadataInfoDict]:
+    def get_local_robots(self) -> list[LocalPackageMetadataInfoDict]:
         """
         Returns all local Robot/Action packages present in the workspace, either at root or first level.
         Ignores Agent packages.
         """
         curr_cache = self._local_list_robots_cache
-        new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]] = {}
+        new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]] = {}
 
-        robots: List[LocalPackageMetadataInfoDict] = []
+        robots: list[LocalPackageMetadataInfoDict] = []
         try:
             ws = self.workspace
             if ws:
@@ -104,15 +105,15 @@ class WorkspaceManager:
     def _get_agent_package_organizations(
         self,
         actions_directory: str,
-        new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
-    ) -> List[LocalAgentPackageOrganizationInfoDict]:
+        new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
+    ) -> list[LocalAgentPackageOrganizationInfoDict]:
         curr_cache = self._local_list_agent_packages_cache
 
         actions_path = (
             Path(actions_directory) / get_agent_package_actions_sub_directory()
         )
 
-        organizations: List[LocalAgentPackageOrganizationInfoDict] = []
+        organizations: list[LocalAgentPackageOrganizationInfoDict] = []
 
         if not actions_path.is_dir():
             return []
@@ -122,7 +123,7 @@ class WorkspaceManager:
                 continue
 
             action_packages: DefaultDict[
-                str, List[Tuple[str, LocalPackageMetadataInfoDict]]
+                str, list[tuple[str, LocalPackageMetadataInfoDict]]
             ] = defaultdict(list)
 
             # Organization name is the name of the directory the Action Package exists in.
@@ -177,9 +178,9 @@ class WorkspaceManager:
         self,
         yaml_file_names: list[PackageYamlName],
         sub: Path,
-        curr_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
-        new_cache: Dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
-    ) -> Optional[LocalPackageMetadataInfoDict]:
+        curr_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
+        new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
+    ) -> LocalPackageMetadataInfoDict | None:
         """
         Note that we get the value from the current cache and then put it in
         the new cache if it's still valid (that way we don't have to mutate
@@ -187,7 +188,7 @@ class WorkspaceManager:
         the new cache).
         """
 
-        cached_file_info: Optional[CachedFileInfo[LocalPackageMetadataInfoDict]] = (
+        cached_file_info: CachedFileInfo[LocalPackageMetadataInfoDict] | None = (
             curr_cache.get(sub)
         )
         if cached_file_info is not None:

@@ -14,7 +14,7 @@ def word_to_column(line_to_cursor):
     return m_start[0]
 
 
-class DocumentSelection(object):
+class DocumentSelection:
     def __init__(self, doc: IDocument, line: int, col: int):
         if line < 0:
             line = 0

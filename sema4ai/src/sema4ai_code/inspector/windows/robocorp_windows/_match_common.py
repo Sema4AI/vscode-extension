@@ -19,7 +19,7 @@ _UIAutomationSearchTypeKeys = Literal[
 ]
 
 
-LocatorStrategyValues = Union[int, str, bool, List[int]]
+LocatorStrategyValues = Union[int, str, bool, list[int]]
 
 
 # This is the information that the user can use to create a locator.
@@ -41,7 +41,7 @@ SearchType = TypedDict(
         "process": str,
         "handle": int,
         "executable": str,
-        "path": List[int],
+        "path": list[int],
     },
     total=False,
 )
@@ -68,7 +68,7 @@ _LocatorKeys = Literal[
 
 # The valid locator names that the user can use (as a set).
 
-_valid_strategies: Set[str] = {
+_valid_strategies: set[str] = {
     "automationid",
     "id",
     "class",
@@ -88,7 +88,7 @@ _valid_strategies: Set[str] = {
 }
 
 
-_strategies_accepting_multiple_strings: Set[str] = {
+_strategies_accepting_multiple_strings: set[str] = {
     # "automationid",
     # "id",
     # "class",

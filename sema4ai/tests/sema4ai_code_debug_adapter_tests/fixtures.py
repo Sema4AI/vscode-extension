@@ -1,4 +1,3 @@
-# coding: utf-8
 # Original work Copyright Fabio Zadrozny (EPL 1.0)
 # See ThirdPartyNotices.txt in the project root for license information.
 # All modifications Copyright (c) Robocorp Technologies Inc.
@@ -20,7 +19,8 @@ import queue
 import subprocess
 import sys
 import threading
-from typing import Iterable, Optional
+from typing import Optional
+from collections.abc import Iterable
 
 import pytest  # type: ignore
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
@@ -40,7 +40,7 @@ def dap_logs_dir(tmpdir):
     yield logs_directory
 
     for name in os.listdir(str(logs_directory)):
-        sys.stderr.write("\n--- %s contents:\n" % (name,))
+        sys.stderr.write(f"\n--- {name} contents:\n")
 
         if name in ("output.xml", "report.html", "log.html"):
             sys.stderr.write("--- Not printed --- \n\n")
@@ -55,7 +55,7 @@ def dap_logs_dir(tmpdir):
 @pytest.fixture
 def dap_log_file(dap_logs_dir):
     filename = str(dap_logs_dir.join("robocorp_code_dap_tests.log"))
-    sys.stderr.write("Logging subprocess to: %s\n" % (filename,))
+    sys.stderr.write(f"Logging subprocess to: {filename}\n")
 
     yield filename
 
@@ -63,7 +63,7 @@ def dap_log_file(dap_logs_dir):
 @pytest.fixture
 def dap_process_stderr_file(dap_logs_dir):
     filename = str(dap_logs_dir.join("robocorp_code_dap_tests_stderr.log"))
-    sys.stderr.write("Output subprocess stderr to: %s\n" % (filename,))
+    sys.stderr.write(f"Output subprocess stderr to: {filename}\n")
     with open(filename, "wb") as stream:
         yield stream
 
@@ -91,7 +91,7 @@ def dap_process(dap_log_file, dap_process_stderr_file):
         kill_process_and_subprocesses(dap_process.pid)
 
 
-class _DebuggerAPI(object):
+class _DebuggerAPI:
     def __init__(
         self,
         reader=None,
@@ -125,9 +125,9 @@ class _DebuggerAPI(object):
         while True:
             msg = self.read_queue.get(timeout=timeout)
             if hasattr(msg, "to_dict"):
-                sys.stderr.write("Read: %s\n\n" % (msg.to_dict(),))
+                sys.stderr.write(f"Read: {msg.to_dict()}\n\n")
             else:
-                sys.stderr.write("Read: %s\n\n" % (msg,))
+                sys.stderr.write(f"Read: {msg}\n\n")
             self.all_messages_read.append(msg)
             if expect_class is not None or accept_msg is not None:
                 if self._matches(msg, expect_class, accept_msg):
@@ -136,7 +136,7 @@ class _DebuggerAPI(object):
                 # Only skip OutputEvent. Other events must match.
                 if not isinstance(msg, OutputEvent):
                     raise AssertionError(
-                        "Received: %s when expecting: %s" % (msg, expect_class)
+                        f"Received: {msg} when expecting: {expect_class}"
                     )
 
             else:
@@ -163,7 +163,7 @@ class _DebuggerAPI(object):
 
         ret = os.path.join(self.dap_resources_dir, filename)
         if must_exist:
-            assert os.path.exists(ret), "%s does not exist." % (ret,)
+            assert os.path.exists(ret), f"{ret} does not exist."
 
         return ret
 
@@ -214,8 +214,8 @@ class _DebuggerAPI(object):
         debug=False,
         success=True,
         terminal="none",
-        args: Optional[Iterable[str]] = None,
-        environ: Optional[dict] = None,
+        args: Iterable[str] | None = None,
+        environ: dict | None = None,
     ):
         """
         :param args:

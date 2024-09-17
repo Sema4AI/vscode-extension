@@ -47,7 +47,7 @@ def require_monitor(func):
     return func
 
 
-class Endpoint(object):
+class Endpoint:
     SHOW_THREAD_DUMP_AFTER_TIMEOUT = 8
 
     def __init__(self, dispatcher, consumer, id_generator=lambda: str(uuid.uuid4())):
@@ -215,7 +215,7 @@ class Endpoint(object):
             return
 
         # Will only work if the request hasn't started executing
-        monitor: Optional[IMonitor] = getattr(request_future, "__monitor__", None)
+        monitor: IMonitor | None = getattr(request_future, "__monitor__", None)
         if monitor is not None:
             monitor.cancel()
         if request_future.cancel():

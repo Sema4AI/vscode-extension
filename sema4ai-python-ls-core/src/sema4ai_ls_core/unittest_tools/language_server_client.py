@@ -1,5 +1,6 @@
 import logging
-from typing import Mapping, Any, List, Optional, Dict
+from typing import Any, List, Optional, Dict
+from collections.abc import Mapping
 
 from sema4ai_ls_core.basic import implements
 from sema4ai_ls_core.client_base import LanguageServerClientBase
@@ -21,9 +22,9 @@ log = logging.getLogger(__name__)
 
 
 class LanguageServerClient(LanguageServerClientBase):
-    pid: Optional[int] = None
+    pid: int | None = None
 
-    DEFAULT_TIMEOUT: Optional[int] = None
+    DEFAULT_TIMEOUT: int | None = None
 
     def __init__(self, *args, **kwargs):
         from sema4ai_ls_core.unittest_tools.fixtures import TIMEOUT
@@ -33,7 +34,7 @@ class LanguageServerClient(LanguageServerClientBase):
         self.DEFAULT_TIMEOUT = TIMEOUT
 
     @implements(ILanguageServerClient.settings)
-    def settings(self, settings: Dict):
+    def settings(self, settings: dict):
         self.request(
             {
                 "jsonrpc": "2.0",
@@ -109,7 +110,7 @@ class LanguageServerClient(LanguageServerClientBase):
 
     @implements(ILanguageServerClient.change_workspace_folders)
     def change_workspace_folders(
-        self, added_folders: List[str], removed_folders: List[str]
+        self, added_folders: list[str], removed_folders: list[str]
     ) -> None:
         from sema4ai_ls_core import uris
         import os.path
@@ -137,7 +138,7 @@ class LanguageServerClient(LanguageServerClientBase):
         )
 
     @implements(ILanguageServerClient.open_doc)
-    def open_doc(self, uri: str, version: int = 1, text: Optional[str] = None):
+    def open_doc(self, uri: str, version: int = 1, text: str | None = None):
         self.request(
             {
                 "jsonrpc": "2.0",
@@ -213,7 +214,7 @@ class LanguageServerClient(LanguageServerClientBase):
     @implements(ILanguageServerClient.get_completions_async)
     def get_completions_async(
         self, uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher[CompletionsResponseTypedDict]]:
+    ) -> IIdMessageMatcher[CompletionsResponseTypedDict] | None:
         return self.request_async(self._build_completions_request(uri, line, col))
 
     @implements(ILanguageServerClient.request_resolve_completion)
@@ -333,7 +334,7 @@ class LanguageServerClient(LanguageServerClientBase):
     @implements(ILanguageServerClient.request_on_type_formatting)
     def request_on_type_formatting(
         self, uri: str, ch: str, line: int, col: int
-    ) -> Optional[List[TextEditTypedDict]]:
+    ) -> list[TextEditTypedDict] | None:
         return self.request(
             {
                 "jsonrpc": "2.0",
@@ -347,7 +348,7 @@ class LanguageServerClient(LanguageServerClientBase):
         )
 
     @implements(ILanguageServerClient.request_selection_range)
-    def request_selection_range(self, doc_uri: str, positions: List[PositionTypedDict]):
+    def request_selection_range(self, doc_uri: str, positions: list[PositionTypedDict]):
         return self.request(
             {
                 "jsonrpc": "2.0",
@@ -426,7 +427,7 @@ class LanguageServerClient(LanguageServerClientBase):
     @implements(ILanguageServerClient.request_provide_evaluatable_expression)
     def request_provide_evaluatable_expression(
         self, uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: This is a custom message (not part of the language server spec).
 
@@ -445,7 +446,7 @@ class LanguageServerClient(LanguageServerClientBase):
         )
 
     @implements(ILanguageServerClient.request_workspace_symbols)
-    def request_workspace_symbols(self, query: Optional[str] = None):
+    def request_workspace_symbols(self, query: str | None = None):
         return self.request(
             {
                 "jsonrpc": "2.0",
@@ -498,7 +499,7 @@ class LanguageServerClient(LanguageServerClientBase):
     @implements(ILanguageServerClient.execute_command_async)
     def execute_command_async(
         self, command: str, arguments: list
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         return self.request_async(
             {
                 "jsonrpc": "2.0",

@@ -23,7 +23,7 @@ from sema4ai_ls_core.debug_adapter_core.dap import dap_base_schema as base_schem
 log = get_logger(__name__)
 
 
-class DebugAdapterComm(object):
+class DebugAdapterComm:
     """
     This is the class that actually processes commands.
 
@@ -40,7 +40,7 @@ class DebugAdapterComm(object):
         self._launch_process = None  # : :type self._launch_process: LaunchProcess
         self._supports_run_in_terminal = False
         self._initialize_request_arguments = None
-        self._rcc_config_location: Optional[str] = None
+        self._rcc_config_location: str | None = None
 
     @property
     def supports_run_in_terminal(self):
@@ -57,7 +57,7 @@ class DebugAdapterComm(object):
 
         if protocol_message is READER_THREAD_STOPPED:
             if get_log_level() > 1:
-                log.debug("%s: READER_THREAD_STOPPED." % (self.__class__.__name__,))
+                log.debug(f"{self.__class__.__name__}: READER_THREAD_STOPPED.")
             return
 
         if get_log_level() > 1:
@@ -67,7 +67,7 @@ class DebugAdapterComm(object):
             )
 
         if protocol_message.type == "request":
-            method_name = "on_%s_request" % (protocol_message.command,)
+            method_name = f"on_{protocol_message.command}_request"
             on_request = getattr(self, method_name, None)
             if on_request is not None:
                 on_request(protocol_message)

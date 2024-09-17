@@ -7,7 +7,7 @@ def dump_threads():
     thread_id_to_name = {}
     try:
         for t in threading.enumerate():
-            thread_id_to_name[t.ident] = "%s  (daemon: %s)" % (t.name, t.daemon)
+            thread_id_to_name[t.ident] = f"{t.name}  (daemon: {t.daemon})"
     except:
         pass
 

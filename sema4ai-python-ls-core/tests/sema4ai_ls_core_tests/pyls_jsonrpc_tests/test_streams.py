@@ -17,7 +17,7 @@
 # pylint: disable=redefined-outer-name
 from io import BytesIO
 
-import mock
+from unittest import mock
 import pytest
 
 from sema4ai_ls_core.jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter

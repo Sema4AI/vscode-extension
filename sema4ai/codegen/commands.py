@@ -1,7 +1,7 @@
 from convert import convert_case_to_constant
 
 
-class Command(object):
+class Command:
     def __init__(
         self,
         name,

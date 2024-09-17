@@ -68,7 +68,7 @@ def test_system_mutex():
         if prev_system_mutex is None:
             found = []
             for e in _mutex_name_to_info.items():
-                found.append((f"{e[0]}: {e[1]}"))
+                found.append(f"{e[0]}: {e[1]}")
 
             raise AssertionError(f"Did not find mutex name: {mutex_name} in {found}")
 

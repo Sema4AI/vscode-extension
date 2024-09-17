@@ -19,7 +19,7 @@ class LogLevel(enum.Enum):
 
 
 # log_call - decorator created to log a function's call and return value
-def log_call(log_level: Optional[LogLevel] = None):
+def log_call(log_level: LogLevel | None = None):
     logger = log.info
     if log_level:
         if log_level == LogLevel.INFO:

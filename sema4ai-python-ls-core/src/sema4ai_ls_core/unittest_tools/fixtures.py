@@ -8,7 +8,7 @@ import pytest
 
 from sema4ai_ls_core.options import NO_TIMEOUT, USE_TIMEOUTS
 
-TIMEOUT: Optional[float]
+TIMEOUT: float | None
 _curr_pytest_timeout = os.getenv("PYTEST_TIMEOUT")
 if _curr_pytest_timeout:
     TIMEOUT = float(_curr_pytest_timeout) / 3.0
@@ -101,7 +101,7 @@ def start_language_server_tcp(
 
     from sema4ai_ls_core.unittest_tools.monitor import dump_threads
 
-    class _LanguageServerConfig(object):
+    class _LanguageServerConfig:
         address = None
 
     config = _LanguageServerConfig()
@@ -201,7 +201,7 @@ def create_language_server_process(log_file, __main__module):
             kill_process_and_subprocesses(language_server_process.pid)
 
 
-class _OnTimeout(object):
+class _OnTimeout:
     def __init__(self):
         import pytest_timeout
 
@@ -236,12 +236,12 @@ def log_file(tmpdir, on_timeout):
     logs_dir = tmpdir.join("logs")
     logs_dir.mkdir()
     filename = str(logs_dir.join("log_test.log"))
-    sys.stderr.write("Logging subprocess to: %s" % (filename,))
+    sys.stderr.write(f"Logging subprocess to: {filename}")
 
     def write_on_finish():
         for name in os.listdir(str(logs_dir)):
-            sys.stderr.write("\n--- %s contents:\n" % (name,))
-            with open(str(logs_dir.join(name)), "r") as stream:
+            sys.stderr.write(f"\n--- {name} contents:\n")
+            with open(str(logs_dir.join(name))) as stream:
                 sys.stderr.write(stream.read())
                 sys.stderr.write("\n")
 

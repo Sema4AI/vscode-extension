@@ -235,7 +235,7 @@ def goto(url: str) -> Page:
 
 
 def screenshot(
-    element: Optional[Union[Page, ElementHandle, Locator]] = None,
+    element: Page | ElementHandle | Locator | None = None,
     timeout: int = 5000,
     image_type: Literal["png", "jpeg"] = "png",
     log_level: Literal["INFO", "WARN", "ERROR"] = "INFO",

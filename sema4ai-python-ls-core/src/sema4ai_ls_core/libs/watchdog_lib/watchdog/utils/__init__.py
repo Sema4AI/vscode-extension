@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 # Copyright 2011 Yesudeep Mangalapilly <yesudeep@gmail.com>
 # Copyright 2012 Google, Inc & contributors.
@@ -133,7 +132,7 @@ def load_class(dotted_path):
             # Finally create and return an instance of the class
             # return klass(*args, **kwargs)
         else:
-            raise AttributeError('Module %s does not have class attribute %s' % (
+            raise AttributeError('Module {} does not have class attribute {}'.format(
                                  module_name, klass_name))
     else:
         raise ValueError(

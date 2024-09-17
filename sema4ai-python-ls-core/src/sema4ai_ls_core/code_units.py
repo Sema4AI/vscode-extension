@@ -17,7 +17,8 @@ from sema4ai_ls_core.protocols import (
     ITestInfoTypedDict,
     EvaluatableExpressionTypedDict,
 )
-from typing import List, Optional, Union, Iterable, Set
+from typing import List, Optional, Union, Set
+from collections.abc import Iterable
 from sema4ai_ls_core.lsp import (
     TextEditTypedDict,
     PositionTypedDict,
@@ -100,7 +101,7 @@ def convert_python_col_to_utf16_code_unit(
     d: IDocument,
     line,
     col,
-    memo: Optional[dict] = None,
+    memo: dict | None = None,
 ) -> int:
     if memo is not None:
         key = (line, col)
@@ -132,7 +133,7 @@ def _convert_start_end_range_python_code_unit_to_utf16_inplace(
     d: IDocument,
     start_pos: PositionTypedDict,
     end_pos: PositionTypedDict,
-    memo: Optional[dict] = None,
+    memo: dict | None = None,
 ) -> None:
     start_pos["character"] = convert_python_col_to_utf16_code_unit(
         d, start_pos["line"], start_pos["character"], memo=memo
@@ -145,7 +146,7 @@ def _convert_start_end_range_python_code_unit_to_utf16_inplace(
 def convert_range_pos_to_client_inplace(
     d: IDocument,
     r: RangeTypedDict,
-    memo: Optional[dict] = None,
+    memo: dict | None = None,
 ) -> RangeTypedDict:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
@@ -163,8 +164,8 @@ def convert_range_pos_to_client_inplace(
 
 def convert_location_or_location_link_pos_to_client_inplace(
     d: IDocument,
-    location: Union[LocationTypedDict, LocationLinkTypedDict],
-) -> Union[LocationTypedDict, LocationLinkTypedDict]:
+    location: LocationTypedDict | LocationLinkTypedDict,
+) -> LocationTypedDict | LocationLinkTypedDict:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -190,7 +191,7 @@ def convert_location_or_location_link_pos_to_client_inplace(
 
 
 def _iter_ranges_from_selection_range(
-    selection_range: SelectionRangeTypedDict, visited: Set[int]
+    selection_range: SelectionRangeTypedDict, visited: set[int]
 ) -> Iterable[RangeTypedDict]:
     key = id(selection_range)
     if key not in visited:
@@ -204,13 +205,13 @@ def _iter_ranges_from_selection_range(
 
 def convert_selection_range_pos_to_client_inplace(
     d: IDocument,
-    selection_ranges: List[SelectionRangeTypedDict],
-    memo: Optional[dict] = None,
-) -> List[SelectionRangeTypedDict]:
+    selection_ranges: list[SelectionRangeTypedDict],
+    memo: dict | None = None,
+) -> list[SelectionRangeTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
-    visited: Set[int] = set()
+    visited: set[int] = set()
 
     for selection_range in selection_ranges:
         for text_range in _iter_ranges_from_selection_range(selection_range, visited):
@@ -221,8 +222,8 @@ def convert_selection_range_pos_to_client_inplace(
 
 
 def convert_text_edits_pos_to_client_inplace(
-    d: IDocument, text_edits: List[TextEditTypedDict], memo: Optional[dict] = None
-) -> List[TextEditTypedDict]:
+    d: IDocument, text_edits: list[TextEditTypedDict], memo: dict | None = None
+) -> list[TextEditTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -235,8 +236,8 @@ def convert_text_edits_pos_to_client_inplace(
 
 
 def convert_code_lens_pos_to_client_inplace(
-    d: IDocument, code_lens: List[CodeLensTypedDict], memo: Optional[dict] = None
-) -> List[CodeLensTypedDict]:
+    d: IDocument, code_lens: list[CodeLensTypedDict], memo: dict | None = None
+) -> list[CodeLensTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -249,8 +250,8 @@ def convert_code_lens_pos_to_client_inplace(
 
 
 def convert_tests_pos_to_client_inplace(
-    d: IDocument, tests: List[ITestInfoTypedDict], memo: Optional[dict] = None
-) -> List[ITestInfoTypedDict]:
+    d: IDocument, tests: list[ITestInfoTypedDict], memo: dict | None = None
+) -> list[ITestInfoTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -264,9 +265,9 @@ def convert_tests_pos_to_client_inplace(
 
 def convert_evaluatable_expression_pos_to_client_inplace(
     d: IDocument,
-    evaluatable_expr: Optional[EvaluatableExpressionTypedDict],
-    memo: Optional[dict] = None,
-) -> Optional[EvaluatableExpressionTypedDict]:
+    evaluatable_expr: EvaluatableExpressionTypedDict | None,
+    memo: dict | None = None,
+) -> EvaluatableExpressionTypedDict | None:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -280,9 +281,9 @@ def convert_evaluatable_expression_pos_to_client_inplace(
 
 def convert_hover_pos_to_client_inplace(
     d: IDocument,
-    hover: Optional[HoverTypedDict],
-    memo: Optional[dict] = None,
-) -> Optional[HoverTypedDict]:
+    hover: HoverTypedDict | None,
+    memo: dict | None = None,
+) -> HoverTypedDict | None:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -297,9 +298,9 @@ def convert_hover_pos_to_client_inplace(
 
 def convert_document_highlight_pos_to_client_inplace(
     d: IDocument,
-    doc_highlight_list: Optional[List[DocumentHighlightTypedDict]],
-    memo: Optional[dict] = None,
-) -> Optional[List[DocumentHighlightTypedDict]]:
+    doc_highlight_list: list[DocumentHighlightTypedDict] | None,
+    memo: dict | None = None,
+) -> list[DocumentHighlightTypedDict] | None:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -317,8 +318,8 @@ def convert_document_highlight_pos_to_client_inplace(
 
 
 def convert_diagnostics_pos_to_client_inplace(
-    d: IDocument, diagnostics: List[DiagnosticsTypedDict]
-) -> List[DiagnosticsTypedDict]:
+    d: IDocument, diagnostics: list[DiagnosticsTypedDict]
+) -> list[DiagnosticsTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -332,8 +333,8 @@ def convert_diagnostics_pos_to_client_inplace(
 
 
 def convert_completions_pos_to_client_inplace(
-    d: IDocument, completion_items: List[CompletionItemTypedDict]
-) -> List[CompletionItemTypedDict]:
+    d: IDocument, completion_items: list[CompletionItemTypedDict]
+) -> list[CompletionItemTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -370,8 +371,8 @@ def convert_workspace_edit_pos_to_client_inplace(
 
 
 def convert_references_pos_to_client_inplace(
-    workspace: IWorkspace, curr_doc: IDocument, references: List[LocationTypedDict]
-) -> List[LocationTypedDict]:
+    workspace: IWorkspace, curr_doc: IDocument, references: list[LocationTypedDict]
+) -> list[LocationTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """
@@ -388,8 +389,8 @@ def convert_references_pos_to_client_inplace(
 
 
 def convert_code_action_pos_to_client_inplace(
-    workspace: IWorkspace, code_action_list: List[CodeActionTypedDict]
-) -> List[CodeActionTypedDict]:
+    workspace: IWorkspace, code_action_list: list[CodeActionTypedDict]
+) -> list[CodeActionTypedDict]:
     """
     Note: changes contents in-place. Returns the same input to help on composability.
     """

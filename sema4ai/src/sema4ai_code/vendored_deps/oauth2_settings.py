@@ -5,17 +5,17 @@ from typing import Any, Optional
 
 @dataclass
 class OAuth2ProviderSettings:
-    mode: Optional[str] = None  # custom/sema4ai
-    name: Optional[str] = None
-    clientId: Optional[str] = None
-    clientSecret: Optional[str] = None
-    server: Optional[str] = None
-    tokenEndpoint: Optional[str] = None
-    revocationEndpoint: Optional[str] = None
-    authorizationEndpoint: Optional[str] = None
-    authParams: Optional[dict[str, str]] = None
-    additionalHeaders: Optional[dict[str, str]] = None
-    requiresHttps: Optional[bool] = False
+    mode: str | None = None  # custom/sema4ai
+    name: str | None = None
+    clientId: str | None = None
+    clientSecret: str | None = None
+    server: str | None = None
+    tokenEndpoint: str | None = None
+    revocationEndpoint: str | None = None
+    authorizationEndpoint: str | None = None
+    authParams: dict[str, str] | None = None
+    additionalHeaders: dict[str, str] | None = None
+    requiresHttps: bool | None = False
 
     # Some replacement functions to keep pydantic API without actually
     # relying on it.

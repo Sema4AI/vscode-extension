@@ -119,9 +119,9 @@ class _TimeoutThread(threading.Thread):
             self._event.set()
 
 
-class _OnTimeoutHandle(object):
+class _OnTimeoutHandle:
     def __init__(self, tracker, abs_timeout, on_timeout, kwargs):
-        self._str = "_OnTimeoutHandle(%s)" % (on_timeout,)
+        self._str = f"_OnTimeoutHandle({on_timeout})"
 
         self._tracker = weakref.ref(tracker)
         self.abs_timeout = abs_timeout
@@ -173,7 +173,7 @@ class _OnTimeoutHandle(object):
     __repr__ = __str__
 
 
-class TimeoutTracker(object):
+class TimeoutTracker:
     """
     This is a helper class to track the timeout of something.
     """

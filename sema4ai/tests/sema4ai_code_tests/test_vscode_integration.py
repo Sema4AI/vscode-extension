@@ -161,9 +161,9 @@ def test_list_rcc_robot_templates(
         commands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL, []
     )["result"]
     assert result["success"]
-    folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
+    folder_info_lst: list[LocalPackageMetadataInfoDict] = result["result"]
     assert len(folder_info_lst) == 2
-    assert set([x["name"] for x in folder_info_lst]) == {"example", "example2"}
+    assert {x["name"] for x in folder_info_lst} == {"example", "example2"}
 
 
 def test_list_local_robots(
@@ -226,8 +226,8 @@ def test_list_local_robots(
     )["result"]
 
     assert result["success"]
-    folder_info_lst: List[LocalPackageMetadataInfoDict] = result["result"]
-    assert sorted(set([x["name"] for x in folder_info_lst])) == sorted(
+    folder_info_lst: list[LocalPackageMetadataInfoDict] = result["result"]
+    assert sorted({x["name"] for x in folder_info_lst}) == sorted(
         {
             "Test agent",
             "example",
@@ -236,9 +236,9 @@ def test_list_local_robots(
     )
     for info in folder_info_lst:
         if info["name"] == "agent1":
-            name_to_org = dict(
-                (org["name"], org) for org in (info["organizations"] or [])
-            )
+            name_to_org = {
+                org["name"]: org for org in (info["organizations"] or [])
+            }
 
             assert set(name_to_org.keys()) == {"MyActions", "Sema4.ai"}
             action_packages = name_to_org["MyActions"]["actionPackages"]
@@ -327,27 +327,27 @@ def test_list_local_agent_packages_with_sub_packages(
 
     assert result["success"]
 
-    packages: List[LocalPackageMetadataInfoDict] = result["result"]
+    packages: list[LocalPackageMetadataInfoDict] = result["result"]
 
     assert len(packages) == 1
-    assert set([x["name"] for x in packages]) == {agent_package_name}
+    assert {x["name"] for x in packages} == {agent_package_name}
     assert os.path.exists(f"{agent_package_directory}/agent-spec.yaml")
 
     package = packages[0]
     assert package
 
-    organizations: Optional[List[LocalAgentPackageOrganizationInfoDict]] = package[
+    organizations: list[LocalAgentPackageOrganizationInfoDict] | None = package[
         "organizations"
     ]
     assert organizations
 
     assert len(organizations) == 2
-    assert set([x["name"] for x in organizations]) == {
+    assert {x["name"] for x in organizations} == {
         organization_one,
         organization_two,
     }
 
-    action_packages: List[LocalPackageMetadataInfoDict] = (
+    action_packages: list[LocalPackageMetadataInfoDict] = (
         organizations[0]["actionPackages"] + organizations[1]["actionPackages"]
     )
 
@@ -444,14 +444,14 @@ def test_list_local_agent_packages_cache(
 
     assert result["success"]
 
-    packages: List[LocalPackageMetadataInfoDict] = result["result"]
+    packages: list[LocalPackageMetadataInfoDict] = result["result"]
 
     assert len(packages) == 1
     assert os.path.exists(f"{agent_package_directory}/agent-spec.yaml")
 
     package = packages[0]
 
-    organizations: Optional[List[LocalAgentPackageOrganizationInfoDict]] = package[
+    organizations: list[LocalAgentPackageOrganizationInfoDict] | None = package[
         "organizations"
     ]
     assert organizations
@@ -500,7 +500,7 @@ def test_list_local_agent_packages_cache(
 
 
 def get_workspace_from_name(
-    workspace_list: List[WorkspaceInfoDict], workspace_name: str
+    workspace_list: list[WorkspaceInfoDict], workspace_name: str
 ) -> WorkspaceInfoDict:
     for ws in workspace_list:
         if ws["workspaceName"] == workspace_name:
@@ -508,7 +508,7 @@ def get_workspace_from_name(
     raise AssertionError(f"Did not find workspace: {workspace_name}")
 
 
-def _get_as_name_to_sort_key_and_package_id(lst: List[WorkspaceInfoDict]):
+def _get_as_name_to_sort_key_and_package_id(lst: list[WorkspaceInfoDict]):
     name_to_sort_key = {}
     for workspace_info in lst:
         for package_info in workspace_info["packages"]:
@@ -694,7 +694,7 @@ def test_upload_to_cloud(
 
     result = client.cloud_list_workspaces()
     assert result["success"]
-    result_workspaces: List[WorkspaceInfoDict] = result["result"]
+    result_workspaces: list[WorkspaceInfoDict] = result["result"]
     assert result_workspaces, "Expected to have the available workspaces and packages."
     found = [x for x in result_workspaces if x["workspaceName"] == "CI workspace"]
     assert (
@@ -1586,7 +1586,7 @@ dependencies:
 
 
 class ResolveInterpreterCurrentEnv:
-    def get_interpreter_info_for_doc_uri(self, doc_uri) -> Optional[IInterpreterInfo]:
+    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
         """
         Provides a customized interpreter for a given document uri.
         """
@@ -1694,7 +1694,7 @@ def test_web_inspector_integrated(
     listed_robots = api_client.m_list_robots()
     assert len(listed_robots) == 2
 
-    name_to_info: Dict[str, LocalPackageMetadataInfoDict] = {}
+    name_to_info: dict[str, LocalPackageMetadataInfoDict] = {}
     for robot in listed_robots:
         name_to_info[robot["name"]] = robot
 
@@ -1893,7 +1893,7 @@ def test_create_action_package(
     assert not result["message"]
     assert os.path.exists(target + "/package.yaml")
 
-    with open(target + "/package.yaml", "r") as f:
+    with open(target + "/package.yaml") as f:
         content = f.read()
     assert "My first action" in content
 
@@ -2146,7 +2146,7 @@ def test_package_metadata(
     action_package_metadata_path = Path(action_package_path, "metadata.json")
     assert action_package_metadata_path.exists()
 
-    with open(action_package_metadata_path, "r") as f:
+    with open(action_package_metadata_path) as f:
         data = json.loads(f.read())
     static_data = {
         "metadata": data["metadata"],

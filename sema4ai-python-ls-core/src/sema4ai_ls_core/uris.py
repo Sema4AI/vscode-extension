@@ -110,7 +110,7 @@ def to_fs_path(uri: str) -> str:
 
     if netloc and path and scheme == "file":
         # unc path: file://shares/c$/far/boo
-        value = "//{}{}".format(netloc, path)
+        value = f"//{netloc}{path}"
 
     elif RE_DRIVE_LETTER_PATH.match(path):
         # windows drive letter: file:///C:/far/boo

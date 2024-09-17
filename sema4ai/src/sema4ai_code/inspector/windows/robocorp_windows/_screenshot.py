@@ -35,7 +35,7 @@ def screenshot(control: "Control") -> Optional["Image"]:
     return img
 
 
-def screenshot_as_base64png(control: "Control") -> Optional[str]:
+def screenshot_as_base64png(control: "Control") -> str | None:
     """
     Returns:
         The image with the contents as a base64 png.

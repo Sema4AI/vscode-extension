@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 
-def find_robot_yaml_path_from_path(path: Path, stat) -> Optional[Path]:
+def find_robot_yaml_path_from_path(path: Path, stat) -> Path | None:
     """
     To be used as:
 

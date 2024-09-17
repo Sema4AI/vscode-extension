@@ -3,7 +3,7 @@ import sys
 from typing import List
 
 __version__ = "2.4.2"
-version_info: List[int] = [int(x) for x in __version__.split(".")]
+version_info: list[int] = [int(x) for x in __version__.split(".")]
 
 __file__ = os.path.abspath(__file__)
 if __file__.endswith((".pyc", ".pyo")):
@@ -68,23 +68,23 @@ def import_robocorp_ls_core() -> None:
         use_folder = None
         try:
             src_folder = get_src_folder()
-            log_contents.append("Source folder: %s" % (src_folder,))
+            log_contents.append(f"Source folder: {src_folder}")
             src_core_folder = os.path.abspath(
                 os.path.join(src_folder, "..", "..", "sema4ai-python-ls-core", "src")
             )
 
             if os.path.isdir(src_core_folder):
-                log_contents.append("Dev mode detected. Found: %s" % (src_core_folder,))
+                log_contents.append(f"Dev mode detected. Found: {src_core_folder}")
                 use_folder = src_core_folder
 
             else:
                 vendored_folder = os.path.join(src_folder, "sema4ai_code", "vendored")
                 log_contents.append(
-                    "Using vendored mode. Found: %s" % (vendored_folder,)
+                    f"Using vendored mode. Found: {vendored_folder}"
                 )
                 use_folder = vendored_folder
                 assert os.path.isdir(use_folder), (
-                    "Expected: %s to exist and be a directory." % (use_folder,)
+                    f"Expected: {use_folder} to exist and be a directory."
                 )
 
             sys.path.append(use_folder)
@@ -93,10 +93,10 @@ def import_robocorp_ls_core() -> None:
             try:
                 if use_folder:
                     log_contents.append(
-                        "%s contents:\n%s" % (use_folder, os.listdir(use_folder))
+                        f"{use_folder} contents:\n{os.listdir(use_folder)}"
                     )
             except:
-                log_contents.append("Error in os.listdir('%s')." % (use_folder,))
+                log_contents.append(f"Error in os.listdir('{use_folder}').")
             raise ImportError(
                 "Error importing sema4ai_ls_core. Log: %s" % "\n".join(log_contents)
             )

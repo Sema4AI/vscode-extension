@@ -10,7 +10,7 @@ from .cli_errors import ActionPackageError
 log = logging.getLogger(__name__)
 
 
-def _verify_name(package_yaml: Optional[Path], name: str) -> None:
+def _verify_name(package_yaml: Path | None, name: str) -> None:
     # Could be used to verify that something is not declared (no-op for now).
     pass
 
@@ -18,7 +18,7 @@ def _verify_name(package_yaml: Optional[Path], name: str) -> None:
 _version_chars_without_eq = (">", "<", "^", "~", "!", ",", ";")
 
 
-def _interpret_entry(package_yaml: Optional[Path], entry: str) -> Tuple[str, str, str]:
+def _interpret_entry(package_yaml: Path | None, entry: str) -> tuple[str, str, str]:
     # https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers
     # https://packaging.python.org/en/latest/specifications/version-specifiers/#compatible-release
     for c in _version_chars_without_eq:
@@ -49,8 +49,8 @@ def _interpret_entry(package_yaml: Optional[Path], entry: str) -> Tuple[str, str
 
 
 def convert_conda_entry(
-    package_yaml: Optional[Path], entry: str
-) -> Tuple[str, str, str, str]:
+    package_yaml: Path | None, entry: str
+) -> tuple[str, str, str, str]:
     name, op, version = _interpret_entry(package_yaml, entry)
 
     if op:
@@ -68,8 +68,8 @@ def convert_conda_entry(
 
 
 def convert_pip_entry(
-    package_yaml: Optional[Path], entry: str
-) -> Tuple[str, str, str, str]:
+    package_yaml: Path | None, entry: str
+) -> tuple[str, str, str, str]:
     name, op, version = _interpret_entry(package_yaml, entry)
     if op:
         if op == "=":
@@ -86,7 +86,7 @@ def convert_pip_entry(
 
 
 def _create_package_from_conda_yaml(
-    conda_yaml: Path, dry_run: bool, backup: bool, *, stream: Optional[typing.IO] = None
+    conda_yaml: Path, dry_run: bool, backup: bool, *, stream: typing.IO | None = None
 ):
     import yaml
 
@@ -98,8 +98,8 @@ def _create_package_from_conda_yaml(
         contents = yaml.safe_load(s)
 
     dependencies = contents.get("dependencies")
-    pip_deps: List[str] = []
-    conda_deps: List[str] = []
+    pip_deps: list[str] = []
+    conda_deps: list[str] = []
     if isinstance(dependencies, list):
         for dep in dependencies:
             if isinstance(dep, dict):
@@ -292,7 +292,7 @@ def create_conda_contents_from_package_yaml_contents(
     def _get_in_dict(
         dct: dict,
         entry: str,
-        expected_result_type: Optional[type],
+        expected_result_type: type | None,
         required: bool = True,
     ):
         v = dct.get(entry)
@@ -425,7 +425,7 @@ def create_conda_from_package_yaml(datadir: Path, package_yaml: Path) -> Path:
         raise ActionPackageError(f"File does not exist ({package_yaml}).")
 
     try:
-        with open(package_yaml, "r", encoding="utf-8") as stream:
+        with open(package_yaml, encoding="utf-8") as stream:
             package_yaml_contents = yaml.safe_load(stream)
     except Exception:
         raise ActionPackageError(f"Error loading file as yaml ({package_yaml}).")

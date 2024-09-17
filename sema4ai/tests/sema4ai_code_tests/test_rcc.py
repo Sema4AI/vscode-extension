@@ -385,7 +385,7 @@ def test_get_robot_yaml_environ_not_ok(rcc: IRcc, datadir, holotree_manager):
     commands = []
 
     class RccListener:
-        def before_command(self, args: List[str]):
+        def before_command(self, args: list[str]):
             commands.append(args)
 
     listener = RccListener()

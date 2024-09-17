@@ -2,7 +2,8 @@ import json
 import threading
 import time
 import weakref
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Callable
 from string import Template
 
 from playwright.sync_api import ElementHandle
@@ -64,7 +65,7 @@ class PickedLocatorTypedDict(TypedDict):
     strategy: str
     value: str
     element: dict
-    alternatives: List[LocatorStrategyAlternativeTypedDict]
+    alternatives: list[LocatorStrategyAlternativeTypedDict]
     screenshot: str  # data:image/png;base64,iVBORw0KGgoA
     frame: dict
 
@@ -72,15 +73,15 @@ class PickedLocatorTypedDict(TypedDict):
 class WebInspector:
     def __init__(
         self,
-        endpoint: Optional[IEndPoint] = None,
-        configuration: Optional[dict] = None,
-        callback_end_thread: Optional[Callable] = None,
+        endpoint: IEndPoint | None = None,
+        configuration: dict | None = None,
+        callback_end_thread: Callable | None = None,
     ) -> None:
         """
         Args:
             endpoint: If given notifications on the state will be given.
         """
-        self._page: Optional[Page] = None
+        self._page: Page | None = None
         self._page_former_url: str = ""
 
         self._on_picked = Callback()
@@ -151,7 +152,7 @@ class WebInspector:
             if browser:
                 browser.close()
 
-    def page(self, auto_create) -> Optional[Page]:
+    def page(self, auto_create) -> Page | None:
         from sema4ai_code.inspector.inspector_api import _WebInspectorThread
 
         self._check_thread()
@@ -255,7 +256,7 @@ class WebInspector:
 
         page.on("console", dbg)
 
-    def open(self, url: str) -> Optional[Page]:
+    def open(self, url: str) -> Page | None:
         self._check_thread()
         self.loop()
 
@@ -297,7 +298,7 @@ class WebInspector:
         # "class": By.CLASS_NAME,
         # "tag": By.TAG_NAME,
 
-    def construct_frame_query(self, frame) -> Optional[str]:
+    def construct_frame_query(self, frame) -> str | None:
         frameQuery = ""
         if frame is not None:
             if "props" in frame and frame["props"] is not None:
@@ -334,8 +335,8 @@ class WebInspector:
         return page.frame_locator(frame_selector).locator(selector).all()
 
     def find_matches(
-        self, strategy, value, frame: Optional[dict] = None
-    ) -> List[ElementHandle]:
+        self, strategy, value, frame: dict | None = None
+    ) -> list[ElementHandle]:
         self._check_thread()
         locator_query = self.construct_locator_query(strategy, value)
         frame_query = None

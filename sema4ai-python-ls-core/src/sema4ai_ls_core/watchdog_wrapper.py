@@ -8,7 +8,8 @@ import sys
 import logging
 import threading
 import weakref
-from typing import List, Tuple, Optional, Set, Sequence, Any
+from typing import List, Tuple, Optional, Set, Any
+from collections.abc import Sequence
 from sema4ai_ls_core.uris import normalize_drive
 
 log = logging.getLogger(__name__)
@@ -18,14 +19,14 @@ __file__ = os.path.abspath(__file__)  # @ReservedAssignment
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
 else:
     from typing import Protocol
 
 
-class PathInfo(object):
+class PathInfo:
     __slots__ = ["path", "recursive"]
 
     def __init__(self, path: str, recursive: bool):
@@ -64,10 +65,10 @@ class IFSWatch(Protocol):
 class IFSObserver(Protocol):
     def notify_on_any_change(
         self,
-        paths: List[PathInfo],
+        paths: list[PathInfo],
         on_change: IFSCallback,
         call_args=(),
-        extensions: Optional[Sequence[str]] = None,
+        extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
         pass
 
@@ -79,7 +80,7 @@ def _get_watchdog_lib_dir():
     parent_dir = os.path.dirname(__file__)
     watchdog_dir = os.path.join(parent_dir, "libs", "watchdog_lib")
     if not os.path.exists(watchdog_dir):
-        raise RuntimeError("Expected: %s to exist." % (watchdog_dir,))
+        raise RuntimeError(f"Expected: {watchdog_dir} to exist.")
 
     internal = os.path.join(watchdog_dir, "watchdog")
     if not os.path.exists(internal):
@@ -112,7 +113,7 @@ def _get_fsnotify_lib_dir():
     parent_dir = os.path.dirname(__file__)
     fsnotify_dir = os.path.join(parent_dir, "libs", "fsnotify_lib")
     if not os.path.exists(fsnotify_dir):
-        msg = "Expected: %s to exist.\nDetails:\n" % (fsnotify_dir,)
+        msg = f"Expected: {fsnotify_dir} to exist.\nDetails:\n"
         check = fsnotify_dir
         while True:
             dirname = os.path.dirname(check)
@@ -139,7 +140,7 @@ def _import_fsnotify():
 
 class _Notifier(threading.Thread):
     def __init__(
-        self, callback, timeout: int, extensions: Optional[Tuple[str, ...]] = None
+        self, callback, timeout: int, extensions: tuple[str, ...] | None = None
     ):
         """
         :param callback:
@@ -154,7 +155,7 @@ class _Notifier(threading.Thread):
         self.name = "FS Notifier Thread (_Notifier class)"
         self.daemon = True
 
-        self._changes: Set[tuple] = set()
+        self._changes: set[tuple] = set()
         self._event = threading.Event()
         self._timeout = timeout
         self._disposed = False
@@ -206,7 +207,7 @@ def create_notifier(callback, timeout, extensions=None):
     return notifier
 
 
-class _DummyWatchList(object):
+class _DummyWatchList:
     def stop_tracking(self):
         pass
 
@@ -216,7 +217,7 @@ class _DummyWatchList(object):
         _: IFSWatch = check_implements(self)
 
 
-class _FSNotifyWatchList(object):
+class _FSNotifyWatchList:
     def __init__(self, new_tracked_paths, new_notifications, observer):
         """
         :param List[fsnotify.TrackedPath] new_tracked_paths:
@@ -228,12 +229,12 @@ class _FSNotifyWatchList(object):
         """
         import fsnotify
 
-        self._new_tracked_paths: List[fsnotify.TrackedPath] = new_tracked_paths
+        self._new_tracked_paths: list[fsnotify.TrackedPath] = new_tracked_paths
         self._new_notifications = new_notifications
         self._observer = weakref.ref(observer)
 
     def stop_tracking(self):
-        observer: Optional[_FSNotifyObserver] = self._observer()
+        observer: _FSNotifyObserver | None = self._observer()
         if observer is not None and self._new_tracked_paths:
             observer._stop_tracking(self._new_tracked_paths, self._new_notifications)
         self._new_tracked_paths = []
@@ -246,7 +247,7 @@ class _FSNotifyWatchList(object):
 
 
 class _FSNotifyObserver(threading.Thread):
-    def __init__(self, extensions: Optional[Tuple[str, ...]]):
+    def __init__(self, extensions: tuple[str, ...] | None):
         from sema4ai_ls_core import load_ignored_dirs
 
         threading.Thread.__init__(self)
@@ -263,7 +264,7 @@ class _FSNotifyObserver(threading.Thread):
             extensions = tuple(extensions)
 
         watcher = self._watcher = fsnotify.Watcher()
-        poll_time_str: Optional[str] = os.environ.get("ROBOTFRAMEWORK_LS_POLL_TIME")
+        poll_time_str: str | None = os.environ.get("ROBOTFRAMEWORK_LS_POLL_TIME")
         watcher.target_time_for_notification = 4.0
         watcher.target_time_for_single_scan = 4.0
 
@@ -282,9 +283,9 @@ class _FSNotifyObserver(threading.Thread):
         watcher.accepted_file_extensions = extensions
         watcher.accept_directory = load_ignored_dirs.create_accept_directory_callable()
 
-        self._all_paths_to_track: List[fsnotify.TrackedPath] = []
+        self._all_paths_to_track: list[fsnotify.TrackedPath] = []
         self._lock = threading.Lock()
-        self._notifications: List[Tuple[str, Any, List[Any], bool]] = []
+        self._notifications: list[tuple[str, Any, list[Any], bool]] = []
         self._was_started = False
 
     def dispose(self):
@@ -292,7 +293,7 @@ class _FSNotifyObserver(threading.Thread):
             self._disposed.set()
             self._watcher.dispose()
 
-    _dir_separators: Tuple[str, ...] = ("/",)
+    _dir_separators: tuple[str, ...] = ("/",)
     if sys.platform == "win32":
         _dir_separators = ("\\", "/")
 
@@ -343,10 +344,10 @@ class _FSNotifyObserver(threading.Thread):
 
     def notify_on_any_change(
         self,
-        paths: List[PathInfo],
+        paths: list[PathInfo],
         on_change: IFSCallback,
         call_args=(),
-        extensions: Optional[Sequence[str]] = None,
+        extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
         if self._disposed.is_set():
             return _DummyWatchList()
@@ -392,7 +393,7 @@ class _FSNotifyObserver(threading.Thread):
         _: IFSObserver = check_implements(self)
 
 
-class _WatchdogWatchList(object):
+class _WatchdogWatchList:
     def __init__(self, watches, observer, info_to_count):
         self.watches = watches
         self._info_to_count = info_to_count
@@ -421,7 +422,7 @@ class _WatchdogWatchList(object):
         _: IFSWatch = check_implements(self)
 
 
-class _WatchdogObserver(object):
+class _WatchdogObserver:
     def __init__(self, extensions=None):
         from watchdog.observers import Observer
 
@@ -440,10 +441,10 @@ class _WatchdogObserver(object):
 
     def notify_on_any_change(
         self,
-        paths: List[PathInfo],
+        paths: list[PathInfo],
         on_change: IFSCallback,
         call_args=(),
-        extensions: Optional[Sequence[str]] = None,
+        extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
         """
         To be used as:
@@ -534,13 +535,13 @@ class _WatchdogObserver(object):
         _: IFSObserver = check_implements(self)
 
 
-class _DummyFSObserver(object):
+class _DummyFSObserver:
     def notify_on_any_change(
         self,
-        paths: List[PathInfo],
+        paths: list[PathInfo],
         on_change: IFSCallback,
         call_args=(),
-        extensions: Optional[Sequence[str]] = None,
+        extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
         return _DummyWatchList()
 
@@ -553,7 +554,7 @@ class _DummyFSObserver(object):
         _: IFSObserver = check_implements(self)
 
 
-def create_observer(backend: str, extensions: Optional[Tuple[str, ...]]) -> IFSObserver:
+def create_observer(backend: str, extensions: tuple[str, ...] | None) -> IFSObserver:
     """
     :param backend:
         The backend to use.
@@ -574,7 +575,7 @@ def create_observer(backend: str, extensions: Optional[Tuple[str, ...]]) -> IFSO
 
 
 def create_remote_observer(
-    backend: str, extensions: Optional[Tuple[str, ...]]
+    backend: str, extensions: tuple[str, ...] | None
 ) -> IFSObserver:
     """
     :param backend:

@@ -41,7 +41,7 @@ import sys
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
 else:
@@ -64,25 +64,25 @@ class IInterpreterInfo(Protocol):
         The python executable that should be used.
         """
 
-    def get_environ(self) -> Optional[Dict[str, str]]:
+    def get_environ(self) -> dict[str, str] | None:
         """
         The environment to be used.
         """
 
-    def get_additional_pythonpath_entries(self) -> List[str]:
+    def get_additional_pythonpath_entries(self) -> list[str]:
         """
         Any additional PYTHONPATH entries to be considered.
         """
 
 
 class EPResolveInterpreter(Protocol):
-    def get_interpreter_info_for_doc_uri(self, doc_uri) -> Optional[IInterpreterInfo]:
+    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
         """
         Provides a customized interpreter for a given document uri.
         """
 
 
-class DefaultInterpreterInfo(object):
+class DefaultInterpreterInfo:
     """
     A Default implementation for the interpreter info where everything is
     pre-computed.
@@ -92,8 +92,8 @@ class DefaultInterpreterInfo(object):
         self,
         interpreter_id: str,
         python_exe: str,
-        environ: Optional[Dict[str, str]],
-        additional_pythonpath_entries: List[str],
+        environ: dict[str, str] | None,
+        additional_pythonpath_entries: list[str],
     ) -> None:
         self.interpreter_id = interpreter_id
         self.python_exe = python_exe
@@ -106,10 +106,10 @@ class DefaultInterpreterInfo(object):
     def get_python_exe(self) -> str:
         return self.python_exe
 
-    def get_environ(self) -> Optional[Dict[str, str]]:
+    def get_environ(self) -> dict[str, str] | None:
         return self.environ
 
-    def get_additional_pythonpath_entries(self) -> List[str]:
+    def get_additional_pythonpath_entries(self) -> list[str]:
         return self.additional_pythonpath_entries
 
     def __str__(self):

@@ -32,7 +32,7 @@ class _Vault:
 
     @vault_command_dispatcher(commands.SEMA4AI_UPDATE_LAUNCH_ENV_GET_VAULT_ENV_INTERNAL)
     def _update_launch_env_get_vault_env_internal(
-        self, params: Optional[dict] = None
+        self, params: dict | None = None
     ) -> ActionResultDict:
         action_result: ActionResultDict = self._get_connected_vault_workspace()
         if not action_result["success"]:
@@ -65,7 +65,7 @@ class _Vault:
 
     @vault_command_dispatcher(commands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL)
     def _get_connected_vault_workspace(
-        self, params: Optional[dict] = None
+        self, params: dict | None = None
     ) -> ActionResultDict:
         try:
             info = self._dir_cache.load(self.VAULT_WORKSPACE_INFO_CACHE_KEY, dict)

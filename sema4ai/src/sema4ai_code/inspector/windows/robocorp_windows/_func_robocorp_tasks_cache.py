@@ -1,7 +1,7 @@
 # If robocorp tasks is available, support feature to print
 # screenshot on failure.
 import typing
-from typing import Iterator
+from collections.abc import Iterator
 
 # It's important that these imports are top-level as they should fail if
 # robocorp-tasks is not there.

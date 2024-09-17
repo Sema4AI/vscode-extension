@@ -12,11 +12,12 @@ import wsgiref.simple_server
 from concurrent.futures import Future
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Callable, Optional, TypedDict
+from typing import Any, Optional, TypedDict
+from collections.abc import Callable
 from wsgiref.simple_server import WSGIServer
 
 
-class _RedirectWSGIApp(object):
+class _RedirectWSGIApp:
     """
     WSGI app to handle the authorization redirect.
 
@@ -29,8 +30,8 @@ class _RedirectWSGIApp(object):
             success_message: The message to display in the web browser
                 the authorization flow is complete.
         """
-        self.last_request_uri: Optional[str] = None
-        self.last_body: Optional[str] = None
+        self.last_request_uri: str | None = None
+        self.last_body: str | None = None
         self._success_message = success_message
 
     def __call__(
@@ -133,8 +134,8 @@ def _start_server(
     *,
     use_https: bool = False,
     ssl_self_signed: bool = False,
-    ssl_keyfile: Optional[str] = None,
-    ssl_certfile: Optional[str] = None,
+    ssl_keyfile: str | None = None,
+    ssl_certfile: str | None = None,
     show_message: str = "Ok, it worked.",
 ) -> tuple[WSGIServer, _RedirectWSGIApp, str]:
     """

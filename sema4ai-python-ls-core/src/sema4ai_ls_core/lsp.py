@@ -21,13 +21,14 @@ https://microsoft.github.io/language-server-protocol/specification
 """
 
 from __future__ import annotations
-from typing import List, Union, Optional, Any, Tuple, Dict, Sequence
+from typing import List, Union, Optional, Any, Tuple, Dict
+from collections.abc import Sequence
 import typing
 
 from sema4ai_ls_core.protocols import IEndPoint, IFuture, TypedDict
 
 
-class CompletionItemKind(object):
+class CompletionItemKind:
     User = 0
     Text = 1
     Method = 2
@@ -57,46 +58,46 @@ class CompletionItemKind(object):
     Issue = 26
 
 
-class CompletionItemTag(object):
+class CompletionItemTag:
     Deprecated = 1
 
 
-class MarkupKind(object):
+class MarkupKind:
     PlainText = "plaintext"
     Markdown = "markdown"
 
 
-class DocumentHighlightKind(object):
+class DocumentHighlightKind:
     Text = 1
     Read = 2
     Write = 3
 
 
-class DiagnosticSeverity(object):
+class DiagnosticSeverity:
     Error = 1
     Warning = 2
     Information = 3
     Hint = 4
 
 
-class DiagnosticTag(object):
+class DiagnosticTag:
     Unnecessary = 1
     Deprecated = 2
 
 
-class InsertTextFormat(object):
+class InsertTextFormat:
     PlainText = 1
     Snippet = 2
 
 
-class MessageType(object):
+class MessageType:
     Error = 1
     Warning = 2
     Info = 3
     Log = 4
 
 
-class SymbolKind(object):
+class SymbolKind:
     File = 1
     Module = 2
     Namespace = 3
@@ -117,19 +118,19 @@ class SymbolKind(object):
     Array = 18
 
 
-class TextDocumentSyncKind(object):
+class TextDocumentSyncKind:
     NONE = 0
     FULL = 1
     INCREMENTAL = 2
 
 
-class FoldingRangeKind(object):
+class FoldingRangeKind:
     COMMENT = "comment"
     IMPORTS = "imports"
     REGION = "region"
 
 
-class _Base(object):
+class _Base:
     def __getitem__(self, name):
         return getattr(self, name)
 
@@ -237,7 +238,7 @@ class ParameterInformation(_Base):
     def __init__(
         self,
         label: str,
-        documentation: Optional[MarkupContentTypedDict] = None,
+        documentation: MarkupContentTypedDict | None = None,
     ):
         self.label = label
         self.documentation = documentation
@@ -247,8 +248,8 @@ class SignatureInformation(_Base):
     def __init__(
         self,
         label: str,
-        documentation: Optional[MarkupContentTypedDict] = None,
-        parameters: Optional[List[ParameterInformation]] = None,
+        documentation: MarkupContentTypedDict | None = None,
+        parameters: list[ParameterInformation] | None = None,
     ):
         self.label = label
         self.documentation = documentation
@@ -258,7 +259,7 @@ class SignatureInformation(_Base):
 class SignatureHelp(_Base):
     def __init__(
         self,
-        signatures: List[SignatureInformation],
+        signatures: list[SignatureInformation],
         active_signature: int = 0,
         active_parameter: int = 0,
     ):
@@ -369,12 +370,12 @@ class Range(_Base):
         return not (self == other)
 
     @classmethod
-    def create_from_range_typed_dict(cls, dct: RangeTypedDict) -> "Range":
+    def create_from_range_typed_dict(cls, dct: RangeTypedDict) -> Range:
         start = Position(dct["start"]["line"], dct["start"]["character"])
         end = Position(dct["end"]["line"], dct["end"]["character"])
         return Range(start, end)
 
-    def is_inside(self, another_range: "Range") -> bool:
+    def is_inside(self, another_range: Range) -> bool:
         return self.start >= another_range.start and self.end <= another_range.end
 
     def get_end_line_col(self):
@@ -383,7 +384,7 @@ class Range(_Base):
 
 class TextDocumentContentChangeEvent(_Base):
     def __init__(
-        self, range: Optional[RangeTypedDict], rangeLength: Optional[int], text: str
+        self, range: RangeTypedDict | None, rangeLength: int | None, text: str
     ):
         """
         :param rangeLength: Deprecated
@@ -464,17 +465,17 @@ class AnnotatedTextEditTypedDict(TypedDict):
 
 class OptionalVersionedTextDocumentIdentifierTypedDict(TypedDict):
     uri: str
-    version: Optional[int]
+    version: int | None
 
 
 class TextDocumentEditTypedDict(TypedDict):
     textDocument: OptionalVersionedTextDocumentIdentifierTypedDict
-    edits: List[Union[TextEditTypedDict, AnnotatedTextEditTypedDict]]
+    edits: list[TextEditTypedDict | AnnotatedTextEditTypedDict]
 
 
 class CreateFileOptions(TypedDict, total=False):
-    overwrite: Optional[bool]
-    ignoreIfExists: Optional[bool]
+    overwrite: bool | None
+    ignoreIfExists: bool | None
 
 
 class CreateFileTypedDict(TypedDict, total=False):
@@ -482,22 +483,22 @@ class CreateFileTypedDict(TypedDict, total=False):
 
     uri: str  # DocumentUri
 
-    options: Optional[CreateFileOptions]
+    options: CreateFileOptions | None
 
     annotationId: str  # Optional[ChangeAnnotationIdentifier]
 
 
 class WorkspaceEditTypedDict(TypedDict, total=False):
     # Changes to existing docs.
-    changes: Dict[str, List[TextEditTypedDict]]
+    changes: dict[str, list[TextEditTypedDict]]
 
     # Changes + resources changes (rename, delete, create)
     # Requires workspace.workspaceEdit.documentChanges client capability
-    documentChanges: Union[
-        Sequence[TextDocumentEditTypedDict],
-        Sequence[TextDocumentEditTypedDict],
-        Sequence[CreateFileTypedDict],
-    ]
+    documentChanges: (
+        Sequence[TextDocumentEditTypedDict] |
+        Sequence[TextDocumentEditTypedDict] |
+        Sequence[CreateFileTypedDict]
+    )
 
     # Changes with descriptions
     # Requires workspace.changeAnnotationSupport client capability
@@ -527,14 +528,14 @@ class SymbolInformationTypedDict(TypedDict, total=False):
     name: str
     kind: int  # SymbolKind value.
     location: LocationTypedDict
-    containerName: Optional[str]
+    containerName: str | None
 
 
 class TextDocumentTypedDict(TypedDict, total=False):
     uri: str
-    languageId: Optional[str]
-    version: Optional[int]
-    text: Optional[str]
+    languageId: str | None
+    version: int | None
+    text: str | None
 
 
 class TextDocumentIdentifierTypedDict(TypedDict):
@@ -552,10 +553,10 @@ class DiagnosticsTypedDict(TypedDict, total=False):
 
     # The diagnostic's severity. Can be omitted. If omitted it is up to the
     # client to interpret diagnostics as error, warning, info or hint.
-    severity: Optional[int]  # DiagnosticSeverity
+    severity: int | None  # DiagnosticSeverity
 
     # The diagnostic's code, which might appear in the user interface.
-    code: Union[int, str]
+    code: int | str
 
     # An optional property to describe the error code.
     #
@@ -564,7 +565,7 @@ class DiagnosticsTypedDict(TypedDict, total=False):
 
     # A human-readable string describing the source of this
     # diagnostic, e.g. 'typescript' or 'super lint'.
-    source: Optional[str]
+    source: str | None
 
     # The diagnostic's message.
     message: str
@@ -583,13 +584,13 @@ class DiagnosticsTypedDict(TypedDict, total=False):
     # `textDocument/codeAction` request.
     #
     # @since 3.16.0
-    data: Optional[Any]  # unknown;
+    data: Any | None  # unknown;
 
 
 class TextDocumentContextTypedDict(TypedDict, total=False):
-    diagnostics: List[DiagnosticsTypedDict]
+    diagnostics: list[DiagnosticsTypedDict]
     triggerKind: int
-    only: Optional[List[str]]
+    only: list[str] | None
 
 
 class TextDocumentCodeActionTypedDict(TypedDict):
@@ -604,7 +605,7 @@ class PrepareRenameParamsTypedDict(TextDocumentPositionParamsTypedDict):
 
 class SelectionRangeParamsTypedDict(TypedDict):
     textDocument: TextDocumentIdentifierTypedDict
-    positions: List[PositionTypedDict]
+    positions: list[PositionTypedDict]
 
 
 class RenameParamsTypedDict(TypedDict, total=False):
@@ -643,37 +644,37 @@ class CompletionItemTypedDict(TypedDict, total=False):
     # Tags for this completion item.
     #
     # @since 3.15.0
-    tags: Optional[Any]  # List[CompletionItemTag]
+    tags: Any | None  # List[CompletionItemTag]
     #
     # A human-readable string with additional information
     # about this item, like type or symbol information.
-    detail: Optional[str]
+    detail: str | None
     #
     # A human-readable string that represents a doc-comment.
-    documentation: Optional[
-        Union[str, MarkupContentTypedDict, MonacoMarkdownStringTypedDict]
-    ]
+    documentation: None | (
+        str | MarkupContentTypedDict | MonacoMarkdownStringTypedDict
+    )
     #
     # Indicates if this item is deprecated.
     # @deprecated Use `tags` instead.
-    deprecated: Optional[bool]
+    deprecated: bool | None
     #
     # Select this item when showing.
     #
     # *Note* that only one completion item can be selected and that the
     # tool / client decides which item that is. The rule is that the *first*
     # item of those that match best is selected.
-    preselect: Optional[bool]
+    preselect: bool | None
     #
     # A string that should be used when comparing this item
     # with other items. When `falsy` the [label](#CompletionItem.label)
     # is used.
-    sortText: Optional[str]
+    sortText: str | None
     #
     # A string that should be used when filtering a set of
     # completion items. When `falsy` the [label](#CompletionItem.label)
     # is used.
-    filterText: Optional[str]
+    filterText: str | None
     #
     # A string that should be inserted into a document when selecting
     # this completion. When `falsy` the [label](#CompletionItem.label)
@@ -685,19 +686,19 @@ class CompletionItemTypedDict(TypedDict, total=False):
     # and a completion item with an `insertText` of `console` is provided it
     # will only insert `sole`. Therefore it is recommended to use `textEdit` instead
     # since it avoids additional client side interpretation.
-    insertText: Optional[str]
+    insertText: str | None
     #
     # The format of the insert text. The format applies to both the `insertText` property
     # and the `newText` property of a provided `textEdit`. If omitted defaults to
     # `InsertTextFormat.PlainText`.
-    insertTextFormat: Optional[int]  # InsertTextFormat
+    insertTextFormat: int | None  # InsertTextFormat
     #
     # How whitespace and indentation is handled during completion
     # item insertion. If ignored the clients default value depends on
     # the `textDocument.completion.insertTextMode` client capability.
     #
     # @since 3.16.0
-    insertTextMode: Optional[Any]  # InsertTextMode
+    insertTextMode: Any | None  # InsertTextMode
     #
     # An [edit](#TextEdit) which is applied to a document when selecting
     # this completion. When an edit is provided the value of
@@ -715,7 +716,7 @@ class CompletionItemTypedDict(TypedDict, total=False):
     # the edit's replace range, that means it must be contained and starting at the same position.
     #
     # @since 3.16.0 additional type `InsertReplaceEdit`
-    textEdit: Optional[TextEditTypedDict]  # Union[TextEdit, InsertReplaceEdit]
+    textEdit: TextEditTypedDict | None  # Union[TextEdit, InsertReplaceEdit]
     #
     # An optional array of additional [text edits](#TextEdit) that are applied when
     # selecting this completion. Edits must not overlap (including the same insert position)
@@ -724,27 +725,27 @@ class CompletionItemTypedDict(TypedDict, total=False):
     # Additional text edits should be used to change text unrelated to the current cursor position
     # (for example adding an import statement at the top of the file if the completion item will
     # insert an unqualified type).
-    additionalTextEdits: Optional[List[TextEditTypedDict]]
+    additionalTextEdits: list[TextEditTypedDict] | None
     #
     # An optional set of characters that when pressed while this completion is active will accept it first and
     # then type that character. *Note* that all commit characters should have `length=1` and that superfluous
     # characters will be ignored.
-    commitCharacters: Optional[List[str]]
+    commitCharacters: list[str] | None
     #
     # An optional [command](#Command) that is executed *after* inserting this completion. *Note* that
     # additional modifications to the current document should be described with the
     # [additionalTextEdits](#CompletionItem.additionalTextEdits)-property.
-    command: Optional[Any]  # Command
+    command: Any | None  # Command
     #
     # A data entry field that is preserved on a completion item between
     # a [CompletionRequest](#CompletionRequest) and a [CompletionResolveRequest]
     # (#CompletionResolveRequest)
-    data: Optional[Any]
+    data: Any | None
 
 
 class HoverTypedDict(TypedDict, total=False):
     contents: MarkupContentTypedDict
-    range: Optional[RangeTypedDict]
+    range: RangeTypedDict | None
 
 
 class DocumentHighlightTypedDict(TypedDict, total=False):
@@ -759,38 +760,38 @@ class ResponseErrorTypedDict(TypedDict, total=False):
 
 
 class ResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
+    id: int | str | None
     result: Any  # Optional
     error: ResponseErrorTypedDict  # Optional
 
 
 class CompletionsResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
-    result: List[CompletionItemTypedDict]
+    id: int | str | None
+    result: list[CompletionItemTypedDict]
     error: ResponseErrorTypedDict  # Optional
 
 
 class CompletionResolveResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
+    id: int | str | None
     result: CompletionItemTypedDict
     error: ResponseErrorTypedDict  # Optional
 
 
 class HoverResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
+    id: int | str | None
     result: HoverTypedDict  # Optional
     error: ResponseErrorTypedDict  # Optional
 
 
 class DocumentHighlightResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
+    id: int | str | None
     result: DocumentHighlightTypedDict  # Optional
     error: ResponseErrorTypedDict  # Optional
 
 
 class ReferencesResponseTypedDict(TypedDict, total=False):
-    id: Union[int, str, None]
-    result: List[LocationTypedDict]  # Optional
+    id: int | str | None
+    result: list[LocationTypedDict]  # Optional
     error: ResponseErrorTypedDict  # Optional
 
 
@@ -803,7 +804,7 @@ class CommandTypedDict(TypedDict, total=False):
 
     # Arguments that the command handler should be
     # invoked with.
-    arguments: Optional[list]
+    arguments: list | None
 
 
 class CodeActionTypedDict(TypedDict, total=False):
@@ -812,10 +813,10 @@ class CodeActionTypedDict(TypedDict, total=False):
 
     # The kind of the code action.
     # Used to filter code actions.
-    kind: Optional[str]
+    kind: str | None
 
     # The diagnostics that this code action resolves.
-    diagnostics: Optional[List[Any]]  # Optional[List[Diagnostic]]
+    diagnostics: list[Any] | None  # Optional[List[Diagnostic]]
 
     # Marks this as a preferred action. Preferred actions are used by the
     # `auto fix` command and can be targeted by keybindings.
@@ -823,15 +824,15 @@ class CodeActionTypedDict(TypedDict, total=False):
     # A quick fix should be marked preferred if it properly addresses the
     # underlying error. A refactoring should be marked preferred if it is the
     # most reasonable choice of actions to take.
-    isPreferred: Optional[bool]
+    isPreferred: bool | None
 
-    disabled: Optional[bool]
+    disabled: bool | None
 
     # The identifier of the actual command handler.
-    edit: Optional[WorkspaceEditTypedDict]
-    command: Optional[CommandTypedDict]
+    edit: WorkspaceEditTypedDict | None
+    command: CommandTypedDict | None
 
-    data: Optional[Any]
+    data: Any | None
 
 
 class DocumentSymbolTypedDict(TypedDict, total=False):
@@ -841,18 +842,18 @@ class DocumentSymbolTypedDict(TypedDict, total=False):
     name: str
 
     # More detail for this symbol, e.g the signature of a function.
-    detail: Optional[str]
+    detail: str | None
 
     # The kind of this symbol.
     kind: int  # SymbolKind
 
     # Tags for this document symbol.
     # @since 3.16.0
-    tags: Optional[List[int]]
+    tags: list[int] | None
 
     # Indicates if this symbol is deprecated.
     # @deprecated Use tags instead
-    deprecated: Optional[bool]
+    deprecated: bool | None
 
     # The range enclosing this symbol not including leading/trailing whitespace
     # but everything else like comments. This information is typically used to
@@ -865,7 +866,7 @@ class DocumentSymbolTypedDict(TypedDict, total=False):
     selectionRange: RangeTypedDict
 
     # Children of this symbol, e.g. properties of a class.
-    children: Optional[list]  # Optional[List[DocumentSymbolTypedDict]]
+    children: list | None  # Optional[List[DocumentSymbolTypedDict]]
 
 
 class CodeLensTypedDict(TypedDict, total=False):
@@ -874,18 +875,18 @@ class CodeLensTypedDict(TypedDict, total=False):
     range: RangeTypedDict
 
     # The command this code lens represents.
-    command: Optional[CommandTypedDict]
+    command: CommandTypedDict | None
 
     # A data entry field that is preserved on a code lens item between a code
     # lens and a code lens resolve request.
-    data: Optional[Any]
+    data: Any | None
 
 
 class SelectionRangeTypedDict(TypedDict, total=False):
     range: RangeTypedDict
 
     # Actually "SelectionRangeTypedDict", but mypy doesn't support it.
-    parent: Optional[Any]
+    parent: Any | None
 
 
 class FoldingRangeTypedDict(TypedDict, total=False):
@@ -902,7 +903,7 @@ class FoldingRangeTypedDict(TypedDict, total=False):
 
     # The zero-based character offset from where the folded range starts. If
     # not defined, defaults to the length of the start line.
-    startCharacter: Optional[int]
+    startCharacter: int | None
 
     # The zero-based end line of the range to fold. The folded area ends with
     # the line's last character. To be valid, the end must be zero or larger
@@ -911,13 +912,13 @@ class FoldingRangeTypedDict(TypedDict, total=False):
 
     # The zero-based character offset before the folded range ends. If not
     # defined, defaults to the length of the end line.
-    endCharacter: Optional[int]
+    endCharacter: int | None
 
     # Describes the kind of the folding range such as `comment` or `region`.
     # The kind is used to categorize folding ranges and used by commands like
     # 'Fold all comments'. See [FoldingRangeKind](#FoldingRangeKind) for an
     # enumeration of standardized kinds.
-    kind: Optional[str]
+    kind: str | None
 
 
 class Location(_Base):
@@ -932,17 +933,17 @@ class Location(_Base):
 
 class ShowDocumentParamsTypedDict(TypedDict, total=False):
     uri: str
-    external: Optional[bool]
-    takeFocus: Optional[bool]
-    selection: Optional[RangeTypedDict]
+    external: bool | None
+    takeFocus: bool | None
+    selection: RangeTypedDict | None
 
 
 class WorkspaceEditParamsTypedDict(TypedDict, total=False):
-    label: Optional[str]
+    label: str | None
     edit: WorkspaceEditTypedDict
 
 
-class LSPMessages(object):
+class LSPMessages:
     M_PUBLISH_DIAGNOSTICS = "textDocument/publishDiagnostics"
     M_APPLY_EDIT = "workspace/applyEdit"
     M_APPLY_SNIPPET = "$/applySnippetWorkspaceEdit"
@@ -967,7 +968,7 @@ class LSPMessages(object):
         return self._endpoint.request(self.M_SHOW_DOCUMENT, params=show_document_args)
 
     def apply_edit(
-        self, edit: WorkspaceEditTypedDict, label: Optional[str] = None
+        self, edit: WorkspaceEditTypedDict, label: str | None = None
     ) -> IFuture:
         edit_args: WorkspaceEditParamsTypedDict = {"edit": edit}
         if label:
@@ -998,9 +999,9 @@ class LSPMessages(object):
     def show_message_request(
         self,
         message: str,
-        actions: typing.List[typing.Dict[str, str]],
+        actions: list[dict[str, str]],
         msg_type=MessageType.Info,
-    ) -> IFuture[typing.Optional[typing.Dict[str, str]]]:
+    ) -> IFuture[dict[str, str] | None]:
         """
         :param message:
             The message to be shown.
@@ -1056,17 +1057,17 @@ class ICustomDiagnosticDataUnexpectedArgumentTypedDict(TypedDict):
     path: str
 
 
-class Error(object):
+class Error:
     __slots__ = "msg start end severity tags data".split(" ")
 
     if typing.TYPE_CHECKING:
-        tags: List[int]
+        tags: list[int]
 
     def __init__(
         self,
         msg: str,
-        start: Tuple[int, int],
-        end: Tuple[int, int],
+        start: tuple[int, int],
+        end: tuple[int, int],
         severity: int = DiagnosticSeverity.Error,
     ):
         """

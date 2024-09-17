@@ -15,7 +15,7 @@ log = get_logger(__name__)
 playwright_command_dispatcher = _SubCommandDispatcher("_playwright")
 
 
-class _Playwright(object):
+class _Playwright:
     def __init__(
         self, base_command_dispatcher, feedback, plugin_manager, lsp_messages
     ) -> None:
@@ -38,7 +38,7 @@ class _Playwright(object):
     )
     def _open_playwright_recorder(
         self, params=None
-    ) -> Union[ActionResultDict, partial]:
+    ) -> ActionResultDict | partial:
         target_robot_uri = params.get("target_robot_uri")
         if not target_robot_uri:
             return ActionResultDict(
@@ -118,7 +118,7 @@ class _Playwright(object):
             )
 
     def _launch_playwright_recorder(
-        self, python_exe: str, environ: Dict[str, str], cwd: str
+        self, python_exe: str, environ: dict[str, str], cwd: str
     ) -> None:
         import subprocess
         import sys

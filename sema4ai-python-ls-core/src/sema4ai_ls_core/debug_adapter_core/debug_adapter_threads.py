@@ -39,7 +39,7 @@ STOP_WRITER_THREAD = "STOP_WRITER_THREAD"
 READER_THREAD_STOPPED = "READER_THREAD_STOPPED"
 
 
-def read(stream, debug_prefix=b"read") -> Optional[Dict]:
+def read(stream, debug_prefix=b"read") -> dict | None:
     """
     Reads one message from the stream and returns the related dict (or None if EOF was reached).
 
@@ -71,7 +71,7 @@ def read(stream, debug_prefix=b"read") -> Optional[Dict]:
         try:
             name, value = line.split(": ", 1)
         except ValueError:
-            raise RuntimeError("Invalid header line: {}.".format(line))
+            raise RuntimeError(f"Invalid header line: {line}.")
         headers[name.strip()] = value.strip()
 
     if not headers:
@@ -152,7 +152,7 @@ def reader_thread(
                         "request_seq": seq,
                         "success": False,
                         "command": data.get("command", "<unknown"),
-                        "message": "Error processing message: %s" % (e,),
+                        "message": f"Error processing message: {e}",
                     }
                     write_queue.put(error_msg)
     except ConnectionError:

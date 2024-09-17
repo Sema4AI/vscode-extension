@@ -9,8 +9,8 @@ from .protocols import Locator
 
 
 def restrict_to_window_locators(
-    or_search_params: Tuple[OrSearchParams, ...],
-) -> Tuple[OrSearchParams, ...]:
+    or_search_params: tuple[OrSearchParams, ...],
+) -> tuple[OrSearchParams, ...]:
     last_part: OrSearchParams = or_search_params[-1]
     also_add_as_pane = []
     for search_params in last_part.parts:
@@ -35,11 +35,11 @@ def restrict_to_window_locators(
 
 
 def find_window(
-    root_element: Optional[_UIAutomationControlWrapper],
+    root_element: _UIAutomationControlWrapper | None,
     locator: Locator,
     search_depth: int = 1,
-    timeout: Optional[float] = None,
-    wait_time: Optional[float] = None,
+    timeout: float | None = None,
+    wait_time: float | None = None,
     foreground: bool = True,
     move_cursor_to_center: bool = True,
 ) -> WindowElement:
@@ -85,7 +85,7 @@ def find_window(
 
 
 def _raise_window_not_found(
-    locator: Locator, timeout, root_element: Optional[_UIAutomationControlWrapper]
+    locator: Locator, timeout, root_element: _UIAutomationControlWrapper | None
 ):
     from . import config as windows_config
     from ._match_ast import _build_locator_match
@@ -112,13 +112,13 @@ def _raise_window_not_found(
 
 
 def find_windows(
-    root_element: Optional[_UIAutomationControlWrapper],
+    root_element: _UIAutomationControlWrapper | None,
     locator: Locator,
     search_depth: int = 1,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     wait_for_window: bool = False,
     search_strategy: Literal["siblings", "all"] = "all",
-) -> List[WindowElement]:
+) -> list[WindowElement]:
     from . import config as windows_config
     from ._find_ui_automation import (
         LocatorStrAndOrSearchParams,
@@ -135,7 +135,7 @@ def find_windows(
 
     timeout_monitor = TimeoutMonitor(time.time() + timeout)
 
-    ret: List[WindowElement] = []
+    ret: list[WindowElement] = []
 
     or_search_params = collect_search_params(locator)
     restrict_to_window_locators(or_search_params)

@@ -33,7 +33,7 @@ class WindowElement(ControlElement):
 
     def __init__(self, wrapped: "_UIAutomationControlWrapper"):
         super().__init__(wrapped)
-        self._executable: Union[_ExecutableNotSetSentinel, Optional[str]] = (
+        self._executable: _ExecutableNotSetSentinel | str | None = (
             _ExecutableNotSetSentinel()
         )
 
@@ -103,14 +103,14 @@ class WindowElement(ControlElement):
         return self.handle == uiautomation.GetForegroundWindow()
 
     @property
-    def executable(self) -> Optional[str]:
+    def executable(self) -> str | None:
         """
         Returns:
             The executable associated to this window (or None if it was
             not possible to get it).
         """
         if isinstance(self._executable, _ExecutableNotSetSentinel):
-            executable: Optional[str] = None
+            executable: str | None = None
             try:
                 from psutil import Process
 
@@ -126,8 +126,8 @@ class WindowElement(ControlElement):
         locator: Locator,
         search_depth: int = 8,
         foreground: bool = True,
-        wait_time: Optional[float] = None,
-        timeout: Optional[float] = None,
+        wait_time: float | None = None,
+        timeout: float | None = None,
     ) -> "WindowElement":
         """
         Find a child window of this window given its locator.

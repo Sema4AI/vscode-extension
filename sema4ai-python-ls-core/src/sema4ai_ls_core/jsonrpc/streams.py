@@ -24,7 +24,7 @@ import queue
 log = get_logger(__name__)
 
 
-def read(stream) -> Optional[str]:
+def read(stream) -> str | None:
     """
     Reads one message from the stream and returns the message (or None if EOF was reached).
 
@@ -47,7 +47,7 @@ def read(stream) -> Optional[str]:
         try:
             name, value = line.split(": ", 1)
         except ValueError:
-            raise RuntimeError("Invalid header line: {}.".format(line))
+            raise RuntimeError(f"Invalid header line: {line}.")
         headers[name.strip()] = value.strip()
 
     if not headers:
@@ -143,7 +143,7 @@ class _JsonRpcStreamReaderThread(threading.Thread):
         self.__name = name
 
 
-class JsonRpcStreamReader(object):
+class JsonRpcStreamReader:
     def __init__(self, rfile):
         self._rfile = rfile
         self._queue = queue.Queue()
@@ -193,7 +193,7 @@ class JsonRpcStreamReader(object):
             log.debug("Exited JsonRpcStreamReader.")
 
 
-class JsonRpcStreamWriter(object):
+class JsonRpcStreamWriter:
     def __init__(self, wfile, **json_dumps_args):
         assert wfile is not None
         self._wfile = wfile

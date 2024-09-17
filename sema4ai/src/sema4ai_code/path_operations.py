@@ -29,7 +29,8 @@ import weakref
 from functools import partial
 from pathlib import Path, PurePath
 from queue import Queue  # noqa
-from typing import Iterable, Iterator, Optional, TypeVar
+from typing import Optional, TypeVar
+from collections.abc import Iterable, Iterator
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import ITimeoutHandle  # noqa
@@ -63,7 +64,7 @@ def on_rm_rf_error(func, path: str, exc, *, start_path: Path) -> bool:
 
     if not isinstance(excvalue, PermissionError):
         warnings.warn(
-            "(rm_rf) error removing {}\n{}: {}".format(path, exctype, excvalue)
+            f"(rm_rf) error removing {path}\n{exctype}: {excvalue}"
         )
         return False
 
@@ -176,7 +177,7 @@ def make_numbered_dir(root: Path, prefix: str) -> Path:
     with timed_acquire_mutex(generate_mutex_name(f"generate_numbered{root}")):
         max_existing = max(map(parse_num, find_suffixes(root, prefix)), default=-1)
         new_number = max_existing + 1
-        new_path = root.joinpath("{}{}".format(prefix, new_number))
+        new_path = root.joinpath(f"{prefix}{new_number}")
         new_path.mkdir()
         return new_path
 
@@ -187,7 +188,7 @@ def create_cleanup_lock(p: Path) -> Path:
     try:
         fd = os.open(str(lock_path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
     except FileExistsError as e:
-        raise OSError("cannot create lockfile in {path}".format(path=p)) from e
+        raise OSError(f"cannot create lockfile in {p}") from e
     else:
         pid = os.getpid()
         spid = str(pid).encode()
@@ -223,7 +224,7 @@ def maybe_delete_a_numbered_dir(path: Path) -> None:
         lock_path = create_cleanup_lock(path)
         parent = path.parent
 
-        garbage = parent.joinpath("garbage-{}".format(uuid.uuid4()))
+        garbage = parent.joinpath(f"garbage-{uuid.uuid4()}")
         path.rename(garbage)
         rm_rf(garbage)
     except OSError:
@@ -346,7 +347,7 @@ def make_numbered_dir_with_cleanup(
     raise e
 
 
-def get_user() -> Optional[str]:
+def get_user() -> str | None:
     """Return the current user name, or None if getuser() does not work
     in the current environment (see #1010).
     """

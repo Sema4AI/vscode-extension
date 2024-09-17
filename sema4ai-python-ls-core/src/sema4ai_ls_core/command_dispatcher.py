@@ -4,7 +4,7 @@ from typing import Any
 log = get_logger(__name__)
 
 
-class _RegisteredCommand(object):
+class _RegisteredCommand:
     def __init__(self, command_name, expected_return_cls):
         self.command_name = command_name
         self.expected_return_type = expected_return_cls
@@ -12,7 +12,7 @@ class _RegisteredCommand(object):
         self.attr_in_language_server = None
 
 
-class _CommandDispatcher(object):
+class _CommandDispatcher:
     def __init__(self):
         self._command_name_to_registered_command = {}
 
@@ -60,7 +60,7 @@ class _CommandDispatcher(object):
         )
 
 
-class _SubCommandDispatcher(object):
+class _SubCommandDispatcher:
     def __init__(self, attr_in_language_server):
         self._command_name_to_registered_command = {}
         self.attr_in_language_server = attr_in_language_server

@@ -20,7 +20,8 @@ import os.path
 import threading
 from functools import partial
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import List, Optional
+from collections.abc import Callable
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IConfig
@@ -33,7 +34,7 @@ def _read_stream(stream, on_line, category):
         while True:
             output = stream.readline()
             if len(output) == 0:
-                log.debug("Finished reading stream: %s.\n" % (category,))
+                log.debug(f"Finished reading stream: {category}.\n")
                 break
             output = output.decode("utf-8", errors="replace")
             on_line(output, category)
@@ -60,12 +61,12 @@ def _notify_on_exited_pid(on_exit, pid):
         log.exception("Error")
 
 
-class _DefaultConfigurationProvider(object):
+class _DefaultConfigurationProvider:
     def __init__(self, config: IConfig):
         self.config = config
 
 
-class LaunchProcess(object):
+class LaunchProcess:
     __slots__ = [
         "_valid",
         "_cmdline",
@@ -90,7 +91,7 @@ class LaunchProcess(object):
         request,
         launch_response,
         debug_adapter_comm,
-        rcc_config_location: Optional[str],
+        rcc_config_location: str | None,
     ) -> None:
         """
         :param LaunchRequest request:
@@ -126,7 +127,7 @@ class LaunchProcess(object):
         self._track_process_pid = None
         self._sent_terminated = threading.Event()
         self._rcc_config_location = rcc_config_location
-        self._on_exit_callbacks: List[Callable] = []
+        self._on_exit_callbacks: list[Callable] = []
 
         def mark_invalid(message):
             launch_response.success = False
@@ -148,7 +149,7 @@ class LaunchProcess(object):
         if isinstance(request_env, dict) and request_env:
             env.update(request_env)
 
-        env = dict(((as_str(key), as_str(value)) for (key, value) in env.items()))
+        env = {as_str(key): as_str(value) for (key, value) in env.items()}
 
         self._env = env
 
@@ -165,24 +166,24 @@ class LaunchProcess(object):
                 return mark_invalid("robot not provided in launch.")
 
             if not os.path.exists(robot_yaml):
-                return mark_invalid("File: %s does not exist." % (robot_yaml,))
+                return mark_invalid(f"File: {robot_yaml} does not exist.")
         except:
             log.exception("Error")
-            return mark_invalid("Error checking if robot (%s) exists." % (robot_yaml,))
+            return mark_invalid(f"Error checking if robot ({robot_yaml}) exists.")
 
         self._cwd = os.path.dirname(robot_yaml)
         try:
             if self._cwd is not None:
                 if not os.path.exists(self._cwd):
                     return mark_invalid(
-                        "cwd specified does not exist: %s" % (self._cwd,)
+                        f"cwd specified does not exist: {self._cwd}"
                     )
         except:
             log.exception("Error")
-            return mark_invalid("Error checking if cwd (%s) exists." % (self._cwd,))
+            return mark_invalid(f"Error checking if cwd ({self._cwd}) exists.")
 
         if get_log_level() > 1:
-            log.debug("Run in debug mode: %s\n" % (self._run_in_debug_mode,))
+            log.debug(f"Run in debug mode: {self._run_in_debug_mode}\n")
 
         try:
             config = Config()
@@ -207,7 +208,7 @@ class LaunchProcess(object):
 
             # Compute the space name
             try:
-                with open(robot_yaml, "r") as stream:
+                with open(robot_yaml) as stream:
                     yaml_contents = yaml_wrapper.load(stream)
             except:
                 log.exception(f"Error loading {robot_yaml} as yaml.")
@@ -257,7 +258,7 @@ class LaunchProcess(object):
                     if not notify_event.is_set():
                         output_event = OutputEvent(
                             OutputEventBody(
-                                "Elapsed: %.1fs\n" % (elapsed,), category="stderr"
+                                f"Elapsed: {elapsed:.1f}s\n", category="stderr"
                             )
                         )
                         debug_adapter_comm.write_to_client_message(output_event)
@@ -280,7 +281,7 @@ class LaunchProcess(object):
 
             if not robot_yaml_env_info.success:
                 return mark_invalid(robot_yaml_env_info.message)
-            robot_yaml_env_info_result: Optional[IRobotYamlEnvInfo] = (
+            robot_yaml_env_info_result: IRobotYamlEnvInfo | None = (
                 robot_yaml_env_info.result
             )
             if not robot_yaml_env_info_result:
@@ -497,7 +498,7 @@ class LaunchProcess(object):
             kind = terminal
 
             if get_log_level() > 1:
-                log.debug('Launching in "%s" terminal: %s' % (kind, self._cmdline))
+                log.debug(f'Launching in "{kind}" terminal: {self._cmdline}')
 
             debug_adapter_comm = weak_debug_adapter_comm()
             cmdline = self._cmdline
@@ -555,7 +556,7 @@ class LaunchProcess(object):
         popen = self._popen
         if popen is not None:
             try:
-                log.debug("Sending: %s to stdin." % (expression,))
+                log.debug(f"Sending: {expression} to stdin.")
 
                 def write_to_stdin(popen, expression):
                     popen.stdin.write(expression)
@@ -573,4 +574,4 @@ class LaunchProcess(object):
                 t.daemon = True
                 t.start()
             except:
-                log.exception("Error writing: >>%s<< to stdin." % (expression,))
+                log.exception(f"Error writing: >>{expression}<< to stdin.")

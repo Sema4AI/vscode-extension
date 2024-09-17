@@ -1,7 +1,8 @@
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Union
+from typing import List, Optional, Union
+from collections.abc import Iterable
 
 from sema4ai_ls_core.command_dispatcher import _SubCommandDispatcher
 from sema4ai_ls_core.core_log import get_logger
@@ -17,7 +18,7 @@ log = get_logger(__name__)
 @dataclass
 class _PreRunScriptsInfo:
     robot_yaml: Path
-    pre_run_scripts: List[str]
+    pre_run_scripts: list[str]
 
 
 class _PreRunScripts:
@@ -26,7 +27,7 @@ class _PreRunScripts:
             pre_run_scripts_command_dispatcher
         )
 
-    def _get_pre_run_scripts(self, robot) -> Optional[_PreRunScriptsInfo]:
+    def _get_pre_run_scripts(self, robot) -> _PreRunScriptsInfo | None:
         from sema4ai_ls_core import yaml_wrapper
 
         from sema4ai_code.find_robot_yaml import find_robot_yaml_path_from_path
@@ -38,13 +39,13 @@ class _PreRunScripts:
             log.exception(f"Expected {path} to exist.")
             return None
 
-        robot_yaml: Optional[Path] = find_robot_yaml_path_from_path(path, stat)
+        robot_yaml: Path | None = find_robot_yaml_path_from_path(path, stat)
 
         if not robot_yaml:
             return None
 
         try:
-            with open(robot_yaml, "r") as stream:
+            with open(robot_yaml) as stream:
                 contents = yaml_wrapper.load(stream)
         except Exception:
             log.exception(f"Error loading: {robot_yaml}")
@@ -65,7 +66,7 @@ class _PreRunScripts:
 
         return None
 
-    def _filter_pre_run_scripts(self, pre_run_scripts: List[str]) -> Iterable[str]:
+    def _filter_pre_run_scripts(self, pre_run_scripts: list[str]) -> Iterable[str]:
         import platform
 
         # See docs: https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-are-prerunscripts
@@ -117,7 +118,7 @@ class _PreRunScripts:
         return bool(self._get_pre_run_scripts(params["robot"]))
 
     @pre_run_scripts_command_dispatcher(commands.SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL)
-    def _run_pre_run_scripts_internal(self, params: dict) -> Optional[ActionResultDict]:
+    def _run_pre_run_scripts_internal(self, params: dict) -> ActionResultDict | None:
         import os
         import shlex
 
@@ -134,7 +135,7 @@ class _PreRunScripts:
                 )
                 command = shlex.split(script, posix=True)
                 if command:
-                    use_command: Union[List[str], str]
+                    use_command: list[str] | str
                     if command[0].endswith((".bat", ".sh")):
                         shell = True
                         use_command = script
@@ -184,7 +185,7 @@ class _PreRunScripts:
         return None
 
 
-def find_in_path(env: dict, basename: str, check_access: bool) -> Optional[str]:
+def find_in_path(env: dict, basename: str, check_access: bool) -> str | None:
     import os
 
     PATH = env.get("PATH")
@@ -204,7 +205,7 @@ def find_in_path(env: dict, basename: str, check_access: bool) -> Optional[str]:
     return None
 
 
-def find_executable(env: dict, executable_basename: str) -> Optional[str]:
+def find_executable(env: dict, executable_basename: str) -> str | None:
     if sys.platform == "win32" and not executable_basename.lower().endswith(".exe"):
         executable_basename += ".exe"
 

@@ -3,7 +3,8 @@ Utilities for tokenizing a locator.
 """
 
 import enum
-from typing import Iterator, Optional
+from typing import Optional
+from collections.abc import Iterator
 
 from ._errors import ParseError
 from ._match_common import _valid_strategies
@@ -67,7 +68,7 @@ class _Tokenizer:
         token = self._input_str[start_token_pos:curr_token_pos]
         return token
 
-    def _make_token(self, token_kind) -> Optional[Token]:
+    def _make_token(self, token_kind) -> Token | None:
         token = self._peek_token()
         if not token:
             return None
@@ -85,7 +86,7 @@ class _Tokenizer:
 
         return Token(token, token_kind)
 
-    def _make_token_remove_quotes(self, token_kind) -> Optional[Token]:
+    def _make_token_remove_quotes(self, token_kind) -> Token | None:
         token = self._peek_token()
         if not token:
             return None

@@ -4,7 +4,7 @@ from sema4ai_ls_core.protocols import IConfig, IDirCache, IEndPoint
 
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
 else:
@@ -20,7 +20,7 @@ class EPConfigurationProvider(Protocol):
         pass
 
 
-class DefaultConfigurationProvider(object):
+class DefaultConfigurationProvider:
     def __init__(self, config: IConfig):
         self.config = config
 
@@ -34,7 +34,7 @@ class EPDirCacheProvider(Protocol):
         pass
 
 
-class DefaultDirCacheProvider(object):
+class DefaultDirCacheProvider:
     def __init__(self, dir_cache: IDirCache):
         self.dir_cache = dir_cache
 
@@ -48,6 +48,6 @@ class EPEndPointProvider(Protocol):
         pass
 
 
-class DefaultEndPointProvider(object):
+class DefaultEndPointProvider:
     def __init__(self, endpoint: IEndPoint):
         self.endpoint = endpoint

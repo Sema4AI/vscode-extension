@@ -273,7 +273,7 @@ def tricks_from(args):
         try:
             tricks = config[CONFIG_KEY_TRICKS]
         except KeyError:
-            raise KeyError("No %r key specified in %s." % (
+            raise KeyError("No {!r} key specified in {}.".format(
                            CONFIG_KEY_TRICKS, tricks_file))
 
         if CONFIG_KEY_PYTHON_PATH in config:

@@ -4,18 +4,16 @@ import typing
 from enum import Enum
 from typing import (
     Any,
-    Callable,
     Dict,
     Generic,
-    Iterable,
     List,
-    Mapping,
     Optional,
     Tuple,
     Type,
     TypeVar,
     Union,
 )
+from collections.abc import Callable, Iterable, Mapping
 
 if typing.TYPE_CHECKING:
     # This would lead to a circular import, so, do it only when type-checking.
@@ -40,10 +38,10 @@ if typing.TYPE_CHECKING:
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):
 
-    class Protocol(object):
+    class Protocol:
         pass
 
-    class TypedDict(object):
+    class TypedDict:
         def __init_subclass__(self, *args, **kwargs):
             pass
 
@@ -78,7 +76,7 @@ def check_implements(x: T) -> T:
 
 
 class IFuture(Generic[Y], Protocol):
-    def result(self, timeout: typing.Optional[int] = None) -> Y:
+    def result(self, timeout: int | None = None) -> Y:
         """Return the result of the call that the future represents.
 
         Args:
@@ -128,7 +126,7 @@ class IEndPoint(Protocol):
             Future that will resolve once a response has been received
         """
 
-    def consume(self, message: Dict):
+    def consume(self, message: dict):
         """Consume a JSON RPC message from the client.
 
         Args:
@@ -149,7 +147,7 @@ class IProgressReporter(Protocol):
         """
 
 
-class CommunicationDropped(object):
+class CommunicationDropped:
     def __str__(self):
         return "CommunicationDropped"
 
@@ -216,7 +214,7 @@ class IRequestHandler(Protocol):
 class ILanguageServerClientBase(IRequestCancellable, Protocol):
     on_message: "Callback"
 
-    def request_async(self, contents: Dict) -> Optional[IIdMessageMatcher]:
+    def request_async(self, contents: dict) -> IIdMessageMatcher | None:
         """
         API which allows to wait for the message to complete.
 
@@ -239,9 +237,9 @@ class ILanguageServerClientBase(IRequestCancellable, Protocol):
     def request(
         self,
         contents,
-        timeout: Union[int, Sentinel] = Sentinel.USE_DEFAULT_TIMEOUT,
+        timeout: int | Sentinel = Sentinel.USE_DEFAULT_TIMEOUT,
         default: Any = COMMUNICATION_DROPPED,
-    ) -> Union[IResultMessage, IErrorMessage]:
+    ) -> IResultMessage | IErrorMessage:
         """
         :param contents:
             {"jsonrpc": "2.0", "id": msg_id, "method": method_name, "params": params}
@@ -274,8 +272,8 @@ class ILanguageServerClientBase(IRequestCancellable, Protocol):
         """
 
     def obtain_pattern_message_matcher(
-        self, message_pattern: Dict[str, str], remove_on_match: bool = True
-    ) -> Optional[IMessageMatcher]:
+        self, message_pattern: dict[str, str], remove_on_match: bool = True
+    ) -> IMessageMatcher | None:
         """
         Can be used as:
 
@@ -312,18 +310,18 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
     def lint(self, doc_uri: str) -> "ResponseTypedDict":
         pass
 
-    def request_lint(self, doc_uri: str) -> Optional[IIdMessageMatcher]:
+    def request_lint(self, doc_uri: str) -> IIdMessageMatcher | None:
         pass
 
     def request_semantic_tokens_full(
         self, text_document: "TextDocumentTypedDict"
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         pass
 
     def forward(self, method_name, params):
         pass
 
-    def forward_async(self, method_name, params) -> Optional[IIdMessageMatcher]:
+    def forward_async(self, method_name, params) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
@@ -333,7 +331,7 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
 
     def request_complete_all(
         self, doc_uri, line, col
-    ) -> Optional[IIdMessageMatcher["CompletionsResponseTypedDict"]]:
+    ) -> IIdMessageMatcher["CompletionsResponseTypedDict"] | None:
         """
         Completes: sectionName, keyword, variables
         :Note: async complete.
@@ -341,100 +339,100 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
 
     def request_resolve_completion_item(
         self, completion_item: "CompletionItemTypedDict"
-    ) -> Optional[IIdMessageMatcher["CompletionResolveResponseTypedDict"]]:
+    ) -> IIdMessageMatcher["CompletionResolveResponseTypedDict"] | None:
         pass
 
     def request_find_definition(
         self, doc_uri, line, col
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
-    def request_flow_explorer_model(self, doc_uri) -> Optional[IIdMessageMatcher]:
+    def request_flow_explorer_model(self, doc_uri) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_rename(
         self, doc_uri: str, line: int, col: int, new_name: str
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_prepare_rename(
         self, doc_uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_source_format(
         self, text_document, options
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_signature_help(
         self, doc_uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
-    def request_folding_range(self, doc_uri: str) -> Optional[IIdMessageMatcher]:
+    def request_folding_range(self, doc_uri: str) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_on_type_formatting(
         self, doc_uri: str, ch: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_selection_range(
-        self, doc_uri: str, positions: List["PositionTypedDict"]
-    ) -> Optional[IIdMessageMatcher]:
+        self, doc_uri: str, positions: list["PositionTypedDict"]
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_hover(
         self, doc_uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_references(
         self, doc_uri: str, line: int, col: int, include_declaration: bool
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_workspace_symbols(
-        self, query: Optional[str] = None
-    ) -> Optional[IIdMessageMatcher]:
+        self, query: str | None = None
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
-    def settings(self, settings: Dict):
+    def settings(self, settings: dict):
         pass
 
-    def request_wait_for_full_test_collection(self) -> Optional[IIdMessageMatcher]:
+    def request_wait_for_full_test_collection(self) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
     def request_evaluatable_expression(
         self, doc_uri: str, position: "PositionTypedDict"
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
@@ -442,15 +440,15 @@ class IRobotFrameworkApiClient(ILanguageServerClientBase, Protocol):
     def request_collect_robot_documentation(
         self,
         doc_uri,
-        library_name: Optional[str] = None,
-        line: Optional[int] = None,
-        col: Optional[int] = None,
-    ) -> Optional[IIdMessageMatcher]:
+        library_name: str | None = None,
+        line: int | None = None,
+        col: int | None = None,
+    ) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
 
-    def request_rf_info(self, doc_uri: str) -> Optional[IIdMessageMatcher]:
+    def request_rf_info(self, doc_uri: str) -> IIdMessageMatcher | None:
         """
         :Note: async complete.
         """
@@ -464,7 +462,7 @@ class EvaluatableExpressionTypedDict(TypedDict):
     """
 
     range: "RangeTypedDict"
-    expression: Optional[str]
+    expression: str | None
 
 
 class ITestInfoTypedDict(TypedDict):
@@ -481,15 +479,15 @@ class ITestInfoFromSymbolsCacheTypedDict(TypedDict):
 
 class ITestInfoFromUriTypedDict(TypedDict):
     uri: str
-    testInfo: List[ITestInfoFromSymbolsCacheTypedDict]
+    testInfo: list[ITestInfoFromSymbolsCacheTypedDict]
 
 
 class ILanguageServerClient(ILanguageServerClientBase, Protocol):
-    pid: Optional[int]
+    pid: int | None
 
-    DEFAULT_TIMEOUT: Optional[int] = None
+    DEFAULT_TIMEOUT: int | None = None
 
-    def settings(self, settings: Dict):
+    def settings(self, settings: dict):
         """
         :param settings:
             Something as:
@@ -502,11 +500,11 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
         pass
 
     def change_workspace_folders(
-        self, added_folders: List[str], removed_folders: List[str]
+        self, added_folders: list[str], removed_folders: list[str]
     ) -> None:
         pass
 
-    def open_doc(self, uri: str, version: int = 1, text: Optional[str] = None):
+    def open_doc(self, uri: str, version: int = 1, text: str | None = None):
         """
         :param text:
             If None (default), the contents will be loaded from the disk.
@@ -532,7 +530,7 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
 
     def get_completions_async(
         self, uri: str, line: int, col: int
-    ) -> Optional[IIdMessageMatcher["CompletionsResponseTypedDict"]]:
+    ) -> IIdMessageMatcher["CompletionsResponseTypedDict"] | None:
         """
         :param uri:
             The uri for the request.
@@ -573,7 +571,7 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
 
     def execute_command_async(
         self, command: str, arguments: list
-    ) -> Optional[IIdMessageMatcher]:
+    ) -> IIdMessageMatcher | None:
         pass
 
     def request_signature_help(self, uri: str, line: int, col: int):
@@ -601,7 +599,7 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
         pass
 
     def request_selection_range(
-        self, doc_uri: str, positions: List["PositionTypedDict"]
+        self, doc_uri: str, positions: list["PositionTypedDict"]
     ):
         pass
 
@@ -625,7 +623,7 @@ class ILanguageServerClient(ILanguageServerClientBase, Protocol):
     ):  # -> "Response(dict) with EvaluatableExpressionTypedDict (result)"
         pass  # Note: not part of the language server spec (custom request).
 
-    def request_workspace_symbols(self, query: Optional[str] = None):
+    def request_workspace_symbols(self, query: str | None = None):
         pass
 
     def request_resolve_completion(
@@ -733,7 +731,7 @@ class IDirCache(Protocol):
         such as saving a tuple and loading a list apply).
         """
 
-    def load(self, key: Any, expected_class: Type) -> Any:
+    def load(self, key: Any, expected_class: type) -> Any:
         """
         Loads a previously persisted value.
 
@@ -788,7 +786,7 @@ class IDocumentSelection(Protocol):
 
 class IDocument(Protocol):
     uri: str
-    version: Optional[str]
+    version: str | None
     path: str
 
     immutable: bool
@@ -807,7 +805,7 @@ class IDocument(Protocol):
     def get_line(self, line: int) -> str:
         pass
 
-    def offset_to_line_col(self, offset: int) -> Tuple[int, int]:
+    def offset_to_line_col(self, offset: int) -> tuple[int, int]:
         pass
 
     def get_range(self, line: int, col: int, endline: int, endcol: int) -> str:
@@ -816,10 +814,10 @@ class IDocument(Protocol):
     def get_last_line(self) -> str:
         pass
 
-    def get_last_line_col(self) -> Tuple[int, int]:
+    def get_last_line_col(self) -> tuple[int, int]:
         pass
 
-    def get_last_line_col_with_contents(self, contents: str) -> Tuple[int, int]:
+    def get_last_line_col_with_contents(self, contents: str) -> tuple[int, int]:
         pass
 
     def get_line_count(self) -> int:
@@ -879,14 +877,14 @@ class IWorkspace(Protocol):
     def put_document(self, text_document: "TextDocumentItem") -> IDocument:
         pass
 
-    def get_document(self, doc_uri: str, accept_from_file: bool) -> Optional[IDocument]:
+    def get_document(self, doc_uri: str, accept_from_file: bool) -> IDocument | None:
         """
         Return a managed document if-present, otherwise, create one pointing at
         the disk if accept_from_file == True (if the file exists, and we're able to
         load it, otherwise, return None).
         """
 
-    def get_folder_paths(self) -> List[str]:
+    def get_folder_paths(self) -> list[str]:
         """
         Retuns the folders which are set as workspace folders.
         """
@@ -920,21 +918,21 @@ class IMonitor(Protocol):
 
 class ActionResultDict(TypedDict):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
+    )  # if success == False, this can be some message to show to the user
     result: Any
 
 
 class ActionResult(Generic[T]):
     success: bool
-    message: Optional[
+    message: None | (
         str
-    ]  # if success == False, this can be some message to show to the user
-    result: Optional[T]
+    )  # if success == False, this can be some message to show to the user
+    result: T | None
 
     def __init__(
-        self, success: bool, message: Optional[str] = None, result: Optional[T] = None
+        self, success: bool, message: str | None = None, result: T | None = None
     ):
         self.success = success
         self.message = message
@@ -965,8 +963,8 @@ class LaunchActionResult(ActionResult[T]):
         self,
         command_line: str,
         success: bool,
-        message: Optional[str] = None,
-        result: Optional[T] = None,
+        message: str | None = None,
+        result: T | None = None,
     ):
         ActionResult.__init__(self, success, message, result)
         self.command_line = command_line
@@ -986,8 +984,8 @@ class LibraryVersionInfoDict(TypedDict):
     success: bool
 
     # if success == False, this can be some message to show to the user
-    message: Optional[str]
+    message: str | None
 
     # Note that if the library was found but the version doesn't match, the
     # result should still be provided.
-    result: Optional[LibraryVersionDict]
+    result: LibraryVersionDict | None

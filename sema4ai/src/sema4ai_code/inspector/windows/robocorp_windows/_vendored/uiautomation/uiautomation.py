@@ -24,8 +24,9 @@ import time
 import typing
 from io import TextIOWrapper
 from types import MappingProxyType
-from typing import Sequence  # need 'pip install typing' for Python3.4 or lower
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from collections.abc import Sequence  # need 'pip install typing' for Python3.4 or lower
+from typing import Any, Dict, List, Optional, Tuple, Union
+from collections.abc import Callable, Iterable
 
 # need 'pip install comtypes'
 import comtypes  # type:ignore
@@ -733,7 +734,7 @@ class AccessibleRole:
     Link = 0x1E
     HelpBalloon = 0x1F
     Character = 0x20
-    List = 0x21
+    list = 0x21
     ListItem = 0x22
     Outline = 0x23
     OutlineItem = 0x24
@@ -1841,7 +1842,7 @@ class ClipboardFormat:
 
 
 def _GetDictKeyName(
-    theDict: MappingProxyType[str, Any], theValue: Any, start: Optional[str] = None
+    theDict: MappingProxyType[str, Any], theValue: Any, start: str | None = None
 ) -> str:
     for key, value in theDict.items():
         if theValue == value and ((start and key.startswith(start)) or True):
@@ -1916,7 +1917,7 @@ def ChildWindowFromPoint(hWndParent, x: int, y: int) -> int:
     )
 
 
-def GetCursorPos() -> Tuple[int, int]:
+def GetCursorPos() -> tuple[int, int]:
     """
     GetCursorPos from Win32.
     Get current mouse cursor positon.
@@ -1927,7 +1928,7 @@ def GetCursorPos() -> Tuple[int, int]:
     return point.x, point.y  # type: ignore
 
 
-def GetPhysicalCursorPos() -> Tuple[int, int]:
+def GetPhysicalCursorPos() -> tuple[int, int]:
     """
     GetPhysicalCursorPos from Win32.
     Get current mouse cursor positon.
@@ -2323,7 +2324,7 @@ def WheelUp(
     time.sleep(waitTime)
 
 
-def GetScreenSize() -> Tuple[int, int]:
+def GetScreenSize() -> tuple[int, int]:
     """
     Return Tuple[int, int], two ints tuple (width, height).
     """
@@ -2334,7 +2335,7 @@ def GetScreenSize() -> Tuple[int, int]:
     return w, h
 
 
-def GetVirtualScreenSize() -> Tuple[int, int]:
+def GetVirtualScreenSize() -> tuple[int, int]:
     """
     Return Tuple[int, int], two ints tuple (width, height).
     """
@@ -2345,7 +2346,7 @@ def GetVirtualScreenSize() -> Tuple[int, int]:
     return w, h
 
 
-def GetMonitorsRect() -> List[Rect]:
+def GetMonitorsRect() -> list[Rect]:
     """
     Get monitors' rect.
     Return List[Rect].
@@ -2739,7 +2740,7 @@ def PlayWaveFile(
         )
 
 
-def IsProcess64Bit(processId: int) -> Optional[bool]:
+def IsProcess64Bit(processId: int) -> bool | None:
     """
     Return True if process is 64 bit.
     Return False if process is 32 bit.
@@ -2778,8 +2779,8 @@ def IsUserAnAdmin() -> bool:
 
 
 def RunScriptAsAdmin(
-    argv: List[str],
-    workingDirectory: Optional[str] = None,
+    argv: list[str],
+    workingDirectory: str | None = None,
     showFlag: int = SW.ShowNormal,
 ) -> bool:
     """
@@ -2790,7 +2791,7 @@ def RunScriptAsAdmin(
     showFlag: int, a value in class `SW`.
     Return bool, True if succeed.
     """
-    args = " ".join('"{}"'.format(arg) for arg in argv)
+    args = " ".join(f'"{arg}"' for arg in argv)
     return (
         ctypes.windll.shell32.ShellExecuteW(
             None, "runas", sys.executable, args, workingDirectory, showFlag
@@ -3027,7 +3028,7 @@ def SendKeys(
     length = len(text)
     hold = False
     include = False
-    lastKeyValue: Optional[Union[str, int]] = None
+    lastKeyValue: str | int | None = None
     key: list
     while True:
         if text[i] == "{":
@@ -3047,7 +3048,7 @@ def SendKeys(
                     )
                 )
             if (len(key) == 2 and not key[1].isdigit()) or len(key) > 2:
-                raise ValueError('"{}" is not valid'.format(text[i : rindex + 1]))
+                raise ValueError(f'"{text[i : rindex + 1]}" is not valid')
             upperKey = key[0].upper()
             count = 1
             if len(key) > 1:
@@ -3227,7 +3228,7 @@ def SendKeys(
             if i + 1 == len(keys):
                 time.sleep(interval)
                 if debug:
-                    Logger.Write(", sleep({})\n".format(interval), writeToFile=False)
+                    Logger.Write(f", sleep({interval})\n", writeToFile=False)
             else:
                 if key[1] & KeyboardEventFlag.KeyUp:
                     if (
@@ -3237,7 +3238,7 @@ def SendKeys(
                         time.sleep(interval)
                         if debug:
                             Logger.Write(
-                                ", sleep({})\n".format(interval), writeToFile=False
+                                f", sleep({interval})\n", writeToFile=False
                             )
                     else:
                         time.sleep(
@@ -3245,14 +3246,14 @@ def SendKeys(
                         )  # must sleep for a while, otherwise combined keys may not be caught
                         if debug:
                             Logger.Write(
-                                ", sleep({})\n".format(hotkeyInterval),
+                                f", sleep({hotkeyInterval})\n",
                                 writeToFile=False,
                             )
                 else:  # KeyboardEventFlag.KeyDown
                     time.sleep(hotkeyInterval)
                     if debug:
                         Logger.Write(
-                            ", sleep({})\n".format(hotkeyInterval), writeToFile=False
+                            f", sleep({hotkeyInterval})\n", writeToFile=False
                         )
     # make sure hold keys are not pressed
     # win = ctypes.windll.user32.GetAsyncKeyState(Keys.VK_LWIN)
@@ -3314,7 +3315,7 @@ class Logger:
     """
 
     FilePath = "@AutomationLog.txt"
-    FileObj: Optional[TextIOWrapper] = None
+    FileObj: TextIOWrapper | None = None
     FlushTime = ProcessTime()
     _SelfFileName = os.path.split(__file__)[1]
     ColorNames = {
@@ -3337,7 +3338,7 @@ class Logger:
     }
 
     @staticmethod
-    def SetLogFile(logFile: Union[TextIOWrapper, str]) -> None:
+    def SetLogFile(logFile: TextIOWrapper | str) -> None:
         """
         logFile: file object or str.
         If logFile is '', no log file will be written.
@@ -3359,7 +3360,7 @@ class Logger:
         consoleColor: int = ConsoleColor.Default,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
         printTruncateLen: int = 0,
     ) -> None:
         """
@@ -3427,7 +3428,7 @@ class Logger:
         consoleColor: int = -1,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
     ) -> None:
         """
         log: any type.
@@ -3437,7 +3438,7 @@ class Logger:
         logFile: str, log file path.
         """
         Logger.Write(
-            "{}\n".format(log), consoleColor, writeToFile, printToStdout, logFile
+            f"{log}\n", consoleColor, writeToFile, printToStdout, logFile
         )
 
     @staticmethod
@@ -3446,7 +3447,7 @@ class Logger:
         consoleColor: int = -1,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
     ) -> None:
         """
         log: str.
@@ -3490,7 +3491,7 @@ class Logger:
         consoleColor: int = -1,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
     ) -> None:
         """
         log: str.
@@ -3511,7 +3512,7 @@ class Logger:
         consoleColor: int = -1,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
     ) -> None:
         """
         log: any type.
@@ -3550,7 +3551,7 @@ class Logger:
         consoleColor: int = -1,
         writeToFile: bool = True,
         printToStdout: bool = True,
-        logFile: Optional[str] = None,
+        logFile: str | None = None,
     ) -> None:
         """
         log: any type.
@@ -3946,8 +3947,8 @@ class Bitmap:
         )
 
     def GetPixelColorsOfRects(
-        self, rects: List[Tuple[int, int, int, int]]
-    ) -> List[ctypes.Array]:
+        self, rects: list[tuple[int, int, int, int]]
+    ) -> list[ctypes.Array]:
         """
         rects: List[Tuple[int, int, int, int]], such as [(0,0,10,10), (10,10,20,20), (x,y,width,height)].
         Return List[ctypes.Array], a list whose elements are ctypes.Array which is an iterable array of int values in ARGB color format.
@@ -4151,7 +4152,7 @@ def _OpenClipboard(value):
         time.sleep(0.005)
 
 
-def GetClipboardFormats() -> Dict[int, str]:
+def GetClipboardFormats() -> dict[int, str]:
     """
     Get clipboard formats that system clipboard has currently.
     Return Dict[int, str].
@@ -4273,17 +4274,17 @@ def SetClipboardHtml(htmlText: str) -> bool:
     startFragment = formatBytes.find(b"{}")
     endFragment = formatBytes.find(b"<!--EndFragment-->") + len(u8Html) - 2
     formatBytes = formatBytes.replace(
-        b"StartHTML:00000000", "StartHTML:{:08}".format(startHtml).encode("utf-8")
+        b"StartHTML:00000000", f"StartHTML:{startHtml:08}".encode()
     )
     formatBytes = formatBytes.replace(
-        b"EndHTML:00000000", "EndHTML:{:08}".format(endHtml).encode("utf-8")
+        b"EndHTML:00000000", f"EndHTML:{endHtml:08}".encode()
     )
     formatBytes = formatBytes.replace(
         b"StartFragment:00000000",
-        "StartFragment:{:08}".format(startFragment).encode("utf-8"),
+        f"StartFragment:{startFragment:08}".encode(),
     )
     formatBytes = formatBytes.replace(
-        b"EndFragment:00000000", "EndFragment:{:08}".format(endFragment).encode("utf-8")
+        b"EndFragment:00000000", f"EndFragment:{endFragment:08}".encode()
     )
     u8Result = formatBytes.replace(b"{}", u8Html)
     ret = False
@@ -4312,7 +4313,7 @@ def SetClipboardHtml(htmlText: str) -> bool:
     return ret
 
 
-def GetClipboardBitmap() -> Optional[Bitmap]:
+def GetClipboardBitmap() -> Bitmap | None:
     with _ClipboardLock:
         if _OpenClipboard(0):
             if ctypes.windll.user32.IsClipboardFormatAvailable(
@@ -4689,7 +4690,7 @@ class DragPattern:
         return self.pattern.CurrentDropEffect
 
     @property
-    def DropEffects(self) -> List[str]:
+    def DropEffects(self) -> list[str]:
         """
         Property DropEffects.
         Call IUIAutomationDragPattern::get_CurrentDropEffects, todo SAFEARRAY.
@@ -4709,7 +4710,7 @@ class DragPattern:
         """
         return bool(self.pattern.CurrentIsGrabbed)
 
-    def GetGrabbedItems(self) -> List["Control"]:
+    def GetGrabbedItems(self) -> list["Control"]:
         """
         Call IUIAutomationDragPattern::GetCurrentGrabbedItems.
         Return List[Control], a list of `Control` subclasses that represent the full set of items
@@ -4745,7 +4746,7 @@ class DropTargetPattern:
         return self.pattern.CurrentDropTargetEffect
 
     @property
-    def DropTargetEffects(self) -> List[str]:
+    def DropTargetEffects(self) -> list[str]:
         """
         Property DropTargetEffects.
         Call IUIAutomationDropTargetPattern::get_CurrentDropTargetEffects, todo SAFEARRAY.
@@ -5040,7 +5041,7 @@ class LegacyIAccessiblePattern:
         time.sleep(waitTime)
         return ret
 
-    def GetSelection(self) -> List["Control"]:
+    def GetSelection(self) -> list["Control"]:
         """
         Call IUIAutomationLegacyIAccessiblePattern::GetCurrentSelection.
         Return List[Control], a list of `Control` subclasses,
@@ -5109,7 +5110,7 @@ class MultipleViewPattern:
         """
         return self.pattern.CurrentCurrentView
 
-    def GetSupportedViews(self) -> List[int]:
+    def GetSupportedViews(self) -> list[int]:
         """
         Call IUIAutomationMultipleViewPattern::GetCurrentSupportedViews, todo.
         Return List[int], a list of int, control-specific view identifiers.
@@ -5443,7 +5444,7 @@ class SelectionPattern:
         """
         return bool(self.pattern.CurrentIsSelectionRequired)
 
-    def GetSelection(self) -> List["Control"]:
+    def GetSelection(self) -> list["Control"]:
         """
         Call IUIAutomationSelectionPattern::GetCurrentSelection.
         Return List[Control], a list of `Control` subclasses, the selected elements in the container..
@@ -5476,7 +5477,7 @@ class SpreadsheetItemPattern:
         """
         return self.pattern.CurrentFormula
 
-    def GetAnnotationObjects(self) -> List["Control"]:
+    def GetAnnotationObjects(self) -> list["Control"]:
         """
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationObjects.
         Return List[Control], a list of `Control` subclasses representing the annotations associated with this spreadsheet cell.
@@ -5493,7 +5494,7 @@ class SpreadsheetItemPattern:
             return controls
         return []
 
-    def GetAnnotationTypes(self) -> List[int]:
+    def GetAnnotationTypes(self) -> list[int]:
         """
         Call IUIAutomationSelectionPattern::GetCurrentAnnotationTypes.
         Return List[int], a list of int values in class `AnnotationType`,
@@ -5614,7 +5615,7 @@ class TableItemPattern:
         """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtableitempattern"""
         self.pattern = pattern
 
-    def GetColumnHeaderItems(self) -> List["Control"]:
+    def GetColumnHeaderItems(self) -> list["Control"]:
         """
         Call IUIAutomationTableItemPattern::GetCurrentColumnHeaderItems.
         Return List[Control], a list of `Control` subclasses, the column headers associated with a table item or cell.
@@ -5631,7 +5632,7 @@ class TableItemPattern:
             return controls
         return []
 
-    def GetRowHeaderItems(self) -> List["Control"]:
+    def GetRowHeaderItems(self) -> list["Control"]:
         """
         Call IUIAutomationTableItemPattern::GetCurrentRowHeaderItems.
         Return List[Control], a list of `Control` subclasses, the row headers associated with a table item or cell.
@@ -5664,7 +5665,7 @@ class TablePattern:
         """
         return self.pattern.CurrentRowOrColumnMajor
 
-    def GetColumnHeaders(self) -> List["Control"]:
+    def GetColumnHeaders(self) -> list["Control"]:
         """
         Call IUIAutomationTablePattern::GetCurrentColumnHeaders.
         Return List[Control], a list of `Control` subclasses, representing all the column headers in a table..
@@ -5681,7 +5682,7 @@ class TablePattern:
             return controls
         return []
 
-    def GetRowHeaders(self) -> List["Control"]:
+    def GetRowHeaders(self) -> list["Control"]:
         """
         Call IUIAutomationTablePattern::GetCurrentRowHeaders.
         Return List[Control], a list of `Control` subclasses, representing all the row headers in a table.
@@ -5807,7 +5808,7 @@ class TextRange:
         """
         return self.textRange.GetAttributeValue(textAttributeId)
 
-    def GetBoundingRectangles(self) -> List[Rect]:
+    def GetBoundingRectangles(self) -> list[Rect]:
         """
         Call IUIAutomationTextRange::GetBoundingRectangles.
         textAttributeId: int, a value in class `TextAttributeId`.
@@ -5830,7 +5831,7 @@ class TextRange:
             rects.append(rect)
         return rects
 
-    def GetChildren(self) -> List["Control"]:
+    def GetChildren(self) -> list["Control"]:
         """
         Call IUIAutomationTextRange::GetChildren.
         textAttributeId: int, a value in class `TextAttributeId`.
@@ -6003,7 +6004,7 @@ class TextEditPattern:
         """Refer https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtexteditpattern"""
         self.pattern = pattern
 
-    def GetActiveComposition(self) -> Optional[TextRange]:
+    def GetActiveComposition(self) -> TextRange | None:
         """
         Call IUIAutomationTextEditPattern::GetActiveComposition.
         Return `TextRange` or None, the active composition.
@@ -6014,7 +6015,7 @@ class TextEditPattern:
             return TextRange(textRange=textRange)
         return None
 
-    def GetConversionTarget(self) -> Optional[TextRange]:
+    def GetConversionTarget(self) -> TextRange | None:
         """
         Call IUIAutomationTextEditPattern::GetConversionTarget.
         Return `TextRange` or None, the current conversion target range..
@@ -6051,7 +6052,7 @@ class TextPattern:
         """
         return bool(self.pattern.SupportedTextSelection)
 
-    def GetSelection(self) -> List[TextRange]:
+    def GetSelection(self) -> list[TextRange]:
         """
         Call IUIAutomationTextPattern::GetSelection.
         Return List[TextRange], a list of `TextRange`, represents the currently selected text in a text-based control.
@@ -6066,7 +6067,7 @@ class TextPattern:
             return textRanges
         return []
 
-    def GetVisibleRanges(self) -> List[TextRange]:
+    def GetVisibleRanges(self) -> list[TextRange]:
         """
         Call IUIAutomationTextPattern::GetVisibleRanges.
         Return List[TextRange], a list of `TextRange`, disjoint text ranges from a text-based control
@@ -6082,7 +6083,7 @@ class TextPattern:
             return textRanges
         return []
 
-    def RangeFromChild(self, child) -> Optional[TextRange]:
+    def RangeFromChild(self, child) -> TextRange | None:
         """
         Call IUIAutomationTextPattern::RangeFromChild.
         child: `Control` or its subclass.
@@ -6095,7 +6096,7 @@ class TextPattern:
             return TextRange(textRange=textRange)
         return None
 
-    def RangeFromPoint(self, x: int, y: int) -> Optional[TextRange]:
+    def RangeFromPoint(self, x: int, y: int) -> TextRange | None:
         """
         Call IUIAutomationTextPattern::RangeFromPoint.
         child: `Control` or its subclass.
@@ -6501,8 +6502,7 @@ def CreatePattern(patternId: int, pattern: "ctypes._Pointer[comtypes.IUnknown]")
 
 
 class Control:
-    ValidKeys = set(
-        [
+    ValidKeys = {
             "ControlType",
             "ClassName",
             "AutomationId",
@@ -6511,8 +6511,7 @@ class Control:
             "RegexName",
             "Depth",
             "Compare",
-        ]
-    )
+    }
 
     def __init__(
         self,
@@ -6995,7 +6994,7 @@ class Control:
     # GetCachedPropertyValue
     # GetCachedPropertyValueEx
 
-    def GetClickablePoint(self) -> Tuple[int, int, bool]:
+    def GetClickablePoint(self) -> tuple[int, int, bool]:
         """
         Call IUIAutomationElement::GetClickablePoint.
         Return Tuple[int, int, bool], three items tuple (x, y, gotClickable), such as (20, 10, True)
@@ -7049,7 +7048,7 @@ class Control:
         """
         return self.Element.GetCurrentPropertyValueEx(propertyId, ignoreDefaultValue)
 
-    def GetRuntimeId(self) -> List[int]:
+    def GetRuntimeId(self) -> list[int]:
         """
         Call IUIAutomationElement::GetRuntimeId.
         Return List[int], a list of int.
@@ -7202,7 +7201,7 @@ class Control:
 
         return None
 
-    def GetChildren(self) -> List["Control"]:
+    def GetChildren(self) -> list["Control"]:
         """
         Return List[Control], a list of `Control` subclasses.
         """
@@ -7400,7 +7399,7 @@ class Control:
 
     def GetPosition(
         self, ratioX: float = 0.5, ratioY: float = 0.5
-    ) -> Optional[Tuple[int, int]]:
+    ) -> tuple[int, int] | None:
         """
         Gets the position of the center of the control.
         ratioX: float.
@@ -7421,12 +7420,12 @@ class Control:
 
     def MoveCursorToInnerPos(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         simulateMove: bool = True,
-    ) -> Optional[Tuple[int, int]]:
+    ) -> tuple[int, int] | None:
         """
         Move cursor to control's internal position, default to center.
         x: int, if < 0, move to self.BoundingRectangle.right + x, if not None, ignore ratioX.
@@ -7461,7 +7460,7 @@ class Control:
 
     def MoveCursorToMyCenter(
         self, simulateMove: bool = True
-    ) -> Optional[Tuple[int, int]]:
+    ) -> tuple[int, int] | None:
         """
         Move cursor to control's center.
         Return Tuple[int, int], two ints tuple (x, y), the cursor positon relative to screen(0, 0) after moving.
@@ -7470,8 +7469,8 @@ class Control:
 
     def Click(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         simulateMove: bool = True,
@@ -7495,8 +7494,8 @@ class Control:
 
     def MiddleClick(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         simulateMove: bool = True,
@@ -7520,8 +7519,8 @@ class Control:
 
     def RightClick(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         simulateMove: bool = True,
@@ -7545,8 +7544,8 @@ class Control:
 
     def DoubleClick(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         simulateMove: bool = True,
@@ -7618,8 +7617,8 @@ class Control:
 
     def WheelDown(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         wheelTimes: int = 1,
@@ -7644,8 +7643,8 @@ class Control:
 
     def WheelUp(
         self,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
+        x: int | None = None,
+        y: int | None = None,
         ratioX: float = 0.5,
         ratioY: float = 0.5,
         wheelTimes: int = 1,
@@ -7670,7 +7669,7 @@ class Control:
 
     def ShowWindow(
         self, cmdShow: int, waitTime: float = OPERATION_WAIT_TIME
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """
         Get a native handle from self or ancestors until valid and call native `ShowWindow` with cmdShow.
         cmdShow: int, a value in in class `SW`.
@@ -7693,14 +7692,14 @@ class Control:
             return ret
         return None
 
-    def Show(self, waitTime: float = OPERATION_WAIT_TIME) -> Optional[bool]:
+    def Show(self, waitTime: float = OPERATION_WAIT_TIME) -> bool | None:
         """
         Call native `ShowWindow(SW.Show)`.
         Return bool, True if succeed otherwise False and None if the handle could not be gotten.
         """
         return self.ShowWindow(SW.Show, waitTime)
 
-    def Hide(self, waitTime: float = OPERATION_WAIT_TIME) -> Optional[bool]:
+    def Hide(self, waitTime: float = OPERATION_WAIT_TIME) -> bool | None:
         """
         Call native `ShowWindow(SW.Hide)`.
         waitTime: float
@@ -7725,7 +7724,7 @@ class Control:
             return MoveWindow(handle, x, y, width, height, int(repaint))
         return False
 
-    def GetWindowText(self) -> Optional[str]:
+    def GetWindowText(self) -> str | None:
         """
         Call native GetWindowText if control has a valid native handle.
         """
@@ -7771,7 +7770,7 @@ class Control:
         self.SetFocus()
         SendKeys(text, interval, waitTime, charMode)
 
-    def GetPixelColor(self, x: int, y: int) -> Optional[int]:
+    def GetPixelColor(self, x: int, y: int) -> int | None:
         """
         Call native `GetPixelColor` if control has a valid native handle.
         Use `self.ToBitmap` if control doesn't have a valid native handle or you get many pixels.
@@ -7789,7 +7788,7 @@ class Control:
 
     def ToBitmap(
         self, x: int = 0, y: int = 0, width: int = 0, height: int = 0
-    ) -> Optional[Bitmap]:
+    ) -> Bitmap | None:
         """
         Capture control to a `Bitmap` object.
         x, y: int, the point in control's internal position(from 0,0).
@@ -8554,7 +8553,7 @@ class Control:
 class AppBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8576,7 +8575,7 @@ class AppBarControl(Control):
 class ButtonControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8616,7 +8615,7 @@ class ButtonControl(Control):
 class CalendarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8662,7 +8661,7 @@ class CalendarControl(Control):
 class CheckBoxControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8690,7 +8689,7 @@ class CheckBoxControl(Control):
 class ComboBoxControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8729,7 +8728,7 @@ class ComboBoxControl(Control):
     def Select(
         self,
         itemName: str = "",
-        condition: Optional[Callable[[str], bool]] = None,
+        condition: Callable[[str], bool] | None = None,
         simulateMove: bool = True,
         waitTime: float = OPERATION_WAIT_TIME,
     ) -> bool:
@@ -8797,7 +8796,7 @@ class ComboBoxControl(Control):
 class CustomControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8819,7 +8818,7 @@ class CustomControl(Control):
 class DataGridControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8865,7 +8864,7 @@ class DataGridControl(Control):
 class DataItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8929,7 +8928,7 @@ class DataItemControl(Control):
 class DocumentControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -8969,7 +8968,7 @@ class DocumentControl(Control):
 class EditControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9009,7 +9008,7 @@ class EditControl(Control):
 class GroupControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9037,7 +9036,7 @@ class GroupControl(Control):
 class HeaderControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9065,7 +9064,7 @@ class HeaderControl(Control):
 class HeaderItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9099,7 +9098,7 @@ class HeaderItemControl(Control):
 class HyperlinkControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9133,7 +9132,7 @@ class HyperlinkControl(Control):
 class ImageControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9167,7 +9166,7 @@ class ImageControl(Control):
 class ListControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9213,7 +9212,7 @@ class ListControl(Control):
 class ListItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9277,7 +9276,7 @@ class ListItemControl(Control):
 class MenuControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9299,7 +9298,7 @@ class MenuControl(Control):
 class MenuBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9339,7 +9338,7 @@ class MenuBarControl(Control):
 class MenuItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9412,7 +9411,7 @@ class TopLevel(Control):
             SwitchToThisWindow(self.NativeWindowHandle)
             time.sleep(waitTime)
 
-    def Maximize(self, waitTime: float = OPERATION_WAIT_TIME) -> Optional[bool]:
+    def Maximize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool | None:
         """
         Set top level window maximize.
         """
@@ -9425,7 +9424,7 @@ class TopLevel(Control):
             return bool(IsZoomed(self.NativeWindowHandle))
         return False
 
-    def Minimize(self, waitTime: float = OPERATION_WAIT_TIME) -> Optional[bool]:
+    def Minimize(self, waitTime: float = OPERATION_WAIT_TIME) -> bool | None:
         if self.IsTopLevel():
             return self.ShowWindow(SW.Minimize, waitTime)
         return False
@@ -9435,7 +9434,7 @@ class TopLevel(Control):
             return bool(IsIconic(self.NativeWindowHandle))
         return False
 
-    def Restore(self, waitTime: float = OPERATION_WAIT_TIME) -> Optional[bool]:
+    def Restore(self, waitTime: float = OPERATION_WAIT_TIME) -> bool | None:
         """
         Restore window to normal state.
         Similar to SwitchToThisWindow.
@@ -9483,7 +9482,7 @@ class TopLevel(Control):
 class PaneControl(TopLevel):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9523,7 +9522,7 @@ class PaneControl(TopLevel):
 class ProgressBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9557,7 +9556,7 @@ class ProgressBarControl(Control):
 class RadioButtonControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9585,7 +9584,7 @@ class RadioButtonControl(Control):
 class ScrollBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9613,7 +9612,7 @@ class ScrollBarControl(Control):
 class SemanticZoomControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9635,7 +9634,7 @@ class SemanticZoomControl(Control):
 class SeparatorControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9657,7 +9656,7 @@ class SeparatorControl(Control):
 class SliderControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9697,7 +9696,7 @@ class SliderControl(Control):
 class SpinnerControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9737,7 +9736,7 @@ class SpinnerControl(Control):
 class SplitButtonControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9771,7 +9770,7 @@ class SplitButtonControl(Control):
 class StatusBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9799,7 +9798,7 @@ class StatusBarControl(Control):
 class TabControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9833,7 +9832,7 @@ class TabControl(Control):
 class TabItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9861,7 +9860,7 @@ class TabItemControl(Control):
 class TableControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9930,7 +9929,7 @@ class TableControl(Control):
 class TextControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9970,7 +9969,7 @@ class TextControl(Control):
 class ThumbControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -9998,7 +9997,7 @@ class ThumbControl(Control):
 class TitleBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10020,7 +10019,7 @@ class TitleBarControl(Control):
 class ToolBarControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10060,7 +10059,7 @@ class ToolBarControl(Control):
 class ToolTipControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10094,7 +10093,7 @@ class ToolTipControl(Control):
 class TreeControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10128,7 +10127,7 @@ class TreeControl(Control):
 class TreeItemControl(Control):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10180,7 +10179,7 @@ class TreeItemControl(Control):
 class WindowControl(TopLevel):
     def __init__(
         self,
-        searchFromControl: Optional[Control] = None,
+        searchFromControl: Control | None = None,
         searchDepth: int = 0xFFFFFFFF,
         searchInterval: float = SEARCH_INTERVAL,
         foundIndex: int = 1,
@@ -10306,7 +10305,7 @@ class UIAutomationInitializerInThread:
             self.inited = False
             if self.debug:
                 th = threading.currentThread()
-                print("\ncall UninitializeUIAutomationInCurrentThread in {}".format(th))
+                print(f"\ncall UninitializeUIAutomationInCurrentThread in {th}")
 
 
 def InitializeUIAutomationInCurrentThread() -> None:
@@ -10361,10 +10360,10 @@ def WaitForDisappear(control: Control, timeout: float) -> bool:
 
 def WalkTree(
     top,
-    getChildren: Optional[Callable[[TreeNode], List[TreeNode]]] = None,
-    getFirstChild: Optional[Callable[[TreeNode], TreeNode]] = None,
-    getNextSibling: Optional[Callable[[TreeNode], TreeNode]] = None,
-    yieldCondition: Optional[Callable[[TreeNode, int], bool]] = None,
+    getChildren: Callable[[TreeNode], list[TreeNode]] | None = None,
+    getFirstChild: Callable[[TreeNode], TreeNode] | None = None,
+    getNextSibling: Callable[[TreeNode], TreeNode] | None = None,
+    yieldCondition: Callable[[TreeNode, int], bool] | None = None,
     includeTop: bool = False,
     maxDepth: int = 0xFFFFFFFF,
 ):
@@ -10456,14 +10455,14 @@ def GetRootControl() -> PaneControl:
     )
 
 
-def GetFocusedControl() -> Optional[Control]:
+def GetFocusedControl() -> Control | None:
     """Return `Control` subclass."""
     return Control.CreateControlFromElement(
         _AutomationClient.instance().IUIAutomation.GetFocusedElement()
     )
 
 
-def GetForegroundControl() -> Optional[Control]:
+def GetForegroundControl() -> Control | None:
     """Return `Control` subclass."""
     return ControlFromHandle(GetForegroundWindow())
     # another implement
@@ -10480,7 +10479,7 @@ def GetForegroundControl() -> Optional[Control]:
     # return parentControl
 
 
-def GetConsoleWindow() -> Optional[WindowControl]:
+def GetConsoleWindow() -> WindowControl | None:
     """Return `WindowControl` or None, a console window that runs python."""
     control = ControlFromHandle(ctypes.windll.kernel32.GetConsoleWindow())
     if control is not None:
@@ -10489,7 +10488,7 @@ def GetConsoleWindow() -> Optional[WindowControl]:
     return control
 
 
-def ControlFromPoint(x: int, y: int) -> Optional[Control]:
+def ControlFromPoint(x: int, y: int) -> Control | None:
     """
     Call IUIAutomation ElementFromPoint x,y. May return None if mouse is over cmd's title bar icon.
     Return `Control` subclass or None.
@@ -10500,7 +10499,7 @@ def ControlFromPoint(x: int, y: int) -> Optional[Control]:
     return Control.CreateControlFromElement(element)
 
 
-def ControlFromPoint2(x: int, y: int) -> Optional[Control]:
+def ControlFromPoint2(x: int, y: int) -> Control | None:
     """
     Get a native handle from point x,y and call IUIAutomation.ElementFromHandle.
     Return `Control` subclass.
@@ -10512,7 +10511,7 @@ def ControlFromPoint2(x: int, y: int) -> Optional[Control]:
     )
 
 
-def ControlFromPointInParent(parentHandle, x: int, y: int) -> Optional[Control]:
+def ControlFromPointInParent(parentHandle, x: int, y: int) -> Control | None:
     """
     Get a native handle from point x,y and call IUIAutomation.ElementFromHandle.
 
@@ -10528,7 +10527,7 @@ def ControlFromPointInParent(parentHandle, x: int, y: int) -> Optional[Control]:
     )
 
 
-def ControlFromCursor() -> Optional[Control]:
+def ControlFromCursor() -> Control | None:
     """
     Call ControlFromPoint with current cursor point.
     Return `Control` subclass.
@@ -10537,7 +10536,7 @@ def ControlFromCursor() -> Optional[Control]:
     return ControlFromPoint(x, y)
 
 
-def ControlFromCursor2() -> Optional[Control]:
+def ControlFromCursor2() -> Control | None:
     """
     Call ControlFromPoint2 with current cursor point.
     Return `Control` subclass.
@@ -10546,7 +10545,7 @@ def ControlFromCursor2() -> Optional[Control]:
     return ControlFromPoint2(x, y)
 
 
-def ControlFromHandle(handle: int) -> Optional[Control]:
+def ControlFromHandle(handle: int) -> Control | None:
     """
     Call IUIAutomation.ElementFromHandle with a native handle.
     handle: int, a native window handle.
@@ -10612,7 +10611,7 @@ def LogControl(
     showAllName: bool, if False, print the first 30 characters of control.Name.
     """
     indent = " " * depth * 4
-    Logger.Write("{0}ControlType: ".format(indent))
+    Logger.Write(f"{indent}ControlType: ")
     Logger.Write(control.ControlTypeName, ConsoleColor.DarkGreen)
     Logger.Write("    ClassName: ")
     Logger.Write(control.ClassName, ConsoleColor.DarkGreen)
@@ -10723,8 +10722,8 @@ def EnumAndLogControlAncestors(
     control: `Control` or its subclass.
     showAllName: bool, if False, print the first 30 characters of control.Name.
     """
-    curr: Optional[Control] = control
-    lists: List[Control] = []
+    curr: Control | None = control
+    lists: list[Control] = []
     while curr:
         lists.insert(0, curr)
         curr = curr.GetParentControl()
@@ -10733,12 +10732,12 @@ def EnumAndLogControlAncestors(
 
 
 def FindControl(
-    control: Optional[Control],
+    control: Control | None,
     compare: Callable[[Control, int], bool],
     maxDepth: int = 0xFFFFFFFF,
     findFromSelf: bool = False,
     foundIndex: int = 1,
-) -> Optional[Control]:
+) -> Control | None:
     """
     control: `Control` or its subclass.
     compare: Callable[[Control, int], bool], function(control: Control, depth: int) -> bool.
@@ -10774,7 +10773,7 @@ def ShowDesktop(waitTime: float = 1) -> None:
     # time.sleep(1)
 
 
-def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
+def WaitHotKeyReleased(hotkey: tuple[int, int]) -> None:
     """hotkey: Tuple[int, int], two ints tuple (modifierKey, key)"""
     mod = {
         ModifierKey.Alt: Keys.VK_MENU,
@@ -10795,9 +10794,9 @@ def WaitHotKeyReleased(hotkey: Tuple[int, int]) -> None:
 
 
 def RunByHotKey(
-    keyFunctions: Dict[Tuple[int, int], Callable],
-    stopHotKey: Optional[Tuple[int, int]] = None,
-    exitHotKey: Tuple[int, int] = (ModifierKey.Control, Keys.VK_D),
+    keyFunctions: dict[tuple[int, int], Callable],
+    stopHotKey: tuple[int, int] | None = None,
+    exitHotKey: tuple[int, int] = (ModifierKey.Control, Keys.VK_D),
     waitHotKeyReleased: bool = True,
 ) -> None:
     """
@@ -11026,7 +11025,7 @@ def RunByHotKey(
     for thread, hotkeyName in livingThreads:
         if thread.is_alive():
             Logger.Write(
-                "join {} triggered by hotkey {}\n".format(thread, hotkeyName),
+                f"join {thread} triggered by hotkey {hotkeyName}\n",
                 ConsoleColor.DarkYellow,
                 writeToFile=False,
             )
@@ -11097,9 +11096,9 @@ if __name__ == "__main__":
     for k, v in PropertyIdNames.items():
         try:
             value = notepad.GetPropertyValue(k)
-            print("GetPropertyValue, {} = {}, type: {}".format(v, value, type(value)))
+            print(f"GetPropertyValue, {v} = {value}, type: {type(value)}")
         except (KeyError, comtypes.COMError) as ex:
-            print("GetPropertyValue, {}, error".format(v))
+            print(f"GetPropertyValue, {v}, error")
 
     children = notepad.GetChildren()
     print("\n notepad children:----", len(children))

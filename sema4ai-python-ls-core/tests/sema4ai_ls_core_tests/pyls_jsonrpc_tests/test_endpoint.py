@@ -16,7 +16,7 @@
 # limitations under the License.
 import time
 
-import mock
+from unittest import mock
 import pytest
 
 from sema4ai_ls_core.jsonrpc import exceptions

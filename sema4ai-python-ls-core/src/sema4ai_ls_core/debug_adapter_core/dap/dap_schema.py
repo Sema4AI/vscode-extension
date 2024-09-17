@@ -1,4 +1,3 @@
-# coding: utf-8
 # fmt: off
 # Automatically generated code.
 # Do not edit manually.
@@ -351,7 +350,7 @@ class ErrorResponse(BaseSchema):
             }
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -451,7 +450,7 @@ class CancelRequest(BaseSchema):
             "type": "CancelArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -794,7 +793,7 @@ class StoppedEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -878,7 +877,7 @@ class ContinuedEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -953,7 +952,7 @@ class ExitedEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1034,7 +1033,7 @@ class TerminatedEvent(BaseSchema):
             }
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1119,7 +1118,7 @@ class ThreadEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1232,7 +1231,7 @@ class OutputEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1317,7 +1316,7 @@ class BreakpointEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1402,7 +1401,7 @@ class ModuleEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1488,7 +1487,7 @@ class LoadedSourceEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1590,7 +1589,7 @@ class ProcessEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1673,7 +1672,7 @@ class CapabilitiesEvent(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1740,7 +1739,7 @@ class RunInTerminalRequest(BaseSchema):
             "type": "RunInTerminalRequestArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1820,7 +1819,7 @@ class RunInTerminalRequestArguments(BaseSchema):
             }
         }
     }
-    __refs__ = set(['env'])
+    __refs__ = {'env'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -1921,7 +1920,7 @@ class RunInTerminalResponse(BaseSchema):
             }
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2011,7 +2010,7 @@ class InitializeRequest(BaseSchema):
             "type": "InitializeRequestArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2223,7 +2222,7 @@ class InitializeResponse(BaseSchema):
             "type": "Capabilities"
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2308,7 +2307,7 @@ class ConfigurationDoneRequest(BaseSchema):
             "type": "ConfigurationDoneArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2512,7 +2511,7 @@ class LaunchRequest(BaseSchema):
             "type": "LaunchRequestArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2741,7 +2740,7 @@ class AttachRequest(BaseSchema):
             "type": "AttachRequestArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -2967,7 +2966,7 @@ class RestartRequest(BaseSchema):
             "type": "RestartArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3173,7 +3172,7 @@ class DisconnectRequest(BaseSchema):
             "type": "DisconnectArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3394,7 +3393,7 @@ class TerminateRequest(BaseSchema):
             "type": "TerminateArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3604,7 +3603,7 @@ class BreakpointLocationsRequest(BaseSchema):
             "type": "BreakpointLocationsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3671,7 +3670,7 @@ class BreakpointLocationsArguments(BaseSchema):
             "description": "Optional end column of range to search possible breakpoint locations in. If no end column is given, then it is assumed to be in the last column of the end line."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3774,7 +3773,7 @@ class BreakpointLocationsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3861,7 +3860,7 @@ class SetBreakpointsRequest(BaseSchema):
             "type": "SetBreakpointsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -3929,7 +3928,7 @@ class SetBreakpointsArguments(BaseSchema):
             "description": "A value of true indicates that the underlying source has been modified which results in new breakpoint locations."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4041,7 +4040,7 @@ class SetBreakpointsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4129,7 +4128,7 @@ class SetFunctionBreakpointsRequest(BaseSchema):
             "type": "SetFunctionBreakpointsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4268,7 +4267,7 @@ class SetFunctionBreakpointsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4352,7 +4351,7 @@ class SetExceptionBreakpointsRequest(BaseSchema):
             "type": "SetExceptionBreakpointsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4582,7 +4581,7 @@ class DataBreakpointInfoRequest(BaseSchema):
             "type": "DataBreakpointInfoArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4753,7 +4752,7 @@ class DataBreakpointInfoResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4840,7 +4839,7 @@ class SetDataBreakpointsRequest(BaseSchema):
             "type": "SetDataBreakpointsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -4979,7 +4978,7 @@ class SetDataBreakpointsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5062,7 +5061,7 @@ class ContinueRequest(BaseSchema):
             "type": "ContinueArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5202,7 +5201,7 @@ class ContinueResponse(BaseSchema):
             }
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5288,7 +5287,7 @@ class NextRequest(BaseSchema):
             "type": "NextArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5524,7 +5523,7 @@ class StepInRequest(BaseSchema):
             "type": "StepInArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5760,7 +5759,7 @@ class StepOutRequest(BaseSchema):
             "type": "StepOutArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -5988,7 +5987,7 @@ class StepBackRequest(BaseSchema):
             "type": "StepBackArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -6213,7 +6212,7 @@ class ReverseContinueRequest(BaseSchema):
             "type": "ReverseContinueArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -6441,7 +6440,7 @@ class RestartFrameRequest(BaseSchema):
             "type": "RestartFrameArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -6671,7 +6670,7 @@ class GotoRequest(BaseSchema):
             "type": "GotoArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -6906,7 +6905,7 @@ class PauseRequest(BaseSchema):
             "type": "PauseArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7130,7 +7129,7 @@ class StackTraceRequest(BaseSchema):
             "type": "StackTraceArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7192,7 +7191,7 @@ class StackTraceArguments(BaseSchema):
             "type": "StackFrameFormat"
         }
     }
-    __refs__ = set(['format'])
+    __refs__ = {'format'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7310,7 +7309,7 @@ class StackTraceResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7393,7 +7392,7 @@ class ScopesRequest(BaseSchema):
             "type": "ScopesArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7539,7 +7538,7 @@ class ScopesResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7624,7 +7623,7 @@ class VariablesRequest(BaseSchema):
             "type": "VariablesArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7694,7 +7693,7 @@ class VariablesArguments(BaseSchema):
             "type": "ValueFormat"
         }
     }
-    __refs__ = set(['format'])
+    __refs__ = {'format'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7813,7 +7812,7 @@ class VariablesResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7896,7 +7895,7 @@ class SetVariableRequest(BaseSchema):
             "type": "SetVariableArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -7958,7 +7957,7 @@ class SetVariableArguments(BaseSchema):
             "type": "ValueFormat"
         }
     }
-    __refs__ = set(['format'])
+    __refs__ = {'format'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8083,7 +8082,7 @@ class SetVariableResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8166,7 +8165,7 @@ class SourceRequest(BaseSchema):
             "type": "SourceArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8220,7 +8219,7 @@ class SourceArguments(BaseSchema):
             "description": "The reference to the source. This is the same as source.sourceReference. This is provided for backward compatibility since old backends do not understand the 'source' attribute."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8308,7 +8307,7 @@ class SourceResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8492,7 +8491,7 @@ class ThreadsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8575,7 +8574,7 @@ class TerminateThreadsRequest(BaseSchema):
             "type": "TerminateThreadsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8790,7 +8789,7 @@ class ModulesRequest(BaseSchema):
             "type": "ModulesArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -8934,7 +8933,7 @@ class ModulesResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9017,7 +9016,7 @@ class LoadedSourcesRequest(BaseSchema):
             "type": "LoadedSourcesArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9140,7 +9139,7 @@ class LoadedSourcesResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9225,7 +9224,7 @@ class EvaluateRequest(BaseSchema):
             "type": "EvaluateArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9297,7 +9296,7 @@ class EvaluateArguments(BaseSchema):
             "type": "ValueFormat"
         }
     }
-    __refs__ = set(['format'])
+    __refs__ = {'format'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9433,7 +9432,7 @@ class EvaluateResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9519,7 +9518,7 @@ class SetExpressionRequest(BaseSchema):
             "type": "SetExpressionArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9581,7 +9580,7 @@ class SetExpressionArguments(BaseSchema):
             "type": "ValueFormat"
         }
     }
-    __refs__ = set(['format'])
+    __refs__ = {'format'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9711,7 +9710,7 @@ class SetExpressionResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9799,7 +9798,7 @@ class StepInTargetsRequest(BaseSchema):
             "type": "StepInTargetsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -9945,7 +9944,7 @@ class StepInTargetsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10033,7 +10032,7 @@ class GotoTargetsRequest(BaseSchema):
             "type": "GotoTargetsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10091,7 +10090,7 @@ class GotoTargetsArguments(BaseSchema):
             "description": "An optional column location for which the goto targets are determined."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10182,7 +10181,7 @@ class GotoTargetsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10268,7 +10267,7 @@ class CompletionsRequest(BaseSchema):
             "type": "CompletionsArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10440,7 +10439,7 @@ class CompletionsResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10523,7 +10522,7 @@ class ExceptionInfoRequest(BaseSchema):
             "type": "ExceptionInfoArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10679,7 +10678,7 @@ class ExceptionInfoResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10762,7 +10761,7 @@ class ReadMemoryRequest(BaseSchema):
             "type": "ReadMemoryArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10913,7 +10912,7 @@ class ReadMemoryResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -10997,7 +10996,7 @@ class DisassembleRequest(BaseSchema):
             "type": "DisassembleArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -11161,7 +11160,7 @@ class DisassembleResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -11654,7 +11653,7 @@ class Message(BaseSchema):
             "description": "An optional label that is presented to the user as the UI for opening the url."
         }
     }
-    __refs__ = set(['variables'])
+    __refs__ = {'variables'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -12216,7 +12215,7 @@ class StackFrame(BaseSchema):
             "description": "An optional hint for how to present this frame in the UI. A value of 'label' can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of 'subtle' can be used to change the appearance of a frame in a 'subtle' way."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -12364,7 +12363,7 @@ class Scope(BaseSchema):
             "description": "Optional end column of the range covered by this scope."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -12516,7 +12515,7 @@ class Variable(BaseSchema):
             "description": "Optional memory reference for the variable if the variable represents executable code, such as a function pointer."
         }
     }
-    __refs__ = set(['presentationHint'])
+    __refs__ = {'presentationHint'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -12906,7 +12905,7 @@ class DataBreakpointAccessType(BaseSchema):
     WRITE = 'write'
     READWRITE = 'readWrite'
 
-    VALID_VALUES = set(['read', 'write', 'readWrite'])
+    VALID_VALUES = {'read', 'write', 'readWrite'}
 
     __props__ = {}
     __refs__ = set()
@@ -12954,7 +12953,7 @@ class DataBreakpoint(BaseSchema):
             "description": "An optional expression that controls how many hits of the breakpoint are ignored. The backend is expected to interpret the expression as needed."
         }
     }
-    __refs__ = set(['accessType'])
+    __refs__ = {'accessType'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13033,7 +13032,7 @@ class Breakpoint(BaseSchema):
             "description": "An optional end column of the actual range covered by the breakpoint. If no end line is given, then the end column is assumed to be in the start line."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13259,7 +13258,7 @@ class CompletionItem(BaseSchema):
             "description": "This value determines how many characters are overwritten by the completion text.\nIf missing the value 0 is assumed which results in the completion text being inserted."
         }
     }
-    __refs__ = set(['type'])
+    __refs__ = {'type'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13337,7 +13336,7 @@ class CompletionItemType(BaseSchema):
     REFERENCE = 'reference'
     CUSTOMCOLOR = 'customcolor'
 
-    VALID_VALUES = set(['method', 'function', 'constructor', 'field', 'variable', 'class', 'interface', 'module', 'property', 'unit', 'value', 'enum', 'keyword', 'snippet', 'text', 'color', 'file', 'reference', 'customcolor'])
+    VALID_VALUES = {'method', 'function', 'constructor', 'field', 'variable', 'class', 'interface', 'module', 'property', 'unit', 'value', 'enum', 'keyword', 'snippet', 'text', 'color', 'file', 'reference', 'customcolor'}
 
     __props__ = {}
     __refs__ = set()
@@ -13372,7 +13371,7 @@ class ChecksumAlgorithm(BaseSchema):
     SHA256 = 'SHA256'
     TIMESTAMP = 'timestamp'
 
-    VALID_VALUES = set(['MD5', 'SHA1', 'SHA256', 'timestamp'])
+    VALID_VALUES = {'MD5', 'SHA1', 'SHA256', 'timestamp'}
 
     __props__ = {}
     __refs__ = set()
@@ -13412,7 +13411,7 @@ class Checksum(BaseSchema):
             "description": "Value of the checksum."
         }
     }
-    __refs__ = set(['algorithm'])
+    __refs__ = {'algorithm'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13594,7 +13593,7 @@ class ExceptionOptions(BaseSchema):
             "type": "ExceptionBreakMode"
         }
     }
-    __refs__ = set(['breakMode'])
+    __refs__ = {'breakMode'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13647,7 +13646,7 @@ class ExceptionBreakMode(BaseSchema):
     UNHANDLED = 'unhandled'
     USERUNHANDLED = 'userUnhandled'
 
-    VALID_VALUES = set(['never', 'always', 'unhandled', 'userUnhandled'])
+    VALID_VALUES = {'never', 'always', 'unhandled', 'userUnhandled'}
 
     __props__ = {}
     __refs__ = set()
@@ -13855,7 +13854,7 @@ class DisassembledInstruction(BaseSchema):
             "description": "The end column of the range that corresponds to this instruction, if any."
         }
     }
-    __refs__ = set(['location'])
+    __refs__ = {'location'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -13955,7 +13954,7 @@ class RFStreamEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14048,7 +14047,7 @@ class LogMessageEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14132,7 +14131,7 @@ class StartSuiteEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14213,7 +14212,7 @@ class StartTestEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14309,7 +14308,7 @@ class EndTestEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14405,7 +14404,7 @@ class EndSuiteEvent(BaseSchema):
             "required": []
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14471,7 +14470,7 @@ class SetDebuggerPropertyRequest(BaseSchema):
             "type": "SetDebuggerPropertyArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14822,7 +14821,7 @@ class SetPydevdSourceMapRequest(BaseSchema):
             "type": "SetPydevdSourceMapArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -14879,7 +14878,7 @@ class SetPydevdSourceMapArguments(BaseSchema):
             "description": "The PydevdSourceMaps to be set to the given source (provide an empty array to clear the source mappings for a given path)."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15046,7 +15045,7 @@ class PydevdSourceMap(BaseSchema):
             "description": "The remote line to which the mapping should map to (e.g.: for an ipython notebook this would be always 1 as it'd map the start of the cell)."
         }
     }
-    __refs__ = set(['runtimeSource'])
+    __refs__ = {'runtimeSource'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15112,7 +15111,7 @@ class PydevdSystemInfoRequest(BaseSchema):
             "type": "PydevdSystemInfoArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15247,7 +15246,7 @@ class PydevdSystemInfoResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15318,7 +15317,7 @@ class PydevdPythonInfo(BaseSchema):
             "type": "PydevdPythonImplementationInfo"
         }
     }
-    __refs__ = set(['implementation'])
+    __refs__ = {'implementation'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15576,7 +15575,7 @@ class PydevdAuthorizeRequest(BaseSchema):
             "type": "PydevdAuthorizeArguments"
         }
     }
-    __refs__ = set(['arguments'])
+    __refs__ = {'arguments'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15703,7 +15702,7 @@ class PydevdAuthorizeResponse(BaseSchema):
             ]
         }
     }
-    __refs__ = set(['body'])
+    __refs__ = {'body'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -15770,7 +15769,7 @@ class ErrorResponseBody(BaseSchema):
             "type": "Message"
         }
     }
-    __refs__ = set(['error'])
+    __refs__ = {'error'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -16162,7 +16161,7 @@ class OutputEventBody(BaseSchema):
             "description": "Optional data to report. For the 'telemetry' category the data will be sent to telemetry, for the other categories the data is shown in JSON format."
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -16256,7 +16255,7 @@ class BreakpointEventBody(BaseSchema):
             "type": "Breakpoint"
         }
     }
-    __refs__ = set(['breakpoint'])
+    __refs__ = {'breakpoint'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -16307,7 +16306,7 @@ class ModuleEventBody(BaseSchema):
             "type": "Module"
         }
     }
-    __refs__ = set(['module'])
+    __refs__ = {'module'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -16358,7 +16357,7 @@ class LoadedSourceEventBody(BaseSchema):
             "type": "Source"
         }
     }
-    __refs__ = set(['source'])
+    __refs__ = {'source'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -16481,7 +16480,7 @@ class CapabilitiesEventBody(BaseSchema):
             "type": "Capabilities"
         }
     }
-    __refs__ = set(['capabilities'])
+    __refs__ = {'capabilities'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -17307,7 +17306,7 @@ class EvaluateResponseBody(BaseSchema):
             "description": "Memory reference to a location appropriate for this result. For pointer type eval results, this is generally a reference to the memory address contained in the pointer."
         }
     }
-    __refs__ = set(['presentationHint'])
+    __refs__ = {'presentationHint'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -17413,7 +17412,7 @@ class SetExpressionResponseBody(BaseSchema):
             "description": "The number of indexed child variables.\nThe client can use this optional information to present the variables in a paged UI and fetch them in chunks. The value should be less than or equal to 2147483647 (2^31 - 1)."
         }
     }
-    __refs__ = set(['presentationHint'])
+    __refs__ = {'presentationHint'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -17636,7 +17635,7 @@ class ExceptionInfoResponseBody(BaseSchema):
             "type": "ExceptionDetails"
         }
     }
-    __refs__ = set(['breakMode', 'details'])
+    __refs__ = {'breakMode', 'details'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 
@@ -18227,7 +18226,7 @@ class PydevdSystemInfoResponseBody(BaseSchema):
             "type": "PydevdInfo"
         }
     }
-    __refs__ = set(['python', 'platform', 'process', 'pydevd'])
+    __refs__ = {'python', 'platform', 'process', 'pydevd'}
 
     __slots__ = list(__props__.keys()) + ['kwargs']
 

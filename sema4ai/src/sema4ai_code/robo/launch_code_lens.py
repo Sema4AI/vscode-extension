@@ -14,8 +14,8 @@ from sema4ai_ls_core.protocols import (
 
 
 def compute_launch_robo_code_lens(
-    workspace: Optional[IWorkspace], config_provider: IConfigProvider, doc_uri: str
-) -> Optional[partial]:
+    workspace: IWorkspace | None, config_provider: IConfigProvider, doc_uri: str
+) -> partial | None:
     from sema4ai_ls_core import uris
 
     if not uris.to_fs_path(doc_uri).endswith(".py"):
@@ -25,7 +25,7 @@ def compute_launch_robo_code_lens(
         return None
 
     config_provider = config_provider
-    config: Optional[IConfig] = None
+    config: IConfig | None = None
     compute_launch = True
     if config_provider is not None:
         config = config_provider.config
@@ -39,7 +39,7 @@ def compute_launch_robo_code_lens(
     if not compute_launch:
         return None
 
-    document: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+    document: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
     if document is None:
         return None
 
@@ -49,8 +49,8 @@ def compute_launch_robo_code_lens(
 
 def _collect_tasks_in_thread(
     document: IDocument, monitor: IMonitor
-) -> Optional[List[CodeLensTypedDict]]:
-    code_lenses: List[CodeLensTypedDict] = []
+) -> list[CodeLensTypedDict] | None:
+    code_lenses: list[CodeLensTypedDict] = []
     contents = document.source
     found_task_decorator_at_line = -1
 

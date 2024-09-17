@@ -1,4 +1,5 @@
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, TypeVar, Union
+from typing import Any, List, Optional, Tuple, TypedDict, TypeVar, Union
+from collections.abc import Callable
 
 from JABWrapper.context_tree import ContextNode, ContextTree
 from JABWrapper.jab_wrapper import JavaAccessBridgeWrapper, JavaWindow
@@ -10,13 +11,9 @@ from sema4ai_code.inspector.java.highlighter import TkHandlerThread
 log = get_logger(__name__)
 
 
-ColletedTreeTypedDict = TypedDict(
-    "ColletedTreeTypedDict",
-    {
-        "matches": Union[ContextNode, List[ContextNode]],
-        "tree": ContextNode,
-    },
-)
+class ColletedTreeTypedDict(TypedDict):
+    matches: ContextNode | list[ContextNode]
+    tree: ContextNode
 
 TFun = TypeVar("TFun", bound=Callable[..., Any])
 
@@ -37,12 +34,12 @@ class ElementInspector:
         # it and it's children (refresh is there, but does it respect search depth?).
         from ._event_pump import EventPumpThread
 
-        self._context: Optional[ContextNode] = None
-        self._selected_window: Optional[str] = None
-        self._event_pump_thread: Optional[EventPumpThread] = None
-        self._jab_wrapper: Optional[JavaAccessBridgeWrapper] = None
-        self._window_obj: Optional[WindowElement] = None
-        self._picker_thread: Optional[CursorListenerThread] = None
+        self._context: ContextNode | None = None
+        self._selected_window: str | None = None
+        self._event_pump_thread: EventPumpThread | None = None
+        self._jab_wrapper: JavaAccessBridgeWrapper | None = None
+        self._window_obj: WindowElement | None = None
+        self._picker_thread: CursorListenerThread | None = None
 
     @property
     def event_pump_thread(self):
@@ -66,7 +63,7 @@ class ElementInspector:
             self._event_pump_thread = None
             self._jab_wrapper = None
 
-    def list_windows(self) -> List[JavaWindow]:
+    def list_windows(self) -> list[JavaWindow]:
         return self.jab_wrapper.get_windows()
 
     def set_window(self, window: str) -> None:
@@ -95,11 +92,11 @@ class ElementInspector:
 
     def _collect_from_root(
         self,
-        locator: Optional[str],
+        locator: str | None,
         search_depth=1,
     ) -> ColletedTreeTypedDict:
         self._context = ContextTree(self.jab_wrapper, search_depth).root
-        matches: Union[ContextNode, List[ContextNode]] = []
+        matches: ContextNode | list[ContextNode] = []
         if locator:
             from ._locators import find_elements_from_tree
 
@@ -124,7 +121,7 @@ class ElementInspector:
             )
         match = find_elements_from_tree(self._context, locator)
 
-        node = match[0] if isinstance(match, List) and len(match) > 0 else match
+        node = match[0] if isinstance(match, list) and len(match) > 0 else match
         if not isinstance(node, ContextNode):
             raise NoMatchingLocatorException(f"No matching locator for {locator}")
 
@@ -133,7 +130,7 @@ class ElementInspector:
         node._max_depth = search_depth + node.ancestry
         node.refresh()
 
-        matches: ContextNode | List[ContextNode] = []
+        matches: ContextNode | list[ContextNode] = []
         try:
             matches = find_elements_from_tree(self._context, locator)
         except AttributeError as e:
@@ -143,7 +140,7 @@ class ElementInspector:
     def collect_tree(
         self,
         search_depth: int,
-        locator: Optional[str] = None,
+        locator: str | None = None,
     ) -> ColletedTreeTypedDict:
         from ._errors import NoWindowSelected
 
@@ -160,7 +157,7 @@ class ElementInspector:
     def collect_tree_from_root(
         self,
         search_depth: int,
-        locator: Optional[str] = None,
+        locator: str | None = None,
     ) -> ColletedTreeTypedDict:
         from ._errors import NoWindowSelected
 
@@ -173,17 +170,17 @@ class ElementInspector:
 
     def _collect_node(
         self, locator: str, search_depth: int = 200
-    ) -> Optional[ContextNode]:
+    ) -> ContextNode | None:
         context = ContextTree(self.jab_wrapper, search_depth).root
         from ._locators import find_elements_from_tree
 
         try:
-            matches: Union[ContextNode, List[ContextNode]] = find_elements_from_tree(
+            matches: ContextNode | list[ContextNode] = find_elements_from_tree(
                 context, locator
             )
             node = (
                 matches[0]
-                if isinstance(matches, List) and len(matches) > 0
+                if isinstance(matches, list) and len(matches) > 0
                 else matches
             )
             log.debug("Java:: Found node:", node)
@@ -192,8 +189,8 @@ class ElementInspector:
             log.error("Java:: Finding elements from tree failed:", e)
         return None
 
-    def _collect_node_ancestry(self, node: ContextNode) -> List[ContextNode]:
-        ancestry: List[ContextNode] = []
+    def _collect_node_ancestry(self, node: ContextNode) -> list[ContextNode]:
+        ancestry: list[ContextNode] = []
         if node.parent is None:
             ancestry.append(node)
             return ancestry
@@ -203,14 +200,14 @@ class ElementInspector:
 
     def collect_node_ancestry(
         self, locator: str, search_depth: int = 200
-    ) -> List[ContextNode]:
+    ) -> list[ContextNode]:
         node = self._collect_node(locator=locator, search_depth=search_depth)
         return self._collect_node_ancestry(node) if node else []
 
     def start_picker(
         self,
-        tk_handler_thread: Optional[TkHandlerThread],
-        tree_geometries: List[Tuple],
+        tk_handler_thread: TkHandlerThread | None,
+        tree_geometries: list[tuple],
         on_pick: Callable,
     ):
         from sema4ai_code.inspector.java.picker import CursorListenerThread

@@ -10,7 +10,7 @@ def _import_yaml():
         _parent_dir = os.path.dirname(__file__)
         _yaml_dir = os.path.join(_parent_dir, "libs", "yaml_lib")
         if not os.path.exists(_yaml_dir):
-            raise RuntimeError("Expected: %s to exist." % (_yaml_dir,))
+            raise RuntimeError(f"Expected: {_yaml_dir} to exist.")
         sys.path.append(_yaml_dir)
         import yaml  # @UnusedImport
 

@@ -5,7 +5,8 @@ from sema4ai_ls_core.core_log import get_logger
 
 from collections import namedtuple
 from pathlib import Path
-from typing import Any, Generic, Callable, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar
+from collections.abc import Callable
 import functools
 import os
 import collections
@@ -35,8 +36,8 @@ def instance_cache(func):
     instance.cache_this.set_lock(instance, lock)
 
     """
-    cache_key = "__cache__%s" % (func.__name__,)
-    cache_key_lock = "__cache__%s_lock" % (func.__name__,)
+    cache_key = f"__cache__{func.__name__}"
+    cache_key_lock = f"__cache__{func.__name__}_lock"
 
     @functools.wraps(func)
     def new_func(self, *args, **kwargs):
@@ -95,7 +96,7 @@ def instance_cache(func):
     return new_func
 
 
-class DirCache(object):
+class DirCache:
     """
     To be used as:
 
@@ -143,7 +144,7 @@ class DirCache(object):
             raise KeyError(f"Key: {key} not found in cache.")
 
         try:
-            with open(filename, "r") as stream:
+            with open(filename) as stream:
                 contents = json.loads(stream.read())
             value = contents["value"]
 
@@ -176,7 +177,7 @@ CachedFileMTimeInfo = namedtuple("CachedFileMTimeInfo", "st_mtime, st_size, path
 class CachedFileInfo(Generic[T]):
     def __init__(self, file_path: Path, compute_value: Callable[[Path], T]):
         self._file_path = file_path
-        self._mtime_info: Optional[CachedFileMTimeInfo] = self._get_mtime_cache_info(
+        self._mtime_info: CachedFileMTimeInfo | None = self._get_mtime_cache_info(
             file_path
         )
         # Note that we only get the value after getting the mtime (so, the
@@ -192,7 +193,7 @@ class CachedFileInfo(Generic[T]):
     def file_path(self) -> Path:
         return self._file_path
 
-    def _get_mtime_cache_info(self, file_path: Path) -> Optional[CachedFileMTimeInfo]:
+    def _get_mtime_cache_info(self, file_path: Path) -> CachedFileMTimeInfo | None:
         """
         Cache based on the time/size of a given path.
         """
@@ -233,7 +234,7 @@ class LRUCache(Generic[KT, VT]):
     def __init__(
         self,
         max_size: int = 100,
-        resize_to: Optional[int] = None,
+        resize_to: int | None = None,
         get_size: Callable[[Any], int] = lambda obj: 1,
     ):
         assert max_size >= 1
@@ -276,7 +277,7 @@ class LRUCache(Generic[KT, VT]):
         entry = self._dict.pop(key)
         self._current_size_usage -= entry[-1]
 
-    def pop(self, key: KT, default=Sentinel.SENTINEL) -> Optional[Any]:
+    def pop(self, key: KT, default=Sentinel.SENTINEL) -> Any | None:
         try:
             entry = self._dict.pop(key)
             self._current_size_usage -= entry[-1]
@@ -304,7 +305,7 @@ class LRUCache(Generic[KT, VT]):
             item[0] = value
             self._dict.move_to_end(key)
 
-    def get(self, key: KT, default: Optional[Any] = None) -> Optional[Any]:
+    def get(self, key: KT, default: Any | None = None) -> Any | None:
         try:
             return self[key]
         except KeyError:

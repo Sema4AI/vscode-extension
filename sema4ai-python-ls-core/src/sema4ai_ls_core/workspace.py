@@ -21,7 +21,8 @@ import threading
 import time
 import weakref
 from collections import namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from collections.abc import Iterable
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import implements
@@ -50,15 +51,15 @@ log = get_logger(__name__)
 _FileMTimeInfo = namedtuple("_FileMTimeInfo", "st_mtime, st_size")
 
 
-def _text_edit_key(text_edit: Union[TextEditTypedDict, TextEdit]):
+def _text_edit_key(text_edit: TextEditTypedDict | TextEdit):
     start = text_edit["range"]["start"]
     return start["line"], start["character"]
 
 
-class _DirInfo(object):
+class _DirInfo:
     def __init__(self, scan_path):
         self.scan_path = scan_path
-        self.files_in_directory: Set[str] = set()
+        self.files_in_directory: set[str] = set()
 
 
 class _VirtualFSThread(threading.Thread):
@@ -86,7 +87,7 @@ class _VirtualFSThread(threading.Thread):
         self.first_check_done = threading.Event()
         self._check_done_events = []
         self._last_sleep = None
-        self._fs_watch: Optional[IFSWatch] = None
+        self._fs_watch: IFSWatch | None = None
         self._dirs_changed = set()
         self._trigger_loop = threading.Event()
         self.on_file_changed = Callback()
@@ -101,7 +102,7 @@ class _VirtualFSThread(threading.Thread):
             time.sleep(self.INNER_SLEEP)
             self._last_sleep = time.time()
 
-    def _check_dir(self, dir_path: str, directories: Set[str], level=0, recursive=True):
+    def _check_dir(self, dir_path: str, directories: set[str], level=0, recursive=True):
         # This is the actual poll loop
         if level > 20:  # At most 20 levels deep...
             log.critical(
@@ -241,13 +242,13 @@ class _VirtualFSThread(threading.Thread):
             raise TimeoutError()
 
 
-class _VirtualFS(object):
+class _VirtualFS:
     def __init__(
         self, root_folder_path: str, extensions: Iterable[str], fs_observer: IFSObserver
     ):
         self.root_folder_path = normalize_drive(root_folder_path)
 
-        self._dir_to_info: Dict[str, _DirInfo] = {}
+        self._dir_to_info: dict[str, _DirInfo] = {}
 
         self._extensions = set(extensions)
         self._fs_observer = fs_observer
@@ -260,7 +261,7 @@ class _VirtualFS(object):
     def wait_for_check_done(self, timeout):
         self._virtual_fsthread.wait_for_check_done(timeout)
 
-    def _iter_all_doc_uris(self, extensions: Tuple[str, ...]) -> Iterable[str]:
+    def _iter_all_doc_uris(self, extensions: tuple[str, ...]) -> Iterable[str]:
         """
         :param extensions:
             The extensions which are being searched (i.e.: ('.txt', '.py')).
@@ -277,7 +278,7 @@ class _VirtualFS(object):
         self._dir_to_info.clear()
 
 
-class _WorkspaceFolderWithVirtualFS(object):
+class _WorkspaceFolderWithVirtualFS:
     """
     Walking a big tree may be time consuming, and very wasteful if users have
     things which the language server doesn't need (for instance, having a
@@ -297,7 +298,7 @@ class _WorkspaceFolderWithVirtualFS(object):
         )
         self.on_file_changed = self._vs.on_file_changed
 
-    def _iter_all_doc_uris(self, extensions: Tuple[str, ...]) -> Iterable[str]:
+    def _iter_all_doc_uris(self, extensions: tuple[str, ...]) -> Iterable[str]:
         """
         :param extensions:
             The extensions which are being searched (i.e.: ('.txt', '.py')).
@@ -319,7 +320,7 @@ class _WorkspaceFolderWithVirtualFS(object):
         _: IWorkspaceFolder = check_implements(self)
 
 
-class Workspace(object):
+class Workspace:
     """
     Note: only a single thread can mutate the workspace, but multiple threads
     may read from it.
@@ -329,7 +330,7 @@ class Workspace(object):
         self,
         root_uri: str,
         fs_observer: IFSObserver,
-        workspace_folders: Optional[List[IWorkspaceFolder]] = None,
+        workspace_folders: list[IWorkspaceFolder] | None = None,
         track_file_extensions=(".robot", ".resource", ".py", ".yml", ".yaml"),
     ) -> None:
         from sema4ai_ls_core.cache import LRUCache
@@ -341,12 +342,12 @@ class Workspace(object):
         self._root_uri = root_uri
         self._root_uri_scheme = uri_scheme(self._root_uri)
         self._root_path = to_fs_path(self._root_uri)
-        self._folders: Dict[str, _WorkspaceFolderWithVirtualFS] = {}
+        self._folders: dict[str, _WorkspaceFolderWithVirtualFS] = {}
         self._track_file_extensions = track_file_extensions
         self._fs_observer = fs_observer
 
         # Contains the docs with files considered open.
-        self._docs: Dict[str, IDocument] = {}
+        self._docs: dict[str, IDocument] = {}
 
         # Contains the docs pointing to the filesystem.
         def _get_size(doc: IDocument):
@@ -443,7 +444,7 @@ class Workspace(object):
         self._check_in_mutate_thread()  # i.e.: we don't really mutate here, but this is not thread safe.
         return self._docs.values()
 
-    def get_open_docs_uris(self) -> List[str]:
+    def get_open_docs_uris(self) -> list[str]:
         return list(d.uri for d in self._docs.values())
 
     @implements(IWorkspace.iter_folders)
@@ -457,12 +458,12 @@ class Workspace(object):
             folder.wait_for_check_done(timeout)
 
     @implements(IWorkspace.get_folder_paths)
-    def get_folder_paths(self) -> List[str]:
+    def get_folder_paths(self) -> list[str]:
         folders = self._folders  # Ok, thread-safe (folders are always set as a whole)
         return [uris.to_fs_path(ws_folder.uri) for ws_folder in folders.values()]
 
     @implements(IWorkspace.get_document)
-    def get_document(self, doc_uri: str, accept_from_file: bool) -> Optional[IDocument]:
+    def get_document(self, doc_uri: str, accept_from_file: bool) -> IDocument | None:
         # Ok, thread-safe (does not mutate the _docs dict so the GIL keeps us
         # safe -- contents in the _filesystem_docs need a lock though).
         doc = self._docs.get(normalize_uri(doc_uri))
@@ -549,7 +550,7 @@ class Workspace(object):
         return new_doc
 
     def iter_all_doc_uris_in_workspace(
-        self, extensions: Tuple[str, ...]
+        self, extensions: tuple[str, ...]
     ) -> Iterable[str]:
         """
         :param extensions:
@@ -579,7 +580,7 @@ class Workspace(object):
         _: IWorkspace = check_implements(self)
 
 
-class Document(object):
+class Document:
     """
     Note: the doc isn't inherently thread-safe, so, the workspace should create
     a new document instead of mutating the source.
@@ -593,7 +594,7 @@ class Document(object):
         self,
         uri: str,
         source=None,
-        version: Optional[str] = None,
+        version: str | None = None,
         *,
         mutate_thread=None,
         force_load_source=False,
@@ -710,9 +711,9 @@ class Document(object):
         self.__line_start_offsets = line_start_offset_to_info
         return line_start_offset_to_info
 
-    def offset_to_line_col(self, offset: int) -> Tuple[int, int]:
+    def offset_to_line_col(self, offset: int) -> tuple[int, int]:
         if offset < 0:
-            raise ValueError("Expected offset to be >0. Found: %s" % (offset,))
+            raise ValueError(f"Expected offset to be >0. Found: {offset}")
 
         import bisect
 
@@ -754,7 +755,7 @@ class Document(object):
             mtime = os.path.getmtime(self.path)
 
         self._source_mtime = mtime
-        with io.open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             self._source = f.read()
 
     @implements(IDocument.is_source_in_sync)
@@ -792,7 +793,7 @@ class Document(object):
         except IndexError:
             return ""
 
-    def get_last_line_col(self) -> Tuple[int, int]:
+    def get_last_line_col(self) -> tuple[int, int]:
         lines = self._lines
         if not lines:
             return (0, 0)
@@ -802,7 +803,7 @@ class Document(object):
                 return len(lines), 0
             return len(lines) - 1, len(last_line)
 
-    def get_last_line_col_with_contents(self, contents: str) -> Tuple[int, int]:
+    def get_last_line_col_with_contents(self, contents: str) -> tuple[int, int]:
         if not contents:
             raise ValueError("Contents not specified.")
 
@@ -819,10 +820,10 @@ class Document(object):
         """Apply a change to the document."""
         self._check_in_mutate_thread()
         text = change["text"]
-        change_range: Optional[RangeTypedDict] = change.get("range")
+        change_range: RangeTypedDict | None = change.get("range")
         self._apply_change(change_range, text)
 
-    def _apply_change(self, change_range: Optional[RangeTypedDict], text):
+    def _apply_change(self, change_range: RangeTypedDict | None, text):
         self._check_in_mutate_thread()
         if not change_range:
             # The whole file has changed
@@ -875,7 +876,7 @@ class Document(object):
         self._source = new.getvalue()
 
     def apply_text_edits(
-        self, text_edits: Union[List[TextEditTypedDict], List[TextEdit]]
+        self, text_edits: list[TextEditTypedDict] | list[TextEdit]
     ):
         self._check_in_mutate_thread()
         sorted_text_edits = reversed(sorted(text_edits, key=_text_edit_key))

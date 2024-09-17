@@ -42,17 +42,17 @@ def add_arguments(parser):
     )
 
 
-class ObserverProvider(object):
+class ObserverProvider:
     def __init__(self):
         from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
-        self._observer: Optional[IFSObserver] = None
+        self._observer: IFSObserver | None = None
 
     @property
     def observer(self):
         return self._observer
 
-    def initialize_observer(self, backend, extensions: Optional[Tuple[str, ...]]):
+    def initialize_observer(self, backend, extensions: tuple[str, ...] | None):
         from sema4ai_ls_core import watchdog_wrapper
 
         assert self._observer is None
@@ -75,10 +75,10 @@ class _RemoteFSServer(threading.Thread):
         self.name = "_RemoteFSServer"
         self.socket = socket
 
-        self.writer: Optional[JsonRpcStreamWriter] = None
-        self.reader: Optional[JsonRpcStreamReader] = None
+        self.writer: JsonRpcStreamWriter | None = None
+        self.reader: JsonRpcStreamReader | None = None
         self._observer_provider: ObserverProvider = observer_provider
-        self.on_change_id_to_watch: Dict[int, IFSWatch] = {}
+        self.on_change_id_to_watch: dict[int, IFSWatch] = {}
 
     def _on_change(self, src_path, on_change_id):
         # Note: this will be called from the watcher thread.

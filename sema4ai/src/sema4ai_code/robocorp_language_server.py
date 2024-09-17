@@ -5,7 +5,8 @@ import weakref
 from base64 import b64encode
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+from collections.abc import Iterator, Sequence
 
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
@@ -94,7 +95,7 @@ def _verify_version(found_version, expected_version):
 
 
 class ListWorkspaceCachedInfoDict(TypedDict):
-    ws_info: List[WorkspaceInfoDict]
+    ws_info: list[WorkspaceInfoDict]
     account_cache_key: tuple
 
 
@@ -178,7 +179,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         except Exception:
             log.exception("There was an error injecting trustore into ssl.")
 
-        self._fs_observer: Optional[IFSObserver] = None
+        self._fs_observer: IFSObserver | None = None
 
         self._dir_cache = DirCache(cache_dir)
         self._rcc = Rcc(self)
@@ -238,12 +239,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
         from sema4ai_code.plugins.resolve_interpreter import register_plugins
 
-        self._prefix_to_last_run_number_and_time: Dict[str, Tuple[int, float]] = {}
+        self._prefix_to_last_run_number_and_time: dict[str, tuple[int, float]] = {}
 
         self._pypi_cloud = PyPiCloud(weakref.WeakMethod(self._get_pypi_base_urls))  # type: ignore
         self._cache_dir = cache_dir
         self._paths_remover = None
-        self.__conda_cloud: Optional[ICondaCloud] = None
+        self.__conda_cloud: ICondaCloud | None = None
         self._paths_remover_queue: "Queue[Path]" = Queue()
         register_plugins(self._pm)
 
@@ -338,7 +339,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._fs_observer = watchdog_wrapper.create_observer("dummy", ())
         return self._fs_observer
 
-    def _create_lint_manager(self) -> Optional[BaseLintManager]:
+    def _create_lint_manager(self) -> BaseLintManager | None:
         from sema4ai_code._lint import LintManager
 
         return LintManager(
@@ -398,7 +399,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return command_dispatcher.dispatch(self, command, arguments)
 
     def m_import_agent_package_from_zip(
-        self, target_dir: Optional[str] = None, agent_package_zip: Optional[str] = None
+        self, target_dir: str | None = None, agent_package_zip: str | None = None
     ) -> ActionResultDict:
         if not target_dir:
             return ActionResult.make_failure(
@@ -480,7 +481,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def _get_sort_key_info(self) -> dict:
         try:
-            cache_lru_list: List[PackageInfoInLRUDict] = self._dir_cache.load(
+            cache_lru_list: list[PackageInfoInLRUDict] = self._dir_cache.load(
                 self.PACKAGE_ACCESS_LRU_CACHE_KEY, list
             )
         except KeyError:
@@ -503,7 +504,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _get_linked_account_info(self, params=None) -> ActionResultDict:
         from sema4ai_code.rcc import AccountInfo
 
-        curr_account_info: Optional[AccountInfo] = self._rcc.last_verified_account_info
+        curr_account_info: AccountInfo | None = self._rcc.last_verified_account_info
         if curr_account_info is None:
             curr_account_info = self._rcc.get_valid_account_info()
             if curr_account_info is None:
@@ -584,14 +585,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._endpoint, "Listing Control Room workspaces", self._dir_cache
         ):
             ws: IRccWorkspace
-            ret: List[WorkspaceInfoDict] = []
+            ret: list[WorkspaceInfoDict] = []
             result = self._rcc.cloud_list_workspaces()
             if not result.success:
                 return result.as_dict()
 
             workspaces = result.result
             for ws in workspaces or []:
-                packages: List[PackageInfoDict] = []
+                packages: list[PackageInfoDict] = []
 
                 activity_package: IRccRobotMetadata
                 activities_result = self._rcc.cloud_list_workspace_robots(
@@ -673,12 +674,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return ret.as_dict()
 
     @command_dispatcher(commands.SEMA4AI_LIST_ACTIONS_INTERNAL)
-    def _local_list_actions_internal(self, params: Optional[ListActionsParams]):
+    def _local_list_actions_internal(self, params: ListActionsParams | None):
         # i.e.: should not block.
         return partial(self._local_list_actions_internal_impl, params=params)
 
     def _local_list_actions_internal_impl(
-        self, params: Optional[ListActionsParams]
+        self, params: ListActionsParams | None
     ) -> ActionResultDict:
         from sema4ai_code.robo.collect_actions_ast import iter_actions
 
@@ -710,7 +711,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_LIST_WORK_ITEMS_INTERNAL)
     def _local_list_work_items_internal(
-        self, params: Optional[ListWorkItemsParams] = None
+        self, params: ListWorkItemsParams | None = None
     ) -> ActionResultDictWorkItems:
         from sema4ai_code.protocols import WorkItemsInfo
 
@@ -767,8 +768,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         work_items_in_dir = robot_yaml.parent / "devdata" / "work-items-in"
         work_items_out_dir = robot_yaml.parent / "devdata" / "work-items-out"
 
-        input_work_items: List[WorkItem] = []
-        output_work_items: List[WorkItem] = []
+        input_work_items: list[WorkItem] = []
+        output_work_items: list[WorkItem] = []
 
         def sort_by_number_postfix(entry: WorkItem):
             try:
@@ -815,7 +816,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _compute_new_output_workitem_path(
         self,
         work_items_out_dir: Path,
-        output_work_items: List[WorkItem],
+        output_work_items: list[WorkItem],
         output_prefix: str,
     ):
         max_run, last_time = self._prefix_to_last_run_number_and_time.get(
@@ -863,8 +864,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     # Automatically schedule a removal of work item that matches the output prefix
     def _schedule_output_work_item_removal(
-        self, output_work_items: List[WorkItem], output_prefix: str
-    ) -> List[WorkItem]:
+        self, output_work_items: list[WorkItem], output_prefix: str
+    ) -> list[WorkItem]:
         import re
 
         # Find the amount of work items that match the output prefix
@@ -887,7 +888,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return recyclable_output_work_items + non_recyclable_output_work_items
 
-    def _find_robot_yaml_path_from_path(self, path: Path, stat) -> Optional[Path]:
+    def _find_robot_yaml_path_from_path(self, path: Path, stat) -> Path | None:
         from sema4ai_code import find_robot_yaml
 
         return find_robot_yaml.find_robot_yaml_path_from_path(path, stat)
@@ -908,7 +909,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_list_robots(self) -> ActionResultDictLocalRobotMetadata:
         return self._local_list_robots()
 
-    def _validate_directory(self, directory) -> Optional[str]:
+    def _validate_directory(self, directory) -> str | None:
         if not os.path.exists(directory):
             return f"Expected: {directory} to exist."
 
@@ -920,13 +921,13 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self, workspace_id, package_id, directory
     ) -> None:
         try:
-            lst: List[PackageInfoInLRUDict] = self._dir_cache.load(
+            lst: list[PackageInfoInLRUDict] = self._dir_cache.load(
                 self.PACKAGE_ACCESS_LRU_CACHE_KEY, list
             )
         except KeyError:
             lst = []
 
-        new_lst: List[PackageInfoInLRUDict] = [
+        new_lst: list[PackageInfoInLRUDict] = [
             {
                 "workspace_id": workspace_id,
                 "package_id": package_id,
@@ -1022,24 +1023,24 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ) -> ActionResultDictRobotLaunch:
         from sema4ai_code import compute_launch
 
-        name: Optional[str] = params.get("name")
-        request: Optional[str] = params.get("request")
+        name: str | None = params.get("name")
+        request: str | None = params.get("request")
 
         # Task package related:
-        task: Optional[str] = params.get("task")
-        robot: Optional[str] = params.get("robot")
+        task: str | None = params.get("task")
+        robot: str | None = params.get("robot")
 
         # Action package related:
-        package: Optional[str] = params.get("package")
-        action_name: Optional[str] = params.get("actionName")
-        uri: Optional[str] = params.get("uri")
-        json_input: Optional[str] = params.get("jsonInput")
+        package: str | None = params.get("package")
+        action_name: str | None = params.get("actionName")
+        uri: str | None = params.get("uri")
+        json_input: str | None = params.get("jsonInput")
 
-        additional_pythonpath_entries: Optional[List[str]] = params.get(
+        additional_pythonpath_entries: list[str] | None = params.get(
             "additionalPythonpathEntries"
         )
-        env: Optional[Dict[str, str]] = params.get("env")
-        python_exe: Optional[str] = params.get("pythonExe")
+        env: dict[str, str] | None = params.get("env")
+        python_exe: str | None = params.get("pythonExe")
 
         return compute_launch.compute_robot_launch_from_robocorp_code_launch(
             name=name,
@@ -1136,7 +1137,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 "result": None,
             }
 
-        version_mismatch_error_msgs: List[str] = []
+        version_mismatch_error_msgs: list[str] = []
         for entry in yaml_contents:
             if isinstance(entry, dict):
                 name = entry.get("name")
@@ -1187,7 +1188,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self._feedback.metric(name, value)
         return {"success": True, "message": None, "result": None}
 
-    def m_text_document__code_lens(self, **kwargs) -> Optional[partial]:
+    def m_text_document__code_lens(self, **kwargs) -> partial | None:
         from sema4ai_code.robo.launch_code_lens import compute_launch_robo_code_lens
 
         doc_uri = kwargs["textDocument"]["uri"]
@@ -1232,7 +1233,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def _hover_on_conda_yaml(
         self, doc_uri, line, col, monitor: IMonitor
-    ) -> Optional[HoverTypedDict]:
+    ) -> HoverTypedDict | None:
         from sema4ai_ls_core.protocols import IDocument
 
         from sema4ai_code.hover import hover_on_conda_yaml
@@ -1241,7 +1242,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if ws is None:
             return None
 
-        doc: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+        doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
         if doc is None:
             return None
 
@@ -1249,7 +1250,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def _hover_on_package_yaml(
         self, doc_uri, line, col, monitor: IMonitor
-    ) -> Optional[HoverTypedDict]:
+    ) -> HoverTypedDict | None:
         from sema4ai_ls_core.protocols import IDocument
 
         from sema4ai_code.hover import hover_on_package_yaml
@@ -1258,7 +1259,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if ws is None:
             return None
 
-        doc: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+        doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
         if doc is None:
             return None
 
@@ -1268,7 +1269,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def _hover_on_agent_spec_yaml(
         self, doc_uri, line, col, monitor: IMonitor
-    ) -> Optional[HoverTypedDict]:
+    ) -> HoverTypedDict | None:
         from sema4ai_ls_core.protocols import IDocument
 
         from sema4ai_code.agents.hover_agent_spec import hover_on_agent_spec_yaml
@@ -1277,7 +1278,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if ws is None:
             return None
 
-        doc: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+        doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
         if doc is None:
             return None
 
@@ -1285,7 +1286,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def _hover_on_locators_json(
         self, doc_uri, line, col, monitor: IMonitor
-    ) -> Optional[dict]:
+    ) -> dict | None:
         from sema4ai_ls_core.lsp import MarkupContent, MarkupKind, Range
         from sema4ai_ls_core.protocols import IDocument, IDocumentSelection
 
@@ -1293,7 +1294,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         if ws is None:
             return None
 
-        document: Optional[IDocument] = ws.get_document(doc_uri, accept_from_file=True)
+        document: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
         if document is None:
             return None
         sel: IDocumentSelection = document.selection(line, col)
@@ -1376,7 +1377,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_GET_LOCATORS_JSON_INFO)
     def _get_locators_json_info(
-        self, params: Optional[dict] = None
+        self, params: dict | None = None
     ) -> ActionResultDictLocatorsJsonInfo:
         from .vendored.locators.containers import Locator
 
@@ -1388,7 +1389,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             }
 
         path = Path(params["robotYaml"])
-        locators_json_info: List[LocatorEntryInfoDict] = []
+        locators_json_info: list[LocatorEntryInfoDict] = []
         locator: Locator
         try:
             action_result: ActionResultDictLocatorsJson = self._load_locators_db(path)
@@ -1435,7 +1436,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_REMOVE_LOCATOR_FROM_JSON_INTERNAL)
     def _remove_locator_from_json_internal(
-        self, params: Optional[dict] = None
+        self, params: dict | None = None
     ) -> ActionResultDict:
         if not params or "robotYaml" not in params or "name" not in params:
             return {
@@ -1599,7 +1600,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_RCC_DOWNLOAD_INTERNAL)
     def _rcc_download(
-        self, params: Optional[DownloadToolDict] = None
+        self, params: DownloadToolDict | None = None
     ) -> ActionResultDict:
         from sema4ai_code.rcc import download_rcc
 
@@ -1618,7 +1619,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL)
     def _action_server_download(
-        self, params: Optional[DownloadToolDict] = None
+        self, params: DownloadToolDict | None = None
     ) -> ActionResultDict:
         from sema4ai_code.action_server import download_action_server
 
@@ -1640,11 +1641,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": location}
 
     @command_dispatcher(commands.SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL)
-    def _agent_cli_download(self, params: Optional[DownloadToolDict] = None):
+    def _agent_cli_download(self, params: DownloadToolDict | None = None):
         return require_monitor(partial(self._agent_cli_download_threaded, params))
 
     def _agent_cli_download_threaded(
-        self, params: Optional[DownloadToolDict], monitor: IMonitor
+        self, params: DownloadToolDict | None, monitor: IMonitor
     ) -> ActionResultDict:
         from sema4ai_code.agent_cli import download_agent_cli
 
@@ -1707,7 +1708,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         import yaml
 
-        with open(agent_spec_path, "r") as yaml_file:
+        with open(agent_spec_path) as yaml_file:
             yaml_content = yaml.safe_load(yaml_file)
 
         try:

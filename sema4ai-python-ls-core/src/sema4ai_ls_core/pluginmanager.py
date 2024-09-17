@@ -74,7 +74,7 @@ class InstanceAlreadyRegisteredError(RuntimeError):
 T = TypeVar("T")
 
 
-class PluginManager(object):
+class PluginManager:
     """
     This is a manager of plugins (which we refer to extension points and implementations).
     Mostly, we have a number of EPs (Extension Points) and implementations may be registered
@@ -85,10 +85,10 @@ class PluginManager(object):
     """
 
     def __init__(self) -> None:
-        self._ep_to_impls: Dict[Type, list] = {}
-        self._ep_to_instance_impls: Dict[Tuple[Type, Optional[str]], list] = {}
-        self._ep_to_context_to_instance: Dict[Type, dict] = {}
-        self._name_to_ep: Dict[str, Type] = {}
+        self._ep_to_impls: dict[type, list] = {}
+        self._ep_to_instance_impls: dict[tuple[type, str | None], list] = {}
+        self._ep_to_context_to_instance: dict[type, dict] = {}
+        self._name_to_ep: dict[str, type] = {}
         self.exited = False
 
     def load_plugins_from(self, directory: Path) -> int:
@@ -107,7 +107,7 @@ class PluginManager(object):
     # This should be:
     # def get_implementations(self, ep: Type[T]) -> List[T]:
     # But isn't due to: https://github.com/python/mypy/issues/5374
-    def get_implementations(self, ep: Union[Type, str]) -> list:
+    def get_implementations(self, ep: type | str) -> list:
         assert not self.exited
         if isinstance(ep, str):
             ep = self._name_to_ep[ep]
@@ -122,10 +122,10 @@ class PluginManager(object):
 
     def register(
         self,
-        ep: Type,
+        ep: type,
         impl,
-        kwargs: Optional[dict] = None,
-        context: Optional[str] = None,
+        kwargs: dict | None = None,
+        context: str | None = None,
         keep_instance: bool = False,
     ):
         """
@@ -167,7 +167,7 @@ class PluginManager(object):
         impls.append((impl, kwargs))
 
     def unregister(
-        self, ep: Type, context: Optional[str] = None, keep_instance: bool = False
+        self, ep: type, context: str | None = None, keep_instance: bool = False
     ):
         self._name_to_ep.pop(ep.__name__, None)
         if keep_instance:
@@ -177,7 +177,7 @@ class PluginManager(object):
             ep_to_impl = self._ep_to_impls
             ep_to_impl.pop(ep, None)
 
-    def set_instance(self, ep: Type, instance, context=None) -> None:
+    def set_instance(self, ep: type, instance, context=None) -> None:
         if isinstance(ep, str):
             raise ValueError("Expected the actual EP class to be passed.")
         self._name_to_ep[ep.__name__] = ep
@@ -187,13 +187,13 @@ class PluginManager(object):
             instances = self._ep_to_context_to_instance[ep] = {}
         instances[context] = instance
 
-    def iter_existing_instances(self, ep: Union[Type, str]):
+    def iter_existing_instances(self, ep: type | str):
         if isinstance(ep, str):
             ep = self._name_to_ep[ep]
 
         return self._ep_to_context_to_instance[ep].values()
 
-    def has_instance(self, ep: Union[Type, str], context=None):
+    def has_instance(self, ep: type | str, context=None):
         if isinstance(ep, str):
             ep_cls = self._name_to_ep.get(ep)
             if ep_cls is None:
@@ -208,7 +208,7 @@ class PluginManager(object):
     # This should be:
     # def get_instance(self, ep: Type[T], context=None) -> T:
     # But isn't due to: https://github.com/python/mypy/issues/5374
-    def get_instance(self, ep: Union[Type, str], context: Optional[str] = None) -> Any:
+    def get_instance(self, ep: type | str, context: str | None = None) -> Any:
         """
         Creates an instance in this plugin manager: Meaning that whenever a new EP is asked in
         the same context it'll receive the same instance created previously (and it'll be

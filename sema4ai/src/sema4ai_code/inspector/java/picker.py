@@ -1,7 +1,8 @@
 import math
 import threading
 import time
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Callable
 
 from sema4ai_code.inspector.java.highlighter import TkHandlerThread
 from sema4ai_ls_core.core_log import ILog
@@ -36,9 +37,9 @@ class CursorListenerThread(threading.Thread):
     def __init__(
         self,
         log: ILog,
-        tk_handler_thread: Optional[TkHandlerThread],
+        tk_handler_thread: TkHandlerThread | None,
         # tree_geometries = [ (node_index, (left, top, right, bottom), node ) ]
-        tree_geometries: List[Tuple[int, Tuple, dict]],
+        tree_geometries: list[tuple[int, tuple, dict]],
         # on_pick = func( (node_index, (left, top, right, bottom), node ) )
         on_pick: Callable,
     ) -> None:
@@ -51,7 +52,7 @@ class CursorListenerThread(threading.Thread):
         self._on_pick = on_pick
 
         # _element_hit = ( node_index, (left, top, right, bottom), node )
-        self._element_hit: Optional[Tuple[int, Tuple, dict]] = None
+        self._element_hit: tuple[int, tuple, dict] | None = None
 
     def run(self) -> None:
         try:
@@ -111,7 +112,7 @@ class CursorListenerThread(threading.Thread):
         if self._tk_handler_thread:
             self._tk_handler_thread.set_rects(rects=[])
 
-    def _highlighter_draw(self, rects: List[Tuple]):
+    def _highlighter_draw(self, rects: list[tuple]):
         if self._tk_handler_thread:
             self._tk_handler_thread.set_rects(rects=rects)
 

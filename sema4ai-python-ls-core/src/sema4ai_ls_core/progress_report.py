@@ -2,7 +2,8 @@ import threading
 
 from sema4ai_ls_core.protocols import IEndPoint, IDirCache, IProgressReporter
 from contextlib import contextmanager
-from typing import Optional, Iterator, Dict
+from typing import Optional, Dict
+from collections.abc import Iterator
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.basic import implements
 import os
@@ -20,17 +21,17 @@ def _next_id():
     return str(uuid.uuid4()) + "-" + str(os.getpid())
 
 
-_progress_id_to_progress_reporter: Dict[str, "_ProgressReporter"] = {}
+_progress_id_to_progress_reporter: dict[str, "_ProgressReporter"] = {}
 
 
-class _ProgressReporter(object):
+class _ProgressReporter:
     _MIN_TIME = 0.25
 
     def __init__(
         self,
         endpoint: IEndPoint,
         title: str,
-        dir_cache: Optional[IDirCache],
+        dir_cache: IDirCache | None,
         elapsed_time_key=None,
         cancellable: bool = False,
     ) -> None:
@@ -113,9 +114,9 @@ class _ProgressReporter(object):
                 expected_time = self._expected_time
 
                 if not self._additional_info:
-                    msg = "Elapsed: %.1fs" % (elapsed_time,)
+                    msg = f"Elapsed: {elapsed_time:.1f}s"
                 else:
-                    msg = "Elapsed: %.1fs : %s" % (
+                    msg = "Elapsed: {:.1f}s : {}".format(
                         elapsed_time,
                         self._additional_info,
                     )
@@ -164,7 +165,7 @@ class _ProgressReporter(object):
 _progress_context = threading.local()
 
 
-def get_current_progress_reporter() -> Optional[_ProgressReporter]:
+def get_current_progress_reporter() -> _ProgressReporter | None:
     try:
         try:
             stack = _progress_context._stack
@@ -235,7 +236,7 @@ def cancel(progress_id: str) -> bool:
 def progress_context(
     endpoint: IEndPoint,
     title: str,
-    dir_cache: Optional[IDirCache],
+    dir_cache: IDirCache | None,
     elapsed_time_key=None,
     cancellable: bool = False,
 ) -> Iterator[IProgressReporter]:

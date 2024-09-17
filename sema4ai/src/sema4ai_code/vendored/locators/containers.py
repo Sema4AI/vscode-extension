@@ -31,9 +31,9 @@ class Locator:
             raise ValueError(f"Unknown locator type: {type_}")
 
         # Check for missing parameters
-        required = set(
+        required = {
             field.name for field in fields(class_) if field.default is MISSING
-        )
+        }
         missing = set(required) - set(data)
         if missing:
             raise ValueError("Missing locator field(s): {}".format(", ".join(missing)))
@@ -108,13 +108,13 @@ class ImageLocator(Locator):
     """Image-based locator for template matching."""
 
     path: str
-    screenResolutionWidth: Optional[int] = None
-    screenResolutionHeight: Optional[int] = None
-    screenPixelRatio: Optional[float] = None
-    confidence: Optional[float] = None
-    screenshot: Optional[str] = None
-    name: Optional[str] = None
-    element: Optional[dict] = None
+    screenResolutionWidth: int | None = None
+    screenResolutionHeight: int | None = None
+    screenPixelRatio: float | None = None
+    confidence: float | None = None
+    screenshot: str | None = None
+    name: str | None = None
+    element: dict | None = None
 
     def __post_init__(self):
         if self.confidence is not None:
@@ -132,9 +132,9 @@ class OcrLocator(Locator):
     """Locator for OCR-based text."""
 
     text: str
-    confidence: Optional[float] = None
+    confidence: float | None = None
     """3-character ISO 639-2 language code. Passed to pytesseract lang parameter."""
-    language: Optional[str] = None
+    language: str | None = None
 
     def __post_init__(self):
         self.text = str(self.text)
@@ -148,12 +148,12 @@ class BrowserLocator(Locator):
 
     strategy: str
     value: str
-    source: Optional[str] = None
-    screenshot: Optional[str] = None
-    name: Optional[str] = None
-    alternatives: Optional[dict] = None
-    element: Optional[dict] = None
-    frame: Optional[dict] = None
+    source: str | None = None
+    screenshot: str | None = None
+    name: str | None = None
+    alternatives: dict | None = None
+    element: dict | None = None
+    frame: dict | None = None
 
 
 @dataclass
@@ -163,9 +163,9 @@ class WindowsLocator(Locator):
     window: str
     value: str
     version: float
-    screenshot: Optional[str] = None
-    name: Optional[str] = None
-    element: Optional[dict] = None
+    screenshot: str | None = None
+    name: str | None = None
+    element: dict | None = None
 
 
 @dataclass
@@ -175,9 +175,9 @@ class JavaLocator(Locator):
     window: str
     value: str
     version: float
-    screenshot: Optional[str] = None
-    name: Optional[str] = None
-    element: Optional[dict] = None
+    screenshot: str | None = None
+    name: str | None = None
+    element: dict | None = None
 
 
 # Aliases for backwards compatibility, just in case.

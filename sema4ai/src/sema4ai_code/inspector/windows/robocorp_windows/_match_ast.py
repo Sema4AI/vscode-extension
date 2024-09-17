@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 def collect_search_params(
     locator: Locator, *, _cache={}
-) -> Tuple["OrSearchParams", ...]:
+) -> tuple["OrSearchParams", ...]:
     """
     Args:
         locator: The locator for which the search parameters are wanted.
@@ -36,7 +36,7 @@ def collect_search_params(
         locator_match = _build_locator_match(locator)
         for warning in locator_match.warnings:
             log.warn(warning)
-        only_ors: List[OrSearchParams] = []
+        only_ors: list[OrSearchParams] = []
         for params in locator_match.flattened:
             if isinstance(params, OrSearchParams):
                 only_ors.append(params)
@@ -177,7 +177,7 @@ class _AbstractPartsAstNode(_AbstractAstNode):
 
     # A list, but make sure that the default instance is not mutated (subclasses
     # should initialize in the instance as needed).
-    parts: List[_AbstractAstNode] = _ImmutableList()
+    parts: list[_AbstractAstNode] = _ImmutableList()
 
     # If True adding a new strategy will first add a new SearchParams class.
     on_first_append_create: bool = True
@@ -208,17 +208,17 @@ class _LocatorMatch(_AbstractPartsAstNode):
         self.parts = []
 
         # Warnings found when building the AST.
-        self.warnings: List[str] = []
+        self.warnings: list[str] = []
 
         # This is what we should actually match with (each new '>' entry adds
         # a new entry here), close to what the AST has.
-        self.levels: List[_MatchOneLevelParams] = []
+        self.levels: list[_MatchOneLevelParams] = []
 
         # The flattened version, each entry represents one level and it's flattened
         # so that it's a single or with multiple parts or a single search parameter
         # to be matched for each level.
         # This is the information that should be used when actually doing a match.
-        self.flattened: List[Union[SearchParams, OrSearchParams]]
+        self.flattened: list[SearchParams | OrSearchParams]
 
     def add_warning(self, msg: str):
         self.warnings.append(msg)
@@ -271,11 +271,11 @@ class _LocatorMatch(_AbstractPartsAstNode):
         # Now, let's flatten our conditions so that we just have 1-level
         # to check (so, at the root we have either a single OrSearchParams() with
         # all the 'or' conditions or just one SearchParams).
-        curr_levels: List[_MatchOneLevelParams] = self.levels
+        curr_levels: list[_MatchOneLevelParams] = self.levels
 
         for _i in range(100):
             is_fully_flattened = True
-            new_levels: List[_MatchOneLevelParams] = []
+            new_levels: list[_MatchOneLevelParams] = []
             for level in curr_levels:
                 flattened = self._flatten(level)
 
@@ -291,7 +291,7 @@ class _LocatorMatch(_AbstractPartsAstNode):
 
             if is_fully_flattened:
                 # At this point we know it's properly flattened.
-                new_flattened: List[Union[SearchParams, OrSearchParams]] = []
+                new_flattened: list[SearchParams | OrSearchParams] = []
                 for level in curr_levels:
                     if len(level.parts) != 1:
                         raise InvalidLocatorError(
@@ -311,7 +311,7 @@ class _LocatorMatch(_AbstractPartsAstNode):
 
     def _flatten_or(self, or_expr) -> "OrSearchParams":
         assert isinstance(or_expr, OrSearchParams)
-        parts: List[_AbstractAstNode] = []
+        parts: list[_AbstractAstNode] = []
         for part in or_expr.parts:
             if isinstance(part, _ParensExpr):
                 parts.append(self._flatten(part))
@@ -326,7 +326,7 @@ class _LocatorMatch(_AbstractPartsAstNode):
 
     def _flatten(self, level) -> Union[SearchParams, "OrSearchParams"]:
         if isinstance(level, (_MatchOneLevelParams, _ParensExpr)):
-            root: Optional[Union[SearchParams, OrSearchParams]] = None
+            root: SearchParams | OrSearchParams | None = None
 
             for part in level.parts:
                 if isinstance(part, _ParensExpr):
@@ -343,7 +343,7 @@ class _LocatorMatch(_AbstractPartsAstNode):
                             root = cp
 
                         elif isinstance(root, OrSearchParams):
-                            new_root_parts: List[_AbstractAstNode] = []
+                            new_root_parts: list[_AbstractAstNode] = []
                             for root_part in root.parts:
                                 if isinstance(root_part, SearchParams):
                                     root_part = root_part.copy()
@@ -438,7 +438,7 @@ class _StrategyBuilder:
         from ._match_tokenization import Token
 
         self.strategy = strategy
-        self.values: List[Token] = []
+        self.values: list[Token] = []
         self.accepts_multiple_strings = (
             strategy in _strategies_accepting_multiple_strings
         )
@@ -468,10 +468,10 @@ def _build_locator_match(locator: Locator) -> _LocatorMatch:
 
     stack: list = [locator_match]
 
-    strategy_builder: Optional[_StrategyBuilder] = None
+    strategy_builder: _StrategyBuilder | None = None
 
-    require_next: Tuple[TokenKind, ...] = ()
-    prev: Optional[Token] = None
+    require_next: tuple[TokenKind, ...] = ()
+    prev: Token | None = None
 
     parens_level = 0
 

@@ -1,6 +1,7 @@
 import threading
 from queue import Queue
-from typing import Literal, Optional, TYPE_CHECKING, Callable, Tuple, Any
+from typing import Literal, Optional, TYPE_CHECKING, Tuple, Any
+from collections.abc import Callable
 
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.protocols import ActionResultDict, IConfig, IEndPoint
@@ -43,21 +44,21 @@ class _WebInspectorThread(threading.Thread):
     def __init__(
         self,
         endpoint: IEndPoint,
-        configuration: Optional[dict],
-        shutdown_callback: Optional[Callable],
+        configuration: dict | None,
+        shutdown_callback: Callable | None,
     ) -> None:
         threading.Thread.__init__(self)
         self._endpoint = endpoint
         self.daemon = True
         self.queue: "Queue[Optional[_WebBaseCommand]]" = Queue()
         self._finish = False
-        self._web_inspector: Optional[WebInspector] = None
+        self._web_inspector: WebInspector | None = None
         self._shutdown_callback = shutdown_callback
 
         self._configuration = configuration
 
     @property
-    def web_inspector(self) -> Optional[WebInspector]:
+    def web_inspector(self) -> WebInspector | None:
         return self._web_inspector
 
     def shutdown(self) -> None:
@@ -79,7 +80,7 @@ class _WebInspectorThread(threading.Thread):
         )
 
         loop_timeout: float = _DEFAULT_LOOP_TIMEOUT
-        item: Optional[_WebBaseCommand]
+        item: _WebBaseCommand | None
 
         try:
             while not self._finish:
@@ -116,7 +117,7 @@ class _WebInspectorThread(threading.Thread):
 
 
 class _WebBaseCommand:
-    loop_timeout: Optional[float] = _DEFAULT_LOOP_TIMEOUT
+    loop_timeout: float | None = _DEFAULT_LOOP_TIMEOUT
 
     def __init__(self):
         from concurrent.futures import Future
@@ -233,7 +234,7 @@ class _WebAsyncStopCommand(_WebBaseCommand):
 class _WebValidateCommand(_WebBaseCommand):
     loop_timeout = None  # Don't change it.
 
-    def __init__(self, locator: dict, url: Optional[str]):
+    def __init__(self, locator: dict, url: str | None):
         super().__init__()
         self.locator = locator
         self.url = url
@@ -314,13 +315,13 @@ class _WindowsInspectorThread(threading.Thread):
 
         endpoint = self._endpoint
 
-        def _on_pick(picked: List[ControlLocatorInfoTypedDict]):
+        def _on_pick(picked: list[ControlLocatorInfoTypedDict]):
             endpoint.notify("$/windowsPick", {"picked": picked})
 
         self._windows_inspector = WindowsInspector()
         self._windows_inspector.on_pick.register(_on_pick)
 
-        item: Optional[_WindowsBaseCommand]
+        item: _WindowsBaseCommand | None
 
         while not self._finish:
             try:
@@ -401,7 +402,7 @@ class _WindowsParseLocator(_WindowsBaseCommand):
 
         try:
             locator_match = _build_locator_match(locator)
-            only_ors: List[OrSearchParams] = []
+            only_ors: list[OrSearchParams] = []
             for params in locator_match.flattened:
                 if isinstance(params, OrSearchParams):
                     only_ors.append(params)
@@ -549,7 +550,7 @@ class _ImageInspectorThread(threading.Thread):
         self._image_inspector.on_pick.register(_on_pick)
         self._image_inspector.on_validate.register(_on_validate)
 
-        item: Optional[_ImageBaseCommand]
+        item: _ImageBaseCommand | None
 
         while not self._finish:
             try:
@@ -569,7 +570,7 @@ class _ImageInspectorThread(threading.Thread):
 
 
 class _ImageBaseCommand:
-    loop_timeout: Optional[float] = _DEFAULT_LOOP_TIMEOUT
+    loop_timeout: float | None = _DEFAULT_LOOP_TIMEOUT
 
     def __init__(self):
         from concurrent.futures import Future
@@ -583,7 +584,7 @@ class _ImageBaseCommand:
 
 class _ImageStartPick(_ImageBaseCommand):
     def __init__(
-        self, minimize: Optional[bool] = None, confidence_level: Optional[int] = None
+        self, minimize: bool | None = None, confidence_level: int | None = None
     ) -> None:
         super().__init__()
         self.minimize = minimize
@@ -610,7 +611,7 @@ class _ImageStopPick(_ImageBaseCommand):
 
 # TODO: replace this implementation when the robocorp library has image recognition
 class _ImageValidateLocator(_ImageBaseCommand):
-    def __init__(self, locator: dict, confidence_level: Optional[int] = None) -> None:
+    def __init__(self, locator: dict, confidence_level: int | None = None) -> None:
         super().__init__()
         self.locator = locator
         self.confidence_level = confidence_level
@@ -680,7 +681,7 @@ class _JavaInspectorThread(threading.Thread):
         self._java_inspector = JavaInspector()
         self._java_inspector.on_pick.register(_on_pick)
 
-        item: Optional[_JavaBaseCommand]
+        item: _JavaBaseCommand | None
 
         while not self._finish:
             try:
@@ -833,10 +834,10 @@ class InspectorApi(PythonLanguageServer):
 
     def __init__(self, read_from, write_to) -> None:
         PythonLanguageServer.__init__(self, read_from, write_to)
-        self.__web_inspector_thread: Optional[_WebInspectorThread] = None
-        self.__windows_inspector_thread: Optional[_WindowsInspectorThread] = None
-        self.__image_inspector_thread: Optional[_ImageInspectorThread] = None
-        self.__java_inspector_thread: Optional[_JavaInspectorThread] = None
+        self.__web_inspector_thread: _WebInspectorThread | None = None
+        self.__windows_inspector_thread: _WindowsInspectorThread | None = None
+        self.__image_inspector_thread: _ImageInspectorThread | None = None
+        self.__java_inspector_thread: _JavaInspectorThread | None = None
 
         # set default configuration for the inspectors
         self.__web_inspector_configuration: dict = {  # configuring the Web Inspector with defaults
@@ -914,7 +915,7 @@ class InspectorApi(PythonLanguageServer):
     def m_echo(self, arg):
         return "echo", arg
 
-    def m_kill_inspectors(self, inspector: Optional[str]):
+    def m_kill_inspectors(self, inspector: str | None):
         log.debug(
             "Man:: Will kill inspector:", inspector if inspector is not None else "ALL"
         )
@@ -1023,8 +1024,8 @@ class InspectorApi(PythonLanguageServer):
     def m_browser_configure(
         self,
         wait=False,
-        viewport_size: Optional[Tuple] = None,
-        url: Optional[str] = None,
+        viewport_size: tuple | None = None,
+        url: str | None = None,
     ) -> None:
         # configure
         self.__web_inspector_configuration["browser_config"]["viewport_size"] = (
@@ -1044,7 +1045,7 @@ class InspectorApi(PythonLanguageServer):
         PythonLanguageServer.m_shutdown(self, **_kwargs)
 
     def m_validate_locator(
-        self, locator: dict, url: Optional[str], wait: bool = False
+        self, locator: dict, url: str | None, wait: bool = False
     ) -> int:
         return self._enqueue_web((_WebValidateCommand(locator=locator, url=url)), wait)
 
@@ -1097,7 +1098,7 @@ class InspectorApi(PythonLanguageServer):
     ####
 
     def m_image_start_pick(
-        self, minimize: Optional[bool] = None, confidence_level: Optional[int] = None
+        self, minimize: bool | None = None, confidence_level: int | None = None
     ):
         return self._enqueue_image(
             _ImageStartPick(confidence_level=confidence_level, minimize=minimize)
@@ -1107,7 +1108,7 @@ class InspectorApi(PythonLanguageServer):
         return self._enqueue_image(_ImageStopPick())
 
     def m_image_validate_locator(
-        self, locator: dict, confidence_level: Optional[int] = None
+        self, locator: dict, confidence_level: int | None = None
     ):
         return {"success": True, "message": None, "result": None}
         # TODO: replace this implementation when the robocorp library has image recognition

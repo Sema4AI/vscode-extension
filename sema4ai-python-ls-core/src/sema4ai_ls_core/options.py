@@ -35,11 +35,11 @@ ENV_OPTION_LSP_DEBUG_REMOTE_FS_MESSAGES = "LSP_DEBUG_FS_MESSAGES"
 ENV_OPTION_LSP_DEBUG_CACHE_DEPS = "LSP_DEBUG_CACHE_DEPS"
 
 
-class BaseOptions(object):
+class BaseOptions:
     tcp: bool = False
     host: str = "127.0.0.1"
     port: int = 1456
-    log_file: Optional[str] = None
+    log_file: str | None = None
     verbose: int = 0
 
     DEBUG_MESSAGE_MATCHERS = is_true_in_env(ENV_OPTION_LSP_DEBUG_MESSAGE_MATCHERS)
@@ -65,6 +65,6 @@ class BaseOptions(object):
                         setattr(self, attr, getattr(args, attr))
 
 
-class Setup(object):
+class Setup:
     # After parsing args it's replaced with the actual setup.
     options = BaseOptions()

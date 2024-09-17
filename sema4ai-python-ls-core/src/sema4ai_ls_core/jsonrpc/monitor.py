@@ -4,7 +4,7 @@ from sema4ai_ls_core.core_log import get_logger
 log = get_logger(__name__)
 
 
-class Monitor(object):
+class Monitor:
     def __init__(self, title: str = ""):
         self._title = title
         self._cancelled: bool = False

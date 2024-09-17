@@ -1,5 +1,5 @@
 import json
-from typing import Sequence
+from collections.abc import Sequence
 
 from sema4ai_ls_core.command_dispatcher import _SubCommandDispatcher
 from sema4ai_ls_core.protocols import ActionResultDict, IEndPoint
@@ -17,7 +17,7 @@ log = get_logger(__name__)
 profile_command_dispatcher = _SubCommandDispatcher("_profile")
 
 
-class _Profile(object):
+class _Profile:
     def __init__(
         self,
         endpoint: IEndPoint,
@@ -50,7 +50,7 @@ class _Profile(object):
                 profile_name: str = ""
                 description: str = ""
                 try:
-                    with open(file_path, "r", encoding="utf-8") as stream:
+                    with open(file_path, encoding="utf-8") as stream:
                         contents = yaml_wrapper.load(stream)
                         profile_name = contents.get("name", "")
                         description = contents.get("description", "")

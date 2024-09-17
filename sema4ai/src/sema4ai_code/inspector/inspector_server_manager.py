@@ -16,7 +16,7 @@ log = get_logger(__name__)
 _next_id = partial(next, itertools.count(0))
 
 
-class InspectorServerManager(object):
+class InspectorServerManager:
     """
     Note: this is mainly a helper to manage the startup of an InspectorApiClient
     and restart it when needed.
@@ -34,14 +34,14 @@ class InspectorServerManager(object):
 
         self._server_process = None
 
-        self._inspector_api_client: Optional[InspectorApiClient] = None
+        self._inspector_api_client: InspectorApiClient | None = None
 
         self._initializing = False
         self._log_extension = "inspector.api"
         self._language_server_ref = language_server_ref
 
     @property
-    def stats(self) -> Optional[dict]:
+    def stats(self) -> dict | None:
         client = self._inspector_api_client
         if client is not None:
             return client.stats
@@ -59,7 +59,7 @@ class InspectorServerManager(object):
     def robocorp_code_language_server(self):
         return self._language_server_ref()
 
-    def get_inspector_api_client(self) -> Optional[InspectorApiClient]:
+    def get_inspector_api_client(self) -> InspectorApiClient | None:
         from sema4ai_code.inspector.inspector__main__ import start_server_process
         from sema4ai_code.options import Setup
         from sema4ai_code.robocorp_language_server import RobocorpLanguageServer
@@ -96,7 +96,7 @@ class InspectorServerManager(object):
                         args.append(
                             "--log-file="
                             + Setup.options.log_file
-                            + (".%s" % (log_id,))
+                            + (f".{log_id}")
                             + self._log_extension
                         )
 
@@ -134,9 +134,9 @@ class InspectorServerManager(object):
                         # windows
                         "$/javaPick",
                     ):
-                        robocorp_code_language_server: Optional[
+                        robocorp_code_language_server: None | (
                             RobocorpLanguageServer
-                        ] = language_server_ref()
+                        ) = language_server_ref()
                         if robocorp_code_language_server is not None:
                             robocorp_code_language_server.forward_msg(msg)
 

@@ -2,15 +2,14 @@ import enum
 import typing
 from typing import (
     Any,
-    Callable,
     List,
     Literal,
     Optional,
-    Sequence,
     Set,
     TypedDict,
     Union,
 )
+from collections.abc import Callable, Sequence
 
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.core_log import get_logger
@@ -83,10 +82,10 @@ WindowLocatorInfoTypedDict = TypedDict(
 class MatchesAndHierarchyTypedDict(TypedDict):
     # A list with the `path` items matched (these are the ones that the
     # locator matched)
-    matched_paths: List[str]
+    matched_paths: list[str]
     # This includes all the entries found along with the full hierarchy
     # to reach the matched entries.
-    hierarchy: List[ControlLocatorInfoTypedDict]
+    hierarchy: list[ControlLocatorInfoTypedDict]
 
 
 def _get_from_obj(el: Union["WindowElement", "ControlElement"], dct_name: str) -> Any:
@@ -122,7 +121,7 @@ def to_control_info(el: "ControlElement") -> ControlLocatorInfoTypedDict:
 
 
 class IOnPickCallback(typing.Protocol):
-    def __call__(self, locator_info_tree: List[ControlLocatorInfoTypedDict]):
+    def __call__(self, locator_info_tree: list[ControlLocatorInfoTypedDict]):
         """
         Args:
             locator_info_tree: This will provide the structure from parent to
@@ -132,12 +131,12 @@ class IOnPickCallback(typing.Protocol):
         """
 
     def register(
-        self, callback: Callable[[List[ControlLocatorInfoTypedDict]], Any]
+        self, callback: Callable[[list[ControlLocatorInfoTypedDict]], Any]
     ) -> None:
         pass
 
     def unregister(
-        self, callback: Callable[[List[ControlLocatorInfoTypedDict]], Any]
+        self, callback: Callable[[list[ControlLocatorInfoTypedDict]], Any]
     ) -> None:
         pass
 
@@ -155,11 +154,11 @@ def to_matches_and_hierarchy(
         build_parent_hierarchy,
     )
 
-    hierarchy: List[ControlLocatorInfoTypedDict] = []
-    matched_paths: List[str] = []
+    hierarchy: list[ControlLocatorInfoTypedDict] = []
+    matched_paths: list[str] = []
 
     # Keep the paths already seen.
-    already_in_hierarchy: Set[str] = set()
+    already_in_hierarchy: set[str] = set()
     for control in matched_controls:
         path = control.location_info.path
         assert path
@@ -181,7 +180,7 @@ class WindowsInspector:
 
         # Called as: self.on_pick([ControlLocatorInfoTypedDict])
         self.on_pick: IOnPickCallback = Callback()
-        self._element_inspector: Optional[ElementInspector] = None
+        self._element_inspector: ElementInspector | None = None
         self._state = _State.default
 
     def dispose(self):
@@ -213,8 +212,8 @@ class WindowsInspector:
         )
         self._element_inspector = ElementInspector(control_element=pick_window)
 
-    def _on_internal_pick(self, found: List["ControlTreeNode[ControlElement]"]):
-        converted: List[ControlLocatorInfoTypedDict] = []
+    def _on_internal_pick(self, found: list["ControlTreeNode[ControlElement]"]):
+        converted: list[ControlLocatorInfoTypedDict] = []
         for node in found:
             converted.append(to_control_info(node.control))
         self.on_pick(converted)
@@ -300,7 +299,7 @@ class WindowsInspector:
                 self._element_inspector.stop_highlight()
             self._state = _State.default
 
-    def list_windows(self) -> List[WindowLocatorInfoTypedDict]:
+    def list_windows(self) -> list[WindowLocatorInfoTypedDict]:
         from sema4ai_code.inspector.windows import robocorp_windows
 
         windows = robocorp_windows.find_windows("regex:.*", search_depth=1)
@@ -316,7 +315,7 @@ class WindowsInspector:
             raise RuntimeError(
                 "Unable to collect tree because `set_window_locator` was not previously used to set the window of interest."
             )
-        matched_controls: List["ControlElement"] = (
+        matched_controls: list["ControlElement"] = (
             self._element_inspector.control_element.find_many(
                 locator,
                 search_depth=search_depth,

@@ -1,6 +1,7 @@
 import threading
 import typing
-from typing import Any, Callable, Optional, List
+from typing import Any, Optional, List
+from collections.abc import Callable
 
 from sema4ai_ls_core.protocols import IEndPoint
 from sema4ai_ls_core.callbacks import Callback
@@ -14,8 +15,8 @@ log = get_logger(__name__)
 class _PickerThread(threading.Thread):
     def __init__(
         self,
-        bridge: Optional[ImageBridge],
-        confidence: Optional[int],
+        bridge: ImageBridge | None,
+        confidence: int | None,
         on_pick,
     ) -> None:
         threading.Thread.__init__(self)
@@ -41,9 +42,9 @@ class _PickerThread(threading.Thread):
 class _ValidateThread(threading.Thread):
     def __init__(
         self,
-        bridge: Optional[ImageBridge],
+        bridge: ImageBridge | None,
         image_base64: str,
-        confidence: Optional[int],
+        confidence: int | None,
         on_validate,
     ) -> None:
         threading.Thread.__init__(self)
@@ -70,7 +71,7 @@ class _ValidateThread(threading.Thread):
 
 
 class IOnPickCallback(typing.Protocol):
-    def __call__(self, locator_info_tree: List[dict]):
+    def __call__(self, locator_info_tree: list[dict]):
         pass
 
     def register(self, callback: Callable[[Any], Any]) -> None:
@@ -81,7 +82,7 @@ class IOnPickCallback(typing.Protocol):
 
 
 class ImageInspector:
-    def __init__(self, endpoint: Optional[IEndPoint] = None) -> None:
+    def __init__(self, endpoint: IEndPoint | None = None) -> None:
         """
         Args:
             endpoint: If given notifications on the state will be given.
@@ -93,13 +94,13 @@ class ImageInspector:
         self._image_bridge = ImageBridge(endpoint=endpoint, logger=log)
         # threads
         self._current_thread = threading.current_thread()
-        self._picker_thread: Optional[_PickerThread] = None
-        self._validate_thread: Optional[_ValidateThread] = None
+        self._picker_thread: _PickerThread | None = None
+        self._validate_thread: _ValidateThread | None = None
 
     def _check_thread(self):
         assert self._current_thread is threading.current_thread()
 
-    def start_pick(self, confidence: Optional[int] = None) -> None:
+    def start_pick(self, confidence: int | None = None) -> None:
         self._check_thread()
         log.debug("Image:: Start pick...")
 
@@ -120,7 +121,7 @@ class ImageInspector:
         self._image_bridge.stop()
 
     # TODO: replace this implementation when the robocorp library has image recognition
-    def validate(self, image_base64: str, confidence: Optional[int] = None) -> None:
+    def validate(self, image_base64: str, confidence: int | None = None) -> None:
         self._check_thread()
         log.debug("Image:: Validate pick...")
 

@@ -35,10 +35,10 @@ if typing.TYPE_CHECKING:
 
 
 class StatusTypedDict(TypedDict):
-    scopes: Optional[list[str]]
+    scopes: list[str] | None
     expires_at: str  # iso-formatted datetime or empty string
-    access_token: Optional[str]  # Only available if not an automatic id
-    metadata: Optional[dict]  # Metadata which may be available
+    access_token: str | None  # Only available if not an automatic id
+    metadata: dict | None  # Metadata which may be available
 
 
 def is_debugger_active() -> bool:
@@ -76,8 +76,8 @@ def download_action_server(
     location: str,
     action_server_version=ACTION_SERVER_VERSION,
     force: bool = False,
-    sys_platform: Optional[str] = None,
-    endpoint: Optional[IEndPoint] = None,
+    sys_platform: str | None = None,
+    endpoint: IEndPoint | None = None,
 ) -> None:
     """
     Downloads Action Server to the given location. Note that we don't overwrite it if it
@@ -258,9 +258,9 @@ class ActionServerAsService:
     def get_str(
         self,
         url,
-        params: Optional[dict] = None,
-        headers: Optional[dict] = None,
-        timeout: Optional[int] = DEFAULT_TIMEOUT,
+        params: dict | None = None,
+        headers: dict | None = None,
+        timeout: int | None = DEFAULT_TIMEOUT,
     ):
         """Fetches the URL using urllib and handles basic request parameters.
         Note: requests is not a dependency so it cannot be used.
@@ -321,7 +321,7 @@ class ActionServerAsService:
         except Exception:
             raise AssertionError(f"Unable to load: {contents!r}")
 
-    def get_config(self, timeout: Optional[int] = DEFAULT_TIMEOUT) -> dict:
+    def get_config(self, timeout: int | None = DEFAULT_TIMEOUT) -> dict:
         return self.get_json("config", timeout=timeout)
 
     def _on_stderr(self, line):
@@ -461,13 +461,13 @@ class ActionServerAsService:
 class ActionServer:
     def __init__(self, config_provider: IConfigProvider):
         self._config_provider = weakref.ref(config_provider)
-        self._cached_user_config_path: Optional[Path] = None
-        self._cached_sema4ai_oauth2_config: Optional[dict] = None
-        self._cached_sema4ai_oauth2_config_str: Optional[str] = None
+        self._cached_user_config_path: Path | None = None
+        self._cached_sema4ai_oauth2_config: dict | None = None
+        self._cached_sema4ai_oauth2_config_str: str | None = None
 
     def _get_str_optional_setting(self, setting_name) -> Any:
         config_provider = self._config_provider()
-        config: Optional[IConfig] = None
+        config: IConfig | None = None
         if config_provider is not None:
             config = config_provider.config
 
@@ -730,7 +730,7 @@ class ActionServer:
         )
 
     def list_organizations(
-        self, access_credentials: Optional[str], hostname: Optional[str]
+        self, access_credentials: str | None, hostname: str | None
     ) -> ActionResult[ActionServerListOrgsResultDict]:
         """
         List available organizations with access credentials used at login.
@@ -810,8 +810,8 @@ class ActionServer:
         self,
         package_path: str,
         organization_id: str,
-        access_credentials: Optional[str],
-        hostname: Optional[str],
+        access_credentials: str | None,
+        hostname: str | None,
     ) -> ActionResult[ActionServerPackageUploadStatusDict]:
         """
         Upload action package to Control Room.
@@ -863,8 +863,8 @@ class ActionServer:
         self,
         package_id: str,
         organization_id: str,
-        access_credentials: Optional[str],
-        hostname: Optional[str],
+        access_credentials: str | None,
+        hostname: str | None,
     ) -> ActionResult[ActionServerPackageUploadStatusDict]:
         """
         Get uploaded action package status from Control Room.
@@ -915,8 +915,8 @@ class ActionServer:
         package_id: str,
         organization_id: str,
         changelog_input: str,
-        access_credentials: Optional[str],
-        hostname: Optional[str],
+        access_credentials: str | None,
+        hostname: str | None,
     ) -> ActionResult:
         """
         Update the changelog for package in Control Room.

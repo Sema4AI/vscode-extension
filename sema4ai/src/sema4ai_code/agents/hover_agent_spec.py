@@ -14,7 +14,7 @@ def yield_all_nodes(node: "Node"):
         yield from yield_all_nodes(child)
 
 
-def _find_version(node: "Node") -> Optional[str]:
+def _find_version(node: "Node") -> str | None:
     """
     In this function we must search for the version node and return its value.
     """
@@ -30,7 +30,7 @@ def _find_version(node: "Node") -> Optional[str]:
 
 def hover_on_agent_spec_yaml(
     doc: IDocument, line: int, col: int, monitor: IMonitor
-) -> Optional[HoverTypedDict]:
+) -> HoverTypedDict | None:
     import tree_sitter_yaml
     from tree_sitter import Language, Parser, Point
 
@@ -57,7 +57,7 @@ def hover_on_agent_spec_yaml(
             current = current.parent
         return "/".join(path)
 
-    def get_description(full_path) -> Optional[str]:
+    def get_description(full_path) -> str | None:
         if version == "v2":
             # Hover currently only available for v2
             from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2

@@ -46,7 +46,7 @@ def check_valid_mutex_name(mutex_name):
     regexp = re.compile(r'[\*\?"<>|/\\:]')
     result = regexp.findall(mutex_name)
     if result is not None and len(result) > 0:
-        raise AssertionError("Mutex name is invalid: %s" % (mutex_name,))
+        raise AssertionError(f"Mutex name is invalid: {mutex_name}")
 
 
 _mutex_name_to_info: "weakref.WeakValueDictionary[str, SystemMutex]" = (
@@ -105,7 +105,7 @@ def _collect_mutex_allocation_msg(mutex_name):
 if sys.platform == "win32":
     import os
 
-    class SystemMutex(object):
+    class SystemMutex:
         def __init__(
             self, mutex_name, check_reentrant=True, log_info=False, base_dir=None
         ):
@@ -190,7 +190,7 @@ else:  # Linux
     import fcntl  # @UnresolvedImport
     import os
 
-    class SystemMutex(object):
+    class SystemMutex:
         def __init__(
             self, mutex_name, check_reentrant=True, log_info=False, base_dir=None
         ):
@@ -233,7 +233,7 @@ else:  # Linux
                 if log_info:
                     try:
                         try:
-                            with open(filename, "r") as stream:
+                            with open(filename) as stream:
                                 curr_pid = stream.readline().strip()[-1]
                         except:
                             log.exception("Unable to get locking pid.")
@@ -309,7 +309,7 @@ else:  # Linux
             self._release_mutex()
 
 
-class _MutexHandle(object):
+class _MutexHandle:
     def __init__(self, system_mutex, mutex_name):
         self._system_mutex = system_mutex
         self._mutex_name = mutex_name

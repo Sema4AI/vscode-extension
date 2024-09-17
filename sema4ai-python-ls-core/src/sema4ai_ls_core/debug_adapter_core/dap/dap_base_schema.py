@@ -22,7 +22,7 @@ from sema4ai_ls_core.core_log import get_logger
 log = get_logger(__name__)
 
 
-class BaseSchema(object):
+class BaseSchema:
     type: str
     seq: int
 
@@ -57,7 +57,7 @@ class BaseSchema(object):
         try:
             return BaseSchema._dap_id_to_obj_id[dap_id]
         except:
-            raise KeyError("Wrong ID sent from the client: %s" % (dap_id,))
+            raise KeyError(f"Wrong ID sent from the client: {dap_id}")
 
     @staticmethod
     def update_dict_ids_to_dap(dct):
@@ -108,7 +108,7 @@ def register_event(event):
 def from_dict(dct, update_ids_from_dap=False, cls=None):
     msg_type = dct.get("type")
     if msg_type is None:
-        raise ValueError("Unable to make sense of message: %s" % (dct,))
+        raise ValueError(f"Unable to make sense of message: {dct}")
 
     if cls is None:
         if msg_type == "request":
@@ -133,7 +133,7 @@ def from_dict(dct, update_ids_from_dap=False, cls=None):
     try:
         return cls(update_ids_from_dap=update_ids_from_dap, **dct)
     except:
-        msg = "Error creating %s from %s" % (cls, dct)
+        msg = f"Error creating {cls} from {dct}"
         log.exception(msg)
         raise
 

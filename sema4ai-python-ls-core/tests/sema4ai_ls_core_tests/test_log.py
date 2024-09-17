@@ -24,11 +24,11 @@ def test_log(tmpdir):
         return log_files if log_files else None
 
     wait_for_test_condition(
-        get_log_files, msg=lambda: "Found: %s in %s" % (get_log_files(), somedir)
+        get_log_files, msg=lambda: f"Found: {get_log_files()} in {somedir}"
     )
     log_files = get_log_files()
 
-    with open(os.path.join(somedir, log_files[0]), "r") as stream:
+    with open(os.path.join(somedir, log_files[0])) as stream:
         contents = stream.read()
         assert "someerror" in contents
         assert "something" in contents
@@ -41,7 +41,7 @@ def test_log(tmpdir):
 
     log.info("out_of_context")
 
-    with open(os.path.join(somedir, log_files[0]), "r") as stream:
+    with open(os.path.join(somedir, log_files[0])) as stream:
         contents = stream.read()
     assert "out_of_context" in contents
     assert "in_context" not in contents

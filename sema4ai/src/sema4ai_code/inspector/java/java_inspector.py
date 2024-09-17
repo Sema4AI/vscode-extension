@@ -1,6 +1,7 @@
 import re
 import threading
-from typing import Any, Callable, List, Optional, Protocol, Tuple, TypedDict, cast
+from typing import Any, List, Optional, Protocol, Tuple, TypedDict, cast
+from collections.abc import Callable
 
 from JABWrapper.context_tree import ContextNode
 from JABWrapper.jab_wrapper import JavaWindow
@@ -17,44 +18,36 @@ MAX_ELEMENTS_TO_HIGHLIGHT = 20
 # ! For example - on Retina displays, the RESOLUTION_PIXEL_RATIO is 2
 RESOLUTION_PIXEL_RATIO = 1
 
-JavaWindowInfoTypedDict = TypedDict(
-    "JavaWindowInfoTypedDict",
-    {
-        "pid": int,
-        "hwnd": int,
-        "title": str,
-    },
-)
+class JavaWindowInfoTypedDict(TypedDict):
+    pid: int
+    hwnd: int
+    title: str
 
-LocatorNodeInfoTypedDict = TypedDict(
-    "LocatorNodeInfoTypedDict",
-    {
-        "name": str,
-        "role": str,
-        "description": str,
-        "states": str,
-        "indexInParent": int,
-        "childrenCount": int,
-        "x": int,
-        "y": int,
-        "width": int,
-        "height": int,
-        "ancestry": int,
-    },
-)
+class LocatorNodeInfoTypedDict(TypedDict):
+    name: str
+    role: str
+    description: str
+    states: str
+    indexInParent: int
+    childrenCount: int
+    x: int
+    y: int
+    width: int
+    height: int
+    ancestry: int
 
 
 class MatchesAndHierarchyTypedDict(TypedDict):
     # A list with the nodes matched (these are the ones that the
     # locator matched)
-    matched_paths: List[str]
+    matched_paths: list[str]
     # This includes all the entries found along with the full hierarchy
     # to reach the matched entries.
-    hierarchy: List[LocatorNodeInfoTypedDict]
+    hierarchy: list[LocatorNodeInfoTypedDict]
 
 
 class IOnPickCallback(Protocol):
-    def __call__(self, locator_info_tree: List[dict]):
+    def __call__(self, locator_info_tree: list[dict]):
         pass
 
     def register(self, callback: Callable[[Any], Any]) -> None:
@@ -93,7 +86,7 @@ def to_matches_and_hierarchy(
     return {"matched_paths": matches, "hierarchy": hierarchy}
 
 
-def to_geometry_str(match_string: str) -> Optional[Tuple[int, int, int, int]]:
+def to_geometry_str(match_string: str) -> tuple[int, int, int, int] | None:
     pattern = (
         r"x:(?P<x>-?\d+)\s+y:(?P<y>-?\d+).+width:(?P<width>\d+).+height:(?P<height>\d+)"
     )
@@ -132,7 +125,7 @@ def to_element_history_filtered(hierarchy: list):
     # deal only with the remaining elements
     current_number_of_children = 0
     root_index = -1
-    reconstructed_tree: List[List[dict]] = []
+    reconstructed_tree: list[list[dict]] = []
 
     for index, elem in enumerate(hierarchy):
         if current_number_of_children == 0:
@@ -192,7 +185,7 @@ class JavaInspector:
         self._tk_handler_thread: TkHandlerThread = TkHandlerThread()
         self._tk_handler_thread.start()
 
-        self._timer_thread: Optional[threading.Timer] = None
+        self._timer_thread: threading.Timer | None = None
 
         self.on_pick: IOnPickCallback = Callback()
         # make sure we have the access bridge dll inside the environment
@@ -245,7 +238,7 @@ class JavaInspector:
             log.critical("JAVA: Enabling jabswitch raised an exception:", e)
             raise e
 
-    def list_opened_applications(self) -> List[JavaWindowInfoTypedDict]:
+    def list_opened_applications(self) -> list[JavaWindowInfoTypedDict]:
         """
         List all available Java applications.
         """
@@ -267,7 +260,7 @@ class JavaInspector:
         self._element_inspector.bring_app_to_frontend()
 
     def collect_tree(
-        self, search_depth=1, locator: Optional[str] = None
+        self, search_depth=1, locator: str | None = None
     ) -> MatchesAndHierarchyTypedDict:
         """
         Collect the app element hierarchy from the locator match with given search depth.
@@ -279,7 +272,7 @@ class JavaInspector:
         return to_matches_and_hierarchy(matches_and_hierarchy)
 
     def collect_tree_from_root(
-        self, search_depth=1, locator: Optional[str] = None
+        self, search_depth=1, locator: str | None = None
     ) -> MatchesAndHierarchyTypedDict:
         """
         Collect the app element hierarchy from the locator match with given search depth.
@@ -304,14 +297,14 @@ class JavaInspector:
             raise Exception("Could not collect the tree elements. Rejecting picker!")
 
         # tree_geometries = [ (node_index, (left, top, right, bottom), node ) ]
-        tree_geometries: List[Tuple[int, Tuple, LocatorNodeInfoTypedDict]] = []
+        tree_geometries: list[tuple[int, tuple, LocatorNodeInfoTypedDict]] = []
         for node_index, node in enumerate(app_tree["hierarchy"]):
             geometry = to_geometry_node(node)
             if geometry is not None:
                 tree_geometries.append((node_index, geometry, node))
 
         # on_pick_wrapper - callback function that has the elem as param - (node_index, (left, top, right, bottom), node)
-        def on_pick_wrapper(picked_elem: Tuple[int, Tuple, LocatorNodeInfoTypedDict]):
+        def on_pick_wrapper(picked_elem: tuple[int, tuple, LocatorNodeInfoTypedDict]):
             return_ancestry = []
             try:
                 _, _, picked_node = picked_elem

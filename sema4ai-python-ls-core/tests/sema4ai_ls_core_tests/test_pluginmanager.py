@@ -28,7 +28,7 @@ class EPFoo(Protocol):
         pass
 
 
-class EPBar(object):
+class EPBar:
     def __init__(self):
         pass
 
@@ -76,15 +76,15 @@ def test_plugins():
     assert isinstance(pm.get_instance(EPFoo, context="context2"), AnotherFooImpl)
 
     assert len(list(pm.iter_existing_instances(EPFoo))) == 2
-    assert set(pm.iter_existing_instances(EPFoo)) == set(
-        [pm.get_instance(EPFoo, context="context2"), pm.get_instance(EPFoo)]
-    )
+    assert set(pm.iter_existing_instances(EPFoo)) == {
+        pm.get_instance(EPFoo, context="context2"), pm.get_instance(EPFoo)
+    }
 
     # Request using a string.
     assert len(list(pm.iter_existing_instances("EPFoo"))) == 2
-    assert set(pm.iter_existing_instances("EPFoo")) == set(
-        [pm.get_instance(EPFoo, context="context2"), pm.get_instance("EPFoo")]
-    )
+    assert set(pm.iter_existing_instances("EPFoo")) == {
+        pm.get_instance(EPFoo, context="context2"), pm.get_instance("EPFoo")
+    }
 
 
 def test_load_plugins():

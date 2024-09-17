@@ -22,7 +22,8 @@ from concurrent.futures import Future
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Callable, Tuple, TypeVar
+from typing import Any, Tuple, TypeVar
+from collections.abc import Callable
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.exceptions import JsonRpcRequestCancelled
@@ -203,7 +204,7 @@ def before(obj, method_name, callback):
         setattr(obj, method_name, original_method)
 
 
-def check_min_version(version: str, min_version: Tuple[int, int]) -> bool:
+def check_min_version(version: str, min_version: tuple[int, int]) -> bool:
     """
     :param version:
         This is the version of robotframework.
@@ -272,7 +273,7 @@ def wait_for_expected_func_return(
     def check():
         found = func()
         if found != expected_return:
-            return "Expected: %s. Found: %s" % (expected_return, found)
+            return f"Expected: {expected_return}. Found: {found}"
 
         return None
 
@@ -336,7 +337,7 @@ def normalize_filename(filename):
     return os.path.abspath(os.path.normpath(os.path.normcase(filename)))
 
 
-class _RestoreCtxManager(object):
+class _RestoreCtxManager:
     def __init__(self, original_import):
         self._original_import = original_import
 

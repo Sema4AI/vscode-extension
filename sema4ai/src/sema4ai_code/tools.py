@@ -116,7 +116,7 @@ def verify_tool_downloaded_ok(
 
 
 # Entries should be the location of the tools
-_checked_downloaded_tools: Set[str] = set()
+_checked_downloaded_tools: set[str] = set()
 
 
 def download_tool(
@@ -124,8 +124,8 @@ def download_tool(
     location: str,
     tool_version: str,
     force: bool = False,
-    sys_platform: Optional[str] = None,
-    endpoint: Optional[IEndPoint] = None,
+    sys_platform: str | None = None,
+    endpoint: IEndPoint | None = None,
 ) -> None:
     """
     Downloads the given Sema4.ai tool to the specified location. Note that it doesn't overwrite it if it

@@ -3,7 +3,7 @@ from sema4ai_ls_core.cache import instance_cache
 
 
 def test_instance_cache():
-    class MyClass(object):
+    class MyClass:
         def __init__(self, initial=0):
             self._count = itertools.count(initial)
 
@@ -24,7 +24,7 @@ def test_instance_cache():
 
 
 def test_instance_cache_args():
-    class MyClass(object):
+    class MyClass:
         def __init__(self, initial=0):
             self._count = itertools.count(initial)
 
@@ -41,7 +41,7 @@ def test_instance_cache_args():
 
 
 def test_instance_cache_lock():
-    class MyClass(object):
+    class MyClass:
         def __init__(self, initial=0):
             import threading
 
