@@ -759,7 +759,7 @@ class Validator:
     def _get_action_package_info(
         self, spec_node, yaml_node
     ) -> Optional["ActionPackageInFilesystem"]:
-        p = spec_node.data.path.split("/")[:-1] + ["path"]
+        p: str = "/".join(spec_node.data.path.split("/")[:-1] + ["path"])
         path_yaml_node = yaml_node.parent.children.get("path")
         error_or_path = self._get_node_value_points_to_path(
             p, path_yaml_node, "actions"
