@@ -1,4 +1,4 @@
-## Unreleased
+## New in 2.5.0 (2024-09-18)
 
 - Add `Create Action Package` command to side-bar.
 - Action packages commands now supports selection from agents.
