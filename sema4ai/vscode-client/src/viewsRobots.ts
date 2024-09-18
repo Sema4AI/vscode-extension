@@ -243,6 +243,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                                 "type": RobotEntryType.Action,
                                 "parent": element,
                                 "range": action.range,
+                                "collapsed": true,
                             });
                         }
                     }
@@ -256,6 +257,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     "iconPath": "tools",
                     "type": RobotEntryType.ActionsInActionPackage,
                     "parent": element,
+                    "collapsed": false,
                 });
                 return children;
             } else if (element.type === RobotEntryType.ActionsInAgentPackage) {
@@ -356,6 +358,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     "iconPath": "tools",
                     "type": RobotEntryType.ActionsInRobot,
                     "parent": element,
+                    "collapsed": false,
                 });
                 return robotChildren;
             } else if (element.type === RobotEntryType.ActionsInRobot) {
@@ -403,7 +406,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 ];
             } else if (element.type === RobotEntryType.AgentPackageOrganizationForActions) {
                 const ret = [];
-                const collapsed = false;
+                const collapsed = true;
                 for (const actionPackageInfo of element["actionPackages"]) {
                     ret.push(this.createNodeFromPackage(element, collapsed, actionPackageInfo));
                 }
@@ -447,6 +450,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     "iconPath": "tools",
                     "type": RobotEntryType.ActionsInAgentPackage,
                     "parent": element,
+                    "collapsed": false,
                 });
                 return ret;
             } else if (element.type === RobotEntryType.Error) {
@@ -483,7 +487,8 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             return [];
         }
 
-        const collapsed = robotsInfo.length > 1;
+        // const collapsed = robotsInfo.length > 1;
+        const collapsed = true;
 
         const ret = [];
         for (const robotInfo of robotsInfo) {
