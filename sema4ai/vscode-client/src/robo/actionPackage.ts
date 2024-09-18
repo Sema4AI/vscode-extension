@@ -289,10 +289,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
 
     // Case 1: Existing root level agent, use the agent package directly
     if (rootPackageYaml === PackageYamlName.Agent) {
-        return {
-            ...(await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0])),
-            agentSpecPath: vscode.Uri.joinPath(ws.uri, PackageYamlName.Agent).fsPath,
-        };
+        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
     }
     // Case 2: Multiple agents, ask the user for action package level selection
     else if (workspacePackages?.agentPackages?.length) {
@@ -328,11 +325,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
             if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
             const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
-            return {
-                ...(await handleAgentLevelPackageCreation(packageInfo)),
-                agentSpecPath: vscode.Uri.joinPath(vscode.Uri.file(packageInfo.directory), PackageYamlName.Agent)
-                    .fsPath,
-            };
+            return await handleAgentLevelPackageCreation(packageInfo);
         }
     }
 
@@ -355,15 +348,19 @@ async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<Pack
 
 async function handleAgentLevelPackageCreation(
     packageInfo: LocalPackageMetadataInfo
-): Promise<PackageTargetAndNameResult | null> {
+): Promise<ActionPackageTargetInfo | null> {
     const packageName = await getPackageName("Please provide the name for the Action Package.");
-    if (!packageName) return { targetDir: null, name: null }; // Operation cancelled
+    if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
     const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
-    return { targetDir: dirName, name: packageName };
+    return {
+        targetDir: dirName,
+        name: packageName,
+        agentSpecPath: vscode.Uri.joinPath(vscode.Uri.file(packageInfo.directory), PackageYamlName.Agent).fsPath,
+    };
 }
 
-export async function createActionPackage() {
+export async function createActionPackage(agentPackage?: LocalPackageMetadataInfo) {
     // We make sure Action Server exists - if not, downloadOrGetActionServerLocation will ask user to download it.
     const actionServerLocation = await downloadOrGetActionServerLocation();
     if (!actionServerLocation) {
@@ -376,7 +373,14 @@ export async function createActionPackage() {
         return;
     }
 
-    const { targetDir, name, agentSpecPath } = await askActionPackageTargetDir(ws);
+    let packageInfo;
+    if (agentPackage) {
+        packageInfo = await handleAgentLevelPackageCreation(agentPackage);
+    } else {
+        packageInfo = await askActionPackageTargetDir(ws);
+    }
+
+    const { targetDir, name, agentSpecPath } = packageInfo;
 
     // Operation cancelled or directory conflict detected.
     if (!targetDir) {

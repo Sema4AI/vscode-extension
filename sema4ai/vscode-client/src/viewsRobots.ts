@@ -280,6 +280,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Publishes the Agent Package to the Sema4.ai Studio application",
                     },
+                    {
+                        "label": "Create Action Package",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "file-directory-create",
+                        "type": RobotEntryType.CreateActionPackage,
+                        "parent": element,
+                        "tooltip": "Creates an Action Package inside the Agent Package",
+                    },
                 ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
@@ -666,6 +675,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "title": "Open the Package OpenAPI Spec (metadata.json)",
                 "command": roboCommands.SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
                 "arguments": [vscode.Uri.file(element.robot.directory)],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.CreateActionPackage) {
+            treeItem.command = {
+                "title": "Create Action Package",
+                "command": roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE,
+                "arguments": [element.robot],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         }

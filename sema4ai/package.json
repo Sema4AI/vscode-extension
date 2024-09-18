@@ -925,7 +925,7 @@
             },
             {
                 "command": "sema4ai.packAgentPackage",
-                "title": "Pack Agent Package",
+                "title": "Export Agent Package (Zip)",
                 "category": "Sema4.ai"
             },
             {

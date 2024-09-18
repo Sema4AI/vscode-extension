@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add `Create Action Package` command to side-bar.
 - Action packages commands now supports selection from agents.
 - New command: `Sema4.ai: Import Agent Package (Zip)`.
 - New Command: `Sema4.ai: Open Agent Runbook`.
@@ -9,6 +10,7 @@
   - Configure Action Package (package.yaml) → Configure Action Package
   - Build Action Package to Workspace -> Build Action Package (zip)
   - Open the Action Package OpenAPI Spec (metadata.json) -> Preview the Package OpenAPI Spec (metadata.json)
+  - Pack Agent Package -> Export Agent Package (zip)
 - UI Update: Moved `Configure Agent` and `Configure Action Package` from the `Commands` section to the top level of the agent/action.
 - Hover for `agent-spec.yaml` (using new spec format for v2)
 - Code analysis for `agent-spec.yaml` (using new spec format for v2)
