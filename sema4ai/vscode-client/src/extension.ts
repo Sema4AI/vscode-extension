@@ -189,6 +189,7 @@ import {
     importAgentPackage,
 } from "./robo/agentPackage";
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
+import { LocalPackageMetadataInfo } from "./protocols";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -361,7 +362,9 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON, () => getLanguageServerPython());
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
     C.register(SEMA4AI_CREATE_ROBOT, () => createRobot());
-    C.register(SEMA4AI_CREATE_ACTION_PACKAGE, () => createActionPackage());
+    C.register(SEMA4AI_CREATE_ACTION_PACKAGE, (agentPackage?: LocalPackageMetadataInfo) =>
+        createActionPackage(agentPackage)
+    );
     C.register(SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE, () => createPackage());
     C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
         try {
