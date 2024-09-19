@@ -289,6 +289,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Creates an Action Package inside the Agent Package",
                     },
+                    {
+                        "label": "Update Agent Version",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "versions",
+                        "type": RobotEntryType.UpdateAgentVersion,
+                        "parent": element,
+                        "tooltip": "Updates the Agent Package version in the agent-spec.yaml",
+                    },
                 ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
@@ -661,6 +670,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Export Agent Package (zip)",
                 "command": roboCommands.SEMA4AI_PACK_AGENT_PACKAGE,
+                "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.PackageBuildToWorkspace) {
@@ -682,6 +692,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "title": "Create Action Package",
                 "command": roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE,
                 "arguments": [element.robot],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.UpdateAgentVersion) {
+            treeItem.command = {
+                "title": "Update Agent Version",
+                "command": roboCommands.SEMA4AI_UPDATE_AGENT_VERSION,
+                "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         }

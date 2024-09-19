@@ -1,3 +1,7 @@
+## Unreleased
+
+- New command: `Sema4.ai: Update Agent Version`
+
 ## New in 2.5.0 (2024-09-18)
 
 - Add `Create Action Package` command to side-bar.

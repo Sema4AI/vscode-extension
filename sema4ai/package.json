@@ -157,6 +157,8 @@
         "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
         "onCommand:sema4ai.agentPackageImport",
         "onCommand:sema4ai.refreshAgentSpec.internal",
+        "onCommand:sema4ai.updateAgentVersion",
+        "onCommand:sema4ai.updateAgentVersion.internal",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -942,6 +944,11 @@
             {
                 "command": "sema4ai.agentPackageImport",
                 "title": "Import Agent Package (Zip)",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.updateAgentVersion",
+                "title": "Update Agent Version",
                 "category": "Sema4.ai"
             }
         ],

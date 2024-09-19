@@ -5,7 +5,6 @@ import sys
 import time
 import typing
 from pathlib import Path
-from typing import Dict, List, Optional
 from unittest import mock
 
 import pytest
@@ -2529,3 +2528,87 @@ def test_refresh_agent_spec_on_action_creation(
     assert agent_spec["agent-package"]["agents"][0]["action-packages"] == [
         action_packages
     ]
+
+
+def test_update_agent_version(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL,
+        [
+            {
+                "agent_path": target_directory,
+                "version_type": "Patch",
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+
+    agent_spec_path = Path(f"{target_directory}/agent-spec.yaml")
+    with agent_spec_path.open("r") as stream:
+        agent_spec = yaml.safe_load(stream.read())
+
+    assert agent_spec["agent-package"]["agents"][0]["version"] == "0.0.2"
+
+    # Invalid version type
+    agent_spec["agent-package"]["agents"][0]["version"] = "0.1"
+    with agent_spec_path.open("w") as stream:
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL,
+        [
+            {
+                "agent_path": target_directory,
+                "version_type": "Patch",
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert (
+        result["message"]
+        == "Version must be in the format 'major.minor.patch', e.g. 1.0.1"
+    )
+
+    # Invalid agent spec
+    del agent_spec["agent-package"]["agents"]
+    with agent_spec_path.open("w") as stream:
+        yaml.dump(agent_spec, stream, default_flow_style=False)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL,
+        [
+            {
+                "agent_path": target_directory,
+                "version_type": "Patch",
+            }
+        ],
+    )["result"]
+
+    assert not result["success"]
+    assert result["message"] == "Version entry was not found in the agent spec."

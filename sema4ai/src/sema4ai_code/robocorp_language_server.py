@@ -3,10 +3,10 @@ import sys
 import time
 import weakref
 from base64 import b64encode
+from collections.abc import Iterator, Sequence
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from collections.abc import Iterator, Sequence
 
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
@@ -56,6 +56,7 @@ from sema4ai_code.protocols import (
     PackageInfoInLRUDict,
     RunInRccParamsDict,
     TypedDict,
+    UpdateAgentVersionParamsDict,
     UploadNewRobotParamsDict,
     UploadRobotParamsDict,
     WorkItem,
@@ -1698,7 +1699,69 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             partial(self._pack_agent_package_threaded, directory, ws)
         )
 
-    @command_dispatcher(commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL)
+    @staticmethod
+    def _bump_version(version: str, version_type: str) -> str:
+        try:
+            major, minor, patch = map(int, version.split("."))
+        except ValueError:
+            raise ValueError(
+                "Version must be in the format 'major.minor.patch', e.g. 1.0.1"
+            )
+
+        version_type = version_type.lower()
+        if version_type == "patch":
+            patch += 1
+        elif version_type == "minor":
+            minor += 1
+            patch = 0
+        elif version_type == "major":
+            major += 1
+            minor, patch = 0, 0
+        else:
+            raise ValueError(
+                "Invalid version type. Choose 'Patch', 'Minor', or 'Major'."
+            )
+
+        return f"{major}.{minor}.{patch}"
+
+    @command_dispatcher(commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL)
+    def _update_agent_version(
+        self, params: UpdateAgentVersionParamsDict
+    ) -> ActionResultDict:
+        agent_spec_path = Path(params["agent_path"]) / "agent-spec.yaml"
+        version_type = params["version_type"]
+
+        from ruamel.yaml import YAML
+
+        yaml = YAML()
+        yaml.preserve_quotes = True
+
+        try:
+            with agent_spec_path.open("r") as file:
+                agent_spec = yaml.load(file.read())
+
+            try:
+                current_version = agent_spec["agent-package"]["agents"][0].get(
+                    "version"
+                )
+            except Exception:
+                raise ValueError("Version entry was not found in the agent spec.")
+
+            bumped_version = (
+                "0.0.1"
+                if not current_version
+                else self._bump_version(current_version, version_type)
+            )
+            agent_spec["agent-package"]["agents"][0]["version"] = bumped_version
+
+            with agent_spec_path.open("w") as file:
+                yaml.dump(agent_spec, file)
+
+        except Exception as e:
+            return ActionResult(success=False, message=str(e)).as_dict()
+
+        return ActionResult(success=True, message=None).as_dict()
+
     def _get_runbook_path_from_agent_spec(
         self, params: AgentSpecPathDict
     ) -> ActionResultDict:

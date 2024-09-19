@@ -50,6 +50,7 @@ export enum RobotEntryType {
     OpenRunbook = "OpenRunbook",
     ExportAgentPackage = "ExportAgentPackage",
     CreateActionPackage = "CreateActionPackage",
+    UpdateAgentVersion = "UpdateAgentVersion",
 }
 
 export interface CloudEntry {

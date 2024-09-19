@@ -155,6 +155,7 @@ import {
     SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
     SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
     SEMA4AI_AGENT_PACKAGE_IMPORT,
+    SEMA4AI_UPDATE_AGENT_VERSION,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -187,6 +188,7 @@ import {
     selectAndPackAgentPackage,
     packAgentPackage,
     importAgentPackage,
+    updateAgentVersion,
 } from "./robo/agentPackage";
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 import { LocalPackageMetadataInfo } from "./protocols";
@@ -493,8 +495,9 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
     C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
     C.register(SEMA4AI_AGENT_PACKAGE_IMPORT, importAgentPackage);
-    C.register(SEMA4AI_PACK_AGENT_PACKAGE, selectAndPackAgentPackage);
+    C.register(SEMA4AI_PACK_AGENT_PACKAGE, async (agentPath: string) => selectAndPackAgentPackage(agentPath));
     C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
+    C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
 }
 
 async function clearEnvAndRestart() {
@@ -780,7 +783,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         );
 
         if (selected) {
-            const packResult = await packAgentPackage(selected);
+            const packResult = await packAgentPackage(selected.directory);
             if (!packResult) {
                 return;
             }
