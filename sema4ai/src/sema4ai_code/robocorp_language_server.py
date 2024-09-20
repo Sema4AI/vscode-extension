@@ -1762,6 +1762,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return ActionResult(success=True, message=None).as_dict()
 
+    @command_dispatcher(commands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL)
     def _get_runbook_path_from_agent_spec(
         self, params: AgentSpecPathDict
     ) -> ActionResultDict:
