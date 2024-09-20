@@ -109,7 +109,7 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "expected-type": "string"
   },
   "agent-package/agents/action-packages/type": {
-    "description": "The type of the action package distribution. Accepted values are \"zip\" and \"folder\"",
+    "description": "The type of the action package distribution. Accepted values are \"zip\" and \"folder\". Note that \"zip\" is only supported when the agent is packaged for distribution.",
     "required": true,
     "expected-type": {
       "type": "zip_or_folder_based_on_path",
@@ -127,7 +127,7 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "expected-type": "string"
   },
   "agent-package/agents/action-packages/path": {
-    "description": "Relative path under \"actions\" to access the action package folder or zip. Example: \"MyActions/my-action-package\" or \"Sema4.ai/free-web-search/1.0.0.zip\"",
+    "description": "Relative path under \"actions\" to access the action package folder or zip. Example: \"MyActions/my-action-package\" or \"Sema4.ai/free-web-search/1.0.0.zip\". Note that \"zips\" are only supported when the agent is packaged for distribution.",
     "required": true,
     "expected-type": {
       "type": "file",
