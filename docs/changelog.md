@@ -1,3 +1,7 @@
+## Unreleased
+
+- Add additional analysis to make sure that action packages are unzipped when in VSCode.
+
 ## New in 2.5.0 (2024-09-18)
 
 - Add `Create Action Package` command to side-bar.
