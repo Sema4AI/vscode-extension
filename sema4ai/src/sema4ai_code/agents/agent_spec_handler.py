@@ -733,6 +733,15 @@ class Validator:
                                     code=ErrorCode.action_package_info_unsynchronized,
                                 )
 
+                            # In VSCode we can only analyze the agent when it's unzipped.
+                            if expected_type_from_filesystem == "zip":
+                                yield Error(
+                                    message="The 'zip' mode is only supported inside a .zip distribution. When unzipped, action packages must NOT be zipped! -- "
+                                    "maybe it was just unzipped instead of using the `Import Agent Package` to import the agent into VSCode?",
+                                    node=yaml_node.data.node,
+                                    severity=Severity.critical,
+                                )
+
             elif spec_node.data.expected_type.expected_type == _ExpectedTypeEnum.file:
                 if yaml_node.data.kind != _YamlNodeKind.string:
                     yield Error(

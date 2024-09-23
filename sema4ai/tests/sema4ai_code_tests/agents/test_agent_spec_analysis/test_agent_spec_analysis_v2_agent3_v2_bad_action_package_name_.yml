@@ -11,3 +11,15 @@
       line: 15
   severity: 1
   source: sema4ai
+- message: The 'zip' mode is only supported inside a .zip distribution. When unzipped,
+    action packages must NOT be zipped! -- maybe it was just unzipped instead of using
+    the `Import Agent Package` to import the agent into VSCode?
+  range:
+    end:
+      character: 25
+      line: 17
+    start:
+      character: 16
+      line: 17
+  severity: 1
+  source: sema4ai
