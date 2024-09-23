@@ -345,6 +345,11 @@ class AgentSpecPathDict(TypedDict):
     agent_spec_path: str
 
 
+class UpdateAgentVersionParamsDict(TypedDict):
+    agent_path: str
+    version_type: str
+
+
 class IRccWorkspace(Protocol):
     @property
     def workspace_id(self) -> str:

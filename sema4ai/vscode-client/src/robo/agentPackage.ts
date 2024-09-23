@@ -131,9 +131,7 @@ export const createAgentPackage = async (): Promise<void> => {
     }
 };
 
-export const packAgentPackage = async (packageInfo: LocalPackageMetadataInfo): Promise<{ zipPath: string } | null> => {
-    const targetDir = packageInfo.directory;
-
+export const packAgentPackage = async (targetDir: string): Promise<{ zipPath: string } | null> => {
     try {
         const result: ActionResult<string> = await commands.executeCommand(
             roboCommands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
@@ -157,9 +155,7 @@ export const packAgentPackage = async (packageInfo: LocalPackageMetadataInfo): P
     return null;
 };
 
-export const selectAndPackAgentPackage = async (): Promise<void> => {
-    getAgentCliLocation(); // Starts getting agent cli in promise.
-
+const selectAgentPackage = async (): Promise<string> => {
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {
         // Operation cancelled.
@@ -174,34 +170,84 @@ export const selectAndPackAgentPackage = async (): Promise<void> => {
     }
 
     let packageInfo: LocalPackageMetadataInfo;
-    let actionPackageSelection: string | null = null;
+    let agentPackageSelection: string | null = null;
 
     /* If root level contains an agent-spec.yaml, there will be only one Agent Package. */
     if (workspacePackages.agentPackages.length === 1) {
         packageInfo = workspacePackages.agentPackages[0];
     } else {
-        actionPackageSelection = await window.showQuickPick(
+        agentPackageSelection = await window.showQuickPick(
             workspacePackages.agentPackages.map((agentPackage) => agentPackage.name),
             {
-                placeHolder: "Which action package do you want to pack?",
+                placeHolder: "Which agent package do you want to pack?",
                 ignoreFocusOut: true,
             }
         );
 
         /* Operation cancelled. */
-        if (!actionPackageSelection) {
+        if (!agentPackageSelection) {
             return null;
         }
 
         // Update packageInfo based on selected action package
         packageInfo = workspacePackages.agentPackages.find(
-            (agentPackage) => agentPackage.name === actionPackageSelection
+            (agentPackage) => agentPackage.name === agentPackageSelection
         );
     }
 
-    const result = await packAgentPackage(packageInfo);
+    return packageInfo.directory;
+};
+
+export const selectAndPackAgentPackage = async (agentPath?: string): Promise<void> => {
+    getAgentCliLocation(); // Starts getting agent cli in promise.
+
+    if (!agentPath) {
+        agentPath = await selectAgentPackage();
+    }
+
+    const result = await packAgentPackage(agentPath);
     if (result) {
         window.showInformationMessage(`Package successfully packed at:\n${result.zipPath}`);
         await commands.executeCommand("revealInExplorer", Uri.file(result.zipPath));
+    }
+};
+
+export const updateAgentVersion = async (agentPath: string): Promise<void> => {
+    getAgentCliLocation(); // Starts getting agent cli in promise.
+
+    if (!agentPath) {
+        agentPath = await selectAgentPackage();
+    }
+
+    const versionType = await window.showQuickPick(["Patch", "Minor", "Major"], {
+        placeHolder: "What kind of version increment would you like to apply?",
+        ignoreFocusOut: true,
+    });
+
+    if (!versionType) {
+        return;
+    }
+
+    try {
+        const result: ActionResult<string> = await commands.executeCommand(
+            roboCommands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL,
+            {
+                "agent_path": agentPath,
+                "version_type": versionType,
+            }
+        );
+
+        if (!result.success) {
+            throw new Error(result.message || "An unexpected error occurred during the update process.");
+        }
+
+        window.showInformationMessage("Agent successfully updated.");
+    } catch (error) {
+        const errorMsg = `Failed to update the agent at: ${agentPath}`;
+        logError(errorMsg, error, "ERR_UPDATE_AGENT_VERSION");
+
+        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
+        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
+        window.showErrorMessage(detailedErrorMsg);
     }
 };

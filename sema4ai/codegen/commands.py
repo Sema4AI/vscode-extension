@@ -969,6 +969,18 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.updateAgentVersion",
+        "Update Agent Version",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
+    Command(
+        "sema4ai.updateAgentVersion.internal",
+        "Update Agent Version (internal)",
+        add_to_package_json=False,
+        server_handled=True,
+    ),
 ]
 
 
