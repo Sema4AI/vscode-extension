@@ -499,6 +499,7 @@ class ActionServer:
             self._cached_user_config_path is None
             or not self._cached_user_config_path.exists()
         ):
+            # FOR SUPPORT: action-server oauth2
             action_result = self._run_action_server_command(
                 ["oauth2", "user-config-path"], timeout=10
             )
@@ -524,6 +525,7 @@ class ActionServer:
         import yaml
 
         if not self._cached_sema4ai_oauth2_config:
+            # FOR SUPPORT: action-server oauth2
             action_result = self._run_action_server_command(
                 ["oauth2", "sema4ai-config"], timeout=10
             )
@@ -581,6 +583,7 @@ class ActionServer:
         """
         Returns the list of available Action templates.
         """
+        # FOR SUPPORT: action-server new
         command_result = self._run_action_server_command(
             ["new", "list-templates", "--json"]
         )
@@ -650,6 +653,7 @@ class ActionServer:
         else:
             args = ["new", f"--name={directory}", f"--template={template}"]
 
+        # FOR SUPPORT: action-server new
         command_result = self._run_action_server_command(args)
 
         if command_result.success:
@@ -690,6 +694,7 @@ class ActionServer:
             hostname,
         ]
 
+        # FOR SUPPORT: action-server cloud login
         command_result = self._run_action_server_command(args)
 
         if command_result.success:
@@ -706,6 +711,7 @@ class ActionServer:
         """
         args = ["cloud", "verify-login", "--json"]
 
+        # FOR SUPPORT: action-server cloud verify-login
         command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S)
 
         if command_result.success:
@@ -782,6 +788,7 @@ class ActionServer:
             "--json",
         ]
 
+        # FOR SUPPORT: action-server package build
         command_result = self._run_action_server_command(
             args, timeout=ONE_MINUTE_S * 10
         )
@@ -835,6 +842,7 @@ class ActionServer:
                 ["--access-credentials", access_credentials, "--hostname", hostname]
             )
 
+        # FOR SUPPORT: action-server upload
         command_result = self._run_action_server_command(
             args, timeout=ONE_MINUTE_S * 10
         )
@@ -888,6 +896,7 @@ class ActionServer:
                 ["--access-credentials", access_credentials, "--hostname", hostname]
             )
 
+        # FOR SUPPORT: action-server package status
         command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S * 5)
 
         if command_result.success:
@@ -942,6 +951,7 @@ class ActionServer:
                 ["--access-credentials", access_credentials, "--hostname", hostname]
             )
 
+        # FOR SUPPORT: action-server set-changelog
         command_result = self._run_action_server_command(args, timeout=ONE_MINUTE_S * 5)
 
         if command_result.success:
@@ -974,6 +984,7 @@ class ActionServer:
         # Make sure the path is created
         os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
+        # FOR SUPPORT: action-server metadata
         command_result = self._run_action_server_command(
             args, timeout=ONE_MINUTE_S * 60
         )

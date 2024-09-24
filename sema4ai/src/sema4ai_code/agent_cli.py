@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 log = get_logger(__name__)
 
-AGENT_CLI_VERSION = "v0.0.19"
+AGENT_CLI_VERSION = "v0.0.25"
 
 
 def download_agent_cli(
@@ -139,6 +139,8 @@ class AgentCli:
             name: string, the name of the agent package.
         """
         args = ["project", "new", "--path", directory]
+
+        # FOR SUPPORT: agent-cli project new
         command_result = self._run_agent_cli_command(args)
 
         if not command_result.success:
@@ -182,6 +184,7 @@ class AgentCli:
         #     "--package",
         #     directory,
         # ]
+        # FOR SUPPORT: agent-cli package metadata
         # command_result = self._run_agent_cli_command(args)
         # if not command_result.success:
         #     return False, f"Error validating the agent package.\n{command_result.message}"
@@ -231,6 +234,8 @@ class AgentCli:
         #     --overwrite           The contents will be extracted to a non-empty directory
         #     --package string      The .zip file that should be extracted. (default "agent-package.zip")
         env = self._get_env_for_agent_cli_with_action_server()
+
+        # FOR SUPPORT: agent-cli package extract
         command_result = self._run_agent_cli_command(
             [
                 "package",
@@ -276,7 +281,9 @@ class AgentCli:
 
         env = self._get_env_for_agent_cli_with_action_server()
 
-        command_result = self._run_agent_cli_command(args, env=env)
+        # FOR SUPPORT: agent-cli package build
+        # Packaging can take minutes so timeout set to 5min
+        command_result = self._run_agent_cli_command(args, env=env, timeout=300)
 
         if not command_result.success:
             return ActionResult(
