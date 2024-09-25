@@ -8,8 +8,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.ep_resolve_interpreter import (
@@ -31,6 +29,8 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1078,9 +1078,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1677,10 +1678,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -2464,10 +2466,8 @@ def test_get_runbook_from_agent_spec(
     assert result["message"] == "Runbook entry was not found in the agent spec."
 
 
-def test_refresh_agent_spec_on_action_creation(
-    language_server_initialized,
-    tmpdir,
-    agent_cli_location: str,
+def test_refresh_agent_when_agent_spec_invalid(
+    language_server_initialized, create_agent_and_action, agent_cli_location
 ) -> None:
     assert os.path.exists(agent_cli_location)
 
@@ -2476,58 +2476,216 @@ def test_refresh_agent_spec_on_action_creation(
     from sema4ai_code import commands
 
     language_server = language_server_initialized
-    package_name = "test_agent"
-
-    target_directory = str(tmpdir.join(package_name))
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
-    )
-
-    result = language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )["result"]
-
-    assert result["success"]
-    assert os.path.exists(f"{target_directory}/agent-spec.yaml")
-
-    result = language_server.execute_command(
-        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": f"{target_directory}/actions/MyActions/one",
-                "name": "One",
-                "template": "basic",
-            }
-        ],
-    )["result"]
-    assert result["success"]
+    agent_dir = create_agent_and_action
+    agent_spec_path = f"{agent_dir}/agent-spec.yaml"
 
     result = language_server.execute_command(
         commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
-        [{"agent_spec_path": f"{target_directory}/agent-spec.yaml"}],
+        [{"agent_spec_path": agent_spec_path}],
     )["result"]
     assert result["success"]
 
-    with open(f"{target_directory}/agent-spec.yaml") as stream:
+    with open(agent_spec_path) as stream:
         agent_spec = yaml.safe_load(stream)
 
-    action_packages = {
-        "name": "One",
-        "organization": "MyActions",
-        "version": "0.0.1",
-        "path": "MyActions/one",
-        "type": "folder",
-        "whitelist": "",
-    }
-    assert agent_spec["agent-package"]["agents"][0]["action-packages"] == [
-        action_packages
+    # Remove some keys
+    agent_spec["agent-package"]["agents"][0].pop("description", None)
+    agent_spec["agent-package"]["agents"][0].pop("model", None)
+
+    with open(agent_spec_path, "w") as file:
+        yaml.dump(agent_spec, file)
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+        [{"agent_spec_path": agent_spec_path}],
+    )["result"]
+
+    assert result["success"]
+
+    with open(agent_spec_path) as file:
+        fixed_agent_spec = yaml.safe_load(file)
+
+    # Validate that missing keys are added correctly
+    assert "description" in fixed_agent_spec["agent-package"]["agents"][0]
+    assert "model" in fixed_agent_spec["agent-package"]["agents"][0]
+
+
+def test_refresh_agent_with_whitelist_matching(
+    language_server_initialized, create_agent_and_action, agent_cli_location
+) -> None:
+    assert os.path.exists(agent_cli_location)
+
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    agent_dir = create_agent_and_action
+    agent_spec_path = f"{agent_dir}/agent-spec.yaml"
+
+    # Create second action
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_dir}/actions/MyActions/action-two",
+                "name": "Action Two",
+                "template": "basic",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+        [{"agent_spec_path": agent_spec_path}],
+    )["result"]
+
+    # Add whitelist to actions, action one will match by path, action two by name
+    with open(agent_spec_path) as file:
+        agent_spec = yaml.safe_load(file)
+
+    actions = sorted(
+        agent_spec["agent-package"]["agents"][0]["action-packages"],
+        key=lambda pkg: pkg.get("name"),
+    )
+    agent_spec["agent-package"]["agents"][0]["action-packages"] = [
+        {
+            "name": "Action One - Changed",
+            "organization": "MyActions",
+            "version": "0.0.1",
+            "path": actions[0]["path"],
+            "type": "folder",
+            "whitelist": "greet",
+        },
+        {
+            "name": "Action Two",
+            "organization": "MyActions",
+            "version": "0.0.1",
+            "path": f"{actions[1]['path']}-changed",
+            "type": "folder",
+            "whitelist": "greet",
+        },
     ]
+
+    with open(agent_spec_path, "w") as file:
+        yaml.dump(agent_spec, file)
+
+    # Refresh agent spec to apply whitelist
+    result = language_server.execute_command(
+        commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+        [{"agent_spec_path": agent_spec_path}],
+    )["result"]
+
+    assert result["success"]
+
+    with open(agent_spec_path) as file:
+        refreshed_agent_spec = yaml.safe_load(file)
+
+    action_packages = sorted(
+        refreshed_agent_spec["agent-package"]["agents"][0]["action-packages"],
+        key=lambda pkg: pkg.get("name"),
+    )
+
+    assert len(action_packages) == 2
+    assert action_packages[0]["name"] == "Action One"
+    assert action_packages[0]["whitelist"] == "greet"
+    assert action_packages[1]["name"] == "Action Two"
+    assert action_packages[1]["path"] == actions[1]["path"]
+    assert action_packages[1]["whitelist"] == "greet"
+
+
+def test_refresh_agent_when_missing_actions(
+    language_server_initialized, create_agent_and_action, agent_cli_location
+) -> None:
+    assert os.path.exists(agent_cli_location)
+
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    agent_dir = create_agent_and_action
+    agent_spec_path = f"{agent_dir}/agent-spec.yaml"
+
+    # Create second action
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_dir}/actions/MyActions/action-two",
+                "name": "Action Two",
+                "template": "basic",
+            }
+        ],
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+        [{"agent_spec_path": agent_spec_path}],
+    )["result"]
+
+    # Add whitelist to actions, action one will match by path, action two by name
+    with open(agent_spec_path) as file:
+        agent_spec = yaml.safe_load(file)
+
+    actions_root_path = Path(
+        agent_spec["agent-package"]["agents"][0]["action-packages"][0]["path"]
+    ).parent
+    # Changes:
+    # 1. Action One removed from agent-yaml -> should be added back
+    # 2. Action Two changes has no effect -> not whitelisted should it should be replaced with what is on file
+    # 3. Action Three added in agent-yaml without being on the filesystem -> should be deleted
+    # 4. Action Four whitelisted but not on filesystem -> should be kept
+    agent_spec["agent-package"]["agents"][0]["action-packages"] = [
+        {
+            "name": "Action Two - Changed",
+            "organization": "MyActions",
+            "version": "0.0.1",
+            "path": f"{actions_root_path}/invalid",
+            "type": "folder",
+            "whitelist": "",
+        },
+        {
+            "name": "Action Three",
+            "organization": "MyActions",
+            "version": "0.0.1",
+            "path": f"{actions_root_path}/action-three",
+            "type": "folder",
+            "whitelist": "",
+        },
+        {
+            "name": "Action Four",
+            "organization": "MyActions",
+            "version": "0.0.1",
+            "path": f"{actions_root_path}/action-four",
+            "type": "folder",
+            "whitelist": "greet",
+        },
+    ]
+
+    with open(agent_spec_path, "w") as file:
+        yaml.dump(agent_spec, file)
+
+    # Refresh agent spec to apply whitelist
+    result = language_server.execute_command(
+        commands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+        [{"agent_spec_path": agent_spec_path}],
+    )["result"]
+
+    assert result["success"]
+
+    with open(agent_spec_path) as file:
+        refreshed_agent_spec = yaml.safe_load(file)
+
+    action_packages = sorted(
+        refreshed_agent_spec["agent-package"]["agents"][0]["action-packages"],
+        key=lambda pkg: pkg.get("name"),
+    )
+
+    assert len(action_packages) == 3
+
+    names = sorted([action["name"] for action in action_packages])
+    assert names == sorted(["Action One", "Action Two", "Action Four"])
 
 
 def test_update_agent_version(

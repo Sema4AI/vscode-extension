@@ -50,6 +50,7 @@ def _update_agent_spec_with_actions(
         for action_package in action_packages_in_filesystem
         if action_package.organization.replace(".", "").lower() != SEMA4AI
     ]
+
     missing = []
 
     # First try to match by path.
@@ -71,13 +72,17 @@ def _update_agent_spec_with_actions(
     # If there was a whitelisted action and it wasn't matched, keep the old config
     # around so that the user can fix it.
     for whitelisted_action in whitelist_map.values():
-        if not whitelisted_action.pop("seen", False):
+        if not whitelisted_action.get("seen"):
             new_action_packages.append(whitelisted_action)
+            whitelisted_action["seen"] = True
+
+    for action in new_action_packages:
+        action.pop("seen", None)
 
     agent_spec["agent-package"]["agents"][0]["action-packages"] = new_action_packages
 
 
-def _create_whitelist_mapping(agent_spec: dict) -> dict[str, ActionPackage]:
+def _get_whitelist_mapping(agent_spec: dict) -> dict[str, ActionPackage]:
     whitelist_mapping = {}
 
     for action_package in agent_spec["agent-package"]["agents"][0].get(
@@ -93,6 +98,43 @@ def _create_whitelist_mapping(agent_spec: dict) -> dict[str, ActionPackage]:
     return whitelist_mapping
 
 
+def _fix_agent_spec(agent_spec: dict) -> None:
+    default_spec = {
+        "agent-package": {
+            "spec-version": "v2",
+            "agents": [
+                {
+                    "name": "My Agent",
+                    "description": "My Agent description",
+                    "model": {"provider": "OpenAI", "name": "gpt-4o"},
+                    "version": "0.0.1",
+                    "architecture": "agent",
+                    "reasoning": "disabled",
+                    "runbook": "runbook.md",
+                    "action-packages": [],
+                    "knowledge": [],
+                    "metadata": {"mode": "conversational"},
+                }
+            ],
+        }
+    }
+
+    def recursive_update(original: dict, defaults: dict) -> dict:
+        for key, value in defaults.items():
+            if key not in original:
+                original[key] = value
+            elif isinstance(value, dict) and isinstance(original.get(key), dict):
+                recursive_update(original[key], value)
+            elif key == "agents":
+                if not isinstance(original[key], list):
+                    original[key] = [{}]
+                recursive_update(original[key][0], value[0])
+
+        return original
+
+    recursive_update(agent_spec, default_spec)
+
+
 def update_agent_spec(agent_spec_path: Path) -> None:
     from ruamel.yaml import YAML
 
@@ -104,13 +146,17 @@ def update_agent_spec(agent_spec_path: Path) -> None:
     with agent_spec_path.open("r") as file:
         agent_spec = yaml.load(file)
 
+    _fix_agent_spec(agent_spec)
+
     action_packages_in_filesystem = list(
         list_actions_from_agent(agent_spec_path.parent).values()
     )
-    current_whitelist_mapping = _create_whitelist_mapping(agent_spec)
+    current_whitelist_map = _get_whitelist_mapping(agent_spec)
 
     _update_agent_spec_with_actions(
-        agent_spec, action_packages_in_filesystem, current_whitelist_mapping
+        agent_spec,
+        action_packages_in_filesystem,
+        current_whitelist_map,
     )
 
     with agent_spec_path.open("w") as file:

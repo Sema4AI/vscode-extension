@@ -137,6 +137,7 @@ export const SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelec
 export const SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL = "sema4ai.getRunbookPathFromAgentSpec.internal";  // Get Runbook Path from Agent Spec (internal)
 export const SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.agentPackagePublishToSema4AIStudioApp";  // Publish Agent Package to Sema4.ai Studio
 export const SEMA4AI_AGENT_PACKAGE_IMPORT = "sema4ai.agentPackageImport";  // Import Agent Package (Zip)
+export const SEMA4AI_REFRESH_AGENT_SPEC = "sema4ai.refreshAgentSpec";  // Refresh Agent Configuration
 export const SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL = "sema4ai.refreshAgentSpec.internal";  // Refresh Agent Spec (internal)
 export const SEMA4AI_UPDATE_AGENT_VERSION = "sema4ai.updateAgentVersion";  // Update Agent Version
 export const SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL = "sema4ai.updateAgentVersion.internal";  // Update Agent Version (internal)

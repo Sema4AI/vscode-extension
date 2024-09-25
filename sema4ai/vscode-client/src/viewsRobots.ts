@@ -298,6 +298,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "tooltip": "Updates the Agent Package version in the agent-spec.yaml",
                     },
+                    {
+                        "label": "Refresh Agent Configuration",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "refresh",
+                        "type": RobotEntryType.RefreshAgentConfiguration,
+                        "parent": element,
+                        "tooltip": "Updates the agent-spec.yaml with the information we have on the file system",
+                    },
                 ];
             } else if (element.type === RobotEntryType.ActionsInActionPackage) {
                 return [
@@ -698,6 +707,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Update Agent Version",
                 "command": roboCommands.SEMA4AI_UPDATE_AGENT_VERSION,
+                "arguments": [element.robot.directory],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.RefreshAgentConfiguration) {
+            treeItem.command = {
+                "title": "Refresh Agent Configuration",
+                "command": roboCommands.SEMA4AI_REFRESH_AGENT_SPEC,
                 "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
