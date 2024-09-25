@@ -98,7 +98,7 @@ export class ResourcesTreeDataProvider extends RobotSelectionTreeDataProviderBas
         }
 
         if (element.resourcesTreeType === ROOT_TYPE) {
-            const item = new vscode.TreeItem(element.name, vscode.TreeItemCollapsibleState.Expanded);
+            const item = new vscode.TreeItem(element.name, vscode.TreeItemCollapsibleState.Collapsed);
             if (element.subTree === SUBTREE_LOCATORS) {
                 item.contextValue = "locatorsRoot";
                 item.iconPath = new vscode.ThemeIcon("inspect");
@@ -106,9 +106,11 @@ export class ResourcesTreeDataProvider extends RobotSelectionTreeDataProviderBas
                 item.contextValue = "workItemsRoot";
                 item.iconPath = new vscode.ThemeIcon("combine");
             }
+
             if (element.tooltip !== undefined) {
                 item.tooltip = element.tooltip;
             }
+
             return item;
         }
 
