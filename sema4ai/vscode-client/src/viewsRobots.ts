@@ -505,8 +505,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             return [];
         }
 
-        // const collapsed = robotsInfo.length > 1;
-        const collapsed = true;
+        const collapsed = robotsInfo.length > 1;
 
         const ret = [];
         for (const robotInfo of robotsInfo) {
