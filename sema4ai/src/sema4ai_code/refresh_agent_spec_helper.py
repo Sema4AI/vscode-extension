@@ -99,6 +99,15 @@ def _get_whitelist_mapping(agent_spec: dict) -> dict[str, ActionPackage]:
 
 
 def _fix_agent_spec(agent_spec: dict) -> None:
+    """Updates the provided agent-spec configuration with default values
+    where missing, ensuring the structure conforms to the expected format.
+
+    The function compares the `agent_spec` dictionary against a predefined
+    `default_spec` structure. For each key in `default_spec`, if the key is
+    missing in `agent_spec`, it is added. If the key exists but contains a
+    nested dictionary, the function recursively ensures that all default keys
+    and values are present within the nested structure.
+    """
     default_spec = {
         "agent-package": {
             "spec-version": "v2",
@@ -126,7 +135,7 @@ def _fix_agent_spec(agent_spec: dict) -> None:
             elif isinstance(value, dict) and isinstance(original.get(key), dict):
                 recursive_update(original[key], value)
             elif key == "agents":
-                if not isinstance(original[key], list):
+                if not isinstance(original[key], list) or len(original[key]) == 0:
                     original[key] = [{}]
                 recursive_update(original[key][0], value[0])
 
