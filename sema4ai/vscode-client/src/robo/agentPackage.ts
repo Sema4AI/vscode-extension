@@ -9,7 +9,7 @@ import {
     getWorkspacePackages,
     PackageTargetAndNameResult,
 } from "../common";
-import { ActionResult, LocalPackageMetadataInfo, PackageType } from "../protocols";
+import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
@@ -245,6 +245,36 @@ export const updateAgentVersion = async (agentPath: string): Promise<void> => {
     } catch (error) {
         const errorMsg = `Failed to update the agent at: ${agentPath}`;
         logError(errorMsg, error, "ERR_UPDATE_AGENT_VERSION");
+
+        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
+        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
+        window.showErrorMessage(detailedErrorMsg);
+    }
+};
+
+export const refreshAgentSpec = async (agentPath: string): Promise<void> => {
+    getAgentCliLocation(); // Starts getting agent cli in promise.
+
+    if (!agentPath) {
+        agentPath = await selectAgentPackage();
+    }
+
+    try {
+        const result: ActionResult<string> = await commands.executeCommand(
+            roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+            {
+                "agent_spec_path": Uri.joinPath(Uri.file(agentPath), PackageYamlName.Agent).fsPath,
+            }
+        );
+
+        if (!result.success) {
+            throw new Error(result.message || "An unexpected error occurred during the refresh process.");
+        }
+
+        window.showInformationMessage("Agent successfully refreshed.");
+    } catch (error) {
+        const errorMsg = `Failed to refresh the Agent Configuration`;
+        logError(errorMsg, error, "ERR_REFRESH_AGENT_SPEC");
 
         const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
         OUTPUT_CHANNEL.appendLine(detailedErrorMsg);

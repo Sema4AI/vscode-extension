@@ -2,17 +2,17 @@ import os
 import subprocess
 import sys
 import typing
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
-from collections.abc import Iterator
 
 import pytest
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 from sema4ai_code.protocols import ActionResult, IRcc
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.inspector.web._web_inspector import PickedLocatorTypedDict
@@ -432,13 +432,12 @@ def language_server_initialized(
 def patch_pypi_cloud(monkeypatch):
     import datetime
 
+    from sema4ai_code import hover
+    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
     from sema4ai_code_tests.deps.cloud_mock_data import (
         JQ_PYPI_MOCK_DATA,
         RPAFRAMEWORK_PYPI_MOCK_DATA,
     )
-
-    from sema4ai_code import hover
-    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -464,10 +463,9 @@ def patch_pypi_cloud(monkeypatch):
 def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     import datetime
 
-    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
-
     from sema4ai_code import hover
     from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
+    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -576,3 +574,46 @@ def tk_process(datadir) -> Iterator[subprocess.Popen]:
     yield popen
     if popen.poll() is None:
         kill_process_and_subprocesses(popen.pid)
+
+
+@pytest.fixture
+def create_agent_and_action(
+    language_server,
+    tmpdir,
+):
+    from sema4ai_code import commands
+
+    agent_dir = str(tmpdir.join("MyAgent"))
+    language_server.change_workspace_folders(
+        added_folders=[agent_dir], removed_folders=[]
+    )
+
+    # Create agent package
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": agent_dir,
+                "name": "Test Agent",
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert os.path.exists(f"{agent_dir}/agent-spec.yaml")
+
+    # Create action package with specific name and path
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": f"{agent_dir}/actions/MyActions/action-one",
+                "name": "Action One",
+                "template": "basic",
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+
+    return agent_dir

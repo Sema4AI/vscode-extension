@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Fixed edge cases with the `Refresh Agent Configuration` command.
+- New command: `Sema4.ai: Refresh Agent Configuration`
 - New command: `Sema4.ai: Update Agent Version`
 - Add additional analysis to make sure that action packages are unzipped when in VSCode.
 
