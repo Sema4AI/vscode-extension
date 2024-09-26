@@ -1,6 +1,10 @@
 ## Unreleased
 
-- Fixed edge cases with the `Refresh Agent Configuration` command.
+## New in 2.6.0 (2024-09-26)
+
+- Expand the view when there is only one Agent / Action
+- Fix `Publish Agent to Studio` from sidebar agent selection
+- Fixed edge cases with the `Refresh Agent Configuration` command
 - New command: `Sema4.ai: Refresh Agent Configuration`
 - New command: `Sema4.ai: Update Agent Version`
 - Add additional analysis to make sure that action packages are unzipped when in VSCode.
