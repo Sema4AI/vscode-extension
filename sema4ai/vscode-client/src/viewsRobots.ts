@@ -514,8 +514,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             return [];
         }
 
-        // const collapsed = robotsInfo.length > 1;
-        const collapsed = true;
+        const collapsed = robotsInfo.length > 1;
 
         const ret = [];
         for (const robotInfo of robotsInfo) {
@@ -673,6 +672,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Publish Agent Package to Sema4.ai Studio",
                 "command": roboCommands.SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+                "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.ExportAgentPackage) {
