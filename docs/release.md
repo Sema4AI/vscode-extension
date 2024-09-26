@@ -11,5 +11,5 @@ To release a stable new version:
 
 To release a new pre-release version:
 
-1. Run the [Pre-release - Sema4.ai Extension](https://github.com/Sema4AI/vscode-extension/actions/workflows/pre-release-robocorp-code.yml) with the bugfix version bumped.
+1. Run the [Pre-release - Sema4.ai Extension](https://github.com/Sema4AI/vscode-extension/actions/workflows/pre-release-robocorp-code.yml) workflow with the bugfix version bumped.
    **Note:** It is important not to bump the major nor minor version.
