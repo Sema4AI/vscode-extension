@@ -1,7 +1,5 @@
 ## Unreleased
 
-## New in 2.6.0 (2024-09-26)
-
 - Expand the view when there is only one Agent / Action
 - Fix `Publish Agent to Studio` from sidebar agent selection
 - Fixed edge cases with the `Refresh Agent Configuration` command
