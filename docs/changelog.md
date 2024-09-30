@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Focus newly created action or agent package when the user is in the extension view
 - Expand the view when there is only one Agent / Action
 - Fix `Publish Agent to Studio` from sidebar agent selection
 - Fixed edge cases with the `Refresh Agent Configuration` command
