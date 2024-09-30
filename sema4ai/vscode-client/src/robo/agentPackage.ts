@@ -8,6 +8,7 @@ import {
     verifyIfPathOkToCreatePackage,
     getWorkspacePackages,
     PackageTargetAndNameResult,
+    revealInExtension,
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
@@ -121,7 +122,7 @@ export const createAgentPackage = async (): Promise<void> => {
             throw new Error(result.message || "Unknown error");
         }
 
-        refreshFilesExplorer();
+        revealInExtension(targetDir);
         window.showInformationMessage("Agent Package successfully created in:\n" + targetDir);
     } catch (err) {
         const errorMsg = "Error creating Agent Package at: " + targetDir;

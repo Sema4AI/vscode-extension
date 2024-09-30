@@ -31,12 +31,12 @@ import {
     getWorkspacePackages,
     isActionPackage,
     verifyIfIsPackageDirectory,
-    refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
     PackageTargetAndNameResult,
     toKebabCase,
     isAgentPackage,
     ActionPackageTargetInfo,
+    revealInExtension,
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs } from "../files";
@@ -428,7 +428,7 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
             throw new Error(result.message || "Unknown error");
         }
 
-        refreshFilesExplorer();
+        revealInExtension(targetDir);
         window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
 
         // Check action was created inside agent, refresh the agent spec to include this action

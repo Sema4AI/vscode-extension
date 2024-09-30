@@ -6,6 +6,9 @@ import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
 import { uriExists } from "./files";
+import { RobotEntry, RobotEntryType, treeViewIdToTreeDataProvider, treeViewIdToTreeView } from "./viewsCommon";
+import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
+import { RobotsTreeDataProvider } from "./viewsRobots";
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -161,6 +164,39 @@ export function refreshFilesExplorer() {
         commands.executeCommand("workbench.files.action.refreshFilesExplorer");
     } catch (error) {
         logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
+    }
+}
+
+export async function revealInExtension(path: string): Promise<void> {
+    const treeView = treeViewIdToTreeView.get(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
+    if (!treeView.visible) {
+        return;
+    }
+
+    let dataProvider: RobotsTreeDataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+
+    const nodes = await dataProvider.getChildren();
+
+    async function findNode(nodes: RobotEntry[], path: string): Promise<RobotEntry | undefined> {
+        for (const node of nodes) {
+            if (node.robot.directory === path) {
+                return node;
+            }
+
+            const childNode = await findNode(await dataProvider.getChildren(node), path);
+            if (childNode) {
+                return childNode;
+            }
+        }
+        return undefined;
+    }
+
+    const node: RobotEntry | undefined = await findNode(nodes, path);
+    if (node) {
+        dataProvider.fireRootChange();
+        treeView.reveal(node, { "focus": true, "expand": true });
     }
 }
 
