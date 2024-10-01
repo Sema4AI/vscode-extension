@@ -50,6 +50,7 @@ import {
     findActionPackagePath,
 } from "../actionServer";
 import { loginToAuth2WhereRequired } from "./oauth2InInput";
+import { RobotEntryType } from "../viewsCommon";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -428,7 +429,7 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
             throw new Error(result.message || "Unknown error");
         }
 
-        revealInExtension(targetDir);
+        revealInExtension(targetDir, RobotEntryType.ActionPackage);
         window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
 
         // Check action was created inside agent, refresh the agent spec to include this action

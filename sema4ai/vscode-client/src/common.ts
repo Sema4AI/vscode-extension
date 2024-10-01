@@ -9,6 +9,7 @@ import { uriExists } from "./files";
 import { RobotEntry, RobotEntryType, treeViewIdToTreeDataProvider, treeViewIdToTreeView } from "./viewsCommon";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { RobotsTreeDataProvider } from "./viewsRobots";
+import path = require("path");
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -167,36 +168,41 @@ export function refreshFilesExplorer() {
     }
 }
 
-export async function revealInExtension(path: string): Promise<void> {
+export async function revealInExtension(directoryPath: string, entryType: RobotEntryType): Promise<void> {
     const treeView = treeViewIdToTreeView.get(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
+
     if (!treeView.visible) {
         return;
     }
 
-    let dataProvider: RobotsTreeDataProvider = treeViewIdToTreeDataProvider.get(
+    const dataProvider = treeViewIdToTreeDataProvider.get(
         TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
     ) as RobotsTreeDataProvider;
 
     const nodes = await dataProvider.getChildren();
+    const normalizedDirectoryPath = path.normalize(directoryPath);
 
-    async function findNode(nodes: RobotEntry[], path: string): Promise<RobotEntry | undefined> {
+    async function findNode(nodes: RobotEntry[]): Promise<RobotEntry | undefined> {
         for (const node of nodes) {
-            if (node.robot.directory === path) {
+            if (node.type === entryType && path.normalize(node.robot.directory) === normalizedDirectoryPath) {
                 return node;
             }
 
-            const childNode = await findNode(await dataProvider.getChildren(node), path);
-            if (childNode) {
-                return childNode;
+            const childNodes = await dataProvider.getChildren(node);
+            if (childNodes && childNodes.length > 0) {
+                const foundChild = await findNode(childNodes);
+                if (foundChild) {
+                    return foundChild;
+                }
             }
         }
         return undefined;
     }
 
-    const node: RobotEntry | undefined = await findNode(nodes, path);
+    const node = await findNode(nodes);
     if (node) {
         dataProvider.fireRootChange();
-        treeView.reveal(node, { "focus": true, "expand": true });
+        treeView.reveal(node, { focus: true, expand: true });
     }
 }
 

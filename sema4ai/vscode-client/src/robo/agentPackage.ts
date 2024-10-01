@@ -15,6 +15,7 @@ import * as roboCommands from "../robocorpCommands";
 import { makeDirs } from "../files";
 import { logError, OUTPUT_CHANNEL } from "../channel";
 import { langServer } from "../extension";
+import { RobotEntryType } from "../viewsCommon";
 
 const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<PackageTargetAndNameResult> => {
     const ws = await askForWs();
@@ -122,7 +123,7 @@ export const createAgentPackage = async (): Promise<void> => {
             throw new Error(result.message || "Unknown error");
         }
 
-        revealInExtension(targetDir);
+        revealInExtension(targetDir, RobotEntryType.AgentPackage);
         window.showInformationMessage("Agent Package successfully created in:\n" + targetDir);
     } catch (err) {
         const errorMsg = "Error creating Agent Package at: " + targetDir;
