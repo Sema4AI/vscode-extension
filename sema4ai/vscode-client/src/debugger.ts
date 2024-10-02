@@ -20,7 +20,10 @@ import {
     SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
 } from "./robocorpCommands";
 import { globalCachedPythonInfo } from "./extension";
-import { disablePythonTerminalActivateEnvironment } from "./pythonExtIntegration";
+import {
+    disablePythonTerminalActivateEnvironment,
+    isPyDevDebuggerPythonExtensionInstalled,
+} from "./pythonExtIntegration";
 import { InterpreterInfo } from "./protocols";
 import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 
@@ -205,6 +208,24 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
                     // the launch is already resolved.
                     await extension.activate();
                 }
+            } else if (isPyDevDebuggerPythonExtensionInstalled()) {
+                let extension = extensions.getExtension("fabioz.vscode-pydev-python-debugger");
+                if (extension) {
+                    if (!extension.isActive) {
+                        // i.e.: Auto-activate python extension for the launch as the extension
+                        // is only activated for debug on the resolution, whereas in this case
+                        // the launch is already resolved.
+                        await extension.activate();
+                    }
+                }
+                result.type = "pydevd";
+                result.pythonExecutable = result.python;
+            } else {
+                const msg =
+                    "It's not possible to make a python launch without the ms-python.python or fabioz.vscode-pydev-python-debugger extension installed.";
+                OUTPUT_CHANNEL.appendLine(msg);
+                window.showErrorMessage(msg);
+                return;
             }
         }
 

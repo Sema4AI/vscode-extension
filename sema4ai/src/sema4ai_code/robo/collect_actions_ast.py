@@ -1,7 +1,7 @@
 import ast as ast_module
-from pathlib import Path
-from typing import Any, List, Optional, Tuple, TypedDict
 from collections.abc import Iterator
+from pathlib import Path
+from typing import Any, TypedDict
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger

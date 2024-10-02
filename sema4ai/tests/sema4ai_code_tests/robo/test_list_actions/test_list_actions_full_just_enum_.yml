@@ -1,0 +1,26 @@
+my_action:
+  action_name: my_action
+  action_relative_path: my_action.py
+  default_values:
+    model:
+      some_enum: a
+  informal_schema_representation:
+  - 'model.some_enum: [''a'', ''b'']'
+  json_schema:
+    properties:
+      model:
+        properties:
+          some_enum:
+            enum:
+            - a
+            - b
+            title: SomeEnum
+            type: string
+        required:
+        - some_enum
+        title: Model
+        type: object
+    required:
+    - model
+    type: object
+  managed_params_json_schema: {}

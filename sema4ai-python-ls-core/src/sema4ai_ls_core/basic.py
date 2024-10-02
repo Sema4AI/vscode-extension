@@ -18,16 +18,18 @@ import functools
 import os
 import sys
 import threading
+from collections.abc import Callable
 from concurrent.futures import Future
 from contextlib import contextmanager
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
-from typing import Any, Tuple, TypeVar
-from collections.abc import Callable
+from typing import Any, Optional, TypeVar
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.exceptions import JsonRpcRequestCancelled
 from sema4ai_ls_core.options import DEFAULT_TIMEOUT
+from sema4ai_ls_core.protocols import IMonitor
 
 PARENT_PROCESS_WATCH_INTERVAL = 3  # 3 s
 
@@ -387,17 +389,39 @@ def notify_about_import(import_name):
     return _RestoreCtxManager(original_import)
 
 
+class ProcessResultStatus(Enum):
+    FINISHED = 0
+    TIMED_OUT = 1
+    CANCELLED = 2
+
+
 @dataclass
 class ProcessRunResult:
     stdout: str
     stderr: str
     returncode: int
+    status: ProcessResultStatus
 
 
 def launch_and_return_future(
-    cmd, environ, cwd, timeout=100, stdin: bytes = b"\n"
+    cmd,
+    environ,
+    cwd,
+    timeout=100,
+    stdin: bytes = b"\n",
+    monitor: Optional[IMonitor] = None,
 ) -> "Future[ProcessRunResult]":
+    """
+    Launches a process and returns a future that can be used to wait for the process to
+    finish and get its output. If the monitor is cancelled, the timeout is reached or
+    regular completion is reached, a ProcessRunResult will be returned with the status
+    set accordingly.
+
+    If the future itself is cancelled the process will be killed and an exception
+    will set in the future.
+    """
     import subprocess
+    import weakref
 
     full_env = dict(os.environ)
     full_env.update(environ)
@@ -450,30 +474,92 @@ def launch_and_return_future(
 
     future: "Future[ProcessRunResult]" = Future()
 
+    force_status: ProcessResultStatus | None = None
+
+    def kill_if_running(*args, **kwargs):
+        from sema4ai_ls_core.process import kill_process_and_subprocesses
+
+        if process.poll() is None:  # i.e.: still running.
+            kill_process_and_subprocesses(process.pid)
+
+    def on_monitor_cancelled():
+        nonlocal force_status
+        force_status = ProcessResultStatus.CANCELLED
+        kill_if_running()
+
+    if monitor is not None:
+        monitor.add_listener(on_monitor_cancelled)
+
+    def cancel_if_needed(*args, **kwargs):
+        if future.cancelled():
+            kill_if_running()
+
+    future.add_done_callback(cancel_if_needed)
+    setattr(future, "_process_weak_ref", weakref.ref(process))
+
     def report_output():
+        nonlocal force_status
+        from concurrent.futures import InvalidStateError
+        from subprocess import TimeoutExpired
+
         try:
-            process.wait(timeout)
+            try:
+                process.wait(timeout)
+            except TimeoutExpired:
+                log.info("Timeout expired, killing process.")
+                kill_if_running()  # if it was still running after the timeout elapses, kill it.
+                try:
+                    for t in threads:
+                        t.join(2)
+                except Exception:
+                    pass
+                future.set_result(
+                    ProcessRunResult(
+                        stdout=stdout_contens.getvalue(),
+                        stderr=stderr_contens.getvalue(),
+                        returncode=process.poll(),
+                        status=force_status
+                        if force_status is not None
+                        else ProcessResultStatus.TIMED_OUT,
+                    )
+                )
+                return
+
             try:
                 for t in threads:
                     t.join(2)
             except Exception:
                 pass
 
-            future.set_result(
-                ProcessRunResult(
-                    stdout=stdout_contens.getvalue(),
-                    stderr=stderr_contens.getvalue(),
-                    returncode=process.poll(),
+            if not future.cancelled():
+                future.set_result(
+                    ProcessRunResult(
+                        stdout=stdout_contens.getvalue(),
+                        stderr=stderr_contens.getvalue(),
+                        returncode=process.poll(),
+                        status=force_status
+                        if force_status is not None
+                        else ProcessResultStatus.FINISHED,
+                    )
                 )
-            )
         except BaseException as e:
-            future.set_exception(e)
+            try:
+                future.set_exception(e)
+            except InvalidStateError:
+                pass  # That's fine, in a race condition the future may already be cancelled.
 
     threading.Thread(target=report_output, daemon=True).start()
     return future
 
 
 def _stdin_write(process, input):
+    if process.stdin is None:
+        if sys.platform == "win32":
+            log.critical(
+                "Unable to write to stdin in `_stdin_write` because process.stdin is None (sema4ai_ls_core/basic.py)."
+            )
+        return
+
     import errno
 
     if input:

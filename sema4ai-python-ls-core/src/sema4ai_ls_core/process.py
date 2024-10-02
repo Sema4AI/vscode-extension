@@ -6,9 +6,9 @@ import os
 import subprocess
 import sys
 import threading
-from pathlib import Path
-from typing import Dict, List, Optional, Protocol, TypeVar, Union
 from collections.abc import Sequence
+from pathlib import Path
+from typing import Protocol, TypeVar, Union
 
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.core_log import get_logger
@@ -332,9 +332,10 @@ def _popen_raise(cmdline, **kwargs):
 
 def _stdin_write(process, input):
     if process.stdin is None:
-        log.critical(
-            "Unable to write to stdin in `_stdin_write` because process.stdin is None."
-        )
+        if sys.platform == "win32":
+            log.critical(
+                "Unable to write to stdin in `_stdin_write` because process.stdin is None (sema4ai_ls_core/process.py)."
+            )
         return
 
     if input:

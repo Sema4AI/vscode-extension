@@ -23,10 +23,10 @@ import { RobotsTreeDataProvider } from "./viewsRobots";
 import { ResourcesTreeDataProvider } from "./viewsResources";
 import * as path from "path";
 import { fileExists, uriExists, verifyFileExists } from "./files";
-import { createDefaultInputJson, getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
-import { OUTPUT_CHANNEL } from "./channel";
+import { getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
 import { ActionResult } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
+import { createActionInputs } from "./robo/actionInputs";
 
 export async function editInput(actionRobotEntry?: RobotEntry) {
     if (!actionRobotEntry) {
@@ -34,10 +34,25 @@ export async function editInput(actionRobotEntry?: RobotEntry) {
         return;
     }
     const targetInput = await getTargetInputJson(actionRobotEntry.actionName, actionRobotEntry.robot.directory);
-    const inputUri = vscode.Uri.file(targetInput);
-    if (!(await fileExists(targetInput))) {
-        await createDefaultInputJson(inputUri);
+    let mustCreateInputs = !(await fileExists(targetInput));
+    if (!mustCreateInputs) {
+        const inputUri = vscode.Uri.file(targetInput);
+        // Check if the file is not empty
+        const fileContents = await vscode.workspace.fs.readFile(inputUri);
+        mustCreateInputs = fileContents.length === 0;
     }
+    if (mustCreateInputs) {
+        const success = await createActionInputs(
+            vscode.Uri.file(actionRobotEntry.robot.directory),
+            actionRobotEntry.actionName,
+            targetInput,
+            actionRobotEntry.robot.directory
+        );
+        if (!success) {
+            return;
+        }
+    }
+    const inputUri = vscode.Uri.file(targetInput);
     await vscode.window.showTextDocument(inputUri);
 }
 

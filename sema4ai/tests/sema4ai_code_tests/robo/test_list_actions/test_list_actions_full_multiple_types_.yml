@@ -1,0 +1,100 @@
+my_action:
+  action_name: my_action
+  action_relative_path: my_action.py
+  default_values:
+    a: 0
+    b: 0.0
+    c: ''
+    d: false
+    model:
+      another:
+        age: 0
+        name: ''
+      lst:
+      - 0
+      name: ''
+      other: {}
+      some_enum: a
+    secret: <specify-secret>
+  informal_schema_representation:
+  - 'a: integer'
+  - 'b: number'
+  - 'c: string'
+  - 'd: boolean'
+  - 'model.name: string'
+  - 'model.lst: array'
+  - 'model.lst.0: integer'
+  - 'model.other: object'
+  - 'model.another.name: string'
+  - 'model.another.age: integer'
+  - 'model.some_enum: [''a'', ''b'']'
+  json_schema:
+    properties:
+      a:
+        description: ''
+        title: A
+        type: integer
+      b:
+        description: ''
+        title: B
+        type: number
+      c:
+        description: ''
+        title: C
+        type: string
+      d:
+        description: ''
+        title: D
+        type: boolean
+      model:
+        properties:
+          another:
+            properties:
+              age:
+                title: Age
+                type: integer
+              name:
+                title: Name
+                type: string
+            required:
+            - name
+            - age
+            title: AnotherModel
+            type: object
+          lst:
+            items:
+              type: integer
+            title: Lst
+            type: array
+          name:
+            title: Name
+            type: string
+          other:
+            additionalProperties:
+              type: integer
+            title: Other
+            type: object
+          some_enum:
+            enum:
+            - a
+            - b
+            title: SomeEnum
+            type: string
+        required:
+        - name
+        - lst
+        - other
+        - another
+        - some_enum
+        title: Model
+        type: object
+    required:
+    - a
+    - b
+    - c
+    - d
+    - model
+    type: object
+  managed_params_json_schema:
+    secret:
+      type: Secret

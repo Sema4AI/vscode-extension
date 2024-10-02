@@ -6,7 +6,7 @@ from base64 import b64encode
 from collections.abc import Iterator, Sequence
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
@@ -673,6 +673,64 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             log.exception(f"Error running in RCC: {params}.")
             return dict(success=False, message=str(e), result=None)
         return ret.as_dict()
+
+    def m_list_actions_full_and_slow(
+        self, action_package_uri: str = "", action_package_yaml_directory: str = ""
+    ):
+        if not action_package_uri:
+            msg = f"Unable to collect actions because the target action_package_uri was not given (or was empty)."
+            return dict(success=False, message=msg, result=None)
+        if not action_package_yaml_directory:
+            msg = f"Unable to collect actions because the target action_package_yaml_directory was not given (or was empty)."
+            return dict(success=False, message=msg, result=None)
+        return require_monitor(
+            partial(
+                self._list_actions_full_and_slow,
+                action_package_uri=action_package_uri,
+                action_package_yaml_directory=action_package_yaml_directory,
+            )
+        )
+
+    def _list_actions_full_and_slow(
+        self,
+        action_package_uri: str,
+        action_package_yaml_directory: str,
+        monitor: IMonitor,
+    ) -> ActionResultDict:
+        from sema4ai_code.robo.collect_actions import (
+            collect_actions_full_and_slow,
+            extract_info,
+        )
+
+        p = Path(uris.to_fs_path(action_package_uri))
+        if not p.exists():
+            msg = f"Unable to collect actions from: {p} because it does not exist."
+            return dict(success=False, message=msg, result=None)
+
+        try:
+            if not self.workspace:
+                return dict(
+                    success=False, message="No workspace currently open", result=None
+                )
+
+            result = collect_actions_full_and_slow(
+                self._pm, action_package_uri, monitor
+            )
+            if not result.success:
+                return result.as_dict()
+
+            lst = result.result
+            assert (
+                lst is not None
+            ), "When collecting actions, the result should not be None in the success case"
+            actions_info = extract_info(lst, action_package_yaml_directory)
+        except Exception as e:
+            log.exception("Error collecting actions.")
+            return dict(
+                success=False, message=f"Error collecting actions: {e}", result=None
+            )
+
+        return dict(success=True, message=None, result=actions_info)
 
     @command_dispatcher(commands.SEMA4AI_LIST_ACTIONS_INTERNAL)
     def _local_list_actions_internal(self, params: ListActionsParams | None):

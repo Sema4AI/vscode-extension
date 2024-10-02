@@ -25,7 +25,7 @@ def wait_for_test_condition(condition, msg=None, timeout=TIMEOUT, sleep=1 / 20.0
 
 
 @pytest.fixture
-def ws_root_path(tmpdir):
+def ws_root_path(tmpdir) -> str:
     return str(tmpdir.join("root"))
 
 

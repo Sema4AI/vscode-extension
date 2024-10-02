@@ -1,19 +1,9 @@
 import sys
 import threading
 import typing
-from enum import Enum
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
 from collections.abc import Callable, Iterable, Mapping
+from enum import Enum
+from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
 
 if typing.TYPE_CHECKING:
     # This would lead to a circular import, so, do it only when type-checking.
@@ -909,7 +899,9 @@ class IMonitor(Protocol):
         """
 
     def add_listener(self, listener: IMonitorListener):
-        pass
+        """
+        Adds a listener that'll be called when the monitor is cancelled.
+        """
 
 
 class ActionResultDict(TypedDict):
