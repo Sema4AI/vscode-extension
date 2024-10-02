@@ -6,6 +6,10 @@ import { logError } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
 import { uriExists } from "./files";
+import { RobotEntry, RobotEntryType, treeViewIdToTreeDataProvider, treeViewIdToTreeView } from "./viewsCommon";
+import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
+import { RobotsTreeDataProvider } from "./viewsRobots";
+import path = require("path");
 
 export type GetPackageTargetDirectoryMessages = {
     title: string;
@@ -161,6 +165,44 @@ export function refreshFilesExplorer() {
         commands.executeCommand("workbench.files.action.refreshFilesExplorer");
     } catch (error) {
         logError("Error refreshing file explorer.", error, "ACT_REFRESH_FILE_EXPLORER");
+    }
+}
+
+export async function revealInExtension(directoryPath: string, entryType: RobotEntryType): Promise<void> {
+    const treeView = treeViewIdToTreeView.get(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
+
+    if (!treeView.visible) {
+        return;
+    }
+
+    const dataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+
+    const nodes = await dataProvider.getChildren();
+    const normalizedDirectoryPath = path.normalize(directoryPath);
+
+    async function findNode(nodes: RobotEntry[]): Promise<RobotEntry | undefined> {
+        for (const node of nodes) {
+            if (node.type === entryType && path.normalize(node.robot.directory) === normalizedDirectoryPath) {
+                return node;
+            }
+
+            const childNodes = await dataProvider.getChildren(node);
+            if (childNodes && childNodes.length > 0) {
+                const foundChild = await findNode(childNodes);
+                if (foundChild) {
+                    return foundChild;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    const node = await findNode(nodes);
+    if (node) {
+        dataProvider.fireRootChange();
+        treeView.reveal(node, { focus: true, expand: true });
     }
 }
 
