@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.6.3 (2024-11-02)
+
 - Focus newly created action or agent package when the user is in the extension view
 - When creating the input (json) for an action, it's now pre-populated based on the action's parameters.
 - The action input (json) file now supports multiple inputs.
