@@ -1,6 +1,8 @@
 ## Unreleased
 
 - Focus newly created action or agent package when the user is in the extension view
+- When creating the input (json) for an action, it's now pre-populated based on the action's parameters.
+- The action input (json) file now supports multiple inputs.
 - Expand the view when there is only one Agent / Action
 - Fix `Publish Agent to Studio` from sidebar agent selection
 - Fixed edge cases with the `Refresh Agent Configuration` command

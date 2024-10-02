@@ -1,0 +1,23 @@
+my_action:
+  action_name: my_action
+  action_relative_path: my_action.py
+  default_values:
+    vscode:request:oauth2:
+      google_secret:
+        access_token: <access-token-will-be-requested-by-vscode>
+        provider: google
+        scopes:
+        - https://www.googleapis.com/auth/spreadsheets.readonly
+        - https://www.googleapis.com/auth/drive.readonly
+        type: OAuth2Secret
+  informal_schema_representation: []
+  json_schema:
+    properties: {}
+    type: object
+  managed_params_json_schema:
+    google_secret:
+      provider: google
+      scopes:
+      - https://www.googleapis.com/auth/spreadsheets.readonly
+      - https://www.googleapis.com/auth/drive.readonly
+      type: OAuth2Secret

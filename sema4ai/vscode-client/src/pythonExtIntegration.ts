@@ -164,6 +164,22 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
     }
 }
 
+export async function isMicrosoftPythonExtensionInstalled() {
+    const extension = extensions.getExtension("ms-python.python");
+    if (extension) {
+        return true;
+    }
+    return false;
+}
+
+export async function isPyDevDebuggerPythonExtensionInstalled() {
+    const extension = extensions.getExtension("fabioz.vscode-pydev-python-debugger");
+    if (extension) {
+        return true;
+    }
+    return false;
+}
+
 export async function disablePythonTerminalActivateEnvironment() {
     try {
         const extension = extensions.getExtension("ms-python.python");

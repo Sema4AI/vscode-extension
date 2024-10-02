@@ -51,7 +51,7 @@ sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
 fire = "*"
 
 robocorp-actions = "^0.2.1" # Just needed for testing.
-sema4ai-actions = "^0.10.0" # Just needed for testing.
+sema4ai-actions = "^1.0.1" # Just needed for testing.
 
 numpy = "<2"
 ruff = "^0.6.5"

@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger

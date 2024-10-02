@@ -39,7 +39,7 @@ import {
     revealInExtension,
 } from "../common";
 import { slugify } from "../slugify";
-import { fileExists, makeDirs } from "../files";
+import { fileExists, makeDirs, readFromFile, writeToFile } from "../files";
 import { QuickPickItemWithAction, askForWs, showSelectOneQuickPick } from "../ask";
 import * as path from "path";
 import { OUTPUT_CHANNEL, logError } from "../channel";
@@ -51,6 +51,7 @@ import {
 } from "../actionServer";
 import { loginToAuth2WhereRequired } from "./oauth2InInput";
 import { RobotEntryType } from "../viewsCommon";
+import { createActionInputs, errorMessageValidatingV2Input } from "./actionInputs";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -59,15 +60,6 @@ export interface QuickPickItemAction extends QuickPickItem {
     packageYaml: string;
     actionName: string;
     keyInLRU: string;
-}
-
-export async function createDefaultInputJson(inputUri: vscode.Uri) {
-    await vscode.workspace.fs.writeFile(
-        inputUri,
-        Buffer.from(`{
-    "paramName": "paramValue"
-}`)
-    );
 }
 
 export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean) {
@@ -211,9 +203,11 @@ export async function runActionFromActionPackage(
     // The input must be asked when running actions in this case and it should be
     // saved in 'devdata/input_xxx.json'
     const nameSlugified = slugify(actionName);
-    const targetInput = await getTargetInputJson(actionName, actionPackageYamlDirectory);
+    const multiTargetInput = await getTargetInputJson(actionName, actionPackageYamlDirectory);
 
-    if (!(await fileExists(targetInput))) {
+    const contents = await readFromFile(multiTargetInput);
+
+    if (!(await fileExists(multiTargetInput)) || contents.length === 0) {
         let items: QuickPickItemWithAction[] = new Array();
 
         items.push({
@@ -229,7 +223,7 @@ export async function runActionFromActionPackage(
 
         let selectedItem: QuickPickItemWithAction | undefined = await showSelectOneQuickPick(
             items,
-            "Input for the action not defined. How to proceed?",
+            "File input for the action does not exist or is empty. How to proceed?",
             `Customize input for the ${actionName} action`
         );
         if (!selectedItem) {
@@ -239,13 +233,59 @@ export async function runActionFromActionPackage(
         if (selectedItem.action === "create") {
             // Create the file and ask the user to fill it and rerun the action
             // after he finished doing that.
-            const inputUri = vscode.Uri.file(targetInput);
-            await createDefaultInputJson(inputUri);
-            await vscode.window.showTextDocument(inputUri);
+            await createActionInputs(actionFileUri, actionName, multiTargetInput, actionPackageYamlDirectory);
         }
         // In any case, don't proceed if it wasn't previously created
         // (so that the user can customize it).
         return;
+    }
+
+    // Now, in the new format, we need to check if the input is in the new format and then extract the input from there
+    let input;
+    try {
+        input = JSON.parse(contents);
+    } catch (error) {
+        window.showErrorMessage(
+            `Unable to run action package: error reading file: ${multiTargetInput} as json: ${error.message}`
+        );
+        return;
+    }
+    let targetInput: string;
+    if (input.metadata.inputFileVersion === "v2") {
+        const errorMessage = errorMessageValidatingV2Input(input);
+        if (errorMessage) {
+            window.showErrorMessage("Unable to run action package (input file is not valid v2):\n" + errorMessage);
+            return;
+        }
+        // Ok, now, check if we have just one input or multiple (if we have just one, create a temporary file with the input)
+        let inputValue;
+        if (input.inputs.length === 1) {
+            // Create a temporary file with the input
+            inputValue = input.inputs[0].inputValue;
+        } else {
+            // Ask the user to select one of the inputs
+            const selectedInput = await window.showQuickPick(
+                input.inputs.map((input) => input.inputName),
+                {
+                    "canPickMany": false,
+                    "placeHolder": "Please select the input to use for the action.",
+                    "ignoreFocusOut": true,
+                }
+            );
+            if (!selectedInput) {
+                return;
+            }
+            inputValue = input.inputs.find((input) => input.inputName === selectedInput).inputValue;
+        }
+        const tempInputFile = path.join(os.tmpdir(), `sema4ai_vscode_extension_input_${nameSlugified}.json`);
+        await writeToFile(tempInputFile, JSON.stringify(inputValue, null, 4));
+        targetInput = tempInputFile;
+    } else {
+        // No version matched, so, the input is used directly as is (backward compatibility)
+        OUTPUT_CHANNEL.appendLine(
+            `Expected v2 input file (with metadata.inputFileVersion === "v2"). As it was not found, considering it's an old file and using the input directly as is for the action.`
+        );
+        targetInput = multiTargetInput;
     }
 
     // Ok, input available. Let's create the launch and run it.

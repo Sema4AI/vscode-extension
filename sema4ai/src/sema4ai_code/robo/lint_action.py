@@ -1,12 +1,12 @@
 import json
 
+from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.ep_resolve_interpreter import (
     EPResolveInterpreter,
     IInterpreterInfo,
 )
 from sema4ai_ls_core.pluginmanager import PluginManager
 from sema4ai_ls_core.protocols import IDocument
-from sema4ai_ls_core.core_log import get_logger
 
 from sema4ai_code.robo import lint_in_target_env
 
@@ -52,6 +52,7 @@ def collect_lint_errors(pm: PluginManager, doc: IDocument) -> list:
                     log.info(
                         f"Found stderr while collecting lint errors: {result.stderr}"
                     )
+                break
     except BaseException:
         log.exception("Error collection @action")
     return []

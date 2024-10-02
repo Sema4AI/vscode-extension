@@ -124,7 +124,10 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
 
         for (const [key, val] of Object.entries(request)) {
             const keysInEntry = Object.keys(val);
-            if (keysInEntry.includes("type") && keysInEntry.includes("scopes") && keysInEntry.includes("provider")) {
+            const hasType = keysInEntry.includes("type");
+            const hasScopes = keysInEntry.includes("scopes");
+            const hasProvider = keysInEntry.includes("provider");
+            if (hasType && hasScopes && hasProvider) {
                 if (
                     val["type"] === "OAuth2Secret" &&
                     Array.isArray(val["scopes"]) &&
@@ -145,6 +148,12 @@ export const loginToAuth2WhereRequired = async (targetInput: string): Promise<IS
                     parameterNameToProvider.set(key, val["provider"]);
                     OUTPUT_CHANNEL.appendLine(`OAuth2 login required for parameter: ${key}: ${val["provider"]}`);
                 }
+            } else {
+                const msg = `Ignoring "vscode:request:oauth2" because it does not have "type", "scopes", and "provider" fields. Found: ${JSON.stringify(
+                    keysInEntry
+                )}.`;
+                OUTPUT_CHANNEL.appendLine(msg);
+                window.showErrorMessage(msg);
             }
         }
 

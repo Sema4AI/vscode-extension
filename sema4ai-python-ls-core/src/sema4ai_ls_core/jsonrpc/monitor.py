@@ -1,5 +1,5 @@
-from sema4ai_ls_core.protocols import IMonitor, IMonitorListener
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import IMonitor, IMonitorListener
 
 log = get_logger(__name__)
 
@@ -10,7 +10,7 @@ class Monitor:
         self._cancelled: bool = False
         self._listeners: tuple[IMonitorListener, ...] = ()
 
-    def add_listener(self, listener):
+    def add_listener(self, listener: IMonitorListener):
         if self._cancelled:
             listener()
         else:
