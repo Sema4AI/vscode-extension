@@ -31,9 +31,7 @@ class Locator:
             raise ValueError(f"Unknown locator type: {type_}")
 
         # Check for missing parameters
-        required = {
-            field.name for field in fields(class_) if field.default is MISSING
-        }
+        required = {field.name for field in fields(class_) if field.default is MISSING}
         missing = set(required) - set(data)
         if missing:
             raise ValueError("Missing locator field(s): {}".format(", ".join(missing)))

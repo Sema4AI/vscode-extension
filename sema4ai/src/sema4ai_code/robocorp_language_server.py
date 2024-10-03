@@ -238,7 +238,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self._pm.set_instance(
             EPEndPointProvider, DefaultEndPointProvider(self._endpoint)
         )
-        from sema4ai_code.plugins.resolve_interpreter import register_plugins
+        from sema4ai_code.resolve_interpreter import register_plugins
 
         self._prefix_to_last_run_number_and_time: dict[str, tuple[int, float]] = {}
 

@@ -11,57 +11,28 @@ as well as sema4ai).
 import itertools
 import os.path
 import sys
+import typing
 
-try:
-    from sema4ai_ls_core import uris
-    from sema4ai_ls_core.basic import implements
-    from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core import uris
+from sema4ai_ls_core.basic import implements
+from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.ep_resolve_interpreter import (
+    DefaultInterpreterInfo,
+    EPResolveInterpreter,
+    IInterpreterInfo,
+)
+from sema4ai_ls_core.lsp import LSPMessages
+from sema4ai_ls_core.pluginmanager import PluginManager
+from sema4ai_ls_core.progress_report import (
+    get_current_progress_reporter,
+    progress_context,
+)
+from sema4ai_ls_core.protocols import IEndPoint, check_implements
+
+from sema4ai_code.protocols import IRobotYamlEnvInfo
+
+if typing.TYPE_CHECKING:
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
-    from sema4ai_ls_core.ep_resolve_interpreter import (
-        DefaultInterpreterInfo,
-        EPResolveInterpreter,
-        IInterpreterInfo,
-    )
-    from sema4ai_ls_core.lsp import LSPMessages
-    from sema4ai_ls_core.pluginmanager import PluginManager
-    from sema4ai_ls_core.progress_report import (
-        get_current_progress_reporter,
-        progress_context,
-    )
-    from sema4ai_ls_core.protocols import (
-        IEndPoint,
-        LaunchActionResult,
-        check_implements,
-    )
-
-    from sema4ai_code.protocols import IRobotYamlEnvInfo
-
-except ImportError:
-    from robocorp_ls_core import uris  # type: ignore
-    from robocorp_ls_core.basic import implements  # type: ignore
-
-    # type: ignore
-    from robocorp_ls_core.ep_providers import (  # type: ignore
-        EPConfigurationProvider,
-        EPEndPointProvider,
-    )
-    from robocorp_ls_core.ep_resolve_interpreter import (  # type: ignore
-        DefaultInterpreterInfo,
-        EPResolveInterpreter,
-        IInterpreterInfo,
-    )
-    from robocorp_ls_core.lsp import LSPMessages  # type: ignore
-    from robocorp_ls_core.pluginmanager import PluginManager  # type: ignore
-    from robocorp_ls_core.progress_report import (  # type: ignore
-        get_current_progress_reporter,
-        progress_context,
-    )
-    from robocorp_ls_core.protocols import (  # type: ignore
-        IEndPoint,
-        LaunchActionResult,
-        check_implements,
-    )
-    from robocorp_ls_core.robotframework_log import get_logger  # type: ignore
 
 try:
     from sema4ai_code.rcc import Rcc  # noqa
@@ -80,7 +51,7 @@ import time
 import weakref
 from collections import namedtuple
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 log = get_logger(__name__)
 
@@ -142,13 +113,15 @@ class _CachedInterpreterInfo:
             robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
         )
 
-        configuration_provider: EPConfigurationProvider = pm[EPConfigurationProvider]
-        endpoint_provider: EPEndPointProvider = pm[EPEndPointProvider]
+        configuration_provider: "EPConfigurationProvider" = pm[
+            "EPConfigurationProvider"
+        ]
+        endpoint_provider: "EPEndPointProvider" = pm["EPEndPointProvider"]
         rcc = Rcc(configuration_provider)
         interpreter_id = str(robot_yaml_file_info.file_path)
         progress_reporter = get_current_progress_reporter()
 
-        def on_env_creation_error(result: LaunchActionResult):
+        def on_env_creation_error(result):
             import tempfile
 
             # Note: called only on environment creation (not on all failures).
@@ -368,7 +341,7 @@ class _CacheInfo:
                     _touch_temp(interpreter_info.info)
                     return interpreter_info.info
 
-        endpoint = pm[EPEndPointProvider].endpoint
+        endpoint = pm["EPEndPointProvider"].endpoint
 
         basename = os.path.basename(robot_yaml_file_info.file_path)
         with progress_context(
@@ -592,7 +565,9 @@ class RobocorpResolveInterpreter:
         pm = self._pm()
         assert pm is not None
 
-        configuration_provider: EPConfigurationProvider = pm[EPConfigurationProvider]
+        configuration_provider: "EPConfigurationProvider" = pm[
+            "EPConfigurationProvider"
+        ]
         rcc = Rcc(configuration_provider)
 
         datadir = rcc.get_robocorp_code_datadir()
@@ -654,8 +629,8 @@ environmentConfigs:
                 return None
 
             # Check that our requirements are there.
-            pm[EPConfigurationProvider]
-            pm[EPEndPointProvider]
+            pm["EPConfigurationProvider"]
+            pm["EPEndPointProvider"]
 
             fs_path = Path(uris.to_fs_path(doc_uri))
             # Note: there's a use-case where a directory may be passed to

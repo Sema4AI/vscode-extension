@@ -110,6 +110,10 @@ ignore_missing_imports = true
 module = "JABWrapper.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "robocorp_ls_core.*"
+ignore_missing_imports = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
