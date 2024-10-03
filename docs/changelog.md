@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Fixed integration with `Robot Framework Language Server` (requires `Robot Framework Language Server` **1.13.0**).
+- Warn user when the format of the action input file is not `v2`.
+
 ## New in 2.6.3 (2024-11-02)
 
 - Focus newly created action or agent package when the user is in the extension view

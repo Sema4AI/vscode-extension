@@ -251,7 +251,16 @@ export async function runActionFromActionPackage(
         return;
     }
     let targetInput: string;
-    if (input.metadata.inputFileVersion === "v2") {
+    const isV2 = input?.metadata?.inputFileVersion === "v2";
+    if (!isV2) {
+        window.showWarningMessage(
+            `The format of the input file is not v2.
+Please remove the contents of the file (${multiTargetInput}) and relaunch the action to regenerate 
+the input file in the new format. The launch will proceed with the current values, but it's 
+advised to regenerate it as it may not work with future versions of the extension.`
+        );
+    }
+    if (isV2) {
         const errorMessage = errorMessageValidatingV2Input(input);
         if (errorMessage) {
             window.showErrorMessage("Unable to run action package (input file is not valid v2):\n" + errorMessage);
