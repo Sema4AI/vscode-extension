@@ -11,7 +11,12 @@ as well as sema4ai).
 import itertools
 import os.path
 import sys
+import time
 import typing
+import weakref
+from collections import namedtuple
+from pathlib import Path
+from typing import Optional
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import implements
@@ -30,28 +35,10 @@ from sema4ai_ls_core.progress_report import (
 from sema4ai_ls_core.protocols import IEndPoint, check_implements
 
 from sema4ai_code.protocols import IRobotYamlEnvInfo
+from sema4ai_code.rcc import Rcc
 
 if typing.TYPE_CHECKING:
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
-
-try:
-    from sema4ai_code.rcc import Rcc  # noqa
-except ImportError:
-    # Automatically add it to the path if executing as a plugin the first time.
-    sys.path.append(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    )
-    import sema4ai_code  # @UnusedImport
-
-    sema4ai_code.import_robocorp_ls_core()
-
-    from sema4ai_code.rcc import Rcc  # noqa
-
-import time
-import weakref
-from collections import namedtuple
-from pathlib import Path
-from typing import Optional
 
 log = get_logger(__name__)
 
