@@ -2777,29 +2777,38 @@ def test_text_document_code_actions(language_server_initialized) -> None:
 
     ls_client = language_server_initialized
 
-    text_document_code_action = {
-        "textDocument": {
-            "uri": "file:///x%3A/vscode-robot/local_test/robot_check/agent-spec.yaml"
-        },
+    win_uri = "file:///x%3A/vscode-robot/local_test/robot_check/agent-spec.yaml"
+    linux_uri = "file:///Users/vscode-robot/local_test/robot_check/agent-spec.yaml"
+
+    document_uri = win_uri if sys.platform == "win32" else linux_uri
+
+    diagnostics: list[dict[str, typing.Any]] = [
+        {
+            "range": {
+                "start": {"line": 2, "character": 2},
+                "end": {"line": 19, "character": 0},
+            },
+            "message": "Missing required entry: agent-package/agents/reasoning.",
+            "code": "agent_package_incomplete",
+            "severity": 1,
+            "source": "sema4ai",
+        }
+    ]
+
+    # Define the context explicitly
+    context: dict[str, typing.Any] = {
+        "diagnostics": diagnostics,
+        "triggerKind": 1,
+    }
+
+    # Explicitly type the text_document_code_action dictionary
+    text_document_code_action: dict[str, typing.Any] = {
+        "textDocument": {"uri": document_uri},
         "range": {
             "start": {"line": 12, "character": 5},
             "end": {"line": 12, "character": 5},
         },
-        "context": {
-            "diagnostics": [
-                {
-                    "range": {
-                        "start": {"line": 2, "character": 2},
-                        "end": {"line": 19, "character": 0},
-                    },
-                    "message": "Missing required entry: agent-package/agents/reasoning.",
-                    "code": "agent_package_incomplete",
-                    "severity": 1,
-                    "source": "sema4ai",
-                }
-            ],
-            "triggerKind": 1,
-        },
+        "context": context,
     }
 
     code_actions = ls_client.request(
@@ -2809,13 +2818,15 @@ def test_text_document_code_actions(language_server_initialized) -> None:
             "method": "textDocument/codeAction",
             "params": text_document_code_action,
         }
-    )["result"]
+    )
 
     assert len(code_actions) == 1
     assert code_actions[0]["title"] == "Refresh Agent Configuration"
     assert code_actions[0]["command"]["command"] == commands.SEMA4AI_REFRESH_AGENT_SPEC
-    assert code_actions[0]["command"]["arguments"] == [
-        "/x:/vscode-robot/local_test/robot_check"
+
+    assert code_actions[0]["command"]["arguments"][0] in [
+        "/Users/vscode-robot/local_test/robot_check",
+        "x:/vscode-robot/local_test/robot_check",
     ]
 
     text_document_code_action["context"]["diagnostics"] = [

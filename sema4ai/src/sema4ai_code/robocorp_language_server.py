@@ -5,8 +5,8 @@ import weakref
 from base64 import b64encode
 from collections.abc import Iterator, Sequence
 from functools import partial
-from pathlib import Path
-from typing import Any
+from pathlib import Path, WindowsPath
+from typing import Any, cast
 from urllib.parse import unquote, urlparse
 
 from sema4ai_ls_core import uris, watchdog_wrapper
@@ -400,7 +400,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return server_capabilities
 
     def m_text_document__code_action(self, **kwargs) -> list[CodeActionTypedDict]:
-        params: TextDocumentCodeActionTypedDict = kwargs
+        params: TextDocumentCodeActionTypedDict = cast(
+            TextDocumentCodeActionTypedDict, kwargs
+        )
         # Sample params:
         # {
         #     "textDocument": {
@@ -441,7 +443,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ]
         ]
 
-        document_dir = unquote(urlparse(params["textDocument"]["uri"]).path)
+        document_dir = Path(unquote(urlparse(params["textDocument"]["uri"]).path))
+
+        # Check if it's a Windows path and remove the leading "/"
+        if isinstance(document_dir, WindowsPath) and str(document_dir).startswith("/"):
+            document_dir = Path(str(document_dir)[1:])
 
         if incomplete_package_diags:
             code_action_list.append(
