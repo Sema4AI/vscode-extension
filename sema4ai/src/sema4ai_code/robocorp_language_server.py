@@ -7,18 +7,24 @@ from collections.abc import Iterator, Sequence
 from functools import partial
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlparse
 
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.command_dispatcher import _CommandDispatcher
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.jsonrpc.endpoint import require_monitor
-from sema4ai_ls_core.lsp import HoverTypedDict
+from sema4ai_ls_core.lsp import (
+    CodeActionTypedDict,
+    HoverTypedDict,
+    TextDocumentCodeActionTypedDict,
+)
 from sema4ai_ls_core.protocols import IConfig, IMonitor, LibraryVersionInfoDict
 from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
+from sema4ai_code.agents.agent_spec_handler import ErrorCode
 from sema4ai_code.inspector.inspector_language_server import InspectorLanguageServer
 from sema4ai_code.protocols import (
     ActionResult,
@@ -364,7 +370,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_code.commands import ALL_SERVER_COMMANDS
 
         server_capabilities = {
-            "codeActionProvider": False,
+            "codeActionProvider": True,
             "codeLensProvider": {
                 "resolveProvider": False,
             },
@@ -392,6 +398,66 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         }
         log.debug("Server capabilities: %s", server_capabilities)
         return server_capabilities
+
+    def m_text_document__code_action(self, **kwargs) -> list[CodeActionTypedDict]:
+        params: TextDocumentCodeActionTypedDict = kwargs
+        # Sample params:
+        # {
+        #     "textDocument": {
+        #         "uri": "file:///x%3A/vscode-robot/local_test/robot_check/checkmy.robot"
+        #     },
+        #     "range": {
+        #         "start": {"line": 12, "character": 5},
+        #         "end": {"line": 12, "character": 5},
+        #     },
+        #     "context": {
+        #         "diagnostics": [
+        #             {
+        #                 "range": {
+        #                     "start": {"line": 12, "character": 4},
+        #                     "end": {"line": 12, "character": 8},
+        #                 },
+        #                 "message": "Undefined keyword: rara.",
+        #                 "severity": 1,
+        #                 "source": "robotframework",
+        #             }
+        #         ],
+        #         "triggerKind": 1,
+        #     },
+        # }
+        code_action_list: list[CodeActionTypedDict] = []
+        diagnostics = params.get("context", {}).get("diagnostics", [])
+
+        if not diagnostics:
+            return code_action_list
+
+        incomplete_package_diags = [
+            d
+            for d in diagnostics
+            if d.get("code")
+            in [
+                ErrorCode.action_package_info_unsynchronized.value,
+                ErrorCode.agent_package_incomplete.value,
+            ]
+        ]
+
+        document_dir = unquote(urlparse(params["textDocument"]["uri"]).path)
+
+        if incomplete_package_diags:
+            code_action_list.append(
+                {
+                    "title": "Refresh Agent Configuration",
+                    "kind": "quickfix",
+                    "diagnostics": incomplete_package_diags,
+                    "command": {
+                        "title": "Refresh Agent Configuration",
+                        "command": commands.SEMA4AI_REFRESH_AGENT_SPEC,
+                        "arguments": [str(Path(document_dir).parent)],
+                    },
+                }
+            )
+
+        return code_action_list
 
     def m_text_document__completion(self, **kwargs):
         return []

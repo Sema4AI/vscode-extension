@@ -2770,3 +2770,74 @@ def test_update_agent_version(
 
     assert not result["success"]
     assert result["message"] == "Version entry was not found in the agent spec."
+
+
+def test_text_document_code_actions(language_server_initialized) -> None:
+    from sema4ai_code import commands
+
+    ls_client = language_server_initialized
+
+    text_document_code_action = {
+        "textDocument": {
+            "uri": "file:///x%3A/vscode-robot/local_test/robot_check/agent-spec.yaml"
+        },
+        "range": {
+            "start": {"line": 12, "character": 5},
+            "end": {"line": 12, "character": 5},
+        },
+        "context": {
+            "diagnostics": [
+                {
+                    "range": {
+                        "start": {"line": 2, "character": 2},
+                        "end": {"line": 19, "character": 0},
+                    },
+                    "message": "Missing required entry: agent-package/agents/reasoning.",
+                    "code": "agent_package_incomplete",
+                    "severity": 1,
+                    "source": "sema4ai",
+                }
+            ],
+            "triggerKind": 1,
+        },
+    }
+
+    code_actions = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "textDocument/codeAction",
+            "params": text_document_code_action,
+        }
+    )["result"]
+
+    assert len(code_actions) == 1
+    assert code_actions[0]["title"] == "Refresh Agent Configuration"
+    assert code_actions[0]["command"]["command"] == commands.SEMA4AI_REFRESH_AGENT_SPEC
+    assert code_actions[0]["command"]["arguments"] == [
+        "/x:/vscode-robot/local_test/robot_check"
+    ]
+
+    text_document_code_action["context"]["diagnostics"] = [
+        {
+            "range": {
+                "start": {"line": 2, "character": 2},
+                "end": {"line": 19, "character": 0},
+            },
+            "message": "Another error",
+            "code": "another_error",
+            "severity": 1,
+            "source": "sema4ai",
+        }
+    ]
+
+    code_actions = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "textDocument/codeAction",
+            "params": text_document_code_action,
+        }
+    )["result"]
+
+    assert len(code_actions) == 0
