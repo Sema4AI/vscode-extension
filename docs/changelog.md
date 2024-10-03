@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `Refresh Agent Configuration` command as a Quick Fix for issues in the `agent-spec.yaml`.
+
 ## New in 2.6.3 (2024-10-02)
 
 - Focus newly created action or agent package when the user is in the extension view
