@@ -1,4 +1,4 @@
-## Unreleased
+## New in 2.6.5 (2024-10-04)
 
 - Fixed issue generating the input for an action when there are complex types inside a list.
 
