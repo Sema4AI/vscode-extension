@@ -1,0 +1,40 @@
+my_action:
+  action_name: my_action
+  action_relative_path: my_action.py
+  default_values:
+    entry:
+      rows:
+      - cells:
+        - ''
+  informal_schema_representation:
+  - 'entry.rows: array: The rows that need to be added'
+  - 'entry.rows.0.cells: array: Row cells'
+  - 'entry.rows.0.cells.0: string: Row cells'
+  json_schema:
+    properties:
+      entry:
+        properties:
+          rows:
+            description: The rows that need to be added
+            items:
+              properties:
+                cells:
+                  description: Row cells
+                  items:
+                    type: string
+                  title: Cells
+                  type: array
+              required:
+              - cells
+              title: Row
+              type: object
+            title: Rows
+            type: array
+        required:
+        - rows
+        title: Entry
+        type: object
+    required:
+    - entry
+    type: object
+  managed_params_json_schema: {}

@@ -1,3 +1,7 @@
+## Unreleased
+
+- Fixed issue generating the input for an action when there are complex types inside a list.
+
 ## New in 2.6.4 (2024-10-03)
 
 - Fixed integration with `Robot Framework Language Server` (requires `Robot Framework Language Server` **1.13.0**).

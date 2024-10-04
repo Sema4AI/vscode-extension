@@ -1,0 +1,185 @@
+my_action:
+  action_name: my_action
+  action_relative_path: my_action.py
+  default_values:
+    entry:
+      form:
+        elements:
+        - aria_label: ''
+          class_: ''
+          count: 0
+          id: ''
+          name: ''
+          options:
+          - text: ''
+            value: ''
+          placeholder: ''
+          text: ''
+          type: ''
+          value_to_fill: ''
+          value_type: ''
+        url: ''
+      links:
+        links:
+        - href: ''
+          text: ''
+      text_content: ''
+      url: ''
+  informal_schema_representation:
+  - 'entry.url: string: The URL of the website'
+  - 'entry.text_content: string: The text content of the website'
+  - 'entry.form.url: string: The URL of the website'
+  - 'entry.form.elements: array: A list of form elements'
+  - 'entry.form.elements.0.type: string: The type of the form element'
+  - 'entry.form.elements.0.text: string: The text of the form element'
+  - 'entry.form.elements.0.placeholder: string: The placeholder of the form element'
+  - 'entry.form.elements.0.aria_label: string: The aria label of the form element'
+  - 'entry.form.elements.0.id: string: The id of the form element'
+  - 'entry.form.elements.0.name: string: The name of the form element'
+  - 'entry.form.elements.0.class_: string: The class of the form element'
+  - 'entry.form.elements.0.value_type: string: The type of the form element value'
+  - 'entry.form.elements.0.value_to_fill: string: The value to fill in the form element'
+  - 'entry.form.elements.0.options: array: A list of select options'
+  - 'entry.form.elements.0.options.0.value: string: The value of the option'
+  - 'entry.form.elements.0.options.0.text: string: The text of the option'
+  - 'entry.form.elements.0.count: integer: The count of the form element'
+  - 'entry.links.links: array: A list of links'
+  - 'entry.links.links.0.href: string: The URL of the link'
+  - 'entry.links.links.0.text: string: The text of the link'
+  json_schema:
+    properties:
+      entry:
+        properties:
+          form:
+            properties:
+              elements:
+                default: []
+                description: A list of form elements
+                items:
+                  properties:
+                    aria_label:
+                      default: ''
+                      description: The aria label of the form element
+                      title: Aria Label
+                      type: string
+                    class_:
+                      default: ''
+                      description: The class of the form element
+                      title: 'Class '
+                      type: string
+                    count:
+                      default: 1
+                      description: The count of the form element
+                      title: Count
+                      type: integer
+                    id:
+                      default: ''
+                      description: The id of the form element
+                      title: Id
+                      type: string
+                    name:
+                      default: ''
+                      description: The name of the form element
+                      title: Name
+                      type: string
+                    options:
+                      default: []
+                      description: A list of select options
+                      items:
+                        properties:
+                          text:
+                            description: The text of the option
+                            title: Text
+                            type: string
+                          value:
+                            description: The value of the option
+                            title: Value
+                            type: string
+                        required:
+                        - value
+                        - text
+                        title: Option
+                        type: object
+                      title: Options
+                      type: array
+                    placeholder:
+                      default: ''
+                      description: The placeholder of the form element
+                      title: Placeholder
+                      type: string
+                    text:
+                      default: ''
+                      description: The text of the form element
+                      title: Text
+                      type: string
+                    type:
+                      description: The type of the form element
+                      title: Type
+                      type: string
+                    value_to_fill:
+                      default: ''
+                      description: The value to fill in the form element
+                      title: Value To Fill
+                      type: string
+                    value_type:
+                      default: ''
+                      description: The type of the form element value
+                      title: Value Type
+                      type: string
+                  required:
+                  - type
+                  title: FormElement
+                  type: object
+                title: Elements
+                type: array
+              url:
+                description: The URL of the website
+                title: Url
+                type: string
+            required:
+            - url
+            title: Form
+            type: object
+          links:
+            properties:
+              links:
+                default: []
+                description: A list of links
+                items:
+                  properties:
+                    href:
+                      description: The URL of the link
+                      title: Href
+                      type: string
+                    text:
+                      description: The text of the link
+                      title: Text
+                      type: string
+                  required:
+                  - href
+                  - text
+                  title: Link
+                  type: object
+                title: Links
+                type: array
+            title: Links
+            type: object
+          text_content:
+            description: The text content of the website
+            title: Text Content
+            type: string
+          url:
+            description: The URL of the website
+            title: Url
+            type: string
+        required:
+        - url
+        - text_content
+        - form
+        - links
+        title: Entry
+        type: object
+    required:
+    - entry
+    type: object
+  managed_params_json_schema: {}
