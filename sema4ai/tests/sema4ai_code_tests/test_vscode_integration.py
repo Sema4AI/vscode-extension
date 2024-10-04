@@ -2818,7 +2818,7 @@ def test_text_document_code_actions(language_server_initialized) -> None:
             "method": "textDocument/codeAction",
             "params": text_document_code_action,
         }
-    )
+    )["result"]
 
     assert len(code_actions) == 1
     assert code_actions[0]["title"] == "Refresh Agent Configuration"
