@@ -2826,7 +2826,7 @@ def test_text_document_code_actions(language_server_initialized) -> None:
 
     assert code_actions[0]["command"]["arguments"][0] in [
         "/Users/vscode-robot/local_test/robot_check",
-        "x:/vscode-robot/local_test/robot_check",
+        "x:\\vscode-robot\\local_test\\robot_check",
     ]
 
     text_document_code_action["context"]["diagnostics"] = [

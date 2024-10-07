@@ -458,7 +458,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     "command": {
                         "title": "Refresh Agent Configuration",
                         "command": commands.SEMA4AI_REFRESH_AGENT_SPEC,
-                        "arguments": [str(Path(document_dir).parent)],
+                        "arguments": [str(document_dir.parent)],
                     },
                 }
             )
