@@ -1,3 +1,8 @@
+## Unreleased
+
+- Fixed issue where the `Action Server` was not downloaded automatically when requesting OAuth2 settings.
+- Providing progress on all situations when downloading the `Action Server`.
+
 ## New in 2.6.5 (2024-10-04)
 
 - Fixed issue generating the input for an action when there are complex types inside a list.
