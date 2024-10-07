@@ -2777,9 +2777,7 @@ def test_text_document_code_actions(language_server_initialized, tmpdir) -> None
     from sema4ai_code import commands
 
     ls_client = language_server_initialized
-    target_directory = uris.to_fs_path(
-        str(Path(tmpdir) / "robot_check" / "agent-spec.yaml")
-    )
+    agent_spec = uris.to_fs_path(str(Path(tmpdir) / "robot_check" / "agent-spec.yaml"))
 
     diagnostics: list[dict[str, typing.Any]] = [
         {
@@ -2802,7 +2800,7 @@ def test_text_document_code_actions(language_server_initialized, tmpdir) -> None
 
     # Explicitly type the text_document_code_action dictionary
     text_document_code_action: dict[str, typing.Any] = {
-        "textDocument": {"uri": target_directory},
+        "textDocument": {"uri": agent_spec},
         "range": {
             "start": {"line": 12, "character": 5},
             "end": {"line": 12, "character": 5},
@@ -2823,9 +2821,7 @@ def test_text_document_code_actions(language_server_initialized, tmpdir) -> None
     assert code_actions[0]["title"] == "Refresh Agent Configuration"
     assert code_actions[0]["command"]["command"] == commands.SEMA4AI_REFRESH_AGENT_SPEC
 
-    assert code_actions[0]["command"]["arguments"][0] == str(
-        Path(target_directory).parent
-    )
+    assert code_actions[0]["command"]["arguments"][0] == str(Path(agent_spec).parent)
 
     text_document_code_action["context"]["diagnostics"] = [
         {
