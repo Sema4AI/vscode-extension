@@ -1,6 +1,8 @@
 ## Unreleased
 
 - Add `Refresh Agent Configuration` command as a Quick Fix for issues in the `agent-spec.yaml`.
+- Fixed issue where the `Action Server` was not downloaded automatically when requesting OAuth2 settings.
+- Providing progress on all situations when downloading the `Action Server`.
 
 ## New in 2.6.5 (2024-10-04)
 
