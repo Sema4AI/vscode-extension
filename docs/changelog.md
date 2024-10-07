@@ -1,4 +1,4 @@
-## Unreleased
+## New in 2.6.6 (2024-10-07)
 
 - Fixed issue where the `Action Server` was not downloaded automatically when requesting OAuth2 settings.
 - Providing progress on all situations when downloading the `Action Server`.

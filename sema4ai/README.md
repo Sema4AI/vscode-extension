@@ -1,6 +1,6 @@
 ## Sema4.ai VS Code extension
 
-> Note: The `Sema4.ai` extension from VS Code will replace the [Robocorp Code](https://marketplace.visualstudio.com/items?itemName=robocorp.robocorp-code) -extension. The same features exist in this extension, so you can just switch to using `Sema4.ai`. Future development will be focused here.
+> Note: The `Sema4.ai` extension from VS Code replaces the [Robocorp Code](https://marketplace.visualstudio.com/items?itemName=robocorp.robocorp-code) -extension. The same features exist in this extension, so you can just switch to using `Sema4.ai`. Future development will be focused here.
 
 The Sema4.ai extension makes it easy to create Python based automation projects and AI Actions.
 
