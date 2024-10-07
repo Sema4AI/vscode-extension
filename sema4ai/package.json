@@ -9,7 +9,7 @@
         "url": "https://github.com/Sema4AI/vscode-extension/.git"
     },
     "license": "SEE LICENSE IN LICENSE.txt",
-    "version": "2.6.3",
+    "version": "2.6.5",
     "icon": "images/icon.png",
     "publisher": "sema4ai",
     "engines": {

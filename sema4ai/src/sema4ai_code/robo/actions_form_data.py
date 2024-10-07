@@ -201,29 +201,34 @@ Payload = Dict[str, Any]
 
 
 def form_data_to_payload(data: List[PropertyFormData]) -> Payload:
-    result: Payload = {}
+    root: Payload = {}
 
     for item in data:
         levels = item.name.split(".")
         property_name = levels[-1]
 
-        current_level = result
+        current_level = root
         for level in levels[:-1]:
-            if level not in current_level:
-                current_level[level] = {}
-            current_level = current_level[level]
+            if isinstance(current_level, list):
+                current_level = current_level[-1]
+            elif isinstance(current_level, dict):
+                if current_level.get(level) is None:
+                    current_level[level] = {}
+                current_level = current_level[level]
+            else:
+                raise Exception(f"Unexpected type: {type(current_level)}")
 
         if item.prop.type == InputPropertyType.OBJECT:
             current_level[property_name] = eval(str(item.value))
         elif item.prop.type == InputPropertyType.ARRAY:
             if property_name not in current_level:
-                current_level[property_name] = []
+                current_level[property_name] = [{}]
         elif isinstance(current_level, list):
-            current_level.append(item.value)
+            current_level[0] = item.value
         else:
             current_level[property_name] = item.value
 
-    return result
+    return root
 
 
 def payload_to_form_data(

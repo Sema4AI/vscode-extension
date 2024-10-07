@@ -18,10 +18,10 @@
 import itertools
 import os.path
 import threading
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 from typing import List, Optional
-from collections.abc import Callable
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IConfig
@@ -109,9 +109,9 @@ class LaunchProcess:
         )
         from sema4ai_ls_core.protocols import ActionResult
 
-        from sema4ai_code.plugins.resolve_interpreter import get_conda_config_path
         from sema4ai_code.protocols import IRobotYamlEnvInfo
         from sema4ai_code.rcc import Rcc
+        from sema4ai_code.resolve_interpreter import get_conda_config_path
         from sema4ai_code_debug_adapter.constants import (
             TERMINAL_INTEGRATED,
             TERMINAL_NONE,

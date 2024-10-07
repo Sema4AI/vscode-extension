@@ -2,6 +2,15 @@
 
 - Add `Refresh Agent Configuration` command as a Quick Fix for issues in the `agent-spec.yaml`.
 
+## New in 2.6.5 (2024-10-04)
+
+- Fixed issue generating the input for an action when there are complex types inside a list.
+
+## New in 2.6.4 (2024-10-03)
+
+- Fixed integration with `Robot Framework Language Server` (requires `Robot Framework Language Server` **1.13.0**).
+- Warn user when the format of the action input file is not `v2`.
+
 ## New in 2.6.3 (2024-10-02)
 
 - Focus newly created action or agent package when the user is in the extension view

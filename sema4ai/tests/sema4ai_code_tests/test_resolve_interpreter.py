@@ -19,7 +19,7 @@ def test_resolve_interpreter_relocate_robot_root(
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
     from sema4ai_ls_core.pluginmanager import PluginManager
 
-    from sema4ai_code.plugins.resolve_interpreter import RobocorpResolveInterpreter
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter
 
     pm = PluginManager()
     pm.set_instance(EPConfigurationProvider, config_provider)
@@ -81,7 +81,7 @@ def test_resolve_interpreter_environment_config(
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
     from sema4ai_ls_core.pluginmanager import PluginManager
 
-    from sema4ai_code.plugins.resolve_interpreter import RobocorpResolveInterpreter
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter
 
     pm = PluginManager()
     pm.set_instance(EPConfigurationProvider, config_provider)
@@ -123,7 +123,7 @@ def test_resolve_interpreter_environment_config(
 
 
 def test_fix_entry():
-    from sema4ai_code.plugins.resolve_interpreter import RobocorpResolveInterpreter
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter
 
     fix_entry = RobocorpResolveInterpreter._fix_entry
     fix_path = RobocorpResolveInterpreter._fix_path
@@ -177,7 +177,7 @@ def test_resolve_interpreter_action_package(
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
     from sema4ai_ls_core.pluginmanager import PluginManager
 
-    from sema4ai_code.plugins.resolve_interpreter import (
+    from sema4ai_code.resolve_interpreter import (
         RobocorpResolveInterpreter,
         _cache_package,
         _CacheInfo,
@@ -221,7 +221,7 @@ def test_resolve_interpreter(
     from sema4ai_ls_core.pluginmanager import PluginManager
 
     from sema4ai_code.holetree_manager import HolotreeManager
-    from sema4ai_code.plugins.resolve_interpreter import (
+    from sema4ai_code.resolve_interpreter import (
         RobocorpResolveInterpreter,
         _cache_package,
         _CacheInfo,
@@ -316,7 +316,7 @@ def test_resolve_interpreter(
 def test_match_conda_config_path(datadir):
     from pathlib import Path
 
-    from sema4ai_code.plugins.resolve_interpreter import get_conda_config_path
+    from sema4ai_code.resolve_interpreter import get_conda_config_path
 
     robot_yaml = Path(datadir / "robot_envconfig" / "robot.yaml")
     parent = robot_yaml.parent

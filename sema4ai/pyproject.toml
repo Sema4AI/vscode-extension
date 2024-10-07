@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sema4ai"
-version = "2.6.3"
+version = "2.6.5"
 description = "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development"
 authors = ["Fabio Zadrozny <fabio@robocorp.com>"]
 readme = "README.md"
@@ -108,6 +108,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "JABWrapper.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "robocorp_ls_core.*"
 ignore_missing_imports = true
 
 [build-system]
