@@ -193,7 +193,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             self._dir_cache, self._endpoint, self._rcc, command_dispatcher
         )
 
-        self._action_server = ActionServer(self)
+        self._action_server = ActionServer(self, self._endpoint)
         self._agent_cli = AgentCli(self, self._action_server)
 
         weak_self = weakref.ref(self)  # Avoid cyclic ref.
@@ -1683,7 +1683,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         location = (
             params["location"]
             if params
-            else self._action_server.get_action_server_location()
+            else self._action_server.get_action_server_location(False)
         )
 
         try:

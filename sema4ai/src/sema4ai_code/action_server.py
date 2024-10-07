@@ -459,8 +459,9 @@ class ActionServerAsService:
 
 
 class ActionServer:
-    def __init__(self, config_provider: IConfigProvider):
+    def __init__(self, config_provider: IConfigProvider, endpoint: IEndPoint):
         self._config_provider = weakref.ref(config_provider)
+        self._endpoint = weakref.ref(endpoint)
         self._cached_user_config_path: Path | None = None
         self._cached_sema4ai_oauth2_config: dict | None = None
         self._cached_sema4ai_oauth2_config_str: str | None = None
@@ -475,7 +476,7 @@ class ActionServer:
             return config.get_setting(setting_name, str, None)
         return None
 
-    def get_action_server_location(self, download_if_missing: bool = False) -> str:
+    def get_action_server_location(self, download_if_missing: bool = True) -> str:
         """
         Returns Action Server location as specified in extension's settings (if exists), falls back
         to relative "bin" directory otherwise.
@@ -490,7 +491,7 @@ class ActionServer:
         action_server_location = get_default_action_server_location()
 
         if download_if_missing and not os.path.exists(action_server_location):
-            download_action_server(action_server_location)
+            download_action_server(action_server_location, endpoint=self._endpoint())
 
         return action_server_location
 
