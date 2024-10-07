@@ -5,9 +5,8 @@ import weakref
 from base64 import b64encode
 from collections.abc import Iterator, Sequence
 from functools import partial
-from pathlib import Path, WindowsPath
+from pathlib import Path
 from typing import Any, cast
-from urllib.parse import unquote, urlparse
 
 import sema4ai_ls_core
 from sema4ai_ls_core import uris, watchdog_wrapper
