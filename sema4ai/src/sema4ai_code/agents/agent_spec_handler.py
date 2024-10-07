@@ -1,11 +1,11 @@
 import enum
 import typing
 import weakref
+from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Generic, Optional, TypeVar
-from collections.abc import Iterator
 
 from sema4ai_ls_core.core_log import get_logger
 
@@ -49,6 +49,7 @@ class _YamlNodeKind(Enum):
 
 class ErrorCode(Enum):
     action_package_info_unsynchronized = "action_package_info_unsynchronized"
+    agent_package_incomplete = "agent_package_incomplete"
 
 
 @dataclass
@@ -577,6 +578,7 @@ class Validator:
                 yield Error(
                     message=f"Missing required entry: {spec_node.data.path}.",
                     node=data.node if data else None,
+                    code=ErrorCode.agent_package_incomplete,
                 )
 
         if yaml_node is None:

@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
 from sema4ai_ls_core.ep_resolve_interpreter import (
@@ -2770,3 +2771,78 @@ def test_update_agent_version(
 
     assert not result["success"]
     assert result["message"] == "Version entry was not found in the agent spec."
+
+
+def test_text_document_code_actions(language_server_initialized, tmpdir) -> None:
+    from sema4ai_code import commands
+
+    ls_client = language_server_initialized
+    agent_spec = uris.to_fs_path(str(Path(tmpdir) / "robot_check" / "agent-spec.yaml"))
+
+    diagnostics: list[dict[str, typing.Any]] = [
+        {
+            "range": {
+                "start": {"line": 2, "character": 2},
+                "end": {"line": 19, "character": 0},
+            },
+            "message": "Missing required entry: agent-package/agents/reasoning.",
+            "code": "agent_package_incomplete",
+            "severity": 1,
+            "source": "sema4ai",
+        }
+    ]
+
+    # Define the context explicitly
+    context: dict[str, typing.Any] = {
+        "diagnostics": diagnostics,
+        "triggerKind": 1,
+    }
+
+    # Explicitly type the text_document_code_action dictionary
+    text_document_code_action: dict[str, typing.Any] = {
+        "textDocument": {"uri": agent_spec},
+        "range": {
+            "start": {"line": 12, "character": 5},
+            "end": {"line": 12, "character": 5},
+        },
+        "context": context,
+    }
+
+    code_actions = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "textDocument/codeAction",
+            "params": text_document_code_action,
+        }
+    )["result"]
+
+    assert len(code_actions) == 1
+    assert code_actions[0]["title"] == "Refresh Agent Configuration"
+    assert code_actions[0]["command"]["command"] == commands.SEMA4AI_REFRESH_AGENT_SPEC
+
+    assert code_actions[0]["command"]["arguments"][0] == str(Path(agent_spec).parent)
+
+    text_document_code_action["context"]["diagnostics"] = [
+        {
+            "range": {
+                "start": {"line": 2, "character": 2},
+                "end": {"line": 19, "character": 0},
+            },
+            "message": "Another error",
+            "code": "another_error",
+            "severity": 1,
+            "source": "sema4ai",
+        }
+    ]
+
+    code_actions = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "textDocument/codeAction",
+            "params": text_document_code_action,
+        }
+    )["result"]
+
+    assert len(code_actions) == 0
