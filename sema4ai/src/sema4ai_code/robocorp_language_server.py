@@ -9,6 +9,7 @@ from pathlib import Path, WindowsPath
 from typing import Any, cast
 from urllib.parse import unquote, urlparse
 
+import sema4ai_ls_core
 from sema4ai_ls_core import uris, watchdog_wrapper
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.command_dispatcher import _CommandDispatcher
@@ -443,11 +444,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ]
         ]
 
-        document_dir = Path(unquote(urlparse(params["textDocument"]["uri"]).path))
-
-        # Check if it's a Windows path and remove the leading "/"
-        if isinstance(document_dir, WindowsPath) and str(document_dir).startswith("\\"):
-            document_dir = Path(str(document_dir)[1:])
+        document_dir = Path(
+            sema4ai_ls_core.uris.to_fs_path(params["textDocument"]["uri"])
+        )
 
         if incomplete_package_diags:
             code_action_list.append(

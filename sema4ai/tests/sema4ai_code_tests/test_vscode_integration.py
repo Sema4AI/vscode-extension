@@ -2772,15 +2772,11 @@ def test_update_agent_version(
     assert result["message"] == "Version entry was not found in the agent spec."
 
 
-def test_text_document_code_actions(language_server_initialized) -> None:
+def test_text_document_code_actions(language_server_initialized, tmpdir) -> None:
     from sema4ai_code import commands
 
     ls_client = language_server_initialized
-
-    win_uri = "file:///x%3A/vscode-robot/local_test/robot_check/agent-spec.yaml"
-    linux_uri = "file:///Users/vscode-robot/local_test/robot_check/agent-spec.yaml"
-
-    document_uri = win_uri if sys.platform == "win32" else linux_uri
+    target_directory = Path(tmpdir) / "robot_check" / "agent-spec.yaml"
 
     diagnostics: list[dict[str, typing.Any]] = [
         {
@@ -2803,7 +2799,7 @@ def test_text_document_code_actions(language_server_initialized) -> None:
 
     # Explicitly type the text_document_code_action dictionary
     text_document_code_action: dict[str, typing.Any] = {
-        "textDocument": {"uri": document_uri},
+        "textDocument": {"uri": str(target_directory)},
         "range": {
             "start": {"line": 12, "character": 5},
             "end": {"line": 12, "character": 5},
@@ -2824,10 +2820,7 @@ def test_text_document_code_actions(language_server_initialized) -> None:
     assert code_actions[0]["title"] == "Refresh Agent Configuration"
     assert code_actions[0]["command"]["command"] == commands.SEMA4AI_REFRESH_AGENT_SPEC
 
-    assert code_actions[0]["command"]["arguments"][0] in [
-        "/Users/vscode-robot/local_test/robot_check",
-        "x:\\vscode-robot\\local_test\\robot_check",
-    ]
+    assert code_actions[0]["command"]["arguments"][0] == str(target_directory.parent)
 
     text_document_code_action["context"]["diagnostics"] = [
         {
