@@ -22,7 +22,7 @@ const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<Pac
     const isWorkspacePackageDirectory = ws ? await verifyIfIsPackageDirectory(ws.uri) : null;
 
     if (!ws || isWorkspacePackageDirectory) {
-        return undefined;
+        return { targetDir: null, name: null };
     }
 
     const { targetDir, name } = await getPackageTargetDirectoryAndName(ws, {
@@ -35,7 +35,7 @@ const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<Pac
 
     // Operation cancelled.
     if (!targetDir) {
-        return undefined;
+        return { targetDir: null, name: null };
     }
 
     // Now, let's validate if we can indeed create an Agent Package in the given folder.
