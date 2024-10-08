@@ -157,6 +157,7 @@ import {
     SEMA4AI_AGENT_PACKAGE_IMPORT,
     SEMA4AI_UPDATE_AGENT_VERSION,
     SEMA4AI_REFRESH_AGENT_SPEC,
+    SEMA4AI_COLLAPSE_ALL_ENTRIES,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -501,6 +502,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
     C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
     C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));
+    C.register(SEMA4AI_COLLAPSE_ALL_ENTRIES, collapseAllEntries);
 }
 
 async function clearEnvAndRestart() {
@@ -980,3 +982,7 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
 
     return globalCachedPythonInfo;
 }
+
+export const collapseAllEntries = async (): Promise<void> => {
+    vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
+};

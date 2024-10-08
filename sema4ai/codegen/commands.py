@@ -987,6 +987,13 @@ COMMANDS = [
         add_to_package_json=False,
         server_handled=True,
     ),
+    Command(
+        "sema4ai.collapseAllEntries",
+        "Collapse All Entries",
+        server_handled=False,
+        hide_from_command_palette=False,
+        icon="$(collapse-all)",
+    ),
 ]
 
 
