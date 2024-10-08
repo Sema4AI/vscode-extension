@@ -1,7 +1,9 @@
 ## Unreleased
 
+- Fix the error message when importing or creating a new agent.
 - Update Action Server dep to 1.1.1
 - Use `SEMA4AI_VSCODE_X_ACTION_CONTEXT` instead of `SEMA4AI-VSCODE-X-ACTION-CONTEXT` when launching actions (using `-` is not a valid env variable name in some situations)
+- Add `Sema4.ai: Collpase All Entries` command and button in Agent/Action view.
 
 ## New in 2.6.6 (2024-10-07)
 
