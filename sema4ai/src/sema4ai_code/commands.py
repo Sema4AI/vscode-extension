@@ -142,6 +142,7 @@ SEMA4AI_REFRESH_AGENT_SPEC = "sema4ai.refreshAgentSpec"  # Refresh Agent Configu
 SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL = "sema4ai.refreshAgentSpec.internal"  # Refresh Agent Spec (internal)
 SEMA4AI_UPDATE_AGENT_VERSION = "sema4ai.updateAgentVersion"  # Update Agent Version
 SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL = "sema4ai.updateAgentVersion.internal"  # Update Agent Version (internal)
+SEMA4AI_COLLAPSE_ALL_ENTRIES = "sema4ai.collapseAllEntries"  # Collapse All Entries
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,

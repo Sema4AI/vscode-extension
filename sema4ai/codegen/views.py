@@ -56,6 +56,7 @@ TREE_VIEW_CONTAINERS = [
                             "sema4ai.createTaskOrActionOrAgentPackage",
                             MenuGroup.NAVIGATION,
                         ),
+                        Menu("sema4ai.collapseAllEntries", MenuGroup.NAVIGATION),
                     ],
                     "view/item/context": [
                         # Task run as context menus

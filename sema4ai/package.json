@@ -160,6 +160,7 @@
         "onCommand:sema4ai.refreshAgentSpec.internal",
         "onCommand:sema4ai.updateAgentVersion",
         "onCommand:sema4ai.updateAgentVersion.internal",
+        "onCommand:sema4ai.collapseAllEntries",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -956,6 +957,12 @@
                 "command": "sema4ai.updateAgentVersion",
                 "title": "Update Agent Version",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.collapseAllEntries",
+                "title": "Collapse All Entries",
+                "category": "Sema4.ai",
+                "icon": "$(collapse-all)"
             }
         ],
         "menus": {
@@ -967,6 +974,11 @@
                 },
                 {
                     "command": "sema4ai.createTaskOrActionOrAgentPackage",
+                    "when": "view == sema4ai-task-packages-tree",
+                    "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.collapseAllEntries",
                     "when": "view == sema4ai-task-packages-tree",
                     "group": "navigation"
                 },
