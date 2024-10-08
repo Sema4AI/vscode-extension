@@ -1,5 +1,6 @@
 ## New in 2.6.6 (2024-10-07)
 
+- Add `Sema4.ai: Collpase All Entries` command and button in Agent/Action view.
 - Add `Refresh Agent Configuration` command as a Quick Fix for issues in the `agent-spec.yaml`.
 - Fixed issue where the `Action Server` was not downloaded automatically when requesting OAuth2 settings.
 - Providing progress on all situations when downloading the `Action Server`.
