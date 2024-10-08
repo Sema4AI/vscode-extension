@@ -145,7 +145,7 @@ def create_pm():
     # The X-Action-Context header may be provided through an environment
     # variable when launching in VSCode (and it needs to be passed on
     # to sema4ai-actions).
-    x_action_context = os.environ.get("SEMA4AI-VSCODE-X-ACTION-CONTEXT")
+    x_action_context = os.environ.get("SEMA4AI_VSCODE_X_ACTION_CONTEXT")
     if not x_action_context:
         return None
 

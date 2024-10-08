@@ -314,7 +314,7 @@ advised to regenerate it as it may not work with future versions of the extensio
         if (xActionContext) {
             const xActionServerHeader = Buffer.from(JSON.stringify(xActionContext), "utf-8").toString("base64");
 
-            debugConfiguration.baseEnv = { "SEMA4AI-VSCODE-X-ACTION-CONTEXT": xActionServerHeader };
+            debugConfiguration.baseEnv = { "SEMA4AI_VSCODE_X_ACTION_CONTEXT": xActionServerHeader };
         }
     } catch (error) {
         logError("Error making OAuth2 login", error, "ERR_LOGIN_OAUTH2");
