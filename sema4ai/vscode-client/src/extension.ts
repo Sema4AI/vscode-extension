@@ -158,6 +158,7 @@ import {
     SEMA4AI_UPDATE_AGENT_VERSION,
     SEMA4AI_REFRESH_AGENT_SPEC,
     SEMA4AI_COLLAPSE_ALL_ENTRIES,
+    SEMA4AI_IMPORT_ACTION,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -503,6 +504,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
     C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));
     C.register(SEMA4AI_COLLAPSE_ALL_ENTRIES, collapseAllEntries);
+    C.register(SEMA4AI_IMPORT_ACTION, importAction);
 }
 
 async function clearEnvAndRestart() {

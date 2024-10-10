@@ -325,7 +325,10 @@ advised to regenerate it as it may not work with future versions of the extensio
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPackageTargetInfo> {
+export async function askActionPackageTargetDir(
+    ws: WorkspaceFolder,
+    actions_kind: "sema4ai" | "myaction"
+): Promise<ActionPackageTargetInfo> {
     if (await verifyIfIsPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
         return { targetDir: null, name: null, agentSpecPath: null }; // Early return if it's already a package directory
     }
@@ -339,7 +342,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
 
     // Case 1: Existing root level agent, use the agent package directly
     if (rootPackageYaml === PackageYamlName.Agent) {
-        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
+        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0], actions_kind);
     }
     // Case 2: Multiple agents, ask the user for action package level selection
     else if (workspacePackages?.agentPackages?.length) {
@@ -375,7 +378,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
             if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
             const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
-            return await handleAgentLevelPackageCreation(packageInfo);
+            return await handleAgentLevelPackageCreation(packageInfo, actions_kind);
         }
     }
 
@@ -397,12 +400,20 @@ async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<Pack
 }
 
 async function handleAgentLevelPackageCreation(
-    packageInfo: LocalPackageMetadataInfo
-): Promise<ActionPackageTargetInfo | null> {
+    packageInfo: LocalPackageMetadataInfo,
+    actions_kind: "sema4ai" | "myaction"
+): Promise<ActionPackageTargetInfo> {
     const packageName = await getPackageName("Please provide the name for the Action Package.");
-    if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
+    if (!packageName) {
+        return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
+    }
 
-    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
+    let dirName;
+    if (actions_kind == "myaction") {
+        dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
+    } else {
+        dirName = path.join(packageInfo.directory, "actions", "Sema4.ai", toKebabCase(packageName));
+    }
     return {
         targetDir: dirName,
         name: packageName,
@@ -423,11 +434,11 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
         return;
     }
 
-    let packageInfo;
+    let packageInfo: ActionPackageTargetInfo;
     if (agentPackage) {
-        packageInfo = await handleAgentLevelPackageCreation(agentPackage);
+        packageInfo = await handleAgentLevelPackageCreation(agentPackage, "myaction");
     } else {
-        packageInfo = await askActionPackageTargetDir(ws);
+        packageInfo = await askActionPackageTargetDir(ws, "myaction");
     }
 
     const { targetDir, name, agentSpecPath } = packageInfo;
@@ -439,13 +450,10 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
 
     // Now, let's validate if we can indeed create an Action Package in the given folder.
     const op = await verifyIfPathOkToCreatePackage(targetDir);
-    let force: boolean;
     switch (op) {
         case "force":
-            force = true;
             break;
         case "empty":
-            force = false;
             break;
         case "cancel":
             return;
@@ -477,22 +485,7 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
         if (!result.success) {
             throw new Error(result.message || "Unknown error");
         }
-
-        revealInExtension(targetDir, RobotEntryType.ActionPackage);
-        window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
-
-        // Check action was created inside agent, refresh the agent spec to include this action
-        if (agentSpecPath) {
-            const refreshResult: ActionResult<unknown> = await commands.executeCommand(
-                roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
-                {
-                    "agent_spec_path": agentSpecPath,
-                }
-            );
-            if (!refreshResult.success) {
-                throw new Error(result.message || "Unknown error");
-            }
-        }
+        afterActionPackageCreated(targetDir, agentSpecPath);
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
@@ -870,3 +863,21 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
         window.showErrorMessage(`Failed to open metadata.json: ${error.message}`);
     }
 };
+
+export async function afterActionPackageCreated(targetDir: string, agentSpecPath: string) {
+    revealInExtension(targetDir, RobotEntryType.ActionPackage);
+    window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
+
+    // Check action was created inside agent, refresh the agent spec to include this action
+    if (agentSpecPath) {
+        const refreshResult: ActionResult<unknown> = await commands.executeCommand(
+            roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+            {
+                "agent_spec_path": agentSpecPath,
+            }
+        );
+        if (!refreshResult.success) {
+            throw new Error(refreshResult.message || "Unknown error");
+        }
+    }
+}

@@ -1957,3 +1957,20 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(
             partial(self._oauth2.oauth2_logout, action_server_location, provider)
         )
+
+    def _get_gallery_actions(self):
+        if not hasattr(self, "_gallery_actions"):
+            from sema4ai_code.agents.gallery_actions import GalleryActions
+
+            self._gallery_actions = GalleryActions(self._cache_dir)
+
+        return self._gallery_actions
+
+    def m_list_gallery_actions(self) -> ActionResultDict:
+        return self._get_gallery_actions().list_packages().as_dict()
+
+    def m_import_gallery_action(self, package_key: str) -> ActionResultDict:
+        return self._get_gallery_actions().extract_package(package_key).as_dict()
+
+    def m_import_zip_as_action_package(self, zip_path: str) -> ActionResultDict:
+        raise RuntimeError("Not implemented")
