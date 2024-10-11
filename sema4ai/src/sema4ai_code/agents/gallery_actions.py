@@ -37,8 +37,6 @@ class _PackageListInfo(TypedDict):
 
 
 class GalleryActionPackages:
-    METADATA_KEY = "gallery_metadata.json"
-
     _metadata: _PackageMetadataRoot | None
 
     def __init__(self, metadata: dict | None = None):
@@ -50,8 +48,6 @@ class GalleryActionPackages:
     def extract_package(
         self, package_name: str, target_dir: Path, monitor: IMonitor = NULL
     ) -> ActionResult[str]:
-        import os
-
         try:
             import json
 

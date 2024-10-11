@@ -1995,11 +1995,18 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _import_gallery_action_package_threaded(
         self, package_key: str, target_dir: str, monitor: IMonitor
     ) -> ActionResultDict:
-        return (
-            self._get_gallery_action_packages()
-            .extract_package(package_key, Path(target_dir), monitor)
-            .as_dict()
-        )
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint,
+            "Importing action package from Sema4.ai Gallery",
+            self._dir_cache,
+        ):
+            return (
+                self._get_gallery_action_packages()
+                .extract_package(package_key, Path(target_dir), monitor)
+                .as_dict()
+            )
 
     def m_import_zip_as_action_package(
         self, zip_path: str, target_dir: str
@@ -2025,42 +2032,49 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _import_zip_as_action_package(
         self, zip_path: str, target_dir: str, monitor: IMonitor
     ) -> ActionResultDict:
-        import zipfile
+        from sema4ai_ls_core.progress_report import progress_context
 
-        import yaml
+        with progress_context(
+            self._endpoint,
+            "Importing action package from zip file",
+            self._dir_cache,
+        ):
+            import zipfile
 
-        try:
-            # Check if the zip is a valid action package
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                if "package.yaml" not in zip_ref.namelist():
-                    return ActionResult.make_failure(
-                        "Invalid action package: package.yaml not found in the zip file."
-                    ).as_dict()
+            import yaml
 
-                # Read package.yaml content
-                with zip_ref.open("package.yaml") as package_yaml:
-                    package_info = yaml.safe_load(package_yaml)
+            try:
+                # Check if the zip is a valid action package
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    if "package.yaml" not in zip_ref.namelist():
+                        return ActionResult.make_failure(
+                            "Invalid action package: package.yaml not found in the zip file."
+                        ).as_dict()
 
-                # Get the name from package.yaml and slugify it
-                package_name = package_info.get("name")
-                if not package_name:
-                    return ActionResult.make_failure(
-                        "Invalid package.yaml: 'name' field is missing."
-                    ).as_dict()
+                    # Read package.yaml content
+                    with zip_ref.open("package.yaml") as package_yaml:
+                        package_info = yaml.safe_load(package_yaml)
 
-                from sema4ai_ls_core.basic import slugify
+                    # Get the name from package.yaml and slugify it
+                    package_name = package_info.get("name")
+                    if not package_name:
+                        return ActionResult.make_failure(
+                            "Invalid package.yaml: 'name' field is missing."
+                        ).as_dict()
 
-                slugified_name = slugify(package_name)
+                    from sema4ai_ls_core.basic import slugify
 
-                # Create the final directory
-                final_dir = Path(target_dir) / slugified_name
-                final_dir.mkdir(parents=True, exist_ok=True)
+                    slugified_name = slugify(package_name)
 
-                # Extract the contents of the zip into the final directory
-                zip_ref.extractall(final_dir)
+                    # Create the final directory
+                    final_dir = Path(target_dir) / slugified_name
+                    final_dir.mkdir(parents=True, exist_ok=True)
 
-            return ActionResult.make_success(str(final_dir)).as_dict()
-        except Exception as e:
-            msg = f"Error importing action package: {str(e)}"
-            log.exception(msg)
-            return ActionResult.make_failure(msg).as_dict()
+                    # Extract the contents of the zip into the final directory
+                    zip_ref.extractall(final_dir)
+
+                return ActionResult.make_success(str(final_dir)).as_dict()
+            except Exception as e:
+                msg = f"Error importing action package: {str(e)}"
+                log.exception(msg)
+                return ActionResult.make_failure(msg).as_dict()
