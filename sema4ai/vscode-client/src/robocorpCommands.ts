@@ -142,3 +142,4 @@ export const SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL = "sema4ai.refreshAgentSpec.int
 export const SEMA4AI_UPDATE_AGENT_VERSION = "sema4ai.updateAgentVersion";  // Update Agent Version
 export const SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL = "sema4ai.updateAgentVersion.internal";  // Update Agent Version (internal)
 export const SEMA4AI_COLLAPSE_ALL_ENTRIES = "sema4ai.collapseAllEntries";  // Collapse All Entries
+export const SEMA4AI_IMPORT_ACTION_PACKAGE = "sema4ai.importActionPackage";  // Import Action Package

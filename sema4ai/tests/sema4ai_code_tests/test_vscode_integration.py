@@ -8,6 +8,8 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
@@ -30,8 +32,6 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1079,10 +1079,9 @@ def test_hover_image_integration(
 ):
     import base64
 
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
-
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1679,11 +1678,10 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
-    from sema4ai_ls_core import uris
-
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
+    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -2846,3 +2844,83 @@ def test_text_document_code_actions(language_server_initialized, tmpdir) -> None
     )["result"]
 
     assert len(code_actions) == 0
+
+
+def test_import_action_packages(language_server_initialized, tmpdir, datadir) -> None:
+    ls_client = language_server_initialized
+    result = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "listGalleryActionPackages",
+        }
+    )
+
+    msg_result = result.get("result")
+    assert (
+        msg_result
+    ), f'No result response from "listGalleryActionPackages". Response: {result}'
+
+    assert msg_result.get(
+        "success"
+    ), f'No success response from "listGalleryActionPackages". Response: {result}'
+
+    list_result = msg_result.get("result")
+    for k, _ in list_result.items():
+        if k.startswith("Google Docs"):
+            break
+    else:
+        raise AssertionError(
+            "No Google Docs action found in gallery. Found: " + str(list_result.keys())
+        )
+
+    target_dir = Path(tmpdir) / "Sema4.ai"
+    result = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "importGalleryActionPackage",
+            "params": {
+                "package_key": k,
+                "target_dir": str(target_dir),
+            },
+        }
+    )
+
+    msg_result = result.get("result")
+    assert (
+        msg_result
+    ), f'No result response from "importGalleryActionPackage". Response: {result}'
+
+    assert msg_result.get(
+        "success"
+    ), f'No success response from "importGalleryActionPackage". Response: {result}'
+
+    created_dir = msg_result["result"]
+    assert os.listdir(Path(created_dir))
+
+    target_dir = Path(tmpdir) / "MyActions"
+    local_zip = datadir / "google-docs.zip"
+    assert local_zip.exists()
+
+    result = ls_client.request(
+        {
+            "jsonrpc": "2.0",
+            "id": ls_client.next_id(),
+            "method": "importZipAsActionPackage",
+            "params": {
+                "zip_path": str(local_zip),
+                "target_dir": str(target_dir),
+            },
+        }
+    )
+    msg_result = result.get("result")
+    assert (
+        msg_result
+    ), f'No result response from "importZipAsActionPackage". Response: {result}'
+
+    assert msg_result.get(
+        "success"
+    ), f'No success response from "importZipAsActionPackage". Response: {result}'
+    created_dir = msg_result["result"]
+    assert os.listdir(Path(created_dir))

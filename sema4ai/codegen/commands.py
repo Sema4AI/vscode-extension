@@ -994,6 +994,12 @@ COMMANDS = [
         hide_from_command_palette=False,
         icon="$(collapse-all)",
     ),
+    Command(
+        "sema4ai.importActionPackage",
+        "Import Action Package",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 

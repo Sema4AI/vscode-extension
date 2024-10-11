@@ -25,13 +25,18 @@ const obtainTargetDirAndNameForAgentPackage = async (title: string): Promise<Pac
         return { targetDir: null, name: null };
     }
 
-    const { targetDir, name } = await getPackageTargetDirectoryAndName(ws, {
-        title,
-        useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
-        useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Agent Package.",
-        commandType: PackageType.Agent,
-    });
+    const requestPackageName = true;
+    const { targetDir, name } = await getPackageTargetDirectoryAndName(
+        ws,
+        {
+            title,
+            useWorkspaceFolderPrompt: "The workspace will only have a single Agent Package.",
+            useChildFolderPrompt: "Multiple Agent Packages can be created in this workspace.",
+            provideNamePrompt: "Please provide the name for the Agent Package.",
+            commandType: PackageType.Agent,
+        },
+        requestPackageName
+    );
 
     // Operation cancelled.
     if (!targetDir) {

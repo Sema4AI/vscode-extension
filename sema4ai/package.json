@@ -161,6 +161,7 @@
         "onCommand:sema4ai.updateAgentVersion",
         "onCommand:sema4ai.updateAgentVersion.internal",
         "onCommand:sema4ai.collapseAllEntries",
+        "onCommand:sema4ai.importActionPackage",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -963,6 +964,11 @@
                 "title": "Collapse All Entries",
                 "category": "Sema4.ai",
                 "icon": "$(collapse-all)"
+            },
+            {
+                "command": "sema4ai.importActionPackage",
+                "title": "Import Action Package",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {
