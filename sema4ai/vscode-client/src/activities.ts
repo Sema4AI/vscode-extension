@@ -829,15 +829,20 @@ export async function createRobot() {
         return;
     }
 
-    const { targetDir } = await getPackageTargetDirectoryAndName(ws, {
-        title: "Where do you want to create the Task Package?",
-        useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
-        useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Task Package folder.",
-        commandType: PackageType.Task,
-    });
+    const requestPackageName = true;
+    const { targetDir } = await getPackageTargetDirectoryAndName(
+        ws,
+        {
+            title: "Where do you want to create the Task Package?",
+            useWorkspaceFolderPrompt: "The workspace will only have a single Task Package.",
+            useChildFolderPrompt: "Multiple Task Packages can be created in this workspace.",
+            provideNamePrompt: "Please provide the name for the Task Package folder.",
+            commandType: PackageType.Task,
+        },
+        requestPackageName
+    );
 
-    /* Operation cancelled. */
+    // Operation cancelled.
     if (!targetDir) {
         return;
     }

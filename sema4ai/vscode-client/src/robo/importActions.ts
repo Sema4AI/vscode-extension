@@ -4,7 +4,7 @@ import { askForWs, QuickPickItemWithAction, showSelectOneQuickPick } from "../as
 import { afterActionPackageCreated, askActionPackageTargetDir } from "./actionPackage";
 import { verifyIfPathOkToCreatePackage } from "../common";
 import { langServer } from "../extension";
-import { OUTPUT_CHANNEL } from "../channel";
+import { logError, OUTPUT_CHANNEL } from "../channel";
 
 export const importActionPackage = async () => {
     // We have 2 different ways of importing an action:
@@ -54,7 +54,42 @@ export const importActionPackage = async () => {
             throw new Error("No packages found in metadata");
         }
         const options: QuickPickItemWithAction[] = [];
-        for (const [key, value] of Object.entries(packages)) {
+        const entries = Object.entries(packages);
+
+        // Sort entries by the name and version
+        entries.sort((a, b) => {
+            const [keyA, valueA] = a;
+            const [keyB, valueB] = b;
+
+            const nameA = valueA["name"];
+            const nameB = valueB["name"];
+
+            if (nameA === nameB) {
+                const versionA = valueA["version"];
+                const versionB = valueB["version"];
+                try {
+                    // version is in the format X.Y.Z, we need to compare as ints each part.
+                    const versionAInts = versionA.split(".").map(Number);
+                    const versionBInts = versionB.split(".").map(Number);
+
+                    for (let i = 0; i < 3; i++) {
+                        if (versionAInts[i] !== versionBInts[i]) {
+                            return versionAInts[i] - versionBInts[i];
+                        }
+                    }
+                } catch (error) {
+                    logError(
+                        `Error comparing versions ${versionA} and ${versionB}`,
+                        error,
+                        "ERROR_IMPORT_ACTION_PACKAGE"
+                    );
+                }
+            }
+
+            return nameA.localeCompare(nameB);
+        });
+
+        for (const [key, value] of entries) {
             options.push({
                 "label": key,
                 "detail": value["description"],
