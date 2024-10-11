@@ -105,8 +105,19 @@ export function toKebabCase(str: string): string {
 
 export async function getPackageTargetDirectoryAndName(
     ws: WorkspaceFolder,
-    messages: GetPackageTargetDirectoryMessages
+    messages: GetPackageTargetDirectoryMessages,
+    requestPackageName: boolean
 ): Promise<PackageTargetAndNameResult> {
+    if (!requestPackageName) {
+        // When not requesting the package name it's expected that the package name will
+        // be added by the caller (so, it's always a child folder of the workspace folder
+        // in this case).
+        return {
+            targetDir: ws.uri.fsPath,
+            name: null,
+        };
+    }
+
     const packagesInDirectory = await areTherePackagesInWorkspace();
 
     let useWorkspaceFolder = false;

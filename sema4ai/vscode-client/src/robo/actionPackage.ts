@@ -325,7 +325,11 @@ advised to regenerate it as it may not work with future versions of the extensio
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
 
-async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPackageTargetInfo> {
+export async function askActionPackageTargetDir(
+    ws: WorkspaceFolder,
+    actionsKind: "sema4ai" | "myaction",
+    requestPackageName: boolean
+): Promise<ActionPackageTargetInfo> {
     if (await verifyIfIsPackageDirectory(ws.uri, [PackageYamlName.Agent])) {
         return { targetDir: null, name: null, agentSpecPath: null }; // Early return if it's already a package directory
     }
@@ -339,7 +343,11 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
 
     // Case 1: Existing root level agent, use the agent package directly
     if (rootPackageYaml === PackageYamlName.Agent) {
-        return await handleAgentLevelPackageCreation(workspacePackages.agentPackages[0]);
+        return await handleAgentLevelPackageCreation(
+            workspacePackages.agentPackages[0],
+            actionsKind,
+            requestPackageName
+        );
     }
     // Case 2: Multiple agents, ask the user for action package level selection
     else if (workspacePackages?.agentPackages?.length) {
@@ -367,7 +375,7 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
             const packageName = await window.showQuickPick(
                 workspacePackages.agentPackages.map((pkg) => pkg.name),
                 {
-                    placeHolder: "Where do you want to create the Action Package?",
+                    placeHolder: "In which agent do you want to create the Action Package?",
                     ignoreFocusOut: true,
                 }
             );
@@ -375,34 +383,58 @@ async function askActionPackageTargetDir(ws: WorkspaceFolder): Promise<ActionPac
             if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
 
             const packageInfo = workspacePackages.agentPackages.find((pkg) => pkg.name === packageName) || null;
-            return await handleAgentLevelPackageCreation(packageInfo);
+            return await handleAgentLevelPackageCreation(packageInfo, actionsKind, requestPackageName);
         }
     }
 
     // Case 3: Create at the root level, because there's no agent package or the user selected it
     return {
-        ...(await handleRootLevelPackageCreation(ws)),
+        ...(await handleRootLevelPackageCreation(ws, requestPackageName)),
         agentSpecPath: null,
     };
 }
 
-async function handleRootLevelPackageCreation(ws: WorkspaceFolder): Promise<PackageTargetAndNameResult> {
-    return await getPackageTargetDirectoryAndName(ws, {
-        title: "Where do you want to create the Action Package?",
-        useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
-        useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
-        provideNamePrompt: "Please provide the name for the Action Package.",
-        commandType: PackageType.Action,
-    });
+async function handleRootLevelPackageCreation(
+    ws: WorkspaceFolder,
+    requestPackageName: boolean
+): Promise<PackageTargetAndNameResult> {
+    return await getPackageTargetDirectoryAndName(
+        ws,
+        {
+            title: "Where do you want to create the Action Package?",
+            useWorkspaceFolderPrompt: "The workspace will only have a single Action Package.",
+            useChildFolderPrompt: "Multiple Action Packages can be created in this workspace.",
+            provideNamePrompt: "Please provide the name for the Action Package.",
+            commandType: PackageType.Action,
+        },
+        requestPackageName
+    );
 }
 
 async function handleAgentLevelPackageCreation(
-    packageInfo: LocalPackageMetadataInfo
-): Promise<ActionPackageTargetInfo | null> {
-    const packageName = await getPackageName("Please provide the name for the Action Package.");
-    if (!packageName) return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
+    packageInfo: LocalPackageMetadataInfo,
+    actionsKind: "sema4ai" | "myaction",
+    requestPackageName: boolean
+): Promise<ActionPackageTargetInfo> {
+    let packageName;
+    if (requestPackageName) {
+        packageName = await getPackageName("Please provide the name for the Action Package.");
+        if (!packageName) {
+            return { targetDir: null, name: null, agentSpecPath: null }; // Operation cancelled
+        }
+    }
 
-    const dirName = path.join(packageInfo.directory, "actions", "MyActions", toKebabCase(packageName));
+    let dirName;
+    if (actionsKind == "myaction") {
+        dirName = path.join(packageInfo.directory, "actions", "MyActions");
+    } else {
+        dirName = path.join(packageInfo.directory, "actions", "Sema4.ai");
+    }
+
+    if (requestPackageName) {
+        dirName = path.join(dirName, toKebabCase(packageName));
+    }
+
     return {
         targetDir: dirName,
         name: packageName,
@@ -423,11 +455,12 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
         return;
     }
 
-    let packageInfo;
+    let packageInfo: ActionPackageTargetInfo;
+    const requestPackageName = true;
     if (agentPackage) {
-        packageInfo = await handleAgentLevelPackageCreation(agentPackage);
+        packageInfo = await handleAgentLevelPackageCreation(agentPackage, "myaction", requestPackageName);
     } else {
-        packageInfo = await askActionPackageTargetDir(ws);
+        packageInfo = await askActionPackageTargetDir(ws, "myaction", requestPackageName);
     }
 
     const { targetDir, name, agentSpecPath } = packageInfo;
@@ -439,13 +472,10 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
 
     // Now, let's validate if we can indeed create an Action Package in the given folder.
     const op = await verifyIfPathOkToCreatePackage(targetDir);
-    let force: boolean;
     switch (op) {
         case "force":
-            force = true;
             break;
         case "empty":
-            force = false;
             break;
         case "cancel":
             return;
@@ -477,22 +507,7 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
         if (!result.success) {
             throw new Error(result.message || "Unknown error");
         }
-
-        revealInExtension(targetDir, RobotEntryType.ActionPackage);
-        window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
-
-        // Check action was created inside agent, refresh the agent spec to include this action
-        if (agentSpecPath) {
-            const refreshResult: ActionResult<unknown> = await commands.executeCommand(
-                roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
-                {
-                    "agent_spec_path": agentSpecPath,
-                }
-            );
-            if (!refreshResult.success) {
-                throw new Error(result.message || "Unknown error");
-            }
-        }
+        afterActionPackageCreated(targetDir, agentSpecPath);
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
@@ -870,3 +885,21 @@ export const openMetadata = async (actionPackagePath?: vscode.Uri) => {
         window.showErrorMessage(`Failed to open metadata.json: ${error.message}`);
     }
 };
+
+export async function afterActionPackageCreated(targetDir: string, agentSpecPath: string) {
+    revealInExtension(targetDir, RobotEntryType.ActionPackage);
+    window.showInformationMessage("Action Package successfully created in:\n" + targetDir);
+
+    // Check action was created inside agent, refresh the agent spec to include this action
+    if (agentSpecPath) {
+        const refreshResult: ActionResult<unknown> = await commands.executeCommand(
+            roboCommands.SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
+            {
+                "agent_spec_path": agentSpecPath,
+            }
+        );
+        if (!refreshResult.success) {
+            throw new Error(refreshResult.message || "Unknown error");
+        }
+    }
+}

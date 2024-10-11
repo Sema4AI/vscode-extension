@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import typing
 import weakref
 from base64 import b64encode
 from collections.abc import Iterator, Sequence
@@ -74,6 +75,9 @@ from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     IPyPiCloud,
 )
 from sema4ai_code.workspace_manager import WorkspaceManager
+
+if typing.TYPE_CHECKING:
+    from sema4ai_code.agents.gallery_actions import GalleryActionPackages
 
 log = get_logger(__name__)
 
@@ -1957,3 +1961,106 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(
             partial(self._oauth2.oauth2_logout, action_server_location, provider)
         )
+
+    def _get_gallery_action_packages(self) -> "GalleryActionPackages":
+        if not hasattr(self, "_gallery_action_packages"):
+            from sema4ai_code.agents.gallery_actions import GalleryActionPackages
+
+            self._gallery_action_packages = GalleryActionPackages()
+
+        return self._gallery_action_packages
+
+    def m_list_gallery_action_packages(self) -> ActionResultDict:
+        return require_monitor(partial(self._list_gallery_action_packages))
+
+    def _list_gallery_action_packages(self, monitor: IMonitor) -> ActionResultDict:
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint,
+            "Listing action packages from Sema4.ai Gallery",
+            self._dir_cache,
+        ):
+            return self._get_gallery_action_packages().list_packages().as_dict()
+
+    def m_import_gallery_action_package(
+        self, package_key: str, target_dir: str
+    ) -> ActionResultDict:
+        return require_monitor(
+            partial(
+                self._import_gallery_action_package_threaded, package_key, target_dir
+            )
+        )
+
+    def _import_gallery_action_package_threaded(
+        self, package_key: str, target_dir: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        return (
+            self._get_gallery_action_packages()
+            .extract_package(package_key, Path(target_dir), monitor)
+            .as_dict()
+        )
+
+    def m_import_zip_as_action_package(
+        self, zip_path: str, target_dir: str
+    ) -> ActionResultDict:
+        if not zip_path:
+            return ActionResult.make_failure("zip_path may not be empty.").as_dict()
+
+        if not isinstance(zip_path, str):
+            return ActionResult.make_failure("zip_path must be a string.").as_dict()
+
+        if not target_dir:
+            return ActionResult.make_failure("target_dir may not be empty.").as_dict()
+
+        if not Path(zip_path).exists():
+            return ActionResult.make_failure(
+                f"zip_path does not exist: {zip_path}"
+            ).as_dict()
+
+        return require_monitor(
+            partial(self._import_zip_as_action_package, zip_path, target_dir)
+        )
+
+    def _import_zip_as_action_package(
+        self, zip_path: str, target_dir: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        import zipfile
+
+        import yaml
+
+        try:
+            # Check if the zip is a valid action package
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                if "package.yaml" not in zip_ref.namelist():
+                    return ActionResult.make_failure(
+                        "Invalid action package: package.yaml not found in the zip file."
+                    ).as_dict()
+
+                # Read package.yaml content
+                with zip_ref.open("package.yaml") as package_yaml:
+                    package_info = yaml.safe_load(package_yaml)
+
+                # Get the name from package.yaml and slugify it
+                package_name = package_info.get("name")
+                if not package_name:
+                    return ActionResult.make_failure(
+                        "Invalid package.yaml: 'name' field is missing."
+                    ).as_dict()
+
+                from sema4ai_ls_core.basic import slugify
+
+                slugified_name = slugify(package_name)
+
+                # Create the final directory
+                final_dir = Path(target_dir) / slugified_name
+                final_dir.mkdir(parents=True, exist_ok=True)
+
+                # Extract the contents of the zip into the final directory
+                zip_ref.extractall(final_dir)
+
+            return ActionResult.make_success(str(final_dir)).as_dict()
+        except Exception as e:
+            msg = f"Error importing action package: {str(e)}"
+            log.exception(msg)
+            return ActionResult.make_failure(msg).as_dict()
