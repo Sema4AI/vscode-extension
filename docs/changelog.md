@@ -6,6 +6,7 @@
 - Add `Sema4.ai: Collpase All Entries` command and button in Agent/Action view.
 - Added command to import action packages from Sema4.ai Gallery or zip files.
 - Update Agent CLI to `v0.0.27`
+- Update Action Server to `v1.1.2`
 
 ## New in 2.6.6 (2024-10-07)
 
