@@ -5,6 +5,7 @@
 - Use `SEMA4AI_VSCODE_X_ACTION_CONTEXT` instead of `SEMA4AI-VSCODE-X-ACTION-CONTEXT` when launching actions (using `-` is not a valid env variable name in some situations)
 - Add `Sema4.ai: Collpase All Entries` command and button in Agent/Action view.
 - Added command to import action packages from Sema4.ai Gallery or zip files.
+- Update Agent CLI to `v0.0.27`
 
 ## New in 2.6.6 (2024-10-07)
 
