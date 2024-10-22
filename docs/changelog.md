@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `Import Action Package` command to sidebar UI.
+
 ## New in 2.7.0 (2024-10-22)
 
 - Fix error message when importing or creating a new agent.

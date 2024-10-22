@@ -505,7 +505,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
     C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));
     C.register(SEMA4AI_COLLAPSE_ALL_ENTRIES, collapseAllEntries);
-    C.register(SEMA4AI_IMPORT_ACTION_PACKAGE, importActionPackage);
+    C.register(SEMA4AI_IMPORT_ACTION_PACKAGE, async (agentPath: string) => importActionPackage(agentPath));
 }
 
 async function clearEnvAndRestart() {
