@@ -1933,7 +1933,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from sema4ai_ls_core.progress_report import progress_context
 
         with progress_context(
-            self._endpoint, "Building Action Package", self._dir_cache
+            self._endpoint, "Building Agent Package", self._dir_cache
         ):
             return self._agent_cli.pack_agent_package(directory, ws, monitor)
 
