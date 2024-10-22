@@ -281,6 +281,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Publishes the Agent Package to the Sema4.ai Studio application",
                     },
                     {
+                        "label": "Import Action Package",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "desktop-download",
+                        "type": RobotEntryType.ImportActionPackage,
+                        "parent": element,
+                        "tooltip": "Imports an Action Package into the Agent Package",
+                    },
+                    {
                         "label": "Create Action Package",
                         "uri": element.uri,
                         "robot": element.robot,
@@ -672,6 +681,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Publish Agent Package to Sema4.ai Studio",
                 "command": roboCommands.SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
+                "arguments": [element.robot.directory],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.ImportActionPackage) {
+            treeItem.command = {
+                "title": "Import Action Package",
+                "command": roboCommands.SEMA4AI_IMPORT_ACTION_PACKAGE,
                 "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;

@@ -5,8 +5,9 @@ import { afterActionPackageCreated, askActionPackageTargetDir } from "./actionPa
 import { verifyIfPathOkToCreatePackage } from "../common";
 import { langServer } from "../extension";
 import { logError, OUTPUT_CHANNEL } from "../channel";
+import { PackageYamlName } from "../protocols";
 
-export const importActionPackage = async () => {
+export const importActionPackage = async (agentPath?: string) => {
     // We have 2 different ways of importing an action:
     // 1. Get online from the gallery
     // 2. Get from local path
@@ -133,26 +134,27 @@ export const importActionPackage = async () => {
         };
     }
 
-    const requestPackageName = false;
-    const packageInfo = await askActionPackageTargetDir(ws, action_kind, requestPackageName);
-    const { targetDir, name, agentSpecPath } = packageInfo;
+    let agentSpecPath: string;
+    let targetDir: string;
 
-    // Operation cancelled or directory conflict detected.
-    if (!targetDir) {
-        return;
-    }
+    if (!agentPath) {
+        const requestPackageName = false;
+        const packageInfo = await askActionPackageTargetDir(ws, action_kind, requestPackageName);
+        const { targetDir: tempTargetDir, agentSpecPath: tempAgentSpecPath } = packageInfo;
 
-    // Now, let's validate if we can indeed create an Action Package in the given folder.
-    const op = await verifyIfPathOkToCreatePackage(targetDir);
-    switch (op) {
-        case "force":
-            break;
-        case "empty":
-            break;
-        case "cancel":
+        // Operation cancelled or directory conflict detected.
+        if (!tempTargetDir) {
             return;
-        default:
-            throw Error("Unexpected result: " + op);
+        }
+
+        // Assign the final values from packageInfo
+        targetDir = tempTargetDir;
+        agentSpecPath = tempAgentSpecPath;
+    } else {
+        const dirName = action_kind === "myaction" ? "MyActions" : "Sema4.ai";
+        targetDir = Uri.joinPath(Uri.file(agentPath), "actions", dirName).fsPath;
+
+        agentSpecPath = Uri.joinPath(Uri.file(agentPath), PackageYamlName.Agent).fsPath;
     }
 
     const result = await importCommand(targetDir);
