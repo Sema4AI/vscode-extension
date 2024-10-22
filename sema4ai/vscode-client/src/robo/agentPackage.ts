@@ -264,6 +264,10 @@ export const refreshAgentSpec = async (agentPath: string): Promise<void> => {
 
     if (!agentPath) {
         agentPath = await selectAgentPackage();
+        if (!agentPath) {
+            // Operation cancelled.
+            return;
+        }
     }
 
     try {

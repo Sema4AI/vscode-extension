@@ -1,8 +1,8 @@
 import os
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
 from typing import DefaultDict, Dict, List, Optional, Tuple
-from collections.abc import Iterator
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
@@ -137,9 +137,16 @@ class WorkspaceManager:
             for action_package_metadata in self._get_action_package_from_dir(
                 org_directory, curr_cache, new_cache
             ):
+                v = action_package_metadata["yamlContents"].get("version")
+                if v is None:
+                    log.info(
+                        f"No version found for action package: {action_package_metadata.get('name')} in dir: {action_package_metadata.get('directory')}"
+                    )
+                    v = "0.0.1"
+
                 action_packages[action_package_metadata["name"]].append(
                     (
-                        str(action_package_metadata["yamlContents"]["version"]),
+                        v,
                         action_package_metadata,
                     )
                 )
