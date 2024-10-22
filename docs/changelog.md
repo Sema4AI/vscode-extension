@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.7.0 (2024-10-22)
+
 - Fix the error message when importing or creating a new agent.
 - Update Action Server dep to 1.1.1
 - Use `SEMA4AI_VSCODE_X_ACTION_CONTEXT` instead of `SEMA4AI-VSCODE-X-ACTION-CONTEXT` when launching actions (using `-` is not a valid env variable name in some situations)
