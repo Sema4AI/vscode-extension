@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.7.1 (2024-10-23)
+
 - Add `Import Action Package` command to sidebar UI.
 - Include Sema4ai actions when refreshing the agent spec.
 
