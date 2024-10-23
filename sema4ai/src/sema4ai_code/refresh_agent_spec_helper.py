@@ -6,6 +6,7 @@ if typing.TYPE_CHECKING:
     from sema4ai_code.agents.list_actions_from_agent import ActionPackageInFilesystem
 
 SEMA4AI = "sema4ai"
+MYACTIONS = "myactions"
 
 
 class ActionPackage(TypedDict, total=False):
@@ -48,7 +49,7 @@ def _update_agent_spec_with_actions(
             "whitelist": "",
         }
         for action_package in action_packages_in_filesystem
-        if action_package.organization.replace(".", "").lower() != SEMA4AI
+        if action_package.organization.replace(".", "").lower() in [SEMA4AI, MYACTIONS]
     ]
 
     missing = []
