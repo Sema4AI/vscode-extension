@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Update Action Server to `2.0.0`
+- Update RCC to `v18.3.0`
+
 ## New in 2.7.1 (2024-10-23)
 
 - Add `Import Action Package` command to sidebar UI.
