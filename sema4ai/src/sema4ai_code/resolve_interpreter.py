@@ -89,15 +89,15 @@ class _CachedFileInfo:
 class _CachedInterpreterInfo:
     def __init__(
         self,
-        robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: _CachedFileInfo,
+        robot_yaml_file_info: _CachedFileInfo | None,
+        conda_or_package_file_info: _CachedFileInfo,
         env_json_path_file_info: _CachedFileInfo | None,
         pm: PluginManager,
     ):
         from sema4ai_code.commands import SEMA4AI_SHOW_INTERPRETER_ENV_ERROR
 
         self._mtime: _CachedInterpreterMTime = self._obtain_mtime(
-            robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
+            robot_yaml_file_info, conda_or_package_file_info, env_json_path_file_info
         )
 
         configuration_provider: "EPConfigurationProvider" = pm[
@@ -105,10 +105,15 @@ class _CachedInterpreterInfo:
         ]
         endpoint_provider: "EPEndPointProvider" = pm["EPEndPointProvider"]
         rcc = Rcc(configuration_provider)
-        interpreter_id = str(robot_yaml_file_info.file_path)
+
+        if robot_yaml_file_info is not None:
+            interpreter_id = str(robot_yaml_file_info.file_path)
+        else:
+            interpreter_id = str(conda_or_package_file_info.file_path)
+
         progress_reporter = get_current_progress_reporter()
 
-        def on_env_creation_error(result):
+        def on_env_creation_error(result) -> None:
             import tempfile
 
             # Note: called only on environment creation (not on all failures).
@@ -123,11 +128,11 @@ Sema4.ai: Environment creation cancelled
 
 The process to create the the environment for:
 
-"{conda_config_file_info.file_path}"
+"{conda_or_package_file_info.file_path}"
 
 was cancelled.
 
-In this case, open "{conda_config_file_info.file_path}"
+In this case, open "{conda_or_package_file_info.file_path}"
 and update the dependencies accordingly (after saving
 the environment will be automatically updated).
 
@@ -155,14 +160,14 @@ Sema4.ai: Unable to create environment
 
 There was an error creating the environment for:
 
-"{conda_config_file_info.file_path}"
+"{conda_or_package_file_info.file_path}"
 
 The full output to diagnose the issue is shown below.
 The most common reasons and fixes for this failure are:
 
 1. Dependencies specified are not resolvable.
 
-    In this case, open "{conda_config_file_info.file_path}"
+    In this case, open "{conda_or_package_file_info.file_path}"
     and update the dependencies accordingly (after saving
     the environment will be automatically updated).
 
@@ -199,14 +204,14 @@ Full error message
                 SEMA4AI_SHOW_INTERPRETER_ENV_ERROR,
                 {
                     "fileWithError": str(f.name),
-                    "condaYaml": str(conda_config_file_info.file_path),
+                    "condaYaml": str(conda_or_package_file_info.file_path),
                 },
             )
 
         result = rcc.get_robot_yaml_env_info(
-            robot_yaml_file_info.file_path,
-            conda_config_file_info.file_path,
-            conda_config_file_info.contents,
+            robot_yaml_file_info.file_path if robot_yaml_file_info else None,
+            conda_or_package_file_info.file_path,
+            conda_or_package_file_info.contents,
             env_json_path_file_info.file_path
             if env_json_path_file_info is not None
             else None,
@@ -221,12 +226,37 @@ Full error message
 
         environ = robot_yaml_env_info.env
 
-        root = str(robot_yaml_file_info.file_path.parent)
-        pythonpath_lst = robot_yaml_file_info.yaml_contents.get("PYTHONPATH", [])
+        root = (
+            str(robot_yaml_file_info.file_path.parent)
+            if robot_yaml_file_info is not None
+            else str(conda_or_package_file_info.file_path.parent)
+        )
+
+        pythonpath_lst: list[str]
+
+        if robot_yaml_file_info is not None:
+            pythonpath_lst = (
+                robot_yaml_file_info.yaml_contents.get("PYTHONPATH", [])
+                if robot_yaml_file_info
+                else None
+            )
+        else:
+            pythonpath_lst = conda_or_package_file_info.yaml_contents.get(
+                "pythonpath", []
+            )
+
         additional_pythonpath_entries: list[str] = []
         if isinstance(pythonpath_lst, list):
             for v in pythonpath_lst:
-                additional_pythonpath_entries.append(os.path.join(root, str(v)))
+                v = str(v)
+                if os.path.isabs(v):
+                    additional_pythonpath_entries.append(v)
+                else:
+                    additional_pythonpath_entries.append(os.path.join(root, v))
+        else:
+            log.critical(
+                f"Expected PYTHONPATH to be a list. Found: {pythonpath_lst}. In: {interpreter_id}"
+            )
 
         self.robot_yaml_env_info: IRobotYamlEnvInfo = robot_yaml_env_info
         self.info: IInterpreterInfo = DefaultInterpreterInfo(
@@ -238,24 +268,29 @@ Full error message
 
     def _obtain_mtime(
         self,
-        robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: _CachedFileInfo | None,
+        robot_yaml_file_info: _CachedFileInfo | None,
+        conda_or_package_file_info: _CachedFileInfo | None,
         env_json_path_file_info: _CachedFileInfo | None,
     ) -> _CachedInterpreterMTime:
+        assert (
+            robot_yaml_file_info is not None or conda_or_package_file_info is not None
+        ), "Either the robot.yaml or conda.yaml/package.yaml must not be None at this point"
         return (
-            robot_yaml_file_info.mtime_info,
-            conda_config_file_info.mtime_info if conda_config_file_info else None,
+            robot_yaml_file_info.mtime_info if robot_yaml_file_info else None,
+            conda_or_package_file_info.mtime_info
+            if conda_or_package_file_info
+            else None,
             env_json_path_file_info.mtime_info if env_json_path_file_info else None,
         )
 
     def is_cache_valid(
         self,
-        robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: _CachedFileInfo | None,
+        robot_yaml_file_info: _CachedFileInfo | None,
+        conda_or_package_file_info: _CachedFileInfo | None,
         env_json_path_file_info: _CachedFileInfo | None,
     ) -> bool:
         return self._mtime == self._obtain_mtime(
-            robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
+            robot_yaml_file_info, conda_or_package_file_info, env_json_path_file_info
         )
 
 
@@ -292,16 +327,27 @@ class _CacheInfo:
     @classmethod
     def get_interpreter_info(
         cls,
-        robot_yaml_file_info: _CachedFileInfo,
-        conda_config_file_info: _CachedFileInfo,
+        robot_yaml_file_info: _CachedFileInfo | None,
+        conda_or_package_file_info: _CachedFileInfo,
         env_json_path_file_info: _CachedFileInfo | None,
         pm: PluginManager,
     ) -> IInterpreterInfo:
-        interpreter_info: _CachedInterpreterInfo | None = (
-            cls._cached_interpreter_info.get(robot_yaml_file_info.file_path)
-        )
+        interpreter_info: _CachedInterpreterInfo | None
+        if robot_yaml_file_info is not None:
+            interpreter_info = cls._cached_interpreter_info.get(
+                robot_yaml_file_info.file_path
+            )
+        elif conda_or_package_file_info is not None:
+            interpreter_info = cls._cached_interpreter_info.get(
+                conda_or_package_file_info.file_path
+            )
+        else:
+            raise AssertionError(
+                "Either the robot.yaml or conda.yaml/package.yaml must not be None at this point"
+            )
+
         if interpreter_info is not None and interpreter_info.is_cache_valid(
-            robot_yaml_file_info, conda_config_file_info, env_json_path_file_info
+            robot_yaml_file_info, conda_or_package_file_info, env_json_path_file_info
         ):
             space_info = interpreter_info.robot_yaml_env_info.space_info
             environ = interpreter_info.info.get_environ()
@@ -316,9 +362,11 @@ class _CacheInfo:
                 else:
                     conda_id = Path(conda_prefix) / "identity.yaml"
                     space_info = interpreter_info.robot_yaml_env_info.space_info
-                    if not space_info.matches_conda_identity_yaml(conda_id):
+                    if not space_info.matches_conda_identity_yaml(
+                        Rcc(pm["EPConfigurationProvider"]), conda_id
+                    ):
                         log.critical(
-                            f"The conda contents in: {conda_id} no longer match the contents from {conda_config_file_info.file_path}."
+                            f"The conda contents in: {conda_id} no longer match the contents from {conda_or_package_file_info.file_path}."
                         )
                         ok = False
 
@@ -330,19 +378,25 @@ class _CacheInfo:
 
         endpoint = pm["EPEndPointProvider"].endpoint
 
-        basename = os.path.basename(robot_yaml_file_info.file_path)
+        if robot_yaml_file_info is not None:
+            cache_path = robot_yaml_file_info.file_path
+        else:
+            cache_path = conda_or_package_file_info.file_path
+
+        show_name = "/".join(Path(cache_path).parts[-3:])
+
         with progress_context(
-            endpoint, f"Obtain env for {basename}", dir_cache=None, cancellable=True
+            endpoint, f"Obtain env for {show_name}", dir_cache=None, cancellable=True
         ):
             # If it got here, it's not cached or the cache doesn't match.
             # This may take a while...
-            interpreter_info = cls._cached_interpreter_info[
-                robot_yaml_file_info.file_path
-            ] = _CachedInterpreterInfo(
-                robot_yaml_file_info,
-                conda_config_file_info,
-                env_json_path_file_info,
-                pm,
+            interpreter_info = cls._cached_interpreter_info[cache_path] = (
+                _CachedInterpreterInfo(
+                    robot_yaml_file_info,
+                    conda_or_package_file_info,
+                    env_json_path_file_info,
+                    pm,
+                )
             )
 
             _touch_temp(interpreter_info.info)
@@ -413,28 +467,6 @@ class _PackageYamlCachedInfo:
 
     def get_cached(self) -> tuple[Path, Path]:
         return self.robot_yaml, self.conda_yaml
-
-
-class _CachePackage:
-    def __init__(self) -> None:
-        self._cache: dict[Path, "_PackageYamlCachedInfo"] = {}
-        self._hits = 0
-
-    def get(self, key) -> Optional["_PackageYamlCachedInfo"]:
-        ret = self._cache.get(key)
-        if ret is not None:
-            self._hits += 1
-        return ret
-
-    def __setitem__(self, key: Path, val: "_PackageYamlCachedInfo"):
-        self._cache[key] = val
-
-    def clear(self):
-        self._cache.clear()
-        self._hits = 0
-
-
-_cache_package = _CachePackage()
 
 
 class RobocorpResolveInterpreter:
@@ -519,93 +551,6 @@ class RobocorpResolveInterpreter:
 
         return path
 
-    def _generate_robot_and_conda_from_package_yaml(
-        self,
-        package_yaml_file_info: _CachedFileInfo,
-        cache: _CachePackage = _cache_package,
-    ) -> tuple[Path, Path] | None:
-        import yaml
-
-        from sema4ai_code.vendored_deps.action_package_handling import (
-            create_conda_contents_from_package_yaml_contents,
-            create_hash,
-        )
-
-        cached_info: _PackageYamlCachedInfo | None = cache.get(
-            package_yaml_file_info.file_path
-        )
-        package_mtime_info: _CachedFileMTimeInfo | None = (
-            package_yaml_file_info.mtime_info
-        )
-        if package_mtime_info is None:
-            log.critical(
-                "Unable to get mtime info from: %s", package_yaml_file_info.file_path
-            )
-            return None
-
-        if cached_info is not None:
-            if cached_info.is_valid(package_yaml_file_info):
-                return cached_info.get_cached()
-        # If it got here, it's not cached or the cache is invalid.
-        # Let's compute it now.
-
-        pm = self._pm()
-        assert pm is not None
-
-        configuration_provider: "EPConfigurationProvider" = pm[
-            "EPConfigurationProvider"
-        ]
-        rcc = Rcc(configuration_provider)
-
-        datadir = rcc.get_robocorp_code_datadir()
-        datadir.mkdir(parents=True, exist_ok=True)
-
-        conda_contents: dict = create_conda_contents_from_package_yaml_contents(
-            package_yaml_file_info.file_path,
-            package_yaml_file_info.yaml_contents,
-        )
-
-        conda_as_str = yaml.dump(conda_contents)
-        conda_hash = create_hash(conda_as_str)[:12]
-
-        use_dir = datadir / "pkg-to-conda" / conda_hash
-
-        # Note: even if it exists, override (that should be Ok
-        # and if there's an error it'll be fixed).
-        use_dir.mkdir(parents=True, exist_ok=True)
-        conda_yaml = use_dir / "conda.yaml"
-        conda_yaml.write_text(conda_as_str, "utf-8")
-
-        robot_yaml = use_dir / "robot.yaml"
-        robot_yaml.write_text(
-            """
-environmentConfigs:
-  - environment_windows_amd64_freeze.yaml
-  - environment_linux_amd64_freeze.yaml
-  - environment_darwin_amd64_freeze.yaml
-  - conda.yaml
-""",
-            "utf-8",
-        )
-
-        # Mark when it was last used (we should remove things unused for
-        # a long time).
-        last_use: Path = use_dir / "last-use.touch"
-        last_use.touch()
-
-        original_package_yaml = use_dir / "package.yaml"
-        original_package_yaml.write_text(package_yaml_file_info.contents, "utf-8")
-
-        cached_info = _PackageYamlCachedInfo(
-            robot_yaml,
-            conda_yaml,
-            package_yaml_file_info,
-            cached_package_mtime_info=package_mtime_info,
-            cached_package_contents=package_yaml_file_info.contents,
-        )
-        cache[package_yaml_file_info.file_path] = cached_info
-        return cached_info.get_cached()
-
     def _compute_base_interpreter_info_for_doc_uri(
         self, doc_uri
     ) -> IInterpreterInfo | None:
@@ -641,48 +586,47 @@ environmentConfigs:
                 log.debug("Could not find package.yaml nor robot.yaml for: %s", fs_path)
                 return None
 
+            robot_yaml_file_info: _CachedFileInfo | None
+            parent: Path
             if found_package_yaml:
-                # RCC does not have a way to consume the package.yaml directly,
-                # so, what we do at this point is generate the `robot.yaml`
-                # and `conda.yaml`.
+                # Dealing with a package.yaml.
+                parent = package_yaml.parent
+                robot_yaml_file_info = None
                 try:
-                    package_yaml_file_info = _CacheInfo.get_file_info(package_yaml)
-                    robot_and_conda = self._generate_robot_and_conda_from_package_yaml(
-                        package_yaml_file_info
-                    )
-                    if robot_and_conda is None:
-                        return None
-
-                    robot_yaml, _conda_yaml = robot_and_conda
+                    conda_or_package_file_info = _CacheInfo.get_file_info(package_yaml)
                 except Exception:
-                    log.exception(
-                        "Unable to generate environment from: %s", package_yaml
-                    )
+                    log.exception("Error collecting info from: %s", package_yaml)
                     return None
 
-            # Ok, we have the robot_yaml, so, we should be able to run RCC with it.
-            try:
-                robot_yaml_file_info = _CacheInfo.get_file_info(robot_yaml)
-            except Exception:
-                log.exception("Error collecting info from: %s", robot_yaml)
-                return None
+            else:
+                # Dealing with a robot.yaml (which must have an associated conda.yaml).
+                try:
+                    robot_yaml_file_info = _CacheInfo.get_file_info(robot_yaml)
+                except Exception:
+                    log.exception("Error collecting info from: %s", robot_yaml)
+                    return None
 
-            yaml_contents = robot_yaml_file_info.yaml_contents
-            if not isinstance(yaml_contents, dict):
-                log.critical(f"Expected dict as root in: {robot_yaml}")
-                return None
+                yaml_contents = robot_yaml_file_info.yaml_contents
+                if not isinstance(yaml_contents, dict):
+                    log.critical(f"Expected dict as root in: {robot_yaml}")
+                    return None
 
-            parent: Path = robot_yaml.parent
-            conda_config_path = get_conda_config_path(parent, robot_yaml, yaml_contents)
-            if not conda_config_path:
-                return None
+                parent = robot_yaml.parent
+                conda_config_path = get_conda_config_path(
+                    parent, robot_yaml, yaml_contents
+                )
+                if not conda_config_path:
+                    return None
 
-            try:
-                conda_config_file_info = _CacheInfo.get_file_info(conda_config_path)
-            except Exception:
-                log.exception("Error collecting info from: %s", conda_config_path)
-                return None
+                try:
+                    conda_or_package_file_info = _CacheInfo.get_file_info(
+                        conda_config_path
+                    )
+                except Exception:
+                    log.exception("Error collecting info from: %s", conda_config_path)
+                    return None
 
+            # Feature: read devdata/env.json and add it to the environment.
             env_json_path = parent / "devdata" / "env.json"
             env_json_path_file_info = None
             if env_json_path.exists():
@@ -694,7 +638,7 @@ environmentConfigs:
 
             return _CacheInfo.get_interpreter_info(
                 robot_yaml_file_info,
-                conda_config_file_info,
+                conda_or_package_file_info,
                 env_json_path_file_info,
                 pm,
             )

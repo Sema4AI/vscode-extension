@@ -392,10 +392,10 @@ class IRCCSpaceInfo(Protocol):
     def acquire_lock(self) -> ContextManager:
         pass
 
-    def conda_contents_match(self, conda_yaml_contents: str) -> bool:
+    def conda_contents_match(self, rcc: "IRcc", conda_yaml_contents: str) -> bool:
         pass
 
-    def matches_conda_identity_yaml(self, conda_id: Path) -> bool:
+    def matches_conda_identity_yaml(self, rcc: "IRcc", conda_id: Path) -> bool:
         pass
 
 
@@ -550,5 +550,10 @@ class IRcc(Protocol):
 
     def holotree_variables(
         self, robot_yaml: Path, space_name: str, no_build: bool
+    ) -> ActionResult[str]:
+        pass
+
+    def holotree_hash(
+        self, conda_yaml_contents: str, file_path: str
     ) -> ActionResult[str]:
         pass

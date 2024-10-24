@@ -177,14 +177,9 @@ def test_resolve_interpreter_action_package(
     from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
     from sema4ai_ls_core.pluginmanager import PluginManager
 
-    from sema4ai_code.resolve_interpreter import (
-        RobocorpResolveInterpreter,
-        _cache_package,
-        _CacheInfo,
-    )
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter, _CacheInfo
 
     _CacheInfo.clear_cache()
-    _cache_package.clear()
 
     pm = PluginManager()
     pm.set_instance(EPConfigurationProvider, config_provider)
@@ -197,13 +192,12 @@ def test_resolve_interpreter_action_package(
         uris.from_fs_path(path)
     )
     assert interpreter_info is not None
-    assert _cache_package._hits == 0
 
     interpreter_info2 = resolve_interpreter.get_interpreter_info_for_doc_uri(
         uris.from_fs_path(path)
     )
     assert interpreter_info is interpreter_info2
-    assert _cache_package._hits == 1
+    assert _CacheInfo._cache_hit_interpreter == 1
 
 
 def test_resolve_interpreter(
@@ -221,14 +215,9 @@ def test_resolve_interpreter(
     from sema4ai_ls_core.pluginmanager import PluginManager
 
     from sema4ai_code.holetree_manager import HolotreeManager
-    from sema4ai_code.resolve_interpreter import (
-        RobocorpResolveInterpreter,
-        _cache_package,
-        _CacheInfo,
-    )
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter, _CacheInfo
 
     _CacheInfo.clear_cache()
-    _cache_package.clear()
 
     pm = PluginManager()
     pm.set_instance(EPConfigurationProvider, config_provider)

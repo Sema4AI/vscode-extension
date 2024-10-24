@@ -36,9 +36,9 @@ Each request for a space name creates a structure in the disk such as:
                     and should be reclaimed after a timeout.
 """
 
+from collections.abc import Iterable
 from pathlib import Path
 from typing import List, Optional
-from collections.abc import Iterable
 
 from sema4ai_ls_core.core_log import get_logger
 
@@ -140,11 +140,13 @@ class HolotreeManager:
                         space_info.curr_status = CurrentSpaceStatus.NOT_AVAILABLE
                         return space_info
 
-                    if space_info.conda_contents_match(conda_yaml_contents):
+                    if space_info.conda_contents_match(self._rcc, conda_yaml_contents):
                         env_written = space_info.env_json_path.exists()
                         if (
                             env_written
-                            and space_info.conda_prefix_identity_yaml_still_matches_cached_space()
+                            and space_info.conda_prefix_identity_yaml_still_matches_cached_space(
+                                self._rcc
+                            )
                         ) or not env_written:
                             space_info.update_last_usage()
                             write_text(conda_path, str(conda_yaml_path), "utf-8")
@@ -260,7 +262,7 @@ class HolotreeManager:
                 can_reuse,
                 key=lambda status: (
                     not status.damaged_path.exists(),
-                    -status.last_usage,
+                    status.last_usage,
                 ),
             )
             for space_info in can_reuse:
@@ -278,7 +280,7 @@ class HolotreeManager:
                 can_reuse + not_available,
                 key=lambda status: (
                     not status.damaged_path.exists(),
-                    -status.last_usage,
+                    status.last_usage,
                 ),
             )
             for space_info in all_envs:

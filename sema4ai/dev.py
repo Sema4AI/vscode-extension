@@ -58,6 +58,11 @@ def _fix_rcc_contents_version(contents, version):
         r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
+    # Change `rcc/releases/v18.3.0/` to `rcc/releases/v18.5.0/`
+    contents = re.sub(
+        r"rcc/releases/v\d+\.\d+\.\d+/", rf"rcc/releases/{version}/", contents
+    )
+
     return contents
 
 
@@ -93,10 +98,12 @@ class Dev:
             new_contents = _fix_rcc_contents_version(contents, version)
             assert (
                 contents != new_contents
-            ), "Nothing changed after applying new version."
+            ), f"Nothing changed after applying new version (file: {filepath})"
             with open(filepath, "w") as stream:
                 stream.write(new_contents)
 
+        update_version(version, os.path.join(".", "bin", "develop.sh"))
+        update_version(version, os.path.join(".", "bin", "develop.bat"))
         update_version(version, os.path.join(".", "src", "sema4ai_code", "rcc.py"))
         update_version(version, os.path.join(".", "vscode-client", "src", "rcc.ts"))
 

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- Update Action Server to `2.0.0`.
+- Update RCC to `v18.5.0`.
+- Using RCC directly to build the environment using `package.yaml` (instead of creating a `conda.yaml` first).
+- When dealing with a `package.yaml`, always consider the `dev-environment` when building the environment.
+
 ## New in 2.7.1 (2024-10-23)
 
 - Add `Import Action Package` command to sidebar UI.

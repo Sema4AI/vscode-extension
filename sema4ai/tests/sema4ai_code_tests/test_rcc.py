@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from sema4ai_code.protocols import IRcc, IRccRobotMetadata
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
 from sema4ai_ls_core.protocols import ActionResult
 
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code.protocols import IRcc, IRccRobotMetadata
 
 TIMEOUT_FOR_UPDATES_IN_SECONDS = 1
 TIMEOUT_TO_REUSE_SPACE = 3
@@ -244,8 +244,9 @@ class _RobotInfo:
 
 
 def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
-    from sema4ai_code.protocols import IRCCSpaceInfo, IRobotYamlEnvInfo
     from sema4ai_ls_core.protocols import ActionResult
+
+    from sema4ai_code.protocols import IRCCSpaceInfo, IRobotYamlEnvInfo
 
     robot1 = _RobotInfo(datadir, "robot1")
     robot2 = _RobotInfo(datadir, "robot2")
@@ -324,7 +325,7 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
         space_info: IRCCSpaceInfo = robot_yaml_env_info.space_info
         with space_info.acquire_lock():
-            assert space_info.conda_contents_match(robot1.conda_yaml_contents)
+            assert space_info.conda_contents_match(rcc, robot1.conda_yaml_contents)
 
     # Load robot 2 (without any timeout).
     result = rcc.get_robot_yaml_env_info(
@@ -341,7 +342,7 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
     space_info = robot_yaml_env_info.space_info
     with space_info.acquire_lock():
-        assert space_info.conda_contents_match(robot2.conda_yaml_contents)
+        assert space_info.conda_contents_match(rcc, robot2.conda_yaml_contents)
 
     # Load robot 3 (without any timeout: will pick up the least recently used).
     result = rcc.get_robot_yaml_env_info(
@@ -358,7 +359,7 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
     space_info = robot_yaml_env_info.space_info
     with space_info.acquire_lock():
-        assert space_info.conda_contents_match(robot3.conda_yaml_contents)
+        assert space_info.conda_contents_match(rcc, robot3.conda_yaml_contents)
 
     # Load robot 3 new comment: should be the same as robot3 as the contents
     # are the same.
@@ -391,8 +392,9 @@ def test_get_robot_yaml_environ_not_ok(rcc: IRcc, datadir, holotree_manager):
     listener = RccListener()
 
     rcc.rcc_listeners.append(listener)
-    from sema4ai_code.protocols import IRobotYamlEnvInfo
     from sema4ai_ls_core.protocols import ActionResult
+
+    from sema4ai_code.protocols import IRobotYamlEnvInfo
 
     bad_robot1 = _RobotInfo(datadir, "bad_robot1")
     result: ActionResult[IRobotYamlEnvInfo] = rcc.get_robot_yaml_env_info(

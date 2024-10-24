@@ -7,12 +7,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 from sema4ai_code.protocols import ActionResult, IRcc
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.inspector.web._web_inspector import PickedLocatorTypedDict
@@ -266,6 +266,7 @@ class RccPatch:
 
     def mock_run_rcc_default(self, args, *sargs, **kwargs) -> ActionResult:
         import copy
+        import hashlib
         import json
         import shutil
 
@@ -335,8 +336,15 @@ class RccPatch:
             conda_prefix = Path(self.tmpdir.join(f"conda_prefix_{space_name}"))
             conda_prefix.mkdir()
 
-            conda_yaml = args[-4]
-            assert conda_yaml.endswith("conda.yaml")
+            space_name = args[3]
+            assert space_name.startswith(
+                "vscode-"
+            ), f"Expected space name to start with vscode-. Found: {space_name}. Args: {args}"
+
+            conda_yaml = args[4]
+            assert conda_yaml.endswith("conda.yaml") or conda_yaml.endswith(
+                "package.yaml"
+            ), f"Expected conda.yaml or package.yaml. Found: {conda_yaml}. Args: {args}"
             shutil.copyfile(conda_yaml, conda_prefix / "identity.yaml")
 
             return ActionResult(
@@ -345,13 +353,24 @@ class RccPatch:
                 result=json.dumps(
                     [
                         {"key": "PYTHON_EXE", "value": sys.executable},
-                        {"key": "SPACE_NAME", "value": args[3]},
+                        {"key": "SPACE_NAME", "value": space_name},
                         {"key": "CONDA_PREFIX", "value": str(conda_prefix)},
                         {"key": "TEMP", "value": str(self.tmpdir.join("_temp_dir_"))},
                     ]
                 ),
             )
 
+        if args[:3] == ["holotree", "hash", "--json"]:
+            f = args[-1]
+            assert os.path.exists(f), f"Expected file to exist: {f}"
+            contents = Path(f).read_text(encoding="utf-8", errors="replace")
+            return ActionResult(
+                success=True,
+                message=None,
+                result=json.dumps(
+                    {"hash": hashlib.md5(contents.encode("utf-8")).hexdigest()}
+                ),
+            )
         raise AssertionError(f"Unexpected args: {args}")
 
     def mock_run_rcc_should_not_be_called(self, args, *sargs, **kwargs):
@@ -432,12 +451,13 @@ def language_server_initialized(
 def patch_pypi_cloud(monkeypatch):
     import datetime
 
-    from sema4ai_code import hover
-    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
     from sema4ai_code_tests.deps.cloud_mock_data import (
         JQ_PYPI_MOCK_DATA,
         RPAFRAMEWORK_PYPI_MOCK_DATA,
     )
+
+    from sema4ai_code import hover
+    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -463,9 +483,10 @@ def patch_pypi_cloud(monkeypatch):
 def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     import datetime
 
+    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
+
     from sema4ai_code import hover
     from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
-    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
