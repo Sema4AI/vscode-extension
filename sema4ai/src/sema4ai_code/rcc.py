@@ -6,7 +6,7 @@ import weakref
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, list2cmdline
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from sema4ai_ls_core.basic import as_str, implements
 from sema4ai_ls_core.cache import LRUCache
@@ -42,6 +42,8 @@ RCC_CLOUD_ROBOT_MUTEX_NAME = "rcc_cloud_activity"
 RCC_CREDENTIALS_MUTEX_NAME = "rcc_credentials"
 
 ACCOUNT_NAME = "sema4ai"
+
+_cache_hash: LRUCache[tuple[str, str], ActionResult[str]] = LRUCache(max_size=50)
 
 
 def download_rcc(
@@ -843,13 +845,11 @@ class Rcc:
         self,
         conda_yaml_contents: str,
         file_path: str,
-        *,
-        _cache: LRUCache[tuple[str, str], ActionResult[str]] = LRUCache(max_size=50),
     ) -> ActionResult[str]:
         # If the yaml contents / basename are the same, we can reuse the result.
         key = (conda_yaml_contents, os.path.basename(file_path))
-        if key in _cache:
-            return _cache[key]
+        if key in _cache_hash:
+            return _cache_hash[key]
 
         args = [
             "holotree",
@@ -869,7 +869,7 @@ class Rcc:
             send_to_stdin=conda_yaml_contents,
         )
         if not run_rcc_result.success:
-            _cache[key] = run_rcc_result
+            _cache_hash[key] = run_rcc_result
             return run_rcc_result
 
         try:
@@ -881,7 +881,7 @@ class Rcc:
             )
 
         action_result = ActionResult.make_success(hash_result)
-        _cache[key] = action_result
+        _cache_hash[key] = action_result
         return action_result
 
     @implements(IRcc.get_robot_yaml_env_info)

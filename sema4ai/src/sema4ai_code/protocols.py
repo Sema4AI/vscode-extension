@@ -552,7 +552,5 @@ class IRcc(Protocol):
         self,
         conda_yaml_contents: str,
         file_path: str,
-        *,
-        _cache: "LRUCache[tuple[str, str], ActionResult[str]]",
     ) -> ActionResult[str]:
         pass
