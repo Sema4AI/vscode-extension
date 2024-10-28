@@ -188,12 +188,14 @@ class RCCSpaceInfo:
             f"{self.space_name}.lock", timeout=60, base_dir=str(self.space_path.parent)
         )
 
-    def conda_contents_match(self, rcc: IRcc, conda_yaml_contents: str) -> bool:
+    def conda_contents_match(
+        self, rcc: IRcc, conda_yaml_contents: str, conda_yaml_path: str
+    ) -> bool:
         conda_path = self.conda_path.read_text("utf-8", "replace")
         contents = self.conda_contents_path.read_text("utf-8", "replace")
 
         result1 = rcc.holotree_hash(contents, conda_path)
-        result2 = rcc.holotree_hash(conda_yaml_contents, conda_path)
+        result2 = rcc.holotree_hash(conda_yaml_contents, conda_yaml_path)
 
         if result1.success != result2.success:
             return False
@@ -209,7 +211,7 @@ class RCCSpaceInfo:
     def matches_conda_identity_yaml(self, rcc: IRcc, conda_id: Path) -> bool:
         try:
             return self.conda_contents_match(
-                rcc, conda_id.read_text("utf-8", "replace")
+                rcc, conda_id.read_text("utf-8", "replace"), str(conda_id)
             )
         except:
             log.error("Error when loading yaml to verify conda identity match.")

@@ -140,7 +140,9 @@ class HolotreeManager:
                         space_info.curr_status = CurrentSpaceStatus.NOT_AVAILABLE
                         return space_info
 
-                    if space_info.conda_contents_match(self._rcc, conda_yaml_contents):
+                    if space_info.conda_contents_match(
+                        self._rcc, conda_yaml_contents, str(conda_yaml_path)
+                    ):
                         env_written = space_info.env_json_path.exists()
                         if (
                             env_written

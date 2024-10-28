@@ -841,16 +841,21 @@ class Rcc:
     def holotree_hash(
         self, conda_yaml_contents: str, file_path: str
     ) -> ActionResult[str]:
+        args = [
+            "holotree",
+            "hash",
+            "--json",
+            "--lockless",
+            "--warranty-voided",
+            "--stdin",
+            file_path,
+        ]
+
+        if file_path.endswith("package.yaml"):
+            args.append("--devdeps")
+
         result = self._run_rcc(
-            [
-                "holotree",
-                "hash",
-                "--json",
-                "--lockless",
-                "--warranty-voided",
-                "--stdin",
-                file_path,
-            ],
+            args,
             send_to_stdin=conda_yaml_contents,
         )
         if not result.success:
