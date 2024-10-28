@@ -4,12 +4,12 @@ import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import ContextManager, Optional
+from typing import ContextManager
 
-from sema4ai_ls_core.protocols import check_implements
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.protocols import check_implements
 
-from sema4ai_code.protocols import IRCCSpaceInfo
+from sema4ai_code.protocols import IRcc, IRCCSpaceInfo
 
 log = get_logger(__name__)
 
@@ -188,25 +188,36 @@ class RCCSpaceInfo:
             f"{self.space_name}.lock", timeout=60, base_dir=str(self.space_path.parent)
         )
 
-    def conda_contents_match(self, conda_yaml_contents: str) -> bool:
-        contents = self.conda_contents_path.read_text("utf-8")
+    def conda_contents_match(
+        self, rcc: IRcc, conda_yaml_contents: str, conda_yaml_path: str
+    ) -> bool:
+        conda_path = self.conda_path.read_text("utf-8", "replace")
+        contents = self.conda_contents_path.read_text("utf-8", "replace")
 
-        formatted = format_conda_contents_to_compare(contents)
-        return formatted == format_conda_contents_to_compare(conda_yaml_contents)
+        result1 = rcc.holotree_hash(contents, conda_path)
+        result2 = rcc.holotree_hash(conda_yaml_contents, conda_yaml_path)
 
-    def matches_conda_identity_yaml(self, conda_id: Path) -> bool:
-        try:
-            contents = self.conda_contents_path.read_text("utf-8")
+        if result1.success != result2.success:
+            return False
+
+        if not result1.success:  # Both failed: check contents
             return format_conda_contents_to_compare(
                 contents
-            ) == format_conda_contents_to_compare(
-                conda_id.read_text("utf-8", "replace")
+            ) == format_conda_contents_to_compare(conda_yaml_contents)
+
+        # Ok, both succeeded: check hashes
+        return result1.result == result2.result
+
+    def matches_conda_identity_yaml(self, rcc: IRcc, conda_id: Path) -> bool:
+        try:
+            return self.conda_contents_match(
+                rcc, conda_id.read_text("utf-8", "replace"), str(conda_id)
             )
         except:
             log.error("Error when loading yaml to verify conda identity match.")
             return False
 
-    def conda_prefix_identity_yaml_still_matches_cached_space(self):
+    def conda_prefix_identity_yaml_still_matches_cached_space(self, rcc: IRcc):
         try:
             import json
 
@@ -225,7 +236,7 @@ class RCCSpaceInfo:
             return False
 
         conda_id = Path(conda_prefix) / "identity.yaml"
-        if not self.matches_conda_identity_yaml(conda_id):
+        if not self.matches_conda_identity_yaml(rcc, conda_id):
             log.critical(
                 f"The conda contents in: {conda_id} do not match the contents from {self.conda_contents_path}."
             )
@@ -261,6 +272,16 @@ def _remove_pip_special_flags(obj):
 
 @lru_cache(maxsize=50)
 def format_conda_contents_to_compare(contents: str) -> str:
+    """
+    Used to know about broken conda configs.
+
+    Args:
+        contents: the contents to be formatted.
+
+    Returns:
+        A string representation of the contents which can be used to compare
+        if the contents are the same.
+    """
     try:
         from sema4ai_ls_core import yaml_wrapper
 

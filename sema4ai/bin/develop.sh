@@ -17,8 +17,8 @@ fi
 if [ ! -f rcc ]; then
     system=$(uname -s)
     case ${system} in
-        Linux*)     url=https://downloads.robocorp.com/rcc/releases/v18.1.5/linux64/rcc;;
-        Darwin*)    url=https://downloads.robocorp.com/rcc/releases/v18.1.5/macos64/rcc;;
+        Linux*)     url=https://downloads.robocorp.com/rcc/releases/v18.5.0/linux64/rcc;;
+        Darwin*)    url=https://downloads.robocorp.com/rcc/releases/v18.5.0/macos64/rcc;;
         *)          echo "Invalid platform '$system' detected!"; exit 1;;
     esac
     curl -o rcc $url

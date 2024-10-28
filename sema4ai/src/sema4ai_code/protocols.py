@@ -1,22 +1,15 @@
-import sys
+import typing
 from enum import Enum
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
+from typing import Any, ContextManager, Literal, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
 
-# Hack so that we don't break the runtime on versions prior to Python 3.8.
-if sys.version_info[:2] < (3, 8):
+if typing.TYPE_CHECKING:
+    from sema4ai_ls_core.cache import LRUCache
 
-    class Protocol:
-        pass
-
-    class TypedDict:
-        pass
-
-else:
-    from typing import Protocol, TypedDict
+from typing import Protocol, TypedDict
 
 
 class PackageType(Enum):
@@ -392,10 +385,12 @@ class IRCCSpaceInfo(Protocol):
     def acquire_lock(self) -> ContextManager:
         pass
 
-    def conda_contents_match(self, conda_yaml_contents: str) -> bool:
+    def conda_contents_match(
+        self, rcc: "IRcc", conda_yaml_contents: str, conda_yaml_path: str
+    ) -> bool:
         pass
 
-    def matches_conda_identity_yaml(self, conda_id: Path) -> bool:
+    def matches_conda_identity_yaml(self, rcc: "IRcc", conda_id: Path) -> bool:
         pass
 
 
@@ -550,5 +545,12 @@ class IRcc(Protocol):
 
     def holotree_variables(
         self, robot_yaml: Path, space_name: str, no_build: bool
+    ) -> ActionResult[str]:
+        pass
+
+    def holotree_hash(
+        self,
+        conda_yaml_contents: str,
+        file_path: str,
     ) -> ActionResult[str]:
         pass

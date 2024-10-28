@@ -6,9 +6,10 @@ import weakref
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, list2cmdline
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from sema4ai_ls_core.basic import as_str, implements
+from sema4ai_ls_core.cache import LRUCache
 from sema4ai_ls_core.constants import NULL
 from sema4ai_ls_core.core_log import get_log_level, get_logger
 from sema4ai_ls_core.process import is_process_alive
@@ -42,6 +43,8 @@ RCC_CREDENTIALS_MUTEX_NAME = "rcc_credentials"
 
 ACCOUNT_NAME = "sema4ai"
 
+_cache_hash: LRUCache[tuple[str, str], ActionResult[str]] = LRUCache(max_size=50)
+
 
 def download_rcc(
     location: str,
@@ -60,7 +63,7 @@ def download_rcc(
     """
     from sema4ai_code.tools import download_tool
 
-    RCC_VERSION = "v18.1.5"
+    RCC_VERSION = "v18.5.0"
     download_tool(
         Tool.RCC,
         location,
@@ -228,6 +231,7 @@ class Rcc:
         stderr=Sentinel.SENTINEL,
         show_interactive_output: bool = False,
         hide_in_log: str | None = None,
+        send_to_stdin: str | None = None,
     ) -> LaunchActionResult[str]:
         """
         Returns an ActionResult where the result is the stdout of the executed command.
@@ -293,8 +297,16 @@ class Rcc:
                 # interactively while the command is running and another where
                 # we only print if some error happened.
                 if not show_interactive_output:
+                    if send_to_stdin is not None:
+                        kwargs["input"] = send_to_stdin.encode("utf-8")
+
                     boutput = check_output(args, timeout=timeout, **kwargs)
                 else:
+                    if send_to_stdin is not None:
+                        raise ValueError(
+                            "send_to_stdin cannot be provided when show_interactive_output is true (unsupported)"
+                        )
+
                     from sema4ai_ls_core.progress_report import (
                         get_current_progress_reporter,
                     )
@@ -829,11 +841,54 @@ class Rcc:
 
         return ActionResult(ret.success, None, package_id)
 
+    def holotree_hash(
+        self,
+        conda_yaml_contents: str,
+        file_path: str,
+    ) -> ActionResult[str]:
+        # If the yaml contents / basename are the same, we can reuse the result.
+        key = (conda_yaml_contents, os.path.basename(file_path))
+        if key in _cache_hash:
+            return _cache_hash[key]
+
+        args = [
+            "holotree",
+            "hash",
+            "--json",
+            "--lockless",
+            "--warranty-voided",
+            "--stdin",
+            file_path,
+        ]
+
+        if file_path.endswith("package.yaml"):
+            args.append("--devdeps")
+
+        run_rcc_result = self._run_rcc(
+            args,
+            send_to_stdin=conda_yaml_contents,
+        )
+        if not run_rcc_result.success:
+            _cache_hash[key] = run_rcc_result
+            return run_rcc_result
+
+        try:
+            assert run_rcc_result.result, "Expected result from holotree hash."
+            hash_result: str = json.loads(run_rcc_result.result)["hash"]
+        except Exception as e:
+            return ActionResult.make_failure(
+                f"Unable to load json/get hash from holotree hash contents: {run_rcc_result.result}\nError: {e}"
+            )
+
+        action_result = ActionResult.make_success(hash_result)
+        _cache_hash[key] = action_result
+        return action_result
+
     @implements(IRcc.get_robot_yaml_env_info)
     def get_robot_yaml_env_info(
         self,
-        robot_yaml_path: Path,
-        conda_yaml_path: Path,
+        robot_yaml_path: Path | None,
+        conda_or_package_yaml_path: Path,
         conda_yaml_contents: str,
         env_json_path: Path | None,
         timeout=None,
@@ -855,12 +910,12 @@ class Rcc:
         )
 
         if broken_action_result is not None:
-            msg = f"Environment from previously broken {conda_yaml_path.name} requested: {conda_yaml_path}.\n-- VSCode restart required to retry."
+            msg = f"Environment from previously broken {conda_or_package_yaml_path.name} requested: {conda_or_package_yaml_path}.\n-- VSCode restart required to retry."
             log.critical(msg)
             return ActionResult(False, msg, None)
 
         space_info: RCCSpaceInfo = holotree_manager.compute_valid_space_info(
-            conda_yaml_path, conda_yaml_contents
+            conda_or_package_yaml_path, conda_yaml_contents
         )
 
         environ: dict[str, str]
@@ -968,7 +1023,7 @@ class Rcc:
                     "To recreate the environment, please change the related conda yaml\n"
                     "or restart VSCode to retry with the same conda yaml contents."
                 ),
-                conda_yaml_path,
+                conda_or_package_yaml_path,
             )
 
             if not msg:
@@ -996,19 +1051,31 @@ class Rcc:
             "variables",
             "--space",
             space_info.space_name,
-            str(conda_yaml_path),
+            str(conda_or_package_yaml_path),
         ]
         args.append("--json")
         args.append("--no-retry-build")
         args.append("--no-pyc-management")
+
+        if (
+            robot_yaml_path is None
+            and conda_or_package_yaml_path.name == "package.yaml"
+        ):
+            # In VSCode we always want to use a dev environment.
+            args.append("--devdeps")
+
         try:
             sys.stderr.write(
-                f"Collecting environment info for {conda_yaml_path} in space: {space_info.space_name}\n"
+                f"Collecting environment info for {conda_or_package_yaml_path} in space: {space_info.space_name}\n"
             )
             ret = self._run_rcc(
                 args,
                 mutex_name=RCC_CLOUD_ROBOT_MUTEX_NAME,
-                cwd=str(robot_yaml_path.parent),
+                cwd=str(
+                    robot_yaml_path.parent
+                    if robot_yaml_path is not None
+                    else conda_or_package_yaml_path.parent
+                ),
                 timeout=timeout,  # Creating the env may be really slow!
                 show_interactive_output=True,
             )
@@ -1046,7 +1113,9 @@ class Rcc:
                     pass
                 space_info.update_last_usage()
 
-            if not space_info.conda_prefix_identity_yaml_still_matches_cached_space():
+            if not space_info.conda_prefix_identity_yaml_still_matches_cached_space(
+                self
+            ):
                 return return_failure(
                     "Right after creating env, the environment does NOT match the conda yaml!"
                 )
@@ -1063,7 +1132,9 @@ class Rcc:
 
             return ActionResult(True, None, RobotInfoEnv(environ, space_info))
         except Exception as e:
-            log.exception("Error creating environment from: %s", conda_yaml_path)
+            log.exception(
+                "Error creating environment from: %s", conda_or_package_yaml_path
+            )
             return return_failure(str(e))
 
     @implements(IRcc.check_conda_installed)
