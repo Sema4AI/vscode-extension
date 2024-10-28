@@ -1,0 +1,16 @@
+name: My awesome cookie maker
+
+description: This does cookies
+
+version: 0.2.3
+
+documentation: https://github.com/robocorp/actions-cookbook/blob/master/database-postgres/README.md
+
+dependencies:
+    conda-forge:
+        - python=3.7
+        - pip=20.1
+
+pythonpath:
+    - src
+    - tests

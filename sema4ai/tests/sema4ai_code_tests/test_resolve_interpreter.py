@@ -8,6 +8,61 @@ from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 
+def test_resolve_interpreter_with_changing_pythonpath(
+    config_provider: IConfigProvider, rcc_conda_installed, datadir
+) -> None:
+    """
+    Test with a package.yaml where the `pythonpath` changes from one resolution to the next.
+    (so the get_additional_pythonpath_entries will be different between the two resolutions).
+    """
+    from pathlib import Path
+
+    import yaml
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.constants import NULL
+    from sema4ai_ls_core.ep_providers import EPConfigurationProvider, EPEndPointProvider
+    from sema4ai_ls_core.pluginmanager import PluginManager
+
+    from sema4ai_code.resolve_interpreter import RobocorpResolveInterpreter
+
+    pm = PluginManager()
+    pm.set_instance(EPConfigurationProvider, config_provider)
+    pm.set_instance(EPEndPointProvider, NULL)
+
+    resolve_interpreter = RobocorpResolveInterpreter(weak_pm=weakref.ref(pm))
+
+    path1 = datadir / "robot4" / "package.yaml"
+
+    interpreter_info1 = resolve_interpreter.get_interpreter_info_for_doc_uri(
+        uris.from_fs_path(str(path1))
+    )
+    assert interpreter_info1
+    entries1 = interpreter_info1.get_additional_pythonpath_entries()
+    additional_pythonpath_entries1 = tuple(Path(x) for x in entries1)
+    assert additional_pythonpath_entries1 == (
+        datadir / "robot4" / "src",
+        datadir / "robot4" / "tests",
+    )
+
+    # Now, change `path1` so that the pythonpath entries are different between the two resolutions.
+    with open(path1, "r") as file:
+        package_data = yaml.safe_load(file)
+
+    # Assuming the structure of the YAML file has a key 'pythonpath'
+    package_data["pythonpath"] = ["new-path"]
+
+    with open(path1, "w") as file:
+        yaml.safe_dump(package_data, file)
+
+    interpreter_info2 = resolve_interpreter.get_interpreter_info_for_doc_uri(
+        uris.from_fs_path(str(path1))
+    )
+    assert interpreter_info2
+    entries2 = interpreter_info2.get_additional_pythonpath_entries()
+    additional_pythonpath_entries2 = tuple(Path(x) for x in entries2)
+    assert additional_pythonpath_entries2 == (datadir / "robot4" / "new-path",)
+
+
 def test_resolve_interpreter_relocate_robot_root(
     config_provider: IConfigProvider, rcc_conda_installed, datadir
 ) -> None:
