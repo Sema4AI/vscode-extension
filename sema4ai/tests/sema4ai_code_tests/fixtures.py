@@ -164,7 +164,6 @@ def robocorp_home(tmpdir) -> str:
 
 @pytest.fixture
 def config_provider(
-    ws_root_path: str,
     rcc_location: str,
     ci_endpoint: str,
     rcc_config_location: str,
@@ -569,7 +568,7 @@ def browser_preinstalled():
 
 
 @pytest.fixture
-def tk_process(datadir) -> Iterator[subprocess.Popen]:
+def tk_process() -> Iterator[subprocess.Popen]:
     """
     Note: kills existing tk processes prior to starting.
     """

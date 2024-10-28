@@ -1,22 +1,15 @@
-import sys
+import typing
 from enum import Enum
 from pathlib import Path
-from typing import Any, ContextManager, Dict, List, Literal, Optional, Tuple, TypeVar
+from typing import Any, ContextManager, Literal, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
 
-# Hack so that we don't break the runtime on versions prior to Python 3.8.
-if sys.version_info[:2] < (3, 8):
+if typing.TYPE_CHECKING:
+    from sema4ai_ls_core.cache import LRUCache
 
-    class Protocol:
-        pass
-
-    class TypedDict:
-        pass
-
-else:
-    from typing import Protocol, TypedDict
+from typing import Protocol, TypedDict
 
 
 class PackageType(Enum):
@@ -556,6 +549,10 @@ class IRcc(Protocol):
         pass
 
     def holotree_hash(
-        self, conda_yaml_contents: str, file_path: str, **kwargs
+        self,
+        conda_yaml_contents: str,
+        file_path: str,
+        *,
+        _cache: "LRUCache[tuple[str, str], ActionResult[str]]",
     ) -> ActionResult[str]:
         pass
