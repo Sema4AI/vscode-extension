@@ -839,8 +839,17 @@ class Rcc:
         return ActionResult(ret.success, None, package_id)
 
     def holotree_hash(
-        self, conda_yaml_contents: str, file_path: str
+        self,
+        conda_yaml_contents: str,
+        file_path: str,
+        *,
+        _cache: dict[tuple[str, str], ActionResult[str]] = {},
     ) -> ActionResult[str]:
+        # If the yaml contents / basename are the same, we can reuse the result.
+        key = (conda_yaml_contents, os.path.basename(file_path))
+        if key in _cache:
+            return _cache[key]
+
         args = [
             "holotree",
             "hash",
@@ -854,14 +863,25 @@ class Rcc:
         if file_path.endswith("package.yaml"):
             args.append("--devdeps")
 
-        result = self._run_rcc(
+        run_rcc_result = self._run_rcc(
             args,
             send_to_stdin=conda_yaml_contents,
         )
-        if not result.success:
-            return result
-        assert result.result is not None
-        return ActionResult.make_success(json.loads(result.result)["hash"])
+        if not run_rcc_result.success:
+            _cache[key] = run_rcc_result
+            return run_rcc_result
+
+        try:
+            assert run_rcc_result.result, "Expected result from holotree hash."
+            hash_result: str = json.loads(run_rcc_result.result)["hash"]
+        except Exception as e:
+            return ActionResult.make_failure(
+                f"Unable to load json/get hash from holotree hash contents: {run_rcc_result.result}\nError: {e}"
+            )
+
+        action_result = ActionResult.make_success(hash_result)
+        _cache[key] = action_result
+        return action_result
 
     @implements(IRcc.get_robot_yaml_env_info)
     def get_robot_yaml_env_info(
