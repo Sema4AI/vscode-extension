@@ -362,6 +362,8 @@ class RccPatch:
 
         if args[:3] == ["holotree", "hash", "--json"]:
             f = args[-1]
+            if f == "--devdeps":
+                f = args[-2]
             assert os.path.exists(f), f"Expected file to exist: {f}"
             contents = Path(f).read_text(encoding="utf-8", errors="replace")
             return ActionResult(

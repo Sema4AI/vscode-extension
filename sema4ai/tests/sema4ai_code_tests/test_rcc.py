@@ -325,7 +325,9 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
         space_info: IRCCSpaceInfo = robot_yaml_env_info.space_info
         with space_info.acquire_lock():
-            assert space_info.conda_contents_match(rcc, robot1.conda_yaml_contents)
+            assert space_info.conda_contents_match(
+                rcc, robot1.conda_yaml_contents, str(robot1.conda_yaml)
+            )
 
     # Load robot 2 (without any timeout).
     result = rcc.get_robot_yaml_env_info(
@@ -342,7 +344,9 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
     space_info = robot_yaml_env_info.space_info
     with space_info.acquire_lock():
-        assert space_info.conda_contents_match(rcc, robot2.conda_yaml_contents)
+        assert space_info.conda_contents_match(
+            rcc, robot2.conda_yaml_contents, str(robot2.conda_yaml)
+        )
 
     # Load robot 3 (without any timeout: will pick up the least recently used).
     result = rcc.get_robot_yaml_env_info(
@@ -359,7 +363,9 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
 
     space_info = robot_yaml_env_info.space_info
     with space_info.acquire_lock():
-        assert space_info.conda_contents_match(rcc, robot3.conda_yaml_contents)
+        assert space_info.conda_contents_match(
+            rcc, robot3.conda_yaml_contents, str(robot3.conda_yaml)
+        )
 
     # Load robot 3 new comment: should be the same as robot3 as the contents
     # are the same.
