@@ -9,6 +9,7 @@ from subprocess import CalledProcessError, TimeoutExpired, list2cmdline
 from typing import Any, Dict, List, Optional, Set
 
 from sema4ai_ls_core.basic import as_str, implements
+from sema4ai_ls_core.cache import LRUCache
 from sema4ai_ls_core.constants import NULL
 from sema4ai_ls_core.core_log import get_log_level, get_logger
 from sema4ai_ls_core.process import is_process_alive
@@ -843,7 +844,7 @@ class Rcc:
         conda_yaml_contents: str,
         file_path: str,
         *,
-        _cache: dict[tuple[str, str], ActionResult[str]] = {},
+        _cache: LRUCache[tuple[str, str], ActionResult[str]] = LRUCache(max_size=50),
     ) -> ActionResult[str]:
         # If the yaml contents / basename are the same, we can reuse the result.
         key = (conda_yaml_contents, os.path.basename(file_path))

@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import ContextManager, Optional
+from typing import ContextManager
 
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import check_implements
