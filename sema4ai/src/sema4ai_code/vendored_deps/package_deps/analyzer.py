@@ -5,8 +5,8 @@ it a standalone package in the future (maybe with a command line UI).
 
 import pathlib
 import typing
-from typing import List, Optional, Union
 from collections.abc import Iterator
+from typing import Optional, Union
 
 from ..ls_protocols import _DiagnosticSeverity, _DiagnosticsTypedDict
 from ._deps_protocols import ICondaCloud, IPyPiCloud

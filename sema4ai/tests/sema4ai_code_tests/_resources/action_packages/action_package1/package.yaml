@@ -14,3 +14,6 @@ dependencies:
         - pip=23.2.1
     pypi:
         - sema4ai-actions=0.9.1
+
+dev-tasks:
+    dev_task: python -c 'print("Hello, world!")'

@@ -1,0 +1,34 @@
+- command:
+    arguments:
+    - actionName: my_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionRun
+    title: Run Action
+  data: null
+  range:
+    end:
+      character: 0
+      line: 2
+    start:
+      character: 0
+      line: 2
+- command:
+    arguments:
+    - actionName: my_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionDebug
+    title: Debug Action
+  data: null
+  range:
+    end:
+      character: 0
+      line: 2
+    start:
+      character: 0
+      line: 2

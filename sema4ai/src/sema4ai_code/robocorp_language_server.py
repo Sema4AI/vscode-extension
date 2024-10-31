@@ -1042,6 +1042,168 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_list_robots(self) -> ActionResultDictLocalRobotMetadata:
         return self._local_list_robots()
 
+    def m_list_dev_tasks(self, action_package_uri: str) -> partial:
+        return require_monitor(
+            partial(self._list_dev_tasks_in_thread, action_package_uri)
+        )
+
+    def _list_dev_tasks_in_thread(
+        self, action_package_uri: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        """
+        Provides a dict[str, str] with the dev tasks found in the Action Package.
+        """
+        from sema4ai_code.robo.list_dev_tasks import list_dev_tasks_from_content
+
+        action_package_yaml_path = Path(uris.to_fs_path(action_package_uri))
+        try:
+            action_package_yaml_content = action_package_yaml_path.read_text()
+        except Exception as e:
+            return dict(
+                success=False,
+                message=f"Unable to read: {action_package_yaml_path}. Error: {e}",
+                result=None,
+            )
+
+        return list_dev_tasks_from_content(
+            action_package_yaml_content, action_package_yaml_path
+        ).as_dict()
+
+    def m_compute_dev_task_spec_to_run(
+        self, package_yaml_path: str, task_name: str
+    ) -> partial:
+        return require_monitor(
+            partial(
+                self._compute_dev_task_spec_to_run_in_thread,
+                package_yaml_path,
+                task_name,
+            )
+        )
+
+    def _compute_dev_task_spec_to_run_in_thread(
+        self,
+        package_yaml_path: str,
+        task_name: str,
+        monitor: IMonitor,
+    ) -> ActionResultDict:
+        import json
+        import shlex
+
+        from sema4ai_ls_core.process import build_python_launch_env
+
+        from sema4ai_code.robo import launch_dev_task
+
+        result = self._list_dev_tasks_in_thread(
+            uris.from_fs_path(package_yaml_path), monitor
+        )
+        if not result["success"]:
+            return result
+
+        try:
+            task_contents = result["result"][task_name]
+        except KeyError:
+            return dict(
+                success=False,
+                message=f"dev-task: {task_name} not found in: {package_yaml_path}.",
+                result=None,
+            )
+
+        task_command = task_contents.strip()
+        if not task_command:
+            return dict(
+                success=False,
+                message="Expected task contents to be a non-empty string.",
+                result=None,
+            )
+
+        task_commands: list[list[str]] = []
+        for line in task_command.splitlines():
+            monitor.check_cancelled()
+            if line.strip():
+                try:
+                    c = shlex.split(line.strip())
+                except Exception as e:
+                    msg = f"Unable to shlex.split command: {line.strip()}. Error: {e}"
+                    log.critical(msg)
+                    return dict(success=False, message=msg, result=None)
+
+                if not c:
+                    msg = f"Unable to make sense of command: {line.strip()}."
+                    log.critical(msg)
+                    return dict(success=False, message=msg, result=None)
+                task_commands.append(c)
+
+        if len(task_commands) == 1:
+            log.debug(f"Parsed command as: {task_commands[0]}")
+        else:
+            m = "\n    ".join(str(x) for x in task_commands)
+            log.debug(f"Parsed (multiple) commands as:\n{m}")
+
+        cwd = str(Path(package_yaml_path).parent)
+        interpreter_info_result = self._resolve_interpreter(
+            params=dict(target_robot=package_yaml_path)
+        )
+        monitor.check_cancelled()
+        if not interpreter_info_result["success"]:
+            return interpreter_info_result
+
+        interpreter_info = interpreter_info_result["result"]
+
+        env = build_python_launch_env(interpreter_info["environ"])
+
+        log.debug("Environment variables:")
+        for env_key in ("PATH", "PYTHONPATH"):
+            env_val = env.get(env_key)
+            if env_val:
+                log.debug(f"{env_key}:")
+                for path_part in env_val.split(os.path.pathsep):
+                    log.debug(f"  {path_part}")
+            else:
+                log.debug(f"{env_key}: (none)")
+        try:
+            PATH = env["PATH"]
+
+            commands_list = []
+
+            for command in task_commands:
+                # search for command[0] in PATH
+
+                command_path = None
+                for path in PATH.split(os.path.pathsep):
+                    if os.path.exists(os.path.join(path, command[0])):
+                        command_path = os.path.join(path, command[0])
+                        break
+                    if sys.platform == "win32":
+                        if os.path.exists(os.path.join(path, command[0] + ".exe")):
+                            command_path = os.path.join(path, command[0] + ".exe")
+                            break
+
+                if not command_path:
+                    msg = f"Command: {command[0]} not found in PATH."
+                    log.critical(msg)
+                    return dict(success=False, message=msg, result=None)
+                log.debug(f"Target program: {command_path}")
+
+                monitor.check_cancelled()
+
+                commands_list.append(command)
+
+            env["SEMA4AI_RUN_DEV_TASKS"] = json.dumps(commands_list)
+            python = env["PYTHON_EXE"]
+            task_spec = {
+                "env": env,
+                "cwd": cwd,
+                "program": python,
+                "args": [launch_dev_task.__file__],
+            }
+
+            return dict(success=True, message=None, result=task_spec)
+
+        except Exception as e:
+            msg = f"It was not possible to run the task: {task_name}.\nThe error below happened when running the command:\n{task_command}\n{e}"
+            log.critical(msg)
+            return dict(success=False, message=msg, result=None)
+
     def _validate_directory(self, directory) -> str | None:
         if not os.path.exists(directory):
             return f"Expected: {directory} to exist."
@@ -1322,13 +1484,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": None}
 
     def m_text_document__code_lens(self, **kwargs) -> partial | None:
-        from sema4ai_code.robo.launch_code_lens import compute_launch_robo_code_lens
+        from sema4ai_code.robo.launch_code_lens import compute_code_lenses
 
         doc_uri = kwargs["textDocument"]["uri"]
 
-        return compute_launch_robo_code_lens(
-            self._workspace, self._config_provider, doc_uri
-        )
+        return compute_code_lenses(self._workspace, self._config_provider, doc_uri)
 
     def m_text_document__hover(self, **kwargs) -> Any:
         """

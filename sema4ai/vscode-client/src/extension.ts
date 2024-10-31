@@ -159,6 +159,7 @@ import {
     SEMA4AI_REFRESH_AGENT_SPEC,
     SEMA4AI_COLLAPSE_ALL_ENTRIES,
     SEMA4AI_IMPORT_ACTION_PACKAGE,
+    SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -197,6 +198,7 @@ import {
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 import { LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
+import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -402,8 +404,8 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG, (entry: RobotEntry) => views.runSelectedAction(false, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) => views.editInput(entry));
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_OPEN, (entry: RobotEntry) => views.openAction(entry));
-    C.register(SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(true, args));
-    C.register(SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[]) => runRobocorpTasks(false, args));
+    C.register(SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(true, args));
+    C.register(SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(false, args));
     C.register(SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR, (locator?: LocatorEntry): Promise<void> => {
         return showInspectorUI(context, IAppRoutes.LOCATORS_MANAGER);
     });
@@ -506,6 +508,9 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));
     C.register(SEMA4AI_COLLAPSE_ALL_ENTRIES, collapseAllEntries);
     C.register(SEMA4AI_IMPORT_ACTION_PACKAGE, async (agentPath: string) => importActionPackage(agentPath));
+    C.register(SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK, async (devTaskInfo: DevTaskInfo | undefined) =>
+        runActionPackageDevTask(devTaskInfo)
+    );
 }
 
 async function clearEnvAndRestart() {

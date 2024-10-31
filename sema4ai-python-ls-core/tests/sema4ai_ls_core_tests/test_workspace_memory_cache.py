@@ -12,12 +12,13 @@ def small_vs_sleep():
 
 
 def test_workspace_and_uris(tmpdir):
-    from sema4ai_ls_core.workspace import Workspace
-    from sema4ai_ls_core.watchdog_wrapper import create_observer
-    from sema4ai_ls_core import uris
-    from sema4ai_ls_core.lsp import TextDocumentItem
     import os
     import sys
+
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.lsp import TextDocumentItem
+    from sema4ai_ls_core.watchdog_wrapper import create_observer
+    from sema4ai_ls_core.workspace import Workspace
 
     ws_root_path = str(tmpdir)
     root_uri = uris.from_fs_path(ws_root_path)
@@ -58,17 +59,15 @@ def test_workspace_and_uris(tmpdir):
     )
 
 
-def test_workspace_memory_cache(tmpdir, small_vs_sleep):
-    from sema4ai_ls_core.workspace import Workspace
-    from sema4ai_ls_core import uris
-    from sema4ai_ls_core.lsp import WorkspaceFolder
+def test_workspace_memory_cache(tmpdir, small_vs_sleep) -> None:
     import os
-    from typing import List
-    from sema4ai_ls_core.protocols import IWorkspaceFolder
     import typing
-    from sema4ai_ls_core.workspace import _WorkspaceFolderWithVirtualFS
-    from sema4ai_ls_core import watchdog_wrapper
+
+    from sema4ai_ls_core import uris, watchdog_wrapper
     from sema4ai_ls_core.basic import wait_for_condition
+    from sema4ai_ls_core.lsp import WorkspaceFolder
+    from sema4ai_ls_core.protocols import IWorkspaceFolder
+    from sema4ai_ls_core.workspace import Workspace, _WorkspaceFolderWithVirtualFS
 
     root_uri = uris.from_fs_path(str(tmpdir))
     workspace_folders: list[IWorkspaceFolder] = [

@@ -45,6 +45,7 @@ def get_json_contents():
         "publisher": "sema4ai",
         "engines": {"vscode": f"^1.65.0"},
         "categories": ["Debuggers"],
+        "taskDefinitions": [{"type": "Sema4.ai: dev-task"}],
         "activationEvents": get_activation_events_for_json()
         + views.get_activation_events_for_json()
         + ["onLanguage:json", "onLanguage:yaml", "onLanguage:python"],

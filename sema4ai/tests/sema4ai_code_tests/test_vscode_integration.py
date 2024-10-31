@@ -2924,3 +2924,56 @@ def test_import_action_packages(language_server_initialized, tmpdir, datadir) ->
     ), f'No success response from "importZipAsActionPackage". Response: {result}'
     created_dir = msg_result["result"]
     assert os.listdir(Path(created_dir))
+
+
+def test_run_dev_task(
+    language_server_initialized, cases: CasesFixture, data_regression
+) -> None:
+    action_package_path = Path(cases.get_path("action_packages"), "action_package1")
+    package_yaml = Path(action_package_path, "package.yaml")
+    assert package_yaml.exists()
+
+    language_server = language_server_initialized
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "listDevTasks",
+            "params": {"action_package_uri": str(uris.from_fs_path(str(package_yaml)))},
+        }
+    )
+
+    if "success" not in result and "result" in result:
+        result = result["result"]
+
+    assert result["success"], result["message"]
+    dev_tasks = result["result"]
+    assert dev_tasks == {"dev_task": "python -c 'print(\"Hello, world!\")'"}
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "computeDevTaskSpecToRun",
+            "params": {
+                "package_yaml_path": str(package_yaml),
+                "task_name": "dev_task",
+            },
+        }
+    )
+
+    action_result = result["result"]
+    assert action_result["success"], action_result["message"]
+    info = action_result["result"]
+
+    env = info.pop("env", None)
+    assert env is not None, f"env not in {info}"
+    assert "CONDA_PREFIX" in env
+
+    args = info.pop("args")
+    assert len(args) == 1
+    assert args[0].endswith("launch_dev_task.py")
+
+    cwd = info.pop("cwd")
+    assert cwd.endswith("action_package1")

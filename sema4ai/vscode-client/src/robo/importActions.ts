@@ -2,7 +2,6 @@ import { Uri, window, WorkspaceFolder } from "vscode";
 
 import { askForWs, QuickPickItemWithAction, showSelectOneQuickPick } from "../ask";
 import { afterActionPackageCreated, askActionPackageTargetDir } from "./actionPackage";
-import { verifyIfPathOkToCreatePackage } from "../common";
 import { langServer } from "../extension";
 import { logError, OUTPUT_CHANNEL } from "../channel";
 import { PackageYamlName } from "../protocols";

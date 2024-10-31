@@ -1000,6 +1000,12 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=False,
     ),
+    Command(
+        "sema4ai.runActionPackageDevTask",
+        "Run dev-task (from Action Package)",
+        add_to_package_json=True,
+        server_handled=False,
+    ),
 ]
 
 
