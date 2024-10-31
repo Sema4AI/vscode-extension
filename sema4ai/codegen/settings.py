@@ -110,6 +110,18 @@ SETTINGS = [
         "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown.",
         setting_type="boolean",
     ),
+    Setting(
+        "sema4ai.codeLens.actionsLaunch",
+        True,
+        "Specifies whether the 'Run Action' and 'Debug Action' code lenses should be shown.",
+        setting_type="boolean",
+    ),
+    Setting(
+        "sema4ai.codeLens.devTask",
+        True,
+        "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown in `dev-tasks` in `package.yaml`.",
+        setting_type="boolean",
+    ),
 ]
 
 

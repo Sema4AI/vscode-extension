@@ -52,6 +52,7 @@ import {
 import { loginToAuth2WhereRequired } from "./oauth2InInput";
 import { RobotEntryType } from "../viewsCommon";
 import { createActionInputs, errorMessageValidatingV2Input } from "./actionInputs";
+import { langServer } from "../extension";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -62,25 +63,22 @@ export interface QuickPickItemAction extends QuickPickItem {
     keyInLRU: string;
 }
 
-export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean) {
-    let textEditor = window.activeTextEditor;
-    let fileName: string | undefined = undefined;
+export interface QuickPickItemDevTask extends QuickPickItem {
+    taskName: string;
+    taskContents: string;
+    actionPackageYaml: string;
+}
 
-    if (textEditor) {
-        fileName = textEditor.document.fileName;
-    }
-
-    const RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE = "RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE";
-    let runLRU: string[] = await commands.executeCommand(roboCommands.SEMA4AI_LOAD_FROM_DISK_LRU, {
-        "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
-    });
-
+/**
+ * Lists all the action packages available in the workspace (both in the current workspace and in the agent packages).
+ * @returns The list of action packages or undefined if there was an error.
+ */
+export async function listAllActionPackages(): Promise<ActionResult<LocalPackageMetadataInfo[]>> {
     let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showErrorMessage("Error listing Action Packages: " + actionResult.message);
-        return;
+        return actionResult;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
     if (robotsInfo) {
@@ -107,8 +105,134 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
         }
     }
 
-    if (!robotsInfo || robotsInfo.length == 0) {
-        window.showInformationMessage("Unable to run Action Package (no Action Packages detected in the Workspace).");
+    return { success: true, message: undefined, result: robotsInfo };
+}
+
+export async function runActionPackageFromFileAndName(noDebug: boolean, fileName: string, actionName: string) {
+    let actionPackageYamlDirectory: string | undefined = undefined;
+    let packageYaml: string | undefined = undefined;
+
+    // Search the parents of fileName until a package.yaml is found.
+    let currentDir = path.dirname(fileName);
+    while (true) {
+        const potentialPackageYaml = path.join(currentDir, "package.yaml");
+        if (await fileExists(potentialPackageYaml)) {
+            packageYaml = potentialPackageYaml;
+            actionPackageYamlDirectory = currentDir;
+            break;
+        }
+        const oldDir = currentDir;
+        currentDir = path.dirname(currentDir);
+        if (oldDir === currentDir || currentDir === "/" || !currentDir) {
+            break;
+        }
+    }
+
+    if (!packageYaml || !actionPackageYamlDirectory) {
+        window.showErrorMessage("No package.yaml found in the parent directories.");
+        return;
+    }
+
+    const actionFileUri: vscode.Uri = vscode.Uri.file(fileName);
+    await runActionFromActionPackage(noDebug, actionName, actionPackageYamlDirectory, packageYaml, actionFileUri);
+}
+
+export interface ActionPackageAndActionResult {
+    actionName: string;
+    actionPackageYamlDirectory: string;
+    packageYaml: string;
+    actionFileUri: vscode.Uri;
+}
+
+export interface ActionPackageAndDevTaskResult {
+    taskName: string;
+    taskContents: string;
+    actionPackageYaml: string;
+}
+
+export async function askForActionPackageAndDevTask(): Promise<ActionPackageAndDevTaskResult | undefined> {
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await listAllActionPackages();
+    if (!actionResult.success) {
+        window.showInformationMessage(actionResult.message);
+        return;
+    }
+    let localActionPackages: LocalPackageMetadataInfo[] = actionResult.result;
+    if (localActionPackages.length == 0) {
+        window.showInformationMessage(
+            "Unable to select Action Package (no Action Packages detected in the Workspace)."
+        );
+        return;
+    }
+
+    let items: QuickPickItemDevTask[] = new Array();
+
+    for (let actionPackage of localActionPackages) {
+        try {
+            const actionPackageYamlUri = vscode.Uri.file(actionPackage.filePath);
+            const result: ActionResult<{ [key: string]: string }> = await langServer.sendRequest("listDevTasks", {
+                "action_package_uri": actionPackageYamlUri.toString(),
+            });
+
+            if (result.success) {
+                let devTasks: { [key: string]: string } = result.result;
+                for (const [taskName, taskContents] of Object.entries(devTasks)) {
+                    const label = `${actionPackage.name}: ${taskName}`;
+                    const item: QuickPickItemDevTask = {
+                        "label": label,
+                        "taskName": taskName,
+                        "taskContents": taskContents,
+                        "actionPackageYaml": actionPackage.filePath,
+                    };
+                    items.push(item);
+                }
+            }
+        } catch (error) {
+            logError("Error collecting dev tasks.", error, "ACT_COLLECT_DEV_TASKS");
+        }
+    }
+
+    if (!items) {
+        window.showInformationMessage("Unable to select Dev Task (no Dev Tasks detected in the Workspace).");
+        return;
+    }
+
+    let selectedItem: QuickPickItemDevTask;
+    if (items.length == 1) {
+        selectedItem = items[0];
+    } else {
+        selectedItem = await window.showQuickPick(items, {
+            "canPickMany": false,
+            "placeHolder": "Please select the Action Package and Dev Task.",
+            "ignoreFocusOut": true,
+        });
+    }
+
+    if (!selectedItem) {
+        return;
+    }
+
+    const taskName: string = selectedItem.taskName;
+    const taskContents: string = selectedItem.taskContents;
+    const actionPackageYaml: string = selectedItem.actionPackageYaml;
+    return { taskName, taskContents, actionPackageYaml };
+}
+
+export async function askForActionPackageAndAction(): Promise<ActionPackageAndActionResult | undefined> {
+    const RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE = "RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE";
+    let runLRU: string[] = await commands.executeCommand(roboCommands.SEMA4AI_LOAD_FROM_DISK_LRU, {
+        "name": RUN_ACTION_FROM_ACTION_PACKAGE_LRU_CACHE,
+    });
+
+    let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await listAllActionPackages();
+    if (!actionResult.success) {
+        window.showInformationMessage(actionResult.message);
+        return;
+    }
+    let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
+    if (robotsInfo.length == 0) {
+        window.showInformationMessage(
+            "Unable to select Action Package (no Action Packages detected in the Workspace)."
+        );
         return;
     }
 
@@ -151,7 +275,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
     }
 
     if (!items) {
-        window.showInformationMessage("Unable to run Action Package (no Action Package detected in the Workspace).");
+        window.showInformationMessage("Unable to select Action Package (no Action Package detected in the Workspace).");
         return;
     }
 
@@ -161,7 +285,7 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
     } else {
         selectedItem = await window.showQuickPick(items, {
             "canPickMany": false,
-            "placeHolder": "Please select the Action Package and Action to run.",
+            "placeHolder": "Please select the Action Package and Action.",
             "ignoreFocusOut": true,
         });
     }
@@ -180,6 +304,15 @@ export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean)
     const actionPackageYamlDirectory: string = selectedItem.actionPackageYamlDirectory;
     const packageYaml: string = selectedItem.actionPackageUri.fsPath;
     const actionFileUri: vscode.Uri = selectedItem.actionFileUri;
+    return { actionName, actionPackageYamlDirectory, packageYaml, actionFileUri };
+}
+
+export async function askAndRunRobocorpActionFromActionPackage(noDebug: boolean) {
+    const selectedActionPackageAndAction = await askForActionPackageAndAction();
+    if (!selectedActionPackageAndAction) {
+        return;
+    }
+    const { actionName, actionPackageYamlDirectory, packageYaml, actionFileUri } = selectedActionPackageAndAction;
     await runActionFromActionPackage(noDebug, actionName, actionPackageYamlDirectory, packageYaml, actionFileUri);
 }
 

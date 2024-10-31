@@ -18,6 +18,11 @@
     "categories": [
         "Debuggers"
     ],
+    "taskDefinitions": [
+        {
+            "type": "Sema4.ai: dev-task"
+        }
+    ],
     "activationEvents": [
         "onCommand:sema4ai.getLanguageServerPython",
         "onCommand:sema4ai.getLanguageServerPythonInfo",
@@ -162,6 +167,7 @@
         "onCommand:sema4ai.updateAgentVersion.internal",
         "onCommand:sema4ai.collapseAllEntries",
         "onCommand:sema4ai.importActionPackage",
+        "onCommand:sema4ai.runActionPackageDevTask",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -241,6 +247,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown."
+                },
+                "sema4ai.codeLens.actionsLaunch": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether the 'Run Action' and 'Debug Action' code lenses should be shown."
+                },
+                "sema4ai.codeLens.devTask": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown in `dev-tasks` in `package.yaml`."
                 }
             }
         },
@@ -968,6 +984,11 @@
             {
                 "command": "sema4ai.importActionPackage",
                 "title": "Import Action Package",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.runActionPackageDevTask",
+                "title": "Run dev-task (from Action Package)",
                 "category": "Sema4.ai"
             }
         ],

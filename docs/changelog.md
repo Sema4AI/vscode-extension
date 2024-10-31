@@ -4,6 +4,11 @@
 - Update RCC to `v18.5.0`.
 - Using RCC directly to build the environment using `package.yaml` (instead of creating a `conda.yaml` first).
 - When dealing with a `package.yaml`, always consider the `dev-environment` when building the environment.
+- Add code lenses to:
+  - `Run Dev Task` (for `dev-tasks` inside a `package.yaml`)
+  - `Run Action` (for `@action` decorated methods in `.py` files)
+  - `Debug Action` (for `@action` decorated methods in `.py` files)
+- Fixed vulnerability when creating temp file to create terminal (it could create a `.bat` / `.sh` file in a directory which could be shared by multiple users).
 
 ## New in 2.7.1 (2024-10-23)
 
