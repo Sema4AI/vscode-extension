@@ -1798,12 +1798,22 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return {"success": True, "message": None, "result": location}
 
     @command_dispatcher(commands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL)
-    def _action_server_version(self) -> ActionResultDict:
-        return self._action_server.get_version().as_dict()
+    def _action_server_version(self, download_if_missing=True) -> ActionResultDict:
+        return self._action_server.get_version(
+            download_if_missing=download_if_missing
+        ).as_dict()
 
     @command_dispatcher(commands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL)
-    def _agent_cli_version(self) -> ActionResultDict:
-        return self._agent_cli.get_version().as_dict()
+    def _agent_cli_version(self, download_if_missing=True) -> ActionResultDict:
+        return self._agent_cli.get_version(
+            download_if_missing=download_if_missing
+        ).as_dict()
+
+    def m_action_server_version(self, download_if_missing=True) -> ActionResultDict:
+        return self._action_server_version(download_if_missing=download_if_missing)
+
+    def m_agent_cli_version(self, download_if_missing=True) -> ActionResultDict:
+        return self._agent_cli_version(download_if_missing=download_if_missing)
 
     @command_dispatcher(commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL)
     def _create_agent_package(

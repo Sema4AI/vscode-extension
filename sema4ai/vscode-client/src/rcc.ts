@@ -11,8 +11,9 @@ import { execFilePromise, ExecFileReturn, mergeEnviron } from "./subprocess";
 import * as roboConfig from "./robocorpSettings";
 import { getProceedwithlongpathsdisabled } from "./robocorpSettings";
 import { runAsAdminWin32 } from "./extensionCreateEnv";
-import { GLOBAL_STATE } from "./extension";
+import { GLOBAL_STATE, langServer } from "./extension";
 import { downloadWithProgress, DownloadProgress } from "./http";
+import * as roboCommands from "./robocorpCommands";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -447,6 +448,23 @@ async function collectIssueBaseMetadata(): Promise<any> {
     return metadata;
 }
 
+async function collectToolsVersions(rccLocation: string): Promise<any> {
+    let toolsVersions: any = {};
+
+    const rccVersion: any = await execFilePromise(rccLocation, ["--version"], {});
+    toolsVersions["rcc"] = rccVersion.stdout.trim();
+
+    const actionServerVersion: any = await langServer.sendRequest("actionServerVersion", {
+        download_if_missing: false,
+    });
+    toolsVersions["action-server"] = actionServerVersion?.result?.trim() || "";
+
+    const agentCliVersion: any = await langServer.sendRequest("agentCliVersion", { download_if_missing: false });
+    toolsVersions["action-cli"] = agentCliVersion?.result?.trim() || "";
+
+    return toolsVersions;
+}
+
 export async function submitIssue(
     dialogMessage: string,
     email: string,
@@ -468,7 +486,12 @@ export async function submitIssue(
 
             const metadata = await collectIssueBaseMetadata();
 
+            const currentPackages: any = await langServer.sendRequest("listRobots");
+            const toolsVersions: any = await collectToolsVersions(rccLocation);
+
             // Add required metadata info from parameters.
+            metadata["tools"] = toolsVersions;
+            metadata["packages"] = currentPackages.result;
             metadata["dialogMessage"] = dialogMessage;
             metadata["email"] = email;
             metadata["errorName"] = errorName;
