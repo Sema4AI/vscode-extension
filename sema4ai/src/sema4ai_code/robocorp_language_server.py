@@ -1809,12 +1809,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             download_if_missing=download_if_missing
         ).as_dict()
 
-    def m_action_server_version(self, download_if_missing=True) -> ActionResultDict:
-        return self._action_server_version(download_if_missing=download_if_missing)
-
-    def m_agent_cli_version(self, download_if_missing=True) -> ActionResultDict:
-        return self._agent_cli_version(download_if_missing=download_if_missing)
-
     @command_dispatcher(commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL)
     def _create_agent_package(
         self, params: CreateAgentPackageParamsDict

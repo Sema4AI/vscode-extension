@@ -4,7 +4,7 @@ import * as pathModule from "path";
 import * as os from "os";
 import { configure as configureXHR } from "./requestLight";
 import { fileExists, getExtensionRelativeFile } from "./files";
-import { CancellationToken, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
+import { CancellationToken, commands, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import { Timing } from "./time";
 import { execFilePromise, ExecFileReturn, mergeEnviron } from "./subprocess";
@@ -14,6 +14,7 @@ import { runAsAdminWin32 } from "./extensionCreateEnv";
 import { GLOBAL_STATE, langServer } from "./extension";
 import { downloadWithProgress, DownloadProgress } from "./http";
 import * as roboCommands from "./robocorpCommands";
+import { ActionResult } from "./protocols";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -454,12 +455,16 @@ async function collectToolsVersions(rccLocation: string): Promise<any> {
     const rccVersion: any = await execFilePromise(rccLocation, ["--version"], {});
     toolsVersions["rcc"] = rccVersion.stdout.trim();
 
-    const actionServerVersion: any = await langServer.sendRequest("actionServerVersion", {
-        download_if_missing: false,
-    });
+    const actionServerVersion: ActionResult<any> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
+        { download_if_missing: false }
+    );
     toolsVersions["action-server"] = actionServerVersion?.result?.trim() || "";
 
-    const agentCliVersion: any = await langServer.sendRequest("agentCliVersion", { download_if_missing: false });
+    const agentCliVersion: ActionResult<any> = await commands.executeCommand(
+        roboCommands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
+        { download_if_missing: false }
+    );
     toolsVersions["action-cli"] = agentCliVersion?.result?.trim() || "";
 
     return toolsVersions;
@@ -486,12 +491,21 @@ export async function submitIssue(
 
             const metadata = await collectIssueBaseMetadata();
 
-            const currentPackages: any = await langServer.sendRequest("listRobots");
-            const toolsVersions: any = await collectToolsVersions(rccLocation);
+            try {
+                const currentPackages: any = await langServer.sendRequest("listRobots");
+                metadata["packages"] = currentPackages.result;
+            } catch (error) {
+                metadata["packages"] = `Error retrieving robot packages: ${error.message || error}`;
+            }
+
+            try {
+                const toolsVersions: any = await collectToolsVersions(rccLocation);
+                metadata["tools"] = toolsVersions;
+            } catch (error) {
+                metadata["tools"] = `Error retrieving tools versions: ${error.message || error}`;
+            }
 
             // Add required metadata info from parameters.
-            metadata["tools"] = toolsVersions;
-            metadata["packages"] = currentPackages.result;
             metadata["dialogMessage"] = dialogMessage;
             metadata["email"] = email;
             metadata["errorName"] = errorName;
