@@ -4,15 +4,17 @@ import * as pathModule from "path";
 import * as os from "os";
 import { configure as configureXHR } from "./requestLight";
 import { fileExists, getExtensionRelativeFile } from "./files";
-import { CancellationToken, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
+import { CancellationToken, commands, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import { Timing } from "./time";
 import { execFilePromise, ExecFileReturn, mergeEnviron } from "./subprocess";
 import * as roboConfig from "./robocorpSettings";
 import { getProceedwithlongpathsdisabled } from "./robocorpSettings";
 import { runAsAdminWin32 } from "./extensionCreateEnv";
-import { GLOBAL_STATE } from "./extension";
+import { GLOBAL_STATE, langServer } from "./extension";
 import { downloadWithProgress, DownloadProgress } from "./http";
+import * as roboCommands from "./robocorpCommands";
+import { ActionResult } from "./protocols";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -447,6 +449,27 @@ async function collectIssueBaseMetadata(): Promise<any> {
     return metadata;
 }
 
+async function collectToolsVersions(rccLocation: string): Promise<any> {
+    let toolsVersions: any = {};
+
+    const rccVersion: any = await execFilePromise(rccLocation, ["--version"], {});
+    toolsVersions["rcc"] = rccVersion.stdout.trim();
+
+    const actionServerVersion: ActionResult<any> = await commands.executeCommand(
+        roboCommands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
+        { download_if_missing: false }
+    );
+    toolsVersions["action-server"] = actionServerVersion?.result?.trim() || "";
+
+    const agentCliVersion: ActionResult<any> = await commands.executeCommand(
+        roboCommands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
+        { download_if_missing: false }
+    );
+    toolsVersions["action-cli"] = agentCliVersion?.result?.trim() || "";
+
+    return toolsVersions;
+}
+
 export async function submitIssue(
     dialogMessage: string,
     email: string,
@@ -467,6 +490,37 @@ export async function submitIssue(
             }
 
             const metadata = await collectIssueBaseMetadata();
+
+            try {
+                const currentPackages: any = await langServer.sendRequest("listRobots");
+                const packagesWithoutYamlContents = (currentPackages.result as any[]).map((pkg: any) => {
+                    const removeYamlContents = (obj: any): any => {
+                        const { yamlContents, ...rest } = obj;
+
+                        if (rest.organizations) {
+                            rest.organizations = rest.organizations.map((org: any) => ({
+                                ...org,
+                                actionPackages: org.actionPackages.map(removeYamlContents),
+                            }));
+                        }
+
+                        return rest;
+                    };
+
+                    return removeYamlContents(pkg);
+                });
+
+                metadata["packages"] = packagesWithoutYamlContents;
+            } catch (error) {
+                metadata["packages"] = `Error retrieving robot packages: ${error.message || error}`;
+            }
+
+            try {
+                const toolsVersions: any = await collectToolsVersions(rccLocation);
+                metadata["tools"] = toolsVersions;
+            } catch (error) {
+                metadata["tools"] = `Error retrieving tools versions: ${error.message || error}`;
+            }
 
             // Add required metadata info from parameters.
             metadata["dialogMessage"] = dialogMessage;

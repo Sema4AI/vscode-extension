@@ -556,6 +556,7 @@ class ActionServer:
         self,
         args: list[str],
         timeout: float = 35,
+        download_if_missing: bool = True,
     ) -> LaunchActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Action Server command.
@@ -565,15 +566,27 @@ class ActionServer:
         """
         from sema4ai_ls_core.process import launch
 
-        action_server_location = self.get_action_server_location()
+        action_server_location = self.get_action_server_location(
+            download_if_missing=download_if_missing
+        )
+
+        if not os.path.exists(action_server_location):
+            return LaunchActionResult(
+                command_line="action-server version",
+                success=False,
+                message="Action Server executable not found",
+            )
+
         env: dict[str, str] = {"SEMA4AI_SKIP_UPDATE_CHECK": "1"}
         return launch(args=[action_server_location] + args, timeout=timeout, env=env)
 
-    def get_version(self) -> ActionResult[str]:
+    def get_version(self, download_if_missing=True) -> ActionResult[str]:
         """
         Returns the version of Action Server executable.
         """
-        command_result = self._run_action_server_command(["version"])
+        command_result = self._run_action_server_command(
+            ["version"], download_if_missing=download_if_missing
+        )
 
         if not command_result.success:
             return ActionResult(success=False, message=command_result.message)

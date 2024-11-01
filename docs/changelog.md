@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add packages and tools information when submitting an issue.
 - Update Action Server to `2.0.0`.
 - Update RCC to `v18.5.0`.
 - Using RCC directly to build the environment using `package.yaml` (instead of creating a `conda.yaml` first).

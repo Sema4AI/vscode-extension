@@ -105,6 +105,7 @@ class AgentCli:
         args: list[str],
         timeout: float = 35,
         env: dict[str, str] | None = None,
+        download_if_missing: bool = True,
     ) -> LaunchActionResult:
         """
         Returns an ActionResult where the result is the stdout of the executed Agent CLI command.
@@ -115,15 +116,26 @@ class AgentCli:
         """
         from sema4ai_ls_core.process import launch
 
-        agent_cli_location = self.get_agent_cli_location()
+        agent_cli_location = self.get_agent_cli_location(
+            download_if_missing=download_if_missing
+        )
+
+        if not os.path.exists(agent_cli_location):
+            return LaunchActionResult(
+                command_line="agent-cli --version",
+                success=False,
+                message="Agent CLI executable not found.",
+            )
 
         return launch(args=[agent_cli_location] + args, timeout=timeout, env=env)
 
-    def get_version(self) -> ActionResult[str]:
+    def get_version(self, download_if_missing: bool = True) -> ActionResult[str]:
         """
         Returns the version of Agent CLI executable.
         """
-        command_result = self._run_agent_cli_command(["--version"])
+        command_result = self._run_agent_cli_command(
+            ["--version"], download_if_missing=download_if_missing
+        )
 
         if not command_result.success:
             return ActionResult(success=False, message=command_result.message)
