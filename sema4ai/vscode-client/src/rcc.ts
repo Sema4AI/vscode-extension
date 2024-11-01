@@ -493,7 +493,24 @@ export async function submitIssue(
 
             try {
                 const currentPackages: any = await langServer.sendRequest("listRobots");
-                metadata["packages"] = currentPackages.result;
+                const packagesWithoutYamlContents = (currentPackages.result as any[]).map((pkg: any) => {
+                    const removeYamlContents = (obj: any): any => {
+                        const { yamlContents, ...rest } = obj;
+
+                        if (rest.organizations) {
+                            rest.organizations = rest.organizations.map((org: any) => ({
+                                ...org,
+                                actionPackages: org.actionPackages.map(removeYamlContents),
+                            }));
+                        }
+
+                        return rest;
+                    };
+
+                    return removeYamlContents(pkg);
+                });
+
+                metadata["packages"] = packagesWithoutYamlContents;
             } catch (error) {
                 metadata["packages"] = `Error retrieving robot packages: ${error.message || error}`;
             }

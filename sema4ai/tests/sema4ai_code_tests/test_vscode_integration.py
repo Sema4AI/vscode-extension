@@ -8,8 +8,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
@@ -32,6 +30,8 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1079,9 +1079,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1678,10 +1679,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
