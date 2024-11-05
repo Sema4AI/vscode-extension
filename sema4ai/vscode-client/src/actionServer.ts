@@ -4,6 +4,7 @@ import { createEnvWithRobocorpHome, getRobocorpHome } from "./rcc";
 import path = require("path");
 import { OUTPUT_CHANNEL } from "./channel";
 import * as http from "http";
+import * as fs from "fs";
 import { listAndAskRobotSelection } from "./activities";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
 import { Tool, getToolVersion, downloadTool } from "./tools";
@@ -120,8 +121,20 @@ const startActionServerInternal = async (directory: Uri) => {
         return;
     }
 
+    const home = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(await getRobocorpHome());
     env["RC_ADD_SHUTDOWN_API"] = "1";
+
+    const externalApiPid = path.join(home, "sema4ai-studio", "external-api-server.pid");
+    if (fs.existsSync(externalApiPid)) {
+        const fileContent = JSON.parse(fs.readFileSync(externalApiPid, "utf-8"));
+
+        if (fileContent.port) {
+            process.env["SEMA4AI_CREDENTIAL_API"] = `http://localhost:${fileContent.port}/api/v1/ace-services`;
+        }
+    } else {
+        OUTPUT_CHANNEL.appendLine("Studio is not opened, cannot set the external API URL.");
+    }
 
     actionServerTerminal = window.createTerminal({
         name: "Sema4.ai: Action Server",
