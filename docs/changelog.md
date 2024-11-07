@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Set `SEMA4AI_CREDENTIAL_API` environment variable if port is communicated from Studio
 - Add packages and tools information when submitting an issue.
 - Update Action Server to `2.0.0`.
 - Update RCC to `v18.5.0`.
