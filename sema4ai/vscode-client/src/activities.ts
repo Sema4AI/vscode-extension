@@ -51,6 +51,7 @@ import {
 } from "./common";
 import { createActionPackage } from "./robo/actionPackage";
 import { createAgentPackage } from "./robo/agentPackage";
+import { langServer } from "./extension";
 
 export interface ListRobotSelectionOpts {
     showTaskPackages: boolean;
@@ -971,6 +972,11 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
 
     if (environment === undefined) {
         throw new Error("env argument is required.");
+    }
+
+    const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
+    if (externalApiUrl) {
+        environment["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
     }
 
     let condaPrefix = environment["CONDA_PREFIX"];
