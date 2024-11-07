@@ -1056,7 +1056,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             log.warning(
                 "Warning: Studio is not opened, cannot set the external API URL."
             )
-            return
+            return None
 
         with external_api_pid.open("r", encoding="utf-8") as file:
             import json
@@ -1079,10 +1079,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 return f"http://localhost:{file_content['port']}/api/v1/ace-services"
 
             log.warning("Warning: External API port is not opened.")
-            return
+            return None
 
         log.warning("Warning: External API port is not found.")
-        return
+        return None
 
     def _list_dev_tasks_in_thread(
         self, action_package_uri: str, monitor: IMonitor
