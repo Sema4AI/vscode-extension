@@ -122,7 +122,6 @@ const startActionServerInternal = async (directory: Uri) => {
         return;
     }
 
-    const home = await getRobocorpHome();
     const env = createEnvWithRobocorpHome(await getRobocorpHome());
     env["RC_ADD_SHUTDOWN_API"] = "1";
 
