@@ -1053,21 +1053,22 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         external_api_pid = home / "sema4ai-studio" / "external-api-server.pid"
 
         if not external_api_pid.exists():
-            log.warning(
-                "Warning: Studio is not opened, cannot set the external API URL."
-            )
             return None
 
-        with external_api_pid.open("r", encoding="utf-8") as file:
-            import json
+        try:
+            with external_api_pid.open("r", encoding="utf-8") as file:
+                import json
 
-            file_content = json.load(file)
+                file_content = json.load(file)
+        except Exception as e:
+            log.exception(f"Failed to read external-api-server.pid file: {e}")
+            return None
 
         def _is_port_open(port) -> bool:
             import socket
 
             try:
-                conn = socket.create_connection(("localhost", port), timeout=1)
+                conn = socket.create_connection(("localhost", port), timeout=0.05)
                 conn.close()
             except (OSError, ConnectionRefusedError):
                 return False
@@ -1078,10 +1079,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             if _is_port_open(file_content["port"]):
                 return f"http://localhost:{file_content['port']}/api/v1/ace-services"
 
-            log.warning("Warning: External API port is not opened.")
             return None
 
-        log.warning("Warning: External API port is not found.")
         return None
 
     def _list_dev_tasks_in_thread(
