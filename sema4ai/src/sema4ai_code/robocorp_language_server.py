@@ -25,6 +25,7 @@ from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
 from sema4ai_code import commands
+from sema4ai_code.action_server import get_default_sema4ai_home
 from sema4ai_code.agents.agent_spec_handler import ErrorCode
 from sema4ai_code.inspector.inspector_language_server import InspectorLanguageServer
 from sema4ai_code.protocols import (
@@ -1046,6 +1047,41 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(
             partial(self._list_dev_tasks_in_thread, action_package_uri)
         )
+
+    def m_get_external_api_url(self) -> str | None:
+        home = get_default_sema4ai_home()
+        external_api_pid = home / "sema4ai-studio" / "external-api-server.pid"
+
+        if not external_api_pid.exists():
+            return None
+
+        try:
+            with external_api_pid.open("r", encoding="utf-8") as file:
+                import json
+
+                file_content = json.load(file)
+        except Exception as e:
+            log.exception(f"Failed to read external-api-server.pid file: {e}")
+            return None
+
+        def _is_port_open(port) -> bool:
+            import socket
+
+            try:
+                conn = socket.create_connection(("localhost", port), timeout=0.05)
+                conn.close()
+            except (OSError, ConnectionRefusedError):
+                return False
+
+            return True
+
+        if "port" in file_content:
+            if _is_port_open(file_content["port"]):
+                return f"http://localhost:{file_content['port']}/api/v1/ace-services"
+
+            return None
+
+        return None
 
     def _list_dev_tasks_in_thread(
         self, action_package_uri: str, monitor: IMonitor

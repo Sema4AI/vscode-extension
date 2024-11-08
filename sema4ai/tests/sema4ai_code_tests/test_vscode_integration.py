@@ -18,6 +18,7 @@ from sema4ai_ls_core.ep_resolve_interpreter import (
 from sema4ai_ls_core.pluginmanager import PluginManager
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
+from sema4ai_code.action_server import get_default_sema4ai_home
 from sema4ai_code.inspector.common import (
     STATE_CLOSED,
     STATE_NOT_PICKING,
@@ -2979,3 +2980,65 @@ def test_run_dev_task(
 
     cwd = info.pop("cwd")
     assert cwd.endswith("action_package1")
+
+
+@pytest.mark.parametrize(
+    "pid_file_content, socket_side_effect, expected_result",
+    [
+        # Test 1: Normal case where the external API URL is returned
+        (
+            {"pid": 12345, "port": 8691},
+            None,
+            "http://localhost:8691/api/v1/ace-services",
+        ),
+        # Test 2: Socket connection error (e.g., port is not open)
+        (
+            {"pid": 12345, "port": 8691},
+            mock.MagicMock(side_effect=ConnectionRefusedError),
+            None,
+        ),
+        # Test 3: PID file is not found
+        (None, None, None),
+    ],
+    ids=[
+        "get_external_api_url",
+        "api_url_socket_error",
+        "pid_file_not_found",
+    ],
+)
+def test_get_external_api_url(
+    language_server_initialized,
+    tmpdir,
+    pid_file_content,
+    socket_side_effect,
+    expected_result,
+):
+    language_server = language_server_initialized
+
+    # Mock get_default_sema4ai_home to use tmpdir as the home directory for the test
+    with mock.patch(
+        "sema4ai_code.robocorp_language_server.get_default_sema4ai_home",
+        return_value=tmpdir,
+    ):
+        tmp_path = Path(tmpdir)
+        pid_file_path = tmp_path / "sema4ai-studio" / "external-api-server.pid"
+        pid_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if pid_file_content:
+            with pid_file_path.open("w", encoding="utf-8") as f:
+                json.dump(pid_file_content, f)
+
+        with mock.patch("socket.create_connection", side_effect=socket_side_effect):
+            result = language_server.request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": language_server.next_id(),
+                    "method": "getExternalApiUrl",
+                }
+            )
+
+        assert result["result"] == expected_result
+
+    # Cleanup: Remove the PID file after the test
+    if pid_file_content:
+        os.remove(str(pid_file_path))

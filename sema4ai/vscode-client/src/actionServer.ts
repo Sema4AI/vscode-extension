@@ -4,9 +4,11 @@ import { createEnvWithRobocorpHome, getRobocorpHome } from "./rcc";
 import path = require("path");
 import { OUTPUT_CHANNEL } from "./channel";
 import * as http from "http";
+import * as fs from "fs";
 import { listAndAskRobotSelection } from "./activities";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
 import { Tool, getToolVersion, downloadTool } from "./tools";
+import { langServer } from "./extension";
 
 const ACTION_SERVER_DEFAULT_PORT = 8082;
 const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
@@ -122,6 +124,11 @@ const startActionServerInternal = async (directory: Uri) => {
 
     const env = createEnvWithRobocorpHome(await getRobocorpHome());
     env["RC_ADD_SHUTDOWN_API"] = "1";
+
+    const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
+    if (externalApiUrl) {
+        env["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
+    }
 
     actionServerTerminal = window.createTerminal({
         name: "Sema4.ai: Action Server",
