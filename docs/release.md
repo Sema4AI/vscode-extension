@@ -1,13 +1,13 @@
 To release a stable new version:
 
 - Open a shell at the proper place (something as X:\sema4ai\vscode-extension\sema4ai)
-- Checkout the `master` branch and create a new branch from it (`release/2.7.1`)
-- Update version using `python -m dev set-version 2.7.1`
+- Checkout the `master` branch and create a new branch from it (`release/2.7.2`)
+- Update version using `python -m dev set-version 2.7.2`
 - Update README.md to add notes on features/fixes
 - Update changelog.md to add notes on features/fixes and set release date
-- Commit your changes using the following message: `Release Sema4.ai VSCode extension 2.7.1`
+- Commit your changes using the following message: `Release Sema4.ai VSCode extension 2.7.2`
 - Create PR
-- After PR is merged to master, update local repo and create a tag using `git tag sema4ai-2.7.1`
+- After PR is merged to master, update local repo and create a tag using `git tag sema4ai-2.7.2`
 
 To release a new pre-release version:
 

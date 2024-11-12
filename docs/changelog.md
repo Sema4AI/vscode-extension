@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.7.2 (2024-11-12)
+
 - Set `SEMA4AI_CREDENTIAL_API` environment variable if port is communicated from Studio
 - Add packages and tools information when submitting an issue.
 - Update Action Server to `2.0.0`.
