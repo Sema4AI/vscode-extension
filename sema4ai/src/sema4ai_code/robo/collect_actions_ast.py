@@ -61,7 +61,7 @@ def _iter_nodes(
                 yield stack, value
 
 
-def _collect_actions_from_file(p: Path) -> Iterator[ast_module.FunctionDef]:
+def _collect_actions_from_file(p: Path) -> Iterator[tuple[ast_module.FunctionDef, str]]:
     action_contents_file = p.read_bytes()
     ast = ast_module.parse(action_contents_file, "<string>")
     for _stack, node in _iter_nodes(ast, recursive=False):
@@ -72,8 +72,12 @@ def _collect_actions_from_file(p: Path) -> Iterator[ast_module.FunctionDef]:
                     decorator = decorator.func
 
                 # Case for @action
-                if isinstance(decorator, ast_module.Name) and decorator.id == "action":
-                    yield node
+                if isinstance(decorator, ast_module.Name) and decorator.id in [
+                    "action",
+                    "query",
+                    "predict",
+                ]:
+                    yield node, decorator.id
 
 
 class PositionTypedDict(TypedDict):
@@ -98,9 +102,12 @@ class ActionInfoTypedDict(TypedDict):
     range: RangeTypedDict
     name: str
     uri: str
+    kind: str
 
 
-def _make_action_info(uri: str, node: ast_module.FunctionDef) -> ActionInfoTypedDict:
+def _make_action_info(
+    uri: str, node: ast_module.FunctionDef, kind: str
+) -> ActionInfoTypedDict:
     coldelta = 4
 
     return {
@@ -113,6 +120,7 @@ def _make_action_info(uri: str, node: ast_module.FunctionDef) -> ActionInfoTyped
         },
         "name": node.name,
         "uri": uri,
+        "kind": kind,
     }
 
 
@@ -126,7 +134,9 @@ def iter_actions(root_directory: Path) -> Iterator[ActionInfoTypedDict]:
     for f in _collect_py_files(root_directory):
         if "action" in f.name:
             try:
-                for funcdef in _collect_actions_from_file(f):
-                    yield _make_action_info(uris.from_fs_path(str(f)), funcdef)
+                for funcdef, decorator_id in _collect_actions_from_file(f):
+                    yield _make_action_info(
+                        uris.from_fs_path(str(f)), funcdef, decorator_id
+                    )
             except Exception:
                 log.error(f"Unable to collect @actions from {f}")

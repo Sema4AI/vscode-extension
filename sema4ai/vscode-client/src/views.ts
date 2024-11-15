@@ -28,12 +28,12 @@ import { ActionResult } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { createActionInputs } from "./robo/actionInputs";
 
-export async function editInput(actionRobotEntry?: RobotEntry) {
-    if (!actionRobotEntry) {
+export async function editInput(actionName?: string, actionDirectory?: string) {
+    if (!actionName || !actionDirectory) {
         vscode.window.showErrorMessage("Unable to edit input: no target action entry defined for action.");
         return;
     }
-    const targetInput = await getTargetInputJson(actionRobotEntry.actionName, actionRobotEntry.robot.directory);
+    const targetInput = await getTargetInputJson(actionName, actionDirectory);
     let mustCreateInputs = !(await fileExists(targetInput));
     if (!mustCreateInputs) {
         const inputUri = vscode.Uri.file(targetInput);
@@ -43,10 +43,10 @@ export async function editInput(actionRobotEntry?: RobotEntry) {
     }
     if (mustCreateInputs) {
         const success = await createActionInputs(
-            vscode.Uri.file(actionRobotEntry.robot.directory),
-            actionRobotEntry.actionName,
+            vscode.Uri.file(actionDirectory),
+            actionName,
             targetInput,
-            actionRobotEntry.robot.directory
+            actionDirectory
         );
         if (!success) {
             return;

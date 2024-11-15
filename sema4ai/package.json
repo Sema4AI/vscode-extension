@@ -51,6 +51,7 @@
         "onCommand:sema4ai.robotsViewActionRun",
         "onCommand:sema4ai.robotsViewActionDebug",
         "onCommand:sema4ai.robotsViewActionEditInput",
+        "onCommand:sema4ai.configureActionInput",
         "onCommand:sema4ai.robotsViewActionOpen",
         "onCommand:sema4ai.runRobocorpsPythonTask",
         "onCommand:sema4ai.debugRobocorpsPythonTask",
@@ -445,6 +446,11 @@
                 "title": "Configure Action Input",
                 "category": "Sema4.ai",
                 "icon": "$(symbol-variable)"
+            },
+            {
+                "command": "sema4ai.configureActionInput",
+                "title": "Configure Action Input",
+                "category": "Sema4.ai"
             },
             {
                 "command": "sema4ai.robotsViewActionOpen",
@@ -1285,6 +1291,10 @@
                 },
                 {
                     "command": "sema4ai.robotsViewActionEditInput",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.configureActionInput",
                     "when": "false"
                 },
                 {

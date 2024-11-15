@@ -28,6 +28,7 @@ SEMA4AI_ROBOTS_VIEW_TASK_DEBUG = "sema4ai.robotsViewTaskDebug"  # Debug Task
 SEMA4AI_ROBOTS_VIEW_ACTION_RUN = "sema4ai.robotsViewActionRun"  # Launch Action
 SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG = "sema4ai.robotsViewActionDebug"  # Debug Action
 SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT = "sema4ai.robotsViewActionEditInput"  # Configure Action Input
+SEMA4AI_CONFIGURE_ACTION_INPUT = "sema4ai.configureActionInput"  # Configure Action Input
 SEMA4AI_ROBOTS_VIEW_ACTION_OPEN = "sema4ai.robotsViewActionOpen"  # Open Action
 SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK = "sema4ai.runRobocorpsPythonTask"  # Run Sema4.ai's Python Task
 SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK = "sema4ai.debugRobocorpsPythonTask"  # Debug Sema4.ai's Python Task

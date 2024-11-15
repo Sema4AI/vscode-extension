@@ -160,6 +160,7 @@ import {
     SEMA4AI_COLLAPSE_ALL_ENTRIES,
     SEMA4AI_IMPORT_ACTION_PACKAGE,
     SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
+    SEMA4AI_CONFIGURE_ACTION_INPUT,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -402,7 +403,12 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_RUN, (entry: RobotEntry) => views.runSelectedAction(true, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG, (entry: RobotEntry) => views.runSelectedAction(false, entry));
-    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) => views.editInput(entry));
+    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) =>
+        views.editInput(entry.actionName, entry.robot.directory)
+    );
+    C.register(SEMA4AI_CONFIGURE_ACTION_INPUT, (actionName?: string, actionDirectory?: string) =>
+        views.editInput(actionName, actionDirectory)
+    );
     C.register(SEMA4AI_ROBOTS_VIEW_ACTION_OPEN, (entry: RobotEntry) => views.openAction(entry));
     C.register(SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(true, args));
     C.register(SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(false, args));
