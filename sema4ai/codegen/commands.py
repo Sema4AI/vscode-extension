@@ -226,6 +226,13 @@ COMMANDS = [
         icon="$(symbol-variable)",
     ),
     Command(
+        "sema4ai.configureActionInput",
+        "Configure Action Input",
+        add_to_package_json=True,
+        server_handled=False,
+        hide_from_command_palette=True,
+    ),
+    Command(
         "sema4ai.robotsViewActionOpen",
         "Open Action",
         add_to_package_json=True,
