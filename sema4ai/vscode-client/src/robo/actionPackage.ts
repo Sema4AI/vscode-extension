@@ -185,6 +185,8 @@ export async function askForActionPackageAndDevTask(): Promise<ActionPackageAndD
                     };
                     items.push(item);
                 }
+            } else if (result.message) {
+                window.showErrorMessage(result.message);
             }
         } catch (error) {
             logError("Error collecting dev tasks.", error, "ACT_COLLECT_DEV_TASKS");
