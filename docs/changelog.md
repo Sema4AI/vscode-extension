@@ -1,13 +1,9 @@
 ## Unreleased
 
-## New in 2.7.3 (2024-11-20)
+## New in 2.8.0 (2024-11-20)
 
 - Listing actions now will include `query` and `predict` decorators.
 - Add `Configure Action Input` internal command.
-
-
-## New in 2.7.2 (2024-11-12)
-
 - Set `SEMA4AI_CREDENTIAL_API` environment variable if port is communicated from Studio
 - Add packages and tools information when submitting an issue.
 - Update Action Server to `2.0.0`.
@@ -19,9 +15,6 @@
   - `Run Action` (for `@action` decorated methods in `.py` files)
   - `Debug Action` (for `@action` decorated methods in `.py` files)
 - Fixed vulnerability when creating temp file to create terminal (it could create a `.bat` / `.sh` file in a directory which could be shared by multiple users).
-
-## New in 2.7.1 (2024-10-23)
-
 - Add `Import Action Package` command to sidebar UI.
 - Include Sema4ai actions when refreshing the agent spec.
 
