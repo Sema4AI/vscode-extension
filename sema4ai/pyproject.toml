@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sema4ai"
-version = "2.7.2"
+version = "2.7.3"
 description = "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development"
 authors = ["Fabio Zadrozny <fabio@robocorp.com>"]
 readme = "README.md"
