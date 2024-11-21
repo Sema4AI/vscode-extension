@@ -1,5 +1,10 @@
 ## Unreleased
 
+## New in 2.8.1 (2024-11-21)
+
+- Version bump due to error in deploy pipeline.
+- For more info see `New in 2.8.0`
+
 ## New in 2.8.0 (2024-11-20)
 
 - Listing actions now will include `query` and `predict` decorators.
