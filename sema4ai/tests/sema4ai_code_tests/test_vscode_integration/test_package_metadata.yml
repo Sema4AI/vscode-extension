@@ -1,7 +1,7 @@
 metadata:
   action_package_version: 0.0.1
   description: used for testing only
-  metadata_version: 2
+  metadata_version: 3
   name: test_action
   secrets: {}
 openapi.json:
@@ -71,5 +71,6 @@ openapi.json:
                   $ref: '#/components/schemas/HTTPValidationError'
             description: Validation Error
         summary: My Action
+        x-operation-kind: action
   servers:
   - url: http://localhost:8080
