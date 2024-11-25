@@ -28,7 +28,7 @@ from sema4ai_code.protocols import (
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
-ACTION_SERVER_VERSION = "2.2.0"
+ACTION_SERVER_VERSION = "2.3.0"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
