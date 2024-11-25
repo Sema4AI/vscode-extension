@@ -1,6 +1,6 @@
 ## Unreleased
 
-- Update Action Server to `2.1.0`.
+- Update Action Server to `2.3.0`.
 
 ## New in 2.8.1 (2024-11-21)
 
