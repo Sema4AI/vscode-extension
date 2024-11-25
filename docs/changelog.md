@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Update Action Server to `2.3.0`.
+
 ## New in 2.8.1 (2024-11-21)
 
 - Version bump due to error in deploy pipeline.
