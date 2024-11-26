@@ -1,7 +1,7 @@
 {
     "name": "sema4ai",
-    "displayName": "Sema4.ai",
-    "description": "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development",
+    "displayName": "Sema4.ai SDK",
+    "description": "Sema4.ai SDK: Visual Studio Code Extension for AI Agent, Actions and Automation Tasks development",
     "author": "Sema4.ai, Inc.",
     "homepage": "https://github.com/Sema4AI/vscode-extension//blob/master/sema4ai/README.md",
     "repository": {
