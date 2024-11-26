@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Update Action Server to `2.3.0`.
+- Update Agent CLI to `0.2.0`
 
 ## New in 2.8.1 (2024-11-21)
 
