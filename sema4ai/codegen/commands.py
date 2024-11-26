@@ -1013,6 +1013,12 @@ COMMANDS = [
         add_to_package_json=True,
         server_handled=False,
     ),
+    Command(
+        "sema4ai.getActionsMetadata",
+        "Get Actions Metadata",
+        server_handled=False,
+        hide_from_command_palette=True,
+    ),
 ]
 
 

@@ -1,0 +1,102 @@
+actions:
+- docs: ''
+  file: <tmpdir>/my_action.py
+  input_schema:
+    properties:
+      entry:
+        properties:
+          rows:
+            description: The rows that need to be added
+            items:
+              properties:
+                cells:
+                  description: Row cells
+                  items:
+                    type: string
+                  title: Cells
+                  type: array
+              required:
+              - cells
+              title: Row
+              type: object
+            title: Rows
+            type: array
+        required:
+        - rows
+        title: Entry
+        type: object
+    required:
+    - entry
+    type: object
+  line: 20
+  managed_params_schema: {}
+  name: my_action
+  options:
+    display_name: null
+    is_consequential: null
+    kind: action
+  output_schema:
+    description: ''
+    type: string
+- docs: ''
+  file: <tmpdir>/my_action.py
+  input_schema:
+    properties: {}
+    type: object
+  line: 24
+  managed_params_schema:
+    datasource:
+      type: DataSource
+  name: get_churn_data
+  options:
+    display_name: null
+    is_consequential: null
+    kind: query
+  output_schema:
+    description: ''
+    type: string
+- docs: ''
+  file: <tmpdir>/my_action.py
+  input_schema:
+    properties:
+      limit:
+        default: 10
+        description: ''
+        title: Limit
+        type: integer
+    type: object
+  line: 29
+  managed_params_schema:
+    datasource:
+      type: DataSource
+  name: predict_churn
+  options:
+    display_name: null
+    is_consequential: null
+    kind: predict
+  output_schema:
+    description: ''
+    type: string
+actions_spec_version: v2
+data:
+  datasources:
+  - created_table: churn
+    defined_at:
+      file: datasources.py
+      line: 7
+    description: Datasource which provides a table named 'churn' with customer churn
+      data.
+    engine: files
+    file: files/customer-churn.csv
+    name: files
+  - defined_at:
+      file: datasources.py
+      line: 17
+    description: Datasource which provides along with a table named `customer_churn_predictor`.
+    engine: prediction:lightwood
+    model_name: customer_churn_predictor
+    name: models
+    setup_sql:
+    - CREATE MODEL IF NOT EXISTS customer_churn_predictor FROM files (SELECT * FROM
+      churn) PREDICT Churn;
+data_spec_version: v2
