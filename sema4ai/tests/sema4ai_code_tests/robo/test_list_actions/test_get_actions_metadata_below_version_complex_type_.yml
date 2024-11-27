@@ -146,7 +146,7 @@ actions:
   output_schema:
     description: ''
     type: string
-actions-spec-version: v1
+actions-spec-version: v2
 data:
   datasources: []
-data-spec-version: v1
+data-spec-version: v2

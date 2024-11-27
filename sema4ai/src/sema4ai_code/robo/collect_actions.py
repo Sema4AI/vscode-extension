@@ -14,10 +14,10 @@ log = get_logger(__name__)
 _MetadataType = TypedDict(
     "_MetadataType",
     {
-        "actions-spec-version": str,
-        "actions": list[dict] | None,
+        "actions_spec_version": str,
+        "actions": list[dict],
         "data": dict,
-        "data-spec-version": str,
+        "data_spec_version": str,
     },
 )
 
@@ -246,10 +246,10 @@ def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult
         result = _call_sema4ai_actions(pm, monitor, "list", uri)
         if result.success:
             metadata: _MetadataType = {
-                "actions-spec-version": "v1",
+                "actions_spec_version": "v2",
                 "actions": result.result or [],
                 "data": {"datasources": []},
-                "data-spec-version": "v1",
+                "data_spec_version": "v2",
             }
             result.result = metadata
         return result
