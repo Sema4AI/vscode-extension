@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
@@ -307,17 +308,27 @@ def normalize_paths(data, base_path):
     Returns:
         Normalized data with paths replaced by a placeholder.
     """
+    base_path = Path(base_path).resolve()  # Resolve to an absolute, normalized path
+
+    def replace_path(value):
+        try:
+            path_value = Path(value).resolve()
+            if base_path in path_value.parents or base_path == path_value:
+                return (
+                    str(path_value)
+                    .replace(str(base_path), "<tmpdir>")
+                    .replace("\\", "/")
+                )
+        except Exception:
+            pass
+        return value
+
     if isinstance(data, dict):
         return {k: normalize_paths(v, base_path) for k, v in data.items()}
     elif isinstance(data, list):
         return [normalize_paths(item, base_path) for item in data]
-    elif isinstance(data, str) and base_path in data:
-        normalized_path = data.replace(base_path, "<tmpdir>")
-        if "\\" in base_path:
-            normalized_path = normalized_path.replace(
-                base_path.replace("\\", "/"), "<tmpdir>"
-            )
-        return normalized_path
+    elif isinstance(data, str):
+        return replace_path(data)
     return data
 
 
