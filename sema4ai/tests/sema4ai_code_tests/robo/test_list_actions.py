@@ -312,7 +312,12 @@ def normalize_paths(data, base_path):
     elif isinstance(data, list):
         return [normalize_paths(item, base_path) for item in data]
     elif isinstance(data, str) and base_path in data:
-        return data.replace(base_path, "<tmpdir>")
+        normalized_path = data.replace(base_path, "<tmpdir>")
+        if "\\" in base_path:
+            normalized_path = normalized_path.replace(
+                base_path.replace("\\", "/"), "<tmpdir>"
+            )
+        return normalized_path
     return data
 
 
