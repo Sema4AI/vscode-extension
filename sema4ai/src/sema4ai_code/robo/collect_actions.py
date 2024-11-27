@@ -11,6 +11,16 @@ from sema4ai_ls_core.protocols import ActionResult, IMonitor
 
 log = get_logger(__name__)
 
+_MetadataType = TypedDict(
+    "MetadataType",
+    {
+        "actions-spec-version": str,
+        "actions": list[dict] | None,
+        "data": dict,
+        "data-spec-version": str,
+    },
+)
+
 
 class ExtractedActionInfo(TypedDict):
     # Default values that can be used to bootstrap the action input.
@@ -147,7 +157,7 @@ def _execute_within_user_env(
 
 def _call_sema4ai_actions(
     pm: PluginManager, monitor: IMonitor, argument: str, uri: str
-) -> ActionResult[list[dict]]:
+) -> ActionResult:
     """Note: the way this works is that we'll launch a separate script using the user
     environment to collect the actions information.
 
@@ -208,7 +218,7 @@ def _get_actions_version(
     """
 
     result = _execute_within_user_env(pm, uri, args, monitor, cwd, returns_json=False)
-    if result.success:
+    if result.success and result.result:
         try:
             result.result = tuple(int(x) for x in result.result.strip().split("."))
         except Exception:
@@ -225,19 +235,19 @@ def collect_actions_full_and_slow(
     return _call_sema4ai_actions(pm, monitor, "list", uri)
 
 
-def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult:
+def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult[dict]:
     actions_library_result = _get_actions_version(pm, uri, monitor)
     if not actions_library_result.success:
         return actions_library_result
 
-    if actions_library_result.result > (1, 0, 1):
+    if actions_library_result.result and actions_library_result.result > (1, 0, 1):
         return _call_sema4ai_actions(pm, monitor, "metadata", uri)
     else:
         result = _call_sema4ai_actions(pm, monitor, "list", uri)
         if result.success:
-            metadata = {
+            metadata: _MetadataType = {
                 "actions-spec-version": "v1",
-                "actions": result.result,
+                "actions": result.result or [],
                 "data": {"datasources": []},
                 "data-spec-version": "v1",
             }
