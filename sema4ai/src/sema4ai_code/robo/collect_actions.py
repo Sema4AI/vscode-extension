@@ -12,7 +12,7 @@ from sema4ai_ls_core.protocols import ActionResult, IMonitor
 log = get_logger(__name__)
 
 _MetadataType = TypedDict(
-    "MetadataType",
+    "_MetadataType",
     {
         "actions-spec-version": str,
         "actions": list[dict] | None,
