@@ -1102,8 +1102,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 )
 
             result = get_metadata(self._pm, action_package_path, monitor)
-            if not result.success:
-                return result.as_dict()
         except Exception as e:
             log.exception("Error collecting actions metadata.")
             return dict(
@@ -1112,7 +1110,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 result=None,
             )
 
-        return dict(success=True, message=None, result=result.result)
+        return result.as_dict()
 
     def m_get_actions_metadata(
         self, action_package_path: str

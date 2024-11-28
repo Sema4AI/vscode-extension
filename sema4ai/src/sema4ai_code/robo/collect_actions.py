@@ -196,7 +196,7 @@ def _call_sema4ai_actions(
 
 def _get_actions_version(
     pm: PluginManager, uri: str, monitor: IMonitor
-) -> ActionResult:
+) -> ActionResult[tuple[int, int, int]]:
     from pathlib import Path
 
     from sema4ai_ls_core import uris
@@ -222,9 +222,9 @@ def _get_actions_version(
         try:
             result.result = tuple(int(x) for x in result.result.strip().split("."))
         except Exception:
-            result.message = error_msg
+            return ActionResult.make_failure(error_msg)
     else:
-        result.message = error_msg
+        return ActionResult.make_failure(error_msg)
 
     return result
 
@@ -238,7 +238,9 @@ def collect_actions_full_and_slow(
 def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult[dict]:
     actions_library_result = _get_actions_version(pm, uri, monitor)
     if not actions_library_result.success:
-        return actions_library_result
+        return ActionResult.make_failure(
+            actions_library_result.message or "Unable to get `sema4ai.actions` version"
+        )
 
     if actions_library_result.result and actions_library_result.result > (1, 0, 1):
         return _call_sema4ai_actions(pm, monitor, "metadata", uri)
