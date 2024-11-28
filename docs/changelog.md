@@ -1,10 +1,13 @@
 ## Unreleased
 
+- Add `sema4ai.getActionsMetadata` command
+- Add `query` and `predict` actions to UI
 - Update Action Server to `2.3.0`.
 - Extension Display Name updated to `Sema4.ai SDK`.
 - New icons for the extension.
 - Aligned the release details for the extension
-
+- Update Agent CLI to `0.2.1`
+- Add `Start Data Server` and `Stop Data Server` commands 
 ## New in 2.8.1 (2024-11-21)
 
 - Version bump due to error in deploy pipeline.

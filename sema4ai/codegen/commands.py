@@ -1013,6 +1013,24 @@ COMMANDS = [
         add_to_package_json=True,
         server_handled=False,
     ),
+    Command(
+        "sema4ai.getActionsMetadata",
+        "Get Actions Metadata",
+        server_handled=False,
+        hide_from_command_palette=True,
+    ),
+    Command(
+        "sema4ai.startDataServer",
+        "Start Data Server",
+        server_handled=False,
+        add_to_package_json=True,
+    ),
+    Command(
+        "sema4ai.stopDataServer",
+        "Stop Data Server",
+        server_handled=False,
+        add_to_package_json=True,
+    ),
 ]
 
 

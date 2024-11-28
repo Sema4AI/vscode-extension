@@ -390,8 +390,8 @@ export async function runActionFromActionPackage(
     if (!isV2) {
         window.showWarningMessage(
             `The format of the input file is not v2.
-Please remove the contents of the file (${multiTargetInput}) and relaunch the action to regenerate 
-the input file in the new format. The launch will proceed with the current values, but it's 
+Please remove the contents of the file (${multiTargetInput}) and relaunch the action to regenerate
+the input file in the new format. The launch will proceed with the current values, but it's
 advised to regenerate it as it may not work with future versions of the extension.`
         );
     }
@@ -1037,4 +1037,17 @@ export async function afterActionPackageCreated(targetDir: string, agentSpecPath
             throw new Error(refreshResult.message || "Unknown error");
         }
     }
+}
+
+export async function getActionsMetadata(actionPackagePath: string) {
+    const metadataResult: ActionResult<{ [key: string]: any }> = await langServer.sendRequest("getActionsMetadata", {
+        "action_package_path": actionPackagePath,
+    });
+
+    if (!metadataResult["success"]) {
+        throw new Error(metadataResult["message"] || "Unknown error");
+    }
+
+    const metadata = metadataResult["result"];
+    return metadata;
 }

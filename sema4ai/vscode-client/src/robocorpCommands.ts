@@ -145,3 +145,6 @@ export const SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL = "sema4ai.updateAgentVersion
 export const SEMA4AI_COLLAPSE_ALL_ENTRIES = "sema4ai.collapseAllEntries";  // Collapse All Entries
 export const SEMA4AI_IMPORT_ACTION_PACKAGE = "sema4ai.importActionPackage";  // Import Action Package
 export const SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK = "sema4ai.runActionPackageDevTask";  // Run dev-task (from Action Package)
+export const SEMA4AI_GET_ACTIONS_METADATA = "sema4ai.getActionsMetadata";  // Get Actions Metadata
+export const SEMA4AI_START_DATA_SERVER = "sema4ai.startDataServer";  // Start Data Server
+export const SEMA4AI_STOP_DATA_SERVER = "sema4ai.stopDataServer";  // Stop Data Server

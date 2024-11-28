@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
 
 import pytest
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
-from sema4ai_ls_core.ep_resolve_interpreter import IInterpreterInfo
+
+from sema4ai_code.robo.collect_actions import get_metadata
 
 
 def test_list_actions(
@@ -24,18 +26,6 @@ def test_list_actions(
     for entry in result:
         entry["uri"] = os.path.basename(entry["uri"])
     data_regression.check(result)
-
-
-class ResolveInterpreterCurrentEnv:
-    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
-        """
-        Provides a customized interpreter for a given document uri.
-        """
-        import sys
-
-        from sema4ai_ls_core.ep_resolve_interpreter import DefaultInterpreterInfo
-
-        return DefaultInterpreterInfo("interpreter_id", sys.executable, {}, [])
 
 
 def multiple_types() -> str:
@@ -207,6 +197,73 @@ def my_action(google_secret: OAuth2Secret[
 """
 
 
+def data_types() -> str:
+    return """
+from datasources import ChurnPredictionDataSource, FileChurnDataSource
+from sema4ai.actions import action, Secret, OAuth2Secret
+from sema4ai.data import DataSource, query, predict
+from typing import List, Literal
+import pydantic
+
+from typing import Annotated
+
+from pydantic import BaseModel, Field
+
+
+class Row(BaseModel):
+    cells: Annotated[list[str], Field(description="Row cells")]
+
+
+class Table(BaseModel):
+    rows: Annotated[list[Row], Field(description="The rows that need to be added")]
+
+@action
+def my_action(entry: Table) -> str:
+    return "result"
+
+@query
+def get_churn_data(datasource: FileChurnDataSource) -> str:
+    result = datasource.query("SELECT * FROM churn LIMIT 10;")
+    return result.to_markdown()
+
+@predict
+def predict_churn(
+    datasource: Annotated[DataSource, ChurnPredictionDataSource | FileChurnDataSource],
+    limit: int=10,
+) -> str:
+    sql = "SELECT churn FROM churn ORDER BY churn DESC"
+    result = datasource.query(sql, params={"limit": limit})
+    return result.to_markdown()
+"""
+
+
+def data_sources() -> str:
+    return """
+from typing import Annotated
+from sema4ai.data import DataSource, DataSourceSpec
+
+FileChurnDataSource = Annotated[
+    DataSource,
+    DataSourceSpec(
+        created_table="churn",
+        file="files/customer-churn.csv",
+        engine="files",
+        description="Datasource which provides a table named 'churn' with customer churn data.",
+    ),
+]
+
+ChurnPredictionDataSource = Annotated[
+    DataSource,
+    DataSourceSpec(
+        model_name="customer_churn_predictor",
+        engine="prediction:lightwood",
+        description="Datasource which provides along with a table named `customer_churn_predictor`.",
+        setup_sql="CREATE MODEL IF NOT EXISTS customer_churn_predictor FROM files (SELECT * FROM churn) PREDICT Churn;",
+    ),
+]
+"""
+
+
 @pytest.mark.parametrize(
     "scenario",
     [
@@ -217,33 +274,106 @@ def my_action(google_secret: OAuth2Secret[
         complex_type,
     ],
 )
-def test_list_actions_full(tmpdir, scenario, data_regression) -> None:
-    from pathlib import Path
-
-    from sema4ai_ls_core import pluginmanager
-    from sema4ai_ls_core.ep_resolve_interpreter import EPResolveInterpreter
-    from sema4ai_ls_core.jsonrpc.monitor import Monitor
-
+def test_list_actions_full(
+    tmpdir, actions_version_fixture, scenario, data_regression
+) -> None:
     from sema4ai_code.robo.collect_actions import (
         collect_actions_full_and_slow,
         extract_info,
     )
 
-    root = Path(tmpdir) / "check"
-    root.mkdir(parents=True, exist_ok=True)
-
-    pm = pluginmanager.PluginManager()
-    pm.register(EPResolveInterpreter, ResolveInterpreterCurrentEnv)
+    actions_version, pm, monitor, uri, root = actions_version_fixture
 
     action_path = root / "my_action.py"
     action_path.write_text(scenario(), "utf-8")
 
     uri = uris.from_fs_path(str(root))
 
-    monitor = Monitor()
     result = collect_actions_full_and_slow(pm, uri, monitor)
     assert result.success, result.message
     lst = result.result
     assert lst
     action_name_to_schema = extract_info(lst, str(root))
     data_regression.check(action_name_to_schema)
+
+
+def normalize_paths(data, base_path):
+    """
+    Recursively replace dynamic paths in the data with a fixed placeholder.
+
+    Args:
+        data: The data structure to normalize (dict, list, str).
+        base_path: The base temporary directory path to replace.
+
+    Returns:
+        Normalized data with paths replaced by a placeholder.
+    """
+    base_path = Path(base_path).resolve()  # Resolve to an absolute, normalized path
+
+    def replace_path(value):
+        try:
+            path_value = Path(value).resolve()
+            if base_path in path_value.parents or base_path == path_value:
+                return (
+                    str(path_value)
+                    .replace(str(base_path), "<tmpdir>")
+                    .replace("\\", "/")
+                )
+        except Exception:
+            pass
+        return value
+
+    if isinstance(data, dict):
+        return {k: normalize_paths(v, base_path) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [normalize_paths(item, base_path) for item in data]
+    elif isinstance(data, str):
+        return replace_path(data)
+    return data
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [complex_type, data_types],
+)
+def test_get_actions_metadata_above_version(
+    data_regression, actions_version_fixture, scenario
+) -> None:
+    actions_version, pm, monitor, uri, root = actions_version_fixture
+    if actions_version <= (1, 0, 1):
+        pytest.skip("Skipping test for actions version <= 1.0.1")
+
+    action_path = root / "my_action.py"
+    action_path.write_text(scenario(), "utf-8")
+
+    if "query" in scenario():
+        datasources_path = root / "datasources.py"
+        datasources_path.write_text(data_sources(), "utf-8")
+
+    result = get_metadata(pm, uri, monitor)
+    assert result.success, result.message
+
+    lst = normalize_paths(result.result, str(root))
+    assert lst
+
+    data_regression.check(lst)
+
+
+@pytest.mark.parametrize("scenario", [complex_type])
+def test_get_actions_metadata_below_version(
+    data_regression, actions_version_fixture, scenario
+) -> None:
+    actions_version, pm, monitor, uri, root = actions_version_fixture
+    if actions_version > (1, 0, 1):
+        pytest.skip("Skipping test for actions version > 1.0.1")
+
+    action_path = root / "my_action.py"
+    action_path.write_text(scenario(), "utf-8")
+
+    result = get_metadata(pm, uri, monitor)
+    assert result.success, result.message
+
+    lst = normalize_paths(result.result, str(root))
+    assert lst
+
+    data_regression.check(lst)

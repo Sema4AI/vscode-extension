@@ -64,6 +64,7 @@ export interface IActionInfo {
     uri: string;
     name: string;
     range: Range;
+    kind: string;
 }
 
 export interface ActionResult<T> {
