@@ -282,6 +282,8 @@ def test_list_actions_full(
         extract_info,
     )
 
+    root: Path
+    uri: str
     actions_version, pm, monitor, uri, root = actions_version_fixture
 
     action_path = root / "my_action.py"
@@ -289,7 +291,7 @@ def test_list_actions_full(
 
     uri = uris.from_fs_path(str(root))
 
-    result = collect_actions_full_and_slow(pm, uri, monitor)
+    result = collect_actions_full_and_slow(pm, uri, str(root), monitor)
     assert result.success, result.message
     lst = result.result
     assert lst

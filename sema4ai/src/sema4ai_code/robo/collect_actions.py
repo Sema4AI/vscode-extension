@@ -156,7 +156,11 @@ def _execute_within_user_env(
 
 
 def _call_sema4ai_actions(
-    pm: PluginManager, monitor: IMonitor, argument: str, uri: str
+    pm: PluginManager,
+    monitor: IMonitor,
+    argument: str,
+    uri: str,
+    cwd: str | None = None,
 ) -> ActionResult:
     """Note: the way this works is that we'll launch a separate script using the user
     environment to collect the actions information.
@@ -183,13 +187,26 @@ def _call_sema4ai_actions(
         "--skip-lint",
     ]
 
+    search_cwd_from: str = ""
     if not path.is_dir():
         # If a file is given, we'll use the glob to list the actions just in that file.
         args.append("--glob")
         args.append(file_name)
-        cwd = str(path.parent)
+        search_cwd_from = str(path.parent)
     else:
-        cwd = str(path)
+        search_cwd_from = str(path)
+
+    if cwd is None:
+        p = Path(search_cwd_from)
+        while True:
+            if (p / "package.yaml").exists():
+                cwd = str(p)
+                break
+            if not p.parent or p.parent == p:
+                # Couldn't find package.yaml, use the directory where we started searching from!
+                cwd = search_cwd_from
+                break
+            p = p.parent
 
     return _execute_within_user_env(pm, uri, args, monitor, cwd)
 
@@ -230,9 +247,11 @@ def _get_actions_version(
 
 
 def collect_actions_full_and_slow(
-    pm: PluginManager, uri: str, monitor: IMonitor
+    pm: PluginManager, uri: str, action_package_yaml_directory: str, monitor: IMonitor
 ) -> ActionResult:
-    return _call_sema4ai_actions(pm, monitor, "list", uri)
+    return _call_sema4ai_actions(
+        pm, monitor, "list", uri, cwd=action_package_yaml_directory
+    )
 
 
 def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult[dict]:

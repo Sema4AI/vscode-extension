@@ -124,19 +124,29 @@ def _make_action_info(
     }
 
 
+DEFAULT_ACTION_SEARCH_GLOB = (
+    "*action*.py|*query*.py|*queries*.py|*predict*.py|*datasource*.py|*data_source*.py"
+)
+
+globs = DEFAULT_ACTION_SEARCH_GLOB.split("|")
+
+
 def iter_actions(root_directory: Path) -> Iterator[ActionInfoTypedDict]:
     """
     Iterates over the actions just by using the AST (this means that it doesn't
     give complete information, rather, it is a fast way to provide just simple
     metadata such as the action name and location).
     """
+    import fnmatch
+
     f: Path
     for f in _collect_py_files(root_directory):
-        if "action" in f.name:
-            try:
-                for funcdef, decorator_id in _collect_actions_from_file(f):
-                    yield _make_action_info(
-                        uris.from_fs_path(str(f)), funcdef, decorator_id
-                    )
-            except Exception:
-                log.error(f"Unable to collect @actions from {f}")
+        for glob in globs:
+            if fnmatch.fnmatch(f.name, glob):
+                try:
+                    for funcdef, decorator_id in _collect_actions_from_file(f):
+                        yield _make_action_info(
+                            uris.from_fs_path(str(f)), funcdef, decorator_id
+                        )
+                except Exception:
+                    log.error(f"Unable to collect @action/@query/@predict from {f}")

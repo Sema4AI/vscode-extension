@@ -7,7 +7,11 @@
 - New icons for the extension.
 - Aligned the release details for the extension
 - Update Agent CLI to `0.2.1`
-- Add `Start Data Server` and `Stop Data Server` commands 
+- Add `Start Data Server` and `Stop Data Server` commands
+- Search for actions/queries/predictions considering all glob patterns supported by `sema4ai.actions`.
+- Use `package.yaml` directory as the `cwd` when searching for actions/queries/predictions if available (otherwise imports could fail).
+- Show progress when creating the input file for an action/query/prediction.
+
 ## New in 2.8.1 (2024-11-21)
 
 - Version bump due to error in deploy pipeline.

@@ -789,7 +789,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 )
 
             result = collect_actions_full_and_slow(
-                self._pm, action_package_uri, monitor
+                self._pm, action_package_uri, action_package_yaml_directory, monitor
             )
             if not result.success:
                 return result.as_dict()
