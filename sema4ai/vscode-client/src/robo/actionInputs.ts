@@ -55,7 +55,34 @@ export const createActionInputs = async (
     targetInput: string,
     actionPackageYamlDirectory: string
 ): Promise<boolean> => {
+    const result = await window.withProgress(
+        {
+            location: vscode.ProgressLocation.Window,
+            title: "Creating input file",
+            cancellable: false,
+        },
+        async (progress) => {
+            return await _createActionInputs(
+                actionFileUri,
+                actionName,
+                targetInput,
+                actionPackageYamlDirectory,
+                progress
+            );
+        }
+    );
+    return result;
+};
+
+const _createActionInputs = async (
+    actionFileUri: vscode.Uri,
+    actionName: string,
+    targetInput: string,
+    actionPackageYamlDirectory: string,
+    progress: vscode.Progress<{ message?: string; increment?: number }>
+): Promise<boolean> => {
     try {
+        progress.report({ message: "Listing actions/queries/predictions in the package" });
         const result: any = await langServer.sendRequest("listActionsFullAndSlow", {
             action_package_uri: actionFileUri.toString(),
             action_package_yaml_directory: actionPackageYamlDirectory,
