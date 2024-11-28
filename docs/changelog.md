@@ -1,6 +1,9 @@
 ## Unreleased
 
 - Update Action Server to `2.3.0`.
+- Extension Display Name updated to `Sema4.ai SDK`.
+- New icons for the extension.
+- Aligned the release details for the extension
 
 ## New in 2.8.1 (2024-11-21)
 
