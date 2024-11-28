@@ -4,6 +4,7 @@
 - Add `query` and `predict` actions to UI
 - Update Action Server to `2.3.0`.
 - Update Agent CLI to `0.2.1`
+- Add `Start Data Server` and `Stop Data Server` commands 
 
 ## New in 2.8.1 (2024-11-21)
 
