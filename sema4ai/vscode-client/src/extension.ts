@@ -162,6 +162,8 @@ import {
     SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
     SEMA4AI_CONFIGURE_ACTION_INPUT,
     SEMA4AI_GET_ACTIONS_METADATA,
+    SEMA4AI_START_DATA_SERVER,
+    SEMA4AI_STOP_DATA_SERVER,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -202,6 +204,7 @@ import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } 
 import { LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
+import { verifyDataExtensionIsInstalled } from "./dataExtension";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -520,6 +523,16 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         runActionPackageDevTask(devTaskInfo)
     );
     C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
+    C.register(SEMA4AI_START_DATA_SERVER, async () => {
+        if (await verifyDataExtensionIsInstalled()) {
+            await commands.executeCommand("mysql.dataserver.start");
+        }
+    });
+    C.register(SEMA4AI_STOP_DATA_SERVER, async () => {
+        if (await verifyDataExtensionIsInstalled()) {
+            await commands.executeCommand("mysql.dataserver.stop");
+        }
+    });
 }
 
 async function clearEnvAndRestart() {
