@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `sema4ai.getActionsMetadata` command
+- Add `query` and `predict` actions to UI
 - Update Action Server to `2.3.0`.
 - Update Agent CLI to `0.2.1`
 

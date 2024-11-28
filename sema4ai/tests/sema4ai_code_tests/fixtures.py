@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.ep_resolve_interpreter import IInterpreterInfo
 from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 from sema4ai_code.protocols import ActionResult, IRcc
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.inspector.web._web_inspector import PickedLocatorTypedDict
@@ -452,13 +453,12 @@ def language_server_initialized(
 def patch_pypi_cloud(monkeypatch):
     import datetime
 
+    from sema4ai_code import hover
+    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
     from sema4ai_code_tests.deps.cloud_mock_data import (
         JQ_PYPI_MOCK_DATA,
         RPAFRAMEWORK_PYPI_MOCK_DATA,
     )
-
-    from sema4ai_code import hover
-    from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -484,10 +484,9 @@ def patch_pypi_cloud(monkeypatch):
 def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     import datetime
 
-    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
-
     from sema4ai_code import hover
     from sema4ai_code.vendored_deps.package_deps.pypi_cloud import PyPiCloud
+    from sema4ai_code_tests.deps.cloud_mock_data import RPAFRAMEWORK_PYPI_MOCK_DATA
 
     def _get_json_from_cloud(self, url):
         if url == "https://pypi.org/pypi/rpaframework/json":
@@ -639,3 +638,42 @@ def create_agent_and_action(
     assert result["success"]
 
     return agent_dir
+
+
+class ResolveInterpreterCurrentEnv:
+    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
+        """
+        Provides a customized interpreter for a given document uri.
+        """
+        import sys
+
+        from sema4ai_ls_core.ep_resolve_interpreter import DefaultInterpreterInfo
+
+        return DefaultInterpreterInfo("interpreter_id", sys.executable, {}, [])
+
+
+@pytest.fixture
+def actions_version_fixture(tmpdir):
+    from sema4ai_ls_core import pluginmanager, uris
+    from sema4ai_ls_core.ep_resolve_interpreter import EPResolveInterpreter
+    from sema4ai_ls_core.jsonrpc.monitor import Monitor
+
+    from sema4ai_code.robo.collect_actions import _get_actions_version
+
+    root = Path(tmpdir) / "check_version"
+    root.mkdir(parents=True, exist_ok=True)
+
+    pm = pluginmanager.PluginManager()
+    pm.register(EPResolveInterpreter, ResolveInterpreterCurrentEnv)
+
+    uri = uris.from_fs_path(str(root))
+    monitor = Monitor()
+
+    actions_library_result = _get_actions_version(pm, uri, monitor)
+    if not actions_library_result.success:
+        raise RuntimeError(
+            f"Failed to determine actions version: {actions_library_result.message}"
+        )
+
+    actions_version = actions_library_result.result
+    return actions_version, pm, monitor, uri, root

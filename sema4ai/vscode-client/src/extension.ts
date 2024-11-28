@@ -161,6 +161,7 @@ import {
     SEMA4AI_IMPORT_ACTION_PACKAGE,
     SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
     SEMA4AI_CONFIGURE_ACTION_INPUT,
+    SEMA4AI_GET_ACTIONS_METADATA,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -186,6 +187,7 @@ import {
     publishActionPackage,
     buildActionPackage,
     openMetadata,
+    getActionsMetadata,
 } from "./robo/actionPackage";
 import { oauth2Logout } from "./robo/oauth2InInput";
 import {
@@ -517,6 +519,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK, async (devTaskInfo: DevTaskInfo | undefined) =>
         runActionPackageDevTask(devTaskInfo)
     );
+    C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
 }
 
 async function clearEnvAndRestart() {

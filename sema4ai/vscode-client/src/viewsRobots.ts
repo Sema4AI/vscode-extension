@@ -231,6 +231,11 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                     );
                     if (result.success) {
                         let actions: IActionInfo[] = result.result;
+                        const iconMapping = {
+                            "query": "database",
+                            "predict": "eye",
+                            "action": "circle",
+                        };
                         for (const action of actions) {
                             const uri = vscode.Uri.parse(action.uri);
                             children.push({
@@ -239,7 +244,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                                 "robot": element.robot,
                                 "uri": uri,
                                 "action_package_uri": element.uri,
-                                "iconPath": "circle",
+                                "iconPath": iconMapping[action.kind],
                                 "type": RobotEntryType.Action,
                                 "parent": element,
                                 "range": action.range,

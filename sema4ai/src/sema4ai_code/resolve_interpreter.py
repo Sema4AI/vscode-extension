@@ -235,11 +235,7 @@ Full error message
         pythonpath_lst: list[str]
 
         if robot_yaml_file_info is not None:
-            pythonpath_lst = (
-                robot_yaml_file_info.yaml_contents.get("PYTHONPATH", [])
-                if robot_yaml_file_info
-                else None
-            )
+            pythonpath_lst = robot_yaml_file_info.yaml_contents.get("PYTHONPATH", [])
         else:
             pythonpath_lst = conda_or_package_file_info.yaml_contents.get(
                 "pythonpath", []

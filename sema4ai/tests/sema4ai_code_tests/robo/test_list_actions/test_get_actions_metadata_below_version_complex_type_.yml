@@ -1,0 +1,152 @@
+actions:
+- docs: ''
+  file: <tmpdir>/my_action.py
+  input_schema:
+    properties:
+      entry:
+        properties:
+          form:
+            properties:
+              elements:
+                default: []
+                description: A list of form elements
+                items:
+                  properties:
+                    aria_label:
+                      default: ''
+                      description: The aria label of the form element
+                      title: Aria Label
+                      type: string
+                    class_:
+                      default: ''
+                      description: The class of the form element
+                      title: 'Class '
+                      type: string
+                    count:
+                      default: 1
+                      description: The count of the form element
+                      title: Count
+                      type: integer
+                    id:
+                      default: ''
+                      description: The id of the form element
+                      title: Id
+                      type: string
+                    name:
+                      default: ''
+                      description: The name of the form element
+                      title: Name
+                      type: string
+                    options:
+                      default: []
+                      description: A list of select options
+                      items:
+                        properties:
+                          text:
+                            description: The text of the option
+                            title: Text
+                            type: string
+                          value:
+                            description: The value of the option
+                            title: Value
+                            type: string
+                        required:
+                        - value
+                        - text
+                        title: Option
+                        type: object
+                      title: Options
+                      type: array
+                    placeholder:
+                      default: ''
+                      description: The placeholder of the form element
+                      title: Placeholder
+                      type: string
+                    text:
+                      default: ''
+                      description: The text of the form element
+                      title: Text
+                      type: string
+                    type:
+                      description: The type of the form element
+                      title: Type
+                      type: string
+                    value_to_fill:
+                      default: ''
+                      description: The value to fill in the form element
+                      title: Value To Fill
+                      type: string
+                    value_type:
+                      default: ''
+                      description: The type of the form element value
+                      title: Value Type
+                      type: string
+                  required:
+                  - type
+                  title: FormElement
+                  type: object
+                title: Elements
+                type: array
+              url:
+                description: The URL of the website
+                title: Url
+                type: string
+            required:
+            - url
+            title: Form
+            type: object
+          links:
+            properties:
+              links:
+                default: []
+                description: A list of links
+                items:
+                  properties:
+                    href:
+                      description: The URL of the link
+                      title: Href
+                      type: string
+                    text:
+                      description: The text of the link
+                      title: Text
+                      type: string
+                  required:
+                  - href
+                  - text
+                  title: Link
+                  type: object
+                title: Links
+                type: array
+            title: Links
+            type: object
+          text_content:
+            description: The text content of the website
+            title: Text Content
+            type: string
+          url:
+            description: The URL of the website
+            title: Url
+            type: string
+        required:
+        - url
+        - text_content
+        - form
+        - links
+        title: Entry
+        type: object
+    required:
+    - entry
+    type: object
+  line: 68
+  managed_params_schema: {}
+  name: my_action
+  options:
+    display_name: null
+    is_consequential: null
+  output_schema:
+    description: ''
+    type: string
+actions-spec-version: v2
+data:
+  datasources: []
+data-spec-version: v2

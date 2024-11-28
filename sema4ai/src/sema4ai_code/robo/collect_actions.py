@@ -11,6 +11,16 @@ from sema4ai_ls_core.protocols import ActionResult, IMonitor
 
 log = get_logger(__name__)
 
+_MetadataType = TypedDict(
+    "_MetadataType",
+    {
+        "actions_spec_version": str,
+        "actions": list[dict],
+        "data": dict,
+        "data_spec_version": str,
+    },
+)
+
 
 class ExtractedActionInfo(TypedDict):
     # Default values that can be used to bootstrap the action input.
@@ -92,50 +102,16 @@ def extract_info(
     return action_name_to_extracted_info
 
 
-def collect_actions_full_and_slow(
-    pm: PluginManager, uri: str, monitor: IMonitor
-) -> ActionResult[list[dict]]:
-    """
-    Note: the way this works is that we'll launch a separate script using the user
-    environment to collect the actions information.
-
-    The major reason this is done (vs just loading the actions in the current
-    environment is that if we used the current environment, if the user uses a new
-    version of python we could potentially have a syntax error or load libraries not
-    available to the VSCode extension (because for listing the actions we need to
-    actually load the user code to resolve things such as complex models).
-    """
-    from pathlib import Path
-
-    from sema4ai_ls_core import uris
+def _execute_within_user_env(
+    pm: PluginManager,
+    uri: str,
+    args: list[str],
+    monitor: IMonitor,
+    cwd: str,
+    returns_json=True,
+) -> ActionResult:
     from sema4ai_ls_core.basic import launch_and_return_future
 
-    if not uri:
-        return ActionResult.make_failure("No uri given")
-
-    path = Path(uris.to_fs_path(uri))
-    if not path.exists():
-        return ActionResult.make_failure(
-            f"Uri ({uri}) mapped to path: {path} does not exist"
-        )
-
-    file_name = path.name
-    args = [
-        "-m",
-        "sema4ai.actions",
-        "list",
-        "--skip-lint",
-    ]
-
-    if not path.is_dir():
-        # If a file is given, we'll use the glob to list the actions just in that file.
-        args.append("--glob")
-        args.append(file_name)
-        cwd = str(path.parent)
-    else:
-        cwd = str(path)
-
-    error_msg = "Unable to collect @actions"
     try:
         for ep in pm.get_implementations(EPResolveInterpreter):
             interpreter_info: IInterpreterInfo = ep.get_interpreter_info_for_doc_uri(
@@ -154,20 +130,128 @@ def collect_actions_full_and_slow(
                 result = future.result(30)
                 if result.returncode == 0:
                     if result.stdout:
-                        try:
-                            return ActionResult.make_success(json.loads(result.stdout))
-                        except Exception:
-                            msg = f"Unable to parse as json: {result.stdout}"
-                            log.exception(msg)
-                            return ActionResult.make_failure(msg)
+                        if returns_json:
+                            try:
+                                return ActionResult.make_success(
+                                    json.loads(result.stdout)
+                                )
+                            except Exception:
+                                msg = f"Unable to parse as json: {result.stdout}"
+                                log.exception(msg)
+                                return ActionResult.make_failure(msg)
+                        else:
+                            return ActionResult.make_success(result.stdout)
                 if result.stderr:
                     error_msg = (
-                        f"Found errors while collecting actions errors: {result.stderr}"
+                        f"Found errors while running {args[2]} errors: {result.stderr}"
                     )
                     log.info(error_msg)
                 break
     except BaseException as e:
-        log.exception("Error collection @action")
-        return ActionResult.make_failure(f"Unable to collect @actions: {e}")
+        message = f"Unable to execute {args[2]} command. Error: {e}"
+        log.exception(message)
+        return ActionResult.make_failure(message)
 
-    return ActionResult.make_failure(error_msg)
+    return ActionResult.make_failure(f"Unable to execute {args[2]} command")
+
+
+def _call_sema4ai_actions(
+    pm: PluginManager, monitor: IMonitor, argument: str, uri: str
+) -> ActionResult:
+    """Note: the way this works is that we'll launch a separate script using the user
+    environment to collect the actions information.
+
+    The major reason this is done (vs just loading the actions in the current
+    environment is that if we used the current environment, if the user uses a new
+    version of python we could potentially have a syntax error or load libraries not
+    available to the VSCode extension (because for listing the actions we need to
+    actually load the user code to resolve things such as complex models).
+    """
+    from pathlib import Path
+
+    from sema4ai_ls_core import uris
+
+    if not uri:
+        return ActionResult.make_failure("No uri given")
+
+    path = Path(uris.to_fs_path(uri))
+    file_name = path.name
+    args = [
+        "-m",
+        "sema4ai.actions",
+        argument,
+        "--skip-lint",
+    ]
+
+    if not path.is_dir():
+        # If a file is given, we'll use the glob to list the actions just in that file.
+        args.append("--glob")
+        args.append(file_name)
+        cwd = str(path.parent)
+    else:
+        cwd = str(path)
+
+    return _execute_within_user_env(pm, uri, args, monitor, cwd)
+
+
+def _get_actions_version(
+    pm: PluginManager, uri: str, monitor: IMonitor
+) -> ActionResult[tuple[int, int, int]]:
+    from pathlib import Path
+
+    from sema4ai_ls_core import uris
+
+    libname = "sema4ai.actions"
+    args = ["-c", f"import {libname};print({libname}.__version__)"]
+
+    path = Path(uris.to_fs_path(uri))
+    if not path.is_dir():
+        cwd = str(path.parent)
+    else:
+        cwd = str(path)
+
+    error_msg = f"""Unable to get {libname} version.
+
+    This usually means that `{libname}` is not installed in the python
+    environment (make sure that `{libname.replace('.', '-')}`
+    is defined in your `package.yaml`).
+    """
+
+    result = _execute_within_user_env(pm, uri, args, monitor, cwd, returns_json=False)
+    if result.success and result.result:
+        try:
+            result.result = tuple(int(x) for x in result.result.strip().split("."))
+        except Exception:
+            return ActionResult.make_failure(error_msg)
+    else:
+        return ActionResult.make_failure(error_msg)
+
+    return result
+
+
+def collect_actions_full_and_slow(
+    pm: PluginManager, uri: str, monitor: IMonitor
+) -> ActionResult:
+    return _call_sema4ai_actions(pm, monitor, "list", uri)
+
+
+def get_metadata(pm: PluginManager, uri: str, monitor: IMonitor) -> ActionResult[dict]:
+    actions_library_result = _get_actions_version(pm, uri, monitor)
+    if not actions_library_result.success:
+        return ActionResult.make_failure(
+            actions_library_result.message or "Unable to get `sema4ai.actions` version"
+        )
+
+    if actions_library_result.result and actions_library_result.result > (1, 0, 1):
+        return _call_sema4ai_actions(pm, monitor, "metadata", uri)
+    else:
+        result = _call_sema4ai_actions(pm, monitor, "list", uri)
+        if result.success:
+            metadata: _MetadataType = {
+                "actions_spec_version": "v2",
+                "actions": result.result or [],
+                "data": {"datasources": []},
+                "data_spec_version": "v2",
+            }
+            result.result = metadata
+        return result

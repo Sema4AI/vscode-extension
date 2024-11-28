@@ -1083,6 +1083,45 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return None
 
+    def _get_actions_metadata(
+        self,
+        action_package_path: str,
+        monitor: IMonitor,
+    ) -> ActionResultDict:
+        from sema4ai_code.robo.collect_actions import get_metadata
+
+        p = Path(uris.to_fs_path(action_package_path))
+        if not p.exists():
+            msg = f"Unable to collect actions metadata from: {p} because it does not exist."
+            return dict(success=False, message=msg, result=None)
+
+        try:
+            if not self.workspace:
+                return dict(
+                    success=False, message="No workspace currently open", result=None
+                )
+
+            result = get_metadata(self._pm, action_package_path, monitor)
+        except Exception as e:
+            log.exception("Error collecting actions metadata.")
+            return dict(
+                success=False,
+                message=f"Error collecting actions metadata: {e}",
+                result=None,
+            )
+
+        return result.as_dict()
+
+    def m_get_actions_metadata(
+        self, action_package_path: str
+    ) -> partial[ActionResultDict]:
+        return require_monitor(
+            partial(
+                self._get_actions_metadata,
+                action_package_path=action_package_path,
+            )
+        )
+
     def _list_dev_tasks_in_thread(
         self, action_package_uri: str, monitor: IMonitor
     ) -> ActionResultDict:

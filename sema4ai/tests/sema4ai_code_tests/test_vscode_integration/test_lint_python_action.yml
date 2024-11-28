@@ -9,7 +9,7 @@
       line: 4
   severity: 1
   source: sema4ai.actions
-- message: '@action without a `return` (an `@action` must have a return value).'
+- message: '@action without a `return` (`@action` must have a return value).'
   range:
     end:
       character: 13

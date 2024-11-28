@@ -169,6 +169,7 @@
         "onCommand:sema4ai.collapseAllEntries",
         "onCommand:sema4ai.importActionPackage",
         "onCommand:sema4ai.runActionPackageDevTask",
+        "onCommand:sema4ai.getActionsMetadata",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -996,6 +997,11 @@
                 "command": "sema4ai.runActionPackageDevTask",
                 "title": "Run dev-task (from Action Package)",
                 "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.getActionsMetadata",
+                "title": "Get Actions Metadata",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {
@@ -1523,6 +1529,10 @@
                 },
                 {
                     "command": "sema4ai.openRunbookTreeSelection",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.getActionsMetadata",
                     "when": "false"
                 }
             ]
