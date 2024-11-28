@@ -31,18 +31,22 @@ def get_json_contents():
 
     base_package_contents = {
         "name": "sema4ai",
-        "displayName": "Sema4.ai",
-        "description": "Sema4.ai: Visual Studio Code Extension for AI Actions and Robot Tasks development",
-        "author": "Sema4.ai, Inc.",
-        "homepage": "https://github.com/Sema4AI/vscode-extension//blob/master/sema4ai/README.md",
+        "publisher": "sema4ai",
+        "displayName": "Sema4.ai SDK",
+        "description": "Sema4.ai SDK: Visual Studio Code Extension for AI Agent, Actions and Automation Tasks development",
+        "author": {
+            "name": "Sema4.ai",
+            "email": "dev@sema4.ai",
+            "url": "https://sema4.ai",
+        },
+        "homepage": "https://sema4.ai",
         "repository": {
             "type": "git",
             "url": "https://github.com/Sema4AI/vscode-extension/.git",
         },
-        "license": "SEE LICENSE IN LICENSE.txt",
+        "license": "SEE LICENSE",
         "version": __version__,
         "icon": "images/icon.png",
-        "publisher": "sema4ai",
         "engines": {"vscode": f"^1.65.0"},
         "categories": ["Debuggers"],
         "taskDefinitions": [{"type": "Sema4.ai: dev-task"}],
