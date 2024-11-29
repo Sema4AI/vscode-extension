@@ -53,6 +53,11 @@ import { loginToAuth2WhereRequired } from "./oauth2InInput";
 import { RobotEntryType } from "../viewsCommon";
 import { createActionInputs, errorMessageValidatingV2Input } from "./actionInputs";
 import { langServer } from "../extension";
+import {
+    DATA_SERVER_START_COMMAND_ID,
+    DATA_SERVER_STATUS_COMMAND_ID,
+    verifyDataExtensionIsInstalled,
+} from "../dataExtension";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -328,6 +333,44 @@ export async function getTargetInputJson(actionName: string, actionPackageYamlDi
     return targetInput;
 }
 
+function convertDataServerInfoToEnvVar(dataServerInfo: any): string {
+    // We have something like this:
+    // We have something as:
+    //       api: {
+    //         http: {
+    //           host: "127.0.0.1",
+    //           port: "47334",
+    //         },
+    //         mysql: {
+    //           database: "mindsdb",
+    //           host: "127.0.0.1",
+    //           port: "47335",
+    //           ssl: false,
+    //         },
+    //       },
+    //       auth: {
+    //         http_auth_enabled: false,
+    //         password: "dataServerPass",
+    //         username: "dataServerUser",
+    //       },
+    //       is_running: true,
+    //       pid: 32484,
+    //       pid_file_path: "C:\\Users\\fabio\\AppData\\Local\\sema4ai\\data-server\\data_server.pid",
+    //     }
+    //
+    // And we need to convert it to:
+    // {"http": {"url": "http://localhost:47334", "user": "dataServerUser", "password": "dataServerPass"}, "mysql": {"host": "localhost", "port": 55758, "user": "foo", "password": "bar"}}
+    const httpUrl = "http://" + dataServerInfo.api.http.host + ":" + dataServerInfo.api.http.port;
+    const mysqlHost = dataServerInfo.api.mysql.host;
+    const mysqlPort = dataServerInfo.api.mysql.port;
+    const httpUser = dataServerInfo.auth.username;
+    const httpPassword = dataServerInfo.auth.password;
+    return JSON.stringify({
+        http: { url: httpUrl, user: httpUser, password: httpPassword },
+        mysql: { host: mysqlHost, port: mysqlPort, user: httpUser, password: httpPassword },
+    });
+}
+
 export async function runActionFromActionPackage(
     noDebug: boolean,
     actionName: string,
@@ -395,6 +438,7 @@ the input file in the new format. The launch will proceed with the current value
 advised to regenerate it as it may not work with future versions of the extension.`
         );
     }
+    let baseEnv: Record<string, string> = {};
     if (isV2) {
         const errorMessage = errorMessageValidatingV2Input(input);
         if (errorMessage) {
@@ -424,6 +468,84 @@ advised to regenerate it as it may not work with future versions of the extensio
         const tempInputFile = path.join(os.tmpdir(), `sema4ai_vscode_extension_input_${nameSlugified}.json`);
         await writeToFile(tempInputFile, JSON.stringify(inputValue, null, 4));
         targetInput = tempInputFile;
+
+        // If we need data sources, we need to update the launch environment with information on the connection
+        // (we can only detect this with v2 input files at this point)
+        if (input.metadata?.managedParamsSchemaDescription) {
+            let requiresDataSource = false;
+            for (const param of Object.values(input.metadata.managedParamsSchemaDescription)) {
+                if (param["type"] === "DataSource") {
+                    requiresDataSource = true;
+                    break;
+                }
+            }
+            if (requiresDataSource) {
+                const installed = await verifyDataExtensionIsInstalled(
+                    "To run actions, queries or predictions that require data sources, the Sema4AI data extension must be installed. Do you wish to install it?"
+                );
+                if (!installed) {
+                    const msg =
+                        "Unable to run action package (data extension is not installed). Please install it to run actions that require data sources.";
+                    OUTPUT_CHANNEL.appendLine(msg);
+                    window.showErrorMessage(msg);
+                    return;
+                }
+                // The information required is an env variable such as:
+                // SET SEMA4AI_DATA_SERVER_INFO={"http": {"url": "http://localhost:47334", "user": "dataServerUser", "password": "dataServerPass"}, "mysql": {"host": "localhost", "port": 55758, "user": "foo", "password": "bar"}}
+                // We need to get the value of this variable and add it to the launch environment
+                try {
+                    let result = await window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Window,
+                            title: "Getting local data server connection info",
+                            cancellable: false,
+                        },
+                        async (
+                            progress: vscode.Progress<{ message?: string; increment?: number }>,
+                            token: vscode.CancellationToken
+                        ): Promise<boolean> => {
+                            if (token.isCancellationRequested) {
+                                return false;
+                            }
+
+                            progress.report({
+                                message: "Waiting for data server info... ",
+                            });
+                            const dataServerInfo = await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
+                                "showUIMessages": false,
+                            });
+                            if (dataServerInfo) {
+                                try {
+                                    baseEnv["SEMA4AI_DATA_SERVER_INFO"] = convertDataServerInfoToEnvVar(dataServerInfo);
+                                    return true;
+                                } catch (error) {
+                                    window.showErrorMessage(
+                                        "Unable to run (error converting data server info to env var):\n" +
+                                            JSON.stringify(error, null, 4)
+                                    );
+                                    return false;
+                                }
+                            } else {
+                                window.showErrorMessage(
+                                    "Unable to run (error getting local data server connection info):\n" +
+                                        JSON.stringify(dataServerInfo, null, 4)
+                                );
+                                return false;
+                            }
+                        }
+                    );
+                    if (!result) {
+                        return;
+                    }
+                } catch (error) {
+                    logError("Error getting data server info", error, "ERR_GET_DATA_SERVER_INFO");
+                    window.showErrorMessage(
+                        "Unable to run action package (error getting local data server connection info)."
+                    );
+                    return;
+                }
+            }
+        }
     } else {
         // No version matched, so, the input is used directly as is (backward compatibility)
         OUTPUT_CHANNEL.appendLine(
@@ -449,13 +571,18 @@ advised to regenerate it as it may not work with future versions of the extensio
         if (xActionContext) {
             const xActionServerHeader = Buffer.from(JSON.stringify(xActionContext), "utf-8").toString("base64");
 
-            debugConfiguration.baseEnv = { "SEMA4AI_VSCODE_X_ACTION_CONTEXT": xActionServerHeader };
+            baseEnv["SEMA4AI_VSCODE_X_ACTION_CONTEXT"] = xActionServerHeader;
         }
     } catch (error) {
         logError("Error making OAuth2 login", error, "ERR_LOGIN_OAUTH2");
         window.showErrorMessage("Error making OAuth2 login:\n" + error.message);
         return;
     }
+
+    if (Object.keys(baseEnv).length > 0) {
+        debugConfiguration.baseEnv = baseEnv;
+    }
+
     let debugSessionOptions: vscode.DebugSessionOptions = {};
     vscode.debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }

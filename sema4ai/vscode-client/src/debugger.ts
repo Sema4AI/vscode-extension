@@ -13,7 +13,7 @@ import {
 } from "vscode";
 import * as roboConfig from "./robocorpSettings";
 import { OUTPUT_CHANNEL } from "./channel";
-import { resolveInterpreter } from "./activities";
+import { resolveInterpreter, updateLaunchEnvironmentCommonTasksAndActions } from "./activities";
 import {
     SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
     SEMA4AI_UPDATE_LAUNCH_ENV,
@@ -25,7 +25,6 @@ import {
     isPyDevDebuggerPythonExtensionInstalled,
 } from "./pythonExtIntegration";
 import { InterpreterInfo } from "./protocols";
-import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 
 interface ActionResult {
     success: boolean;
@@ -99,7 +98,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         }
 
         if (isActionPackageLaunch) {
-            env = applyOutViewIntegrationEnvVars(env);
+            env = await updateLaunchEnvironmentCommonTasksAndActions(env);
             // Vault/work-items features not available in action server at this point.
         } else {
             // Resolve environment (updates the environment to add vault

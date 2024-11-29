@@ -204,7 +204,11 @@ import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } 
 import { LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
-import { verifyDataExtensionIsInstalled } from "./dataExtension";
+import {
+    DATA_SERVER_START_COMMAND_ID,
+    DATA_SERVER_STOP_COMMAND_ID,
+    verifyDataExtensionIsInstalled,
+} from "./dataExtension";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -525,12 +529,12 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
     C.register(SEMA4AI_START_DATA_SERVER, async () => {
         if (await verifyDataExtensionIsInstalled()) {
-            await commands.executeCommand("mysql.dataserver.start");
+            await commands.executeCommand(DATA_SERVER_START_COMMAND_ID);
         }
     });
     C.register(SEMA4AI_STOP_DATA_SERVER, async () => {
         if (await verifyDataExtensionIsInstalled()) {
-            await commands.executeCommand("mysql.dataserver.stop");
+            await commands.executeCommand(DATA_SERVER_STOP_COMMAND_ID);
         }
     });
 }
