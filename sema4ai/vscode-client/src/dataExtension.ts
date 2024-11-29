@@ -1,6 +1,6 @@
 import { commands, extensions, window } from "vscode";
 
-const DATA_EXTENSION_ID = "sema4ai.vscode-sema4ai-client";
+const DATA_EXTENSION_ID = "sema4ai.sema4ai-data-access";
 
 function isDataExtensionInstalled() {
     try {
