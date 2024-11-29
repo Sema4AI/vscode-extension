@@ -899,6 +899,31 @@ export async function createPackage() {
     }
 }
 
+/**
+ * Update the launch environment when running a task or action (main entry point for ACTIONS,
+ * tasks will use `updateLaunchEnvironment`).
+ */
+export async function updateLaunchEnvironmentCommonTasksAndActions(
+    environment: Record<string, string>
+): Promise<Record<string, string>> {
+    const newEnv = applyOutViewIntegrationEnvVars(environment);
+
+    const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
+    if (externalApiUrl) {
+        newEnv["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
+    }
+
+    return newEnv;
+}
+
+/**
+ * Main entry point to update the launch environment for tasks when running a robot
+ * (usually the command SEMA4AI_UPDATE_LAUNCH_ENV should be used as the public API).
+ *
+ * Important: this is used when running TASKS, not ACTIONS!
+ *
+ * For actions, only `updateLaunchEnvironmentCommonTasksAndActions` is used.
+ */
 export async function updateLaunchEnvironment(args): Promise<{ [key: string]: string } | "cancelled"> {
     OUTPUT_CHANNEL.appendLine(`updateLaunchEnvironment for ${args["targetRobot"]}.`);
     let newEnv: any;
@@ -974,11 +999,6 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
         throw new Error("env argument is required.");
     }
 
-    const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
-    if (externalApiUrl) {
-        environment["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
-    }
-
     let condaPrefix = environment["CONDA_PREFIX"];
     if (!condaPrefix) {
         OUTPUT_CHANNEL.appendLine(
@@ -992,7 +1012,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     // - Vault
     // - Work items
 
-    const newEnv = applyOutViewIntegrationEnvVars(environment);
+    const newEnv = updateLaunchEnvironmentCommonTasksAndActions(environment);
 
     let vaultInfoActionResult: ActionResult<IVaultInfo> = await commands.executeCommand(
         roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
