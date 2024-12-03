@@ -227,33 +227,53 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
                         {
                             "action_package": element.uri.toString(),
+                            "collect_datasources": true,
                         }
                     );
                     if (result.success) {
-                        let actions: IActionInfo[] = result.result;
+                        let actionsAndDatasources: IActionInfo[] = result.result;
+                        let datasources = [];
                         const iconMapping = {
-                            "query": "database",
+                            "query": "search",
                             "predict": "eye",
                             "action": "circle",
                         };
-                        for (const action of actions) {
-                            const uri = vscode.Uri.parse(action.uri);
+                        for (const entry of actionsAndDatasources) {
+                            const uri = vscode.Uri.parse(entry.uri);
+
+                            if (entry.kind === "datasource") {
+                                datasources.push(entry);
+                            } else {
+                                children.push({
+                                    "label": entry.name,
+                                    "actionName": entry.name,
+                                    "robot": element.robot,
+                                    "uri": uri,
+                                    "action_package_uri": element.uri,
+                                    "iconPath": iconMapping[entry.kind],
+                                    "type": RobotEntryType.Action,
+                                    "parent": element,
+                                    "range": entry.range,
+                                    "collapsed": true,
+                                });
+                            }
+                        }
+
+                        if (datasources.length > 0) {
                             children.push({
-                                "label": action.name,
-                                "actionName": action.name,
+                                "label": "Data Sources",
+                                "uri": element.uri,
                                 "robot": element.robot,
-                                "uri": uri,
-                                "action_package_uri": element.uri,
-                                "iconPath": iconMapping[action.kind],
-                                "type": RobotEntryType.Action,
+                                "iconPath": "database",
+                                "type": RobotEntryType.DataSourcesInActionPackage,
                                 "parent": element,
-                                "range": action.range,
-                                "collapsed": true,
+                                "collapsed": false,
+                                "extraData": { "datasources": datasources },
                             });
                         }
                     }
                 } catch (error) {
-                    logError("Error collecting actions.", error, "ACT_COLLECT_ACTIONS");
+                    logError("Error collecting actions / databases.", error, "ACT_COLLECT_ACTIONS");
                 }
                 children.push({
                     "label": "Commands",
@@ -496,6 +516,38 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 return ret;
             } else if (element.type === RobotEntryType.Error) {
                 return [];
+            } else if (element.type == RobotEntryType.DataSourcesInActionPackage) {
+                const children: RobotEntry[] = [];
+
+                for (const datasource of element.extraData.datasources) {
+                    let name = "";
+                    switch (true) {
+                        case datasource.engine === "files":
+                            name = `${datasource.name}.${datasource.created_table} (${datasource.engine})`;
+                            break;
+                        case datasource.engine === "custom":
+                            name = `${datasource.name} (${datasource.engine})`;
+                            break;
+                        case datasource.engine.startsWith("prediction"):
+                            name = `${datasource.name}.${datasource.model_name} (${datasource.engine})`;
+                            break;
+                        default:
+                            name = `${datasource.name} (${datasource.engine})`;
+                            break;
+                    }
+                    children.push({
+                        "label": name,
+                        "actionName": datasource.name,
+                        "robot": element.robot,
+                        "uri": vscode.Uri.parse(datasource.uri),
+                        "action_package_uri": element.uri,
+                        "iconPath": "database",
+                        "type": RobotEntryType.DataSource,
+                        "parent": element,
+                        "range": datasource.range,
+                    });
+                }
+                return children;
             }
 
             OUTPUT_CHANNEL.appendLine("Unhandled in viewsRobots.ts: " + element.type);
@@ -659,6 +711,9 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.Action) {
             treeItem.contextValue = "actionItem";
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+        } else if (element.type === RobotEntryType.DataSource) {
+            treeItem.contextValue = "datasourceItem";
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.Error) {
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.StartActionServer) {

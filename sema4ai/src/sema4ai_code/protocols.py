@@ -205,6 +205,7 @@ class ListWorkItemsParams(TypedDict):
 
 class ListActionsParams(TypedDict):
     action_package: str  # Path to the action package for which we want the actions (may be just the folder or the package.yaml).
+    collect_datasources: bool
 
 
 class ListWorkspacesActionResultDict(TypedDict):

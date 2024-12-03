@@ -65,6 +65,11 @@ export interface IActionInfo {
     name: string;
     range: Range;
     kind: string;
+
+    // Only for Datasources
+    engine?: string;
+    model_name?: string;
+    created_table?: string;
 }
 
 export interface ActionResult<T> {
