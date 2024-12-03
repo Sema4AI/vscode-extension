@@ -207,8 +207,8 @@ def _get_ast_node_range(
                 "character": func_node.col_offset,
             },
             "end": {
-                "line": node.end_lineno,
-                "character": node.end_col_offset,
+                "line": node.end_lineno or func_node.lineno,
+                "character": node.end_col_offset or node.col_offset,
             },
         }
 
