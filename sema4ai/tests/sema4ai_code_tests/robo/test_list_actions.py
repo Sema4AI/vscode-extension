@@ -266,13 +266,7 @@ ChurnPredictionDataSource = Annotated[
 
 @pytest.mark.parametrize(
     "scenario",
-    [
-        just_oauth2,
-        multiple_types,
-        just_enum,
-        table_type,
-        complex_type,
-    ],
+    [just_oauth2, multiple_types, just_enum, table_type, complex_type],
 )
 def test_list_actions_full(
     tmpdir, actions_version_fixture, scenario, data_regression

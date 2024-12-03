@@ -815,7 +815,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _local_list_actions_internal_impl(
         self, params: ListActionsParams | None
     ) -> ActionResultDict:
-        from sema4ai_code.robo.collect_actions_ast import iter_actions
+        from sema4ai_code.robo.collect_actions_ast import iter_actions_and_datasources
 
         # TODO: We should move this code somewhere else and have a cache of
         # things so that when the user changes anything the client is notified
@@ -834,7 +834,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             p = p.parent
 
         try:
-            actions = list(iter_actions(p))
+            actions = list(iter_actions_and_datasources(p))
         except Exception as e:
             log.exception("Error collecting actions.")
             return dict(

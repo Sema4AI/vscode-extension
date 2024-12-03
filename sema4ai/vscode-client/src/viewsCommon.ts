@@ -53,6 +53,8 @@ export enum RobotEntryType {
     UpdateAgentVersion = "UpdateAgentVersion",
     RefreshAgentConfiguration = "RefreshAgentConfiguration",
     ImportActionPackage = "ImportActionPackage",
+    DataSourcesInActionPackage = "DataSourcesInActionPackage",
+    DataSource = "DataSource",
 }
 
 export interface CloudEntry {
@@ -81,6 +83,7 @@ export interface RobotEntry {
     action_package_uri?: vscode.Uri | undefined;
     actionName?: string;
     range?: Range;
+    extraData?: Record<string, any>;
 }
 
 export interface FSEntry {
