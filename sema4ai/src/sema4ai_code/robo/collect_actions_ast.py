@@ -117,7 +117,9 @@ def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) 
     return info
 
 
-def _collect_actions_from_ast(p: Path, collect_datasources: False) -> Iterator[dict]:
+def _collect_actions_from_ast(
+    p: Path, collect_datasources: bool = False
+) -> Iterator[dict]:
     action_contents_file = p.read_bytes()
     ast = ast_module.parse(action_contents_file, "<string>")
     variables = _collect_variables(ast)
