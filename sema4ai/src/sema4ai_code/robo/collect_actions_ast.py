@@ -103,14 +103,11 @@ def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) 
 
     interested_info = ["name", "model_name", "engine", "created_table"]
     info = {"kind": DATASOURCE_KIND, "node": call_node}
-    if (
-        isinstance(call_node.func, ast_module.Name)
-        and call_node.func.id == "DataSourceSpec"
-    ):
-        for keyword in call_node.keywords:
-            if keyword.arg in interested_info:
-                name = _resolve_value(keyword.value, variable_values)
-                info[keyword.arg] = name
+
+    for keyword in call_node.keywords:
+        if keyword.arg in interested_info:
+            name = _resolve_value(keyword.value, variable_values)
+            info[keyword.arg] = name
 
     if info.get("engine") == "files":
         info["name"] = "files"
@@ -125,7 +122,7 @@ def _collect_actions_from_ast(p: Path, collect_datasources: False) -> Iterator[d
     ast = ast_module.parse(action_contents_file, "<string>")
     variables = _collect_variables(ast)
 
-    for _stack, node in _iter_nodes(ast, recursive=False):
+    for _stack, node in _iter_nodes(ast, recursive=True):
         if isinstance(node, ast_module.FunctionDef):
             for decorator in node.decorator_list:
                 if isinstance(decorator, ast_module.Call):
@@ -139,28 +136,15 @@ def _collect_actions_from_ast(p: Path, collect_datasources: False) -> Iterator[d
                     "predict",
                 ]:
                     yield {"node": node, "kind": decorator.id}
-
-        elif isinstance(node, ast_module.Assign) and collect_datasources:
-            for target in node.targets:
-                if not isinstance(target, ast_module.Name):
-                    continue
-
-                value = node.value
-                if (
-                    isinstance(value, ast_module.Subscript)
-                    and isinstance(value.value, ast_module.Name)
-                    and value.value.id == "Annotated"
-                ):
-                    # Look at the second argument of Annotated (index 1 in the slice)
-                    if (
-                        isinstance(value.slice, ast_module.Tuple)
-                        and len(value.slice.elts) > 1
-                    ):
-                        spec_arg = value.slice.elts[1]
-                        if isinstance(spec_arg, ast_module.Call):
-                            result = _extract_datasource_info(spec_arg, variables)
-                            if result:
-                                yield result
+        if (
+            collect_datasources
+            and isinstance(node, ast_module.Call)
+            and isinstance(node.func, ast_module.Name)
+            and node.func.id == "DataSourceSpec"
+        ):
+            result = _extract_datasource_info(node, variables)
+            if result:
+                yield result
 
 
 class PositionTypedDict(TypedDict):
