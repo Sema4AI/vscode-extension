@@ -834,7 +834,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             p = p.parent
 
         try:
-            actions = list(iter_actions_and_datasources(p))
+            actions = list(
+                iter_actions_and_datasources(p, bool(params["collect_datasources"]))
+            )
         except Exception as e:
             log.exception("Error collecting actions.")
             return dict(

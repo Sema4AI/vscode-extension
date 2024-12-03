@@ -227,6 +227,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         roboCommands.SEMA4AI_LIST_ACTIONS_INTERNAL,
                         {
                             "action_package": element.uri.toString(),
+                            "collect_datasources": true,
                         }
                     );
                     if (result.success) {

@@ -21,10 +21,17 @@ def test_list_actions(
     language_server = language_server_initialized
     result = language_server.execute_command(
         commands.SEMA4AI_LIST_ACTIONS_INTERNAL,
-        [{"action_package": uris.from_fs_path(ws_root_path)}],
+        [
+            {
+                "action_package": uris.from_fs_path(ws_root_path),
+                "collect_datasources": True,
+            }
+        ],
     )["result"]["result"]
     for entry in result:
         entry["uri"] = os.path.basename(entry["uri"])
+
+    result = sorted(result, key=lambda x: x["name"])
     data_regression.check(result)
 
 

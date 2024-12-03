@@ -120,7 +120,7 @@ def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) 
     return info
 
 
-def _collect_actions_from_ast(p: Path) -> Iterator[dict]:
+def _collect_actions_from_ast(p: Path, collect_datasources: False) -> Iterator[dict]:
     action_contents_file = p.read_bytes()
     ast = ast_module.parse(action_contents_file, "<string>")
     variables = _collect_variables(ast)
@@ -140,7 +140,7 @@ def _collect_actions_from_ast(p: Path) -> Iterator[dict]:
                 ]:
                     yield {"node": node, "kind": decorator.id}
 
-        elif isinstance(node, ast_module.Assign):
+        elif isinstance(node, ast_module.Assign) and collect_datasources:
             for target in node.targets:
                 if not isinstance(target, ast_module.Name):
                     continue
@@ -255,6 +255,7 @@ globs = DEFAULT_ACTION_SEARCH_GLOB.split("|")
 
 def iter_actions_and_datasources(
     root_directory: Path,
+    collect_datasources: bool = False,
 ) -> Iterator[ActionInfoTypedDict | DatasourceInfoTypedDict]:
     """
     Iterates over the actions just by using the AST (this means that it doesn't
@@ -268,7 +269,7 @@ def iter_actions_and_datasources(
         for glob in globs:
             if fnmatch.fnmatch(f.name, glob):
                 try:
-                    for node_info in _collect_actions_from_ast(f):
+                    for node_info in _collect_actions_from_ast(f, collect_datasources):
                         yield _make_action_or_datasource_info(
                             uris.from_fs_path(str(f)), node_info
                         )
