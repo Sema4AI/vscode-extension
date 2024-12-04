@@ -1,10 +1,12 @@
 import ast as ast_module
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
+from sema4ai_ls_core.lsp import RangeTypedDict
+from sema4ai_ls_core.protocols import ActionInfoTypedDict, DatasourceInfoTypedDict
 
 log = get_logger(__name__)
 
@@ -149,37 +151,6 @@ def _collect_actions_from_ast(
                 yield result
 
 
-class PositionTypedDict(TypedDict):
-    # Line position in a document (zero-based).
-    line: int
-
-    # Character offset on a line in a document (zero-based). Assuming that
-    # the line is represented as a string, the `character` value represents
-    # the gap between the `character` and `character + 1`.
-    #
-    # If the character value is greater than the line length it defaults back
-    # to the line length.
-    character: int
-
-
-class RangeTypedDict(TypedDict):
-    start: PositionTypedDict
-    end: PositionTypedDict
-
-
-class ActionInfoTypedDict(TypedDict):
-    range: RangeTypedDict
-    name: str
-    uri: str
-    kind: str
-
-
-class DatasourceInfoTypedDict(ActionInfoTypedDict):
-    engine: str
-    model_name: str | None
-    created_table: str | None
-
-
 def _get_ast_node_range(
     node: ast_module.FunctionDef | ast_module.Call,
 ) -> RangeTypedDict:
@@ -214,21 +185,21 @@ def _make_action_or_datasource_info(
     uri: str, node_info: dict
 ) -> ActionInfoTypedDict | DatasourceInfoTypedDict:
     ast_node = node_info["node"]
-    range = _get_ast_node_range(ast_node)
+    node_range = _get_ast_node_range(ast_node)
 
     if node_info["kind"] == DATASOURCE_KIND:
         return DatasourceInfoTypedDict(
-            range=range,
+            range=node_range,
             uri=uri,
             name=node_info["name"],
             engine=node_info["engine"],
             model_name=node_info.get("model_name"),
             created_table=node_info.get("created_table"),
-            kind=node_info["kind"],
+            kind="datasource",
         )
     else:
         return ActionInfoTypedDict(
-            range=range, uri=uri, name=ast_node.name, kind=node_info["kind"]
+            range=node_range, uri=uri, name=ast_node.name, kind=node_info["kind"]
         )
 
 

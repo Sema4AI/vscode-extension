@@ -8,11 +8,13 @@
 - New icons for the extension.
 - Aligned the release details for the extension
 - Update Agent CLI to `0.2.2`
-- Add `Start Data Server` and `Stop Data Server` commands
 - Search for actions/queries/predictions considering all glob patterns supported by `sema4ai.actions`.
 - Use `package.yaml` directory as the `cwd` when searching for actions/queries/predictions if available (otherwise imports could fail).
 - Show progress when creating the input file for an action/query/prediction.
 - Integrate with the VSCode Sema4.ai Data Extension to get the data server info to run data actions.
+- No longer use `robocorp-trustore` (it's no longer needed).
+- Use `sema4ai-http-helper` to make http requests (to data server).
+- Use `Python 3.11` as the base interpreter.
 
 ## New in 2.8.1 (2024-11-21)
 

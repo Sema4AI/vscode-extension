@@ -31,28 +31,32 @@ export async function verifyDataExtensionIsInstalled(
     if (isDataExtensionInstalled()) {
         try {
             let extension = extensions.getExtension(DATA_EXTENSION_ID);
-            let version = extension?.packageJSON.version;
-            if (version) {
-                // If we have a '-' in the version, remove it and everything after it
-                if (version.includes("-")) {
-                    version = version.split("-")[0];
+            if (extension) {
+                let version = extension?.packageJSON.version;
+                if (version) {
+                    // If we have a '-' in the version, remove it and everything after it
+                    if (version.includes("-")) {
+                        version = version.split("-")[0];
+                    }
                 }
-            }
-            // Check if version matches something as <number>.<number>.<number>
-            if (version && version.match(/^\d+\.\d+\.\d+$/)) {
-                // Check if the version is greater or equal to 1.0.2 (use regexp to extract the version number)
-                let [major, minor, patch] = version.split(".").map(Number);
-                if (major > 1 || (major == 1 && minor > 0) || (major == 1 && minor == 0 && patch >= 2)) {
-                    return true;
+                // Check if version matches something as <number>.<number>.<number>
+                if (version && version.match(/^\d+\.\d+\.\d+$/)) {
+                    // Check if the version is greater or equal to 1.0.2 (use regexp to extract the version number)
+                    let [major, minor, patch] = version.split(".").map(Number);
+                    if (major > 1 || (major == 1 && minor > 0) || (major == 1 && minor == 0 && patch >= 4)) {
+                        if (!extension?.isActive) {
+                            await extension?.activate();
+                        }
+                        return true;
+                    }
                 }
+                // Notify users that the version is too old (or it didn't match the regexp)
+                window.showWarningMessage(
+                    `The Sema4AI data extension is installed, but the version (${version}) is too old (minimum required version is 1.0.2). Please update it.`
+                );
+                commands.executeCommand("workbench.extensions.search", DATA_EXTENSION_ID);
+                return false;
             }
-
-            // Notify users that the version is too old (or it didn't match the regexp)
-            window.showWarningMessage(
-                `The Sema4AI data extension is installed, but the version (${version}) is too old (minimum required version is 1.0.2). Please update it.`
-            );
-            commands.executeCommand("workbench.extensions.search", DATA_EXTENSION_ID);
-            return false;
         } catch (error) {
             logError("Error checking data extension version", error, "ERR_CHECK_DATA_EXTENSION_VERSION");
             return false;

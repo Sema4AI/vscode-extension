@@ -20,7 +20,7 @@ actions:
                     class_:
                       default: ''
                       description: The class of the form element
-                      title: 'Class '
+                      title: Class
                       type: string
                     count:
                       default: 1

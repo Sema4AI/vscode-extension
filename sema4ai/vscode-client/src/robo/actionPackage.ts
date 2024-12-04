@@ -23,6 +23,7 @@ import {
     ActionServerPackageUploadStatusOutput,
     PackageYamlName,
     PackageType,
+    DataSourceState,
 } from "../protocols";
 import {
     getPackageName,
@@ -333,7 +334,30 @@ export async function getTargetInputJson(actionName: string, actionPackageYamlDi
     return targetInput;
 }
 
-function convertDataServerInfoToEnvVar(dataServerInfo: any): string {
+export interface DataServerConfig {
+    api: {
+        http: {
+            host: string;
+            port: string;
+        };
+        mysql: {
+            database: string;
+            host: string;
+            port: string;
+            ssl: boolean;
+        };
+    };
+    auth: {
+        http_auth_enabled: boolean;
+        password: string;
+        username: string;
+    };
+    isRunning: boolean;
+    pid: number;
+    pidFilePath: string;
+}
+
+function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string {
     // We have something like this:
     // We have something as:
     //       api: {
@@ -369,6 +393,17 @@ function convertDataServerInfoToEnvVar(dataServerInfo: any): string {
         http: { url: httpUrl, user: httpUser, password: httpPassword },
         mysql: { host: mysqlHost, port: mysqlPort, user: httpUser, password: httpPassword },
     });
+}
+
+async function computeDataSourceState(
+    actionPackageYamlDirectory: string,
+    dataServerInfo: DataServerConfig
+): Promise<DataSourceState> {
+    const dataSourceState = (await langServer.sendRequest("computeDataSourceState", {
+        "action_package_yaml_directory": actionPackageYamlDirectory,
+        "data_server_info": dataServerInfo,
+    })) as DataSourceState;
+    return dataSourceState;
 }
 
 export async function runActionFromActionPackage(
@@ -497,7 +532,7 @@ advised to regenerate it as it may not work with future versions of the extensio
                     let result = await window.withProgress(
                         {
                             location: vscode.ProgressLocation.Window,
-                            title: "Getting local data server connection info",
+                            title: "Getting local data server connection info and validating data sources",
                             cancellable: false,
                         },
                         async (
@@ -511,27 +546,55 @@ advised to regenerate it as it may not work with future versions of the extensio
                             progress.report({
                                 message: "Waiting for data server info... ",
                             });
-                            const dataServerInfo = await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
+                            const dataServerInfo = (await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
                                 "showUIMessages": false,
-                            });
-                            if (dataServerInfo) {
-                                try {
-                                    baseEnv["SEMA4AI_DATA_SERVER_INFO"] = convertDataServerInfoToEnvVar(dataServerInfo);
-                                    return true;
-                                } catch (error) {
-                                    window.showErrorMessage(
-                                        "Unable to run (error converting data server info to env var):\n" +
-                                            JSON.stringify(error, null, 4)
-                                    );
-                                    return false;
-                                }
-                            } else {
+                            })) as DataServerConfig | undefined;
+                            if (!dataServerInfo) {
                                 window.showErrorMessage(
-                                    "Unable to run (error getting local data server connection info):\n" +
+                                    "Unable to run (error getting local data server connection info and validating data sources):\n" +
                                         JSON.stringify(dataServerInfo, null, 4)
                                 );
                                 return false;
                             }
+
+                            try {
+                                baseEnv["SEMA4AI_DATA_SERVER_INFO"] = convertDataServerInfoToEnvVar(dataServerInfo);
+                            } catch (error) {
+                                window.showErrorMessage(
+                                    "Unable to run (error converting data server info to env var):\n" +
+                                        JSON.stringify(error, null, 4)
+                                );
+                                return false;
+                            }
+
+                            progress.report({
+                                message: "Validating data sources... ",
+                            });
+
+                            // Ok, now, let's verify that the data sources are available.
+                            const dataSourceState = await computeDataSourceState(
+                                actionPackageYamlDirectory,
+                                dataServerInfo
+                            );
+                            // Check error messages
+                            if (Object.keys(dataSourceState.uri_to_error_messages).length > 0) {
+                                for (const errorMessages of Object.values(dataSourceState.uri_to_error_messages)) {
+                                    for (const errorMessage of errorMessages) {
+                                        window.showErrorMessage(errorMessage.message);
+                                    }
+                                }
+                                return false;
+                            }
+                            // Check unconfigured data sources
+                            if (dataSourceState.unconfigured_data_sources.length > 0) {
+                                window.showErrorMessage(
+                                    "Unable to run because the following data sources are not configured in the local data server (please configure them and retry):\n" +
+                                        dataSourceState.unconfigured_data_sources.map((ds) => ds.name).join("\n")
+                                );
+                                return false;
+                            }
+
+                            return true;
                         }
                     );
                     if (!result) {

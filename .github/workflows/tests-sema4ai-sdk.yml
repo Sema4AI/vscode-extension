@@ -21,20 +21,20 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "ubuntu-py310",
-          "windows-py310",
-#           "mac-py310", mac disabled because it takes too long for runners to pick the mac job up.
+          "ubuntu-py311",
+          "windows-py311",
+#           "mac-py311", mac disabled because it takes too long for runners to pick the mac job up.
         ]
 
         include:
-          - name: "ubuntu-py310"
-            python: "3.10"
+          - name: "ubuntu-py311"
+            python: "3.11"
             os: ubuntu-latest
-          - name: "windows-py310"
-            python: "3.10"
+          - name: "windows-py311"
+            python: "3.11"
             os: windows-latest
-#           - name: "mac-py310"
-#             python: "3.10"
+#           - name: "mac-py311"
+#             python: "3.11"
 #             os: mac-latest
 
     steps:

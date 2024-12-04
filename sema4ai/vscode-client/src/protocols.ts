@@ -1,3 +1,5 @@
+import { Diagnostic, DiagnosticSeverity } from "vscode";
+
 export enum PackageType {
     Task = "task",
     Action = "action",
@@ -193,4 +195,27 @@ export interface ActionServerPackageUploadStatusOutput {
         code: string;
         message: string;
     };
+}
+
+export interface DatasourceInfo {
+    range: Range;
+    name: string;
+    uri: string;
+    kind: "datasource";
+    engine: string;
+    model_name?: string;
+    created_table?: string;
+}
+
+export interface DiagnosticInfo {
+    range: Range;
+    severity: DiagnosticSeverity;
+    message: string;
+}
+
+export interface DataSourceState {
+    unconfigured_data_sources: DatasourceInfo[];
+    uri_to_error_messages: { [uri: string]: DiagnosticInfo[] };
+    required_data_sources: DatasourceInfo[];
+    data_sources_in_data_server: string[];
 }

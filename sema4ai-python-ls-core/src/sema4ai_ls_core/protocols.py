@@ -3,7 +3,18 @@ import threading
 import typing
 from collections.abc import Callable, Iterable, Mapping
 from enum import Enum
-from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 if typing.TYPE_CHECKING:
     # This would lead to a circular import, so, do it only when type-checking.
@@ -13,6 +24,7 @@ if typing.TYPE_CHECKING:
         CompletionItemTypedDict,
         CompletionResolveResponseTypedDict,
         CompletionsResponseTypedDict,
+        DiagnosticsTypedDict,
         DocumentHighlightResponseTypedDict,
         HoverResponseTypedDict,
         PositionTypedDict,
@@ -904,12 +916,12 @@ class IMonitor(Protocol):
         """
 
 
-class ActionResultDict(TypedDict):
+class ActionResultDict(TypedDict, Generic[T]):
     success: bool
     message: None | (
         str
     )  # if success == False, this can be some message to show to the user
-    result: Any
+    result: T | None
 
 
 class ActionResult(Generic[T]):
@@ -926,7 +938,7 @@ class ActionResult(Generic[T]):
         self.message = message
         self.result = result
 
-    def as_dict(self) -> ActionResultDict:
+    def as_dict(self) -> ActionResultDict[T]:
         return {"success": self.success, "message": self.message, "result": self.result}
 
     def __str__(self):
@@ -977,3 +989,27 @@ class LibraryVersionInfoDict(TypedDict):
     # Note that if the library was found but the version doesn't match, the
     # result should still be provided.
     result: LibraryVersionDict | None
+
+
+class ActionInfoTypedDict(TypedDict):
+    range: "RangeTypedDict"
+    name: str
+    uri: str
+    kind: str
+
+
+class DatasourceInfoTypedDict(TypedDict):
+    range: "RangeTypedDict"
+    name: str
+    uri: str
+    kind: Literal["datasource"]
+    engine: str
+    model_name: str | None
+    created_table: str | None
+
+
+class DataSourceStateDict(TypedDict):
+    unconfigured_data_sources: list[DatasourceInfoTypedDict]
+    uri_to_error_messages: dict[str, list["DiagnosticsTypedDict"]]
+    required_data_sources: list[DatasourceInfoTypedDict]
+    data_sources_in_data_server: list[str]

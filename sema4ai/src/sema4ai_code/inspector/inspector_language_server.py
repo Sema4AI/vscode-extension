@@ -3,9 +3,8 @@ from functools import partial
 from pathlib import Path
 from typing import Literal, Optional
 
-from sema4ai_ls_core.protocols import ActionResultDict
 from sema4ai_ls_core.core_log import get_logger
-
+from sema4ai_ls_core.protocols import ActionResultDict
 
 log = get_logger(__name__)
 
@@ -69,6 +68,7 @@ class InspectorLanguageServer:
             }
             return ret
         locators = loaded_locators_action_result["result"]
+        assert locators is not None, "Locators should not be None"
 
         locators[name] = locator
 
