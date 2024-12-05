@@ -24,6 +24,7 @@ import {
     PackageYamlName,
     PackageType,
     DataSourceState,
+    DatasourceInfo,
 } from "../protocols";
 import {
     getPackageName,
@@ -38,6 +39,7 @@ import {
     isAgentPackage,
     ActionPackageTargetInfo,
     revealInExtension,
+    showErrorMessageWithShowOutputButton,
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs, readFromFile, writeToFile } from "../files";
@@ -395,14 +397,42 @@ function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string
     });
 }
 
+export function getDataSourceCaption(dataSource: DatasourceInfo): string {
+    if (dataSource.created_table && dataSource.model_name) {
+        return `Bad datasource: ${dataSource.name} - created_table: ${dataSource.created_table} and model_name: ${dataSource.model_name} (${dataSource.engine})`;
+    }
+    if (dataSource.created_table) {
+        if (dataSource.engine === "files" || dataSource.engine === "custom") {
+            return `${dataSource.name}.${dataSource.created_table} (${dataSource.engine})`;
+        }
+        return `Bad datasource: ${dataSource.name} - created_table: ${dataSource.created_table} (${dataSource.engine}) - created_table is only expected in 'files' and 'custom' engines`;
+    }
+    if (dataSource.model_name) {
+        if (dataSource.engine.startsWith("prediction") || dataSource.engine === "custom") {
+            return `${dataSource.name}.${dataSource.model_name} (${dataSource.engine})`;
+        }
+        return `Bad datasource: ${dataSource.name} - model_name: ${dataSource.model_name} (${dataSource.engine}) - model_name is only expected in 'prediction' and 'custom' engines`;
+    }
+
+    // Created table is expected for files engine
+    if (dataSource.engine === "files") {
+        return `Bad datasource: ${dataSource.name} (${dataSource.engine}) - expected created_table to be defined`;
+    }
+    // Model name is expected for prediction engines
+    if (dataSource.engine.startsWith("prediction")) {
+        return `Bad datasource: ${dataSource.name} (${dataSource.engine}) - expected model_name to be defined`;
+    }
+    return `${dataSource.name} (${dataSource.engine})`;
+}
+
 async function computeDataSourceState(
-    actionPackageYamlDirectory: string,
+    actionPackageYamlDirectoryUri: string,
     dataServerInfo: DataServerConfig
-): Promise<DataSourceState> {
+): Promise<ActionResult<DataSourceState>> {
     const dataSourceState = (await langServer.sendRequest("computeDataSourceState", {
-        "action_package_yaml_directory": actionPackageYamlDirectory,
+        "action_package_yaml_directory_uri": actionPackageYamlDirectoryUri,
         "data_server_info": dataServerInfo,
-    })) as DataSourceState;
+    })) as ActionResult<DataSourceState>;
     return dataSourceState;
 }
 
@@ -572,10 +602,15 @@ advised to regenerate it as it may not work with future versions of the extensio
                             });
 
                             // Ok, now, let's verify that the data sources are available.
-                            const dataSourceState = await computeDataSourceState(
-                                actionPackageYamlDirectory,
+                            const dataSourceStateResult = await computeDataSourceState(
+                                vscode.Uri.file(actionPackageYamlDirectory).toString(),
                                 dataServerInfo
                             );
+                            if (!dataSourceStateResult.success) {
+                                showErrorMessageWithShowOutputButton(dataSourceStateResult.message);
+                                return false;
+                            }
+                            const dataSourceState = dataSourceStateResult.result;
                             // Check error messages
                             if (Object.keys(dataSourceState.uri_to_error_messages).length > 0) {
                                 for (const errorMessages of Object.values(dataSourceState.uri_to_error_messages)) {
@@ -589,7 +624,9 @@ advised to regenerate it as it may not work with future versions of the extensio
                             if (dataSourceState.unconfigured_data_sources.length > 0) {
                                 window.showErrorMessage(
                                     "Unable to run because the following data sources are not configured in the local data server (please configure them and retry):\n" +
-                                        dataSourceState.unconfigured_data_sources.map((ds) => ds.name).join("\n")
+                                        dataSourceState.unconfigured_data_sources
+                                            .map((ds) => getDataSourceCaption(ds))
+                                            .join(", ")
                                 );
                                 return false;
                             }

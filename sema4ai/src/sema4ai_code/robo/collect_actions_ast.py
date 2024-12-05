@@ -191,8 +191,8 @@ def _make_action_or_datasource_info(
         return DatasourceInfoTypedDict(
             range=node_range,
             uri=uri,
-            name=node_info["name"],
-            engine=node_info["engine"],
+            name=node_info.get("name", "<name not found>"),
+            engine=node_info.get("engine", "<engine not found>"),
             model_name=node_info.get("model_name"),
             created_table=node_info.get("created_table"),
             kind="datasource",

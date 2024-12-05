@@ -2348,20 +2348,20 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def m_compute_data_source_state(
         self,
-        action_package_yaml_directory: str,
+        action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
     ):
         return require_monitor(
             partial(
                 self._compute_data_source_state_impl,
-                action_package_yaml_directory,
+                action_package_yaml_directory_uri,
                 data_server_info,
             )
         )
 
     def _compute_data_source_state_impl(
         self,
-        action_package_yaml_directory: str,
+        action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
         monitor: IMonitor,
     ) -> ActionResultDict[DataSourceStateDict]:
@@ -2372,7 +2372,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         actions_and_datasources_result: ActionResultDict[
             "list[ActionInfoTypedDict | DatasourceInfoTypedDict]"
         ] = self._local_list_actions_internal_impl(
-            action_package_uri=action_package_yaml_directory,
+            action_package_uri=action_package_yaml_directory_uri,
             collect_datasources=True,
         )
         if not actions_and_datasources_result["success"]:
@@ -2399,9 +2399,19 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
         result_set = connection.query("", "SHOW DATABASES WHERE type = 'project'")
-        data_source_names_in_data_server = set(
-            x["database"] for x in result_set.iter_as_dicts()
-        )
+        info_as_dicts = list(result_set.iter_as_dicts())
+        try:
+            data_source_names_in_data_server = set(x["database"] for x in info_as_dicts)
+        except Exception:
+            log.exception(
+                "Error getting data source names in data server. Query result: %s",
+                info_as_dicts,
+            )
+            return (
+                ActionResult[DataSourceStateDict]
+                .make_failure("Error getting data source names in data server")
+                .as_dict()
+            )
 
         data_source_to_models = {}
         for data_source in data_source_names_in_data_server:

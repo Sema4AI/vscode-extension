@@ -189,7 +189,7 @@ class DataServerConnection:
             )
 
         columns, rows = result
-        return ResultSet(columns, [tuple(row) for row in rows])
+        return ResultSet([x.lower() for x in columns], [tuple(row) for row in rows])
 
     # It's actually the same thing internally, so we can just alias it.
     predict = query

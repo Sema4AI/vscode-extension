@@ -2,7 +2,7 @@ import * as roboCommands from "./robocorpCommands";
 import * as vscode from "vscode";
 import { commands, FileType, Uri, window, WorkspaceFolder } from "vscode";
 import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "./protocols";
-import { logError } from "./channel";
+import { logError, OUTPUT_CHANNEL } from "./channel";
 import { feedbackRobocorpCodeError } from "./rcc";
 import { join } from "path";
 import { uriExists } from "./files";
@@ -346,4 +346,14 @@ export function compareVersions(version1: string, version2: string): number {
     }
 
     return 0;
+}
+
+export async function showErrorMessageWithShowOutputButton(message: string) {
+    const result = await window.showErrorMessage(
+        message + " (see `OUTPUT > Sema4.ai` for more details).",
+        "Open OUTPUT > Sema4.ai"
+    );
+    if (result === "Open OUTPUT > Sema4.ai") {
+        OUTPUT_CHANNEL.show();
+    }
 }
