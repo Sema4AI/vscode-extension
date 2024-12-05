@@ -1,7 +1,7 @@
 import ast as ast_module
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, TypedDict
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
@@ -91,10 +91,22 @@ def _resolve_value(node: ast_module.AST, variable_values: dict[str, str]) -> str
     return None
 
 
-DATASOURCE_KIND = "datasource"
+class _DatasourceInfo(TypedDict, total=False):
+    kind: Literal["datasource"]
+    node: ast_module.AST
+    name: str | None
+    engine: str | None
+    model_name: str | None
+    created_table: str | None
+    python_variable_name: str
 
 
-def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) -> dict:
+def _extract_datasource_info(
+    call_node: ast_module.Call,
+    variable_values: dict,
+    python_variable_name: str,
+    target_node: ast_module.Name | None = None,
+) -> _DatasourceInfo:
     """
     Extract datasource information from a DataSourceSpec(...) call node.
 
@@ -102,19 +114,26 @@ def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) 
         call_node: AST node representing the call.
         variable_values: Dictionary of known variable values.
     """
+    import typing
 
-    interested_info = ["name", "model_name", "engine", "created_table"]
-    info = {"kind": DATASOURCE_KIND, "node": call_node}
+    collect_info = ("name", "model_name", "engine", "created_table")
+
+    info: _DatasourceInfo = {"kind": "datasource", "node": target_node}
 
     for keyword in call_node.keywords:
-        if keyword.arg in interested_info:
+        if keyword.arg in collect_info:
+            key = typing.cast(
+                Literal["name", "model_name", "engine", "created_table"], keyword.arg
+            )
             name = _resolve_value(keyword.value, variable_values)
-            info[keyword.arg] = name
+            info[key] = name
 
     if info.get("engine") == "files":
         info["name"] = "files"
     elif info.get("model_name"):
         info["name"] = "models"
+
+    info["python_variable_name"] = python_variable_name
 
     return info
 
@@ -131,7 +150,7 @@ def is_annotated_type(node: ast_module.AST) -> bool:
 
 def _collect_datasources(
     ast: ast_module.AST, variables: dict[str, Any]
-) -> Iterator[dict]:
+) -> Iterator[_DatasourceInfo]:
     """
     Collect datasource information by identifying specific structures in the AST.
 
@@ -141,10 +160,12 @@ def _collect_datasources(
     """
     for _stack, node in _iter_nodes(ast, recursive=False):
         if isinstance(node, ast_module.Assign) and len(node.targets) == 1:
+            # Get the name of the variable being assigned
             target = node.targets[0]
             if isinstance(target, ast_module.Name) and isinstance(
                 node.value, ast_module.Subscript
             ):
+                python_variable_name = target.id
                 subscript = node.value
                 # Check if the value is an Annotated[...] or typing.Annotated[...]
                 if is_annotated_type(subscript.value):
@@ -157,16 +178,15 @@ def _collect_datasources(
                                     isinstance(elts[1].func, ast_module.Name)
                                     and elts[1].func.id == "DataSourceSpec"
                                 ):
-                                    yield _extract_datasource_info(elts[1], variables)
+                                    yield _extract_datasource_info(
+                                        elts[1],
+                                        variables,
+                                        python_variable_name,
+                                        target_node=target,
+                                    )
 
 
-def _collect_actions_from_ast(
-    p: Path, collect_datasources: bool = False
-) -> Iterator[dict]:
-    action_contents_file = p.read_bytes()
-    ast = ast_module.parse(action_contents_file, "<string>")
-    variables = _collect_variables(ast)
-
+def _collect_actions_from_ast(ast: ast_module.AST) -> Iterator[dict]:
     for _stack, node in _iter_nodes(ast, recursive=False):
         if isinstance(node, ast_module.FunctionDef):
             for decorator in node.decorator_list:
@@ -182,68 +202,40 @@ def _collect_actions_from_ast(
                 ]:
                     yield {"node": node, "kind": decorator.id}
 
-    # Note: Instead of iterating over all nodes to collect datasources, we
-    # try to find the following structure:
-    #
-    # DataSourceVarName = Annotated[DataSource, DataSourceSpec(name="my_datasource")]
-    #
-    # Note that the DataSourceSpec(...) is a Call node inside the Annotated[...]
-    # which in turn must be inside an Assign node.
-
-    if collect_datasources:
-        yield from _collect_datasources(ast, variables)
-
 
 def _get_ast_node_range(
-    node: ast_module.FunctionDef | ast_module.Call,
+    node: ast_module.FunctionDef | ast_module.Call | ast_module.AST,
 ) -> RangeTypedDict:
-    coldelta = 4
-
-    if isinstance(node, ast_module.Call):
-        func_node = node.func
+    if isinstance(node, ast_module.FunctionDef):
+        coldelta = 4
         return {
             "start": {
-                "line": func_node.lineno,
-                "character": func_node.col_offset,
+                "line": node.lineno,
+                "character": node.col_offset + coldelta,
             },
             "end": {
-                "line": node.end_lineno or func_node.lineno,
-                "character": node.end_col_offset or node.col_offset,
+                "line": node.lineno,
+                "character": node.col_offset + coldelta + len(node.name),
             },
         }
 
+    if isinstance(node, ast_module.Call):
+        node_expr = node.func
+    elif isinstance(node, ast_module.expr):
+        node_expr = node
+    else:
+        raise ValueError(f"Unexpected node type to get node range: {type(node)}")
+
     return {
         "start": {
-            "line": node.lineno,
-            "character": node.col_offset + coldelta,
+            "line": node_expr.lineno,
+            "character": node_expr.col_offset,
         },
         "end": {
-            "line": node.lineno,
-            "character": node.col_offset + coldelta + len(node.name),
+            "line": node_expr.end_lineno or node_expr.lineno,
+            "character": node_expr.end_col_offset or node_expr.col_offset,
         },
     }
-
-
-def _make_action_or_datasource_info(
-    uri: str, node_info: dict
-) -> ActionInfoTypedDict | DatasourceInfoTypedDict:
-    ast_node = node_info["node"]
-    node_range = _get_ast_node_range(ast_node)
-
-    if node_info["kind"] == DATASOURCE_KIND:
-        return DatasourceInfoTypedDict(
-            range=node_range,
-            uri=uri,
-            name=node_info.get("name", "<name not found>"),
-            engine=node_info.get("engine", "<engine not found>"),
-            model_name=node_info.get("model_name"),
-            created_table=node_info.get("created_table"),
-            kind="datasource",
-        )
-    else:
-        return ActionInfoTypedDict(
-            range=node_range, uri=uri, name=ast_node.name, kind=node_info["kind"]
-        )
 
 
 DEFAULT_ACTION_SEARCH_GLOB = (
@@ -269,10 +261,54 @@ def iter_actions_and_datasources(
         for glob in globs:
             if fnmatch.fnmatch(f.name, glob):
                 try:
-                    for node_info in _collect_actions_from_ast(f, collect_datasources):
-                        yield _make_action_or_datasource_info(
-                            uris.from_fs_path(str(f)), node_info
+                    action_contents_file = f.read_bytes()
+                    ast = ast_module.parse(action_contents_file, "<string>")
+                    uri = uris.from_fs_path(str(f))
+
+                    for node_info_action in _collect_actions_from_ast(ast):
+                        ast_node = node_info_action["node"]
+                        node_range = _get_ast_node_range(ast_node)
+                        yield ActionInfoTypedDict(
+                            uri=uri,
+                            range=node_range,
+                            name=ast_node.name,
+                            kind=node_info_action["kind"],
                         )
+
+                    if collect_datasources:
+                        variables = _collect_variables(ast)
+                        # Note: Instead of iterating over all nodes to collect datasources, we
+                        # try to find the following structure:
+                        #
+                        # DataSourceVarName = Annotated[DataSource, DataSourceSpec(name="my_datasource")]
+                        #
+                        # Note that the DataSourceSpec(...) is a Call node inside the Annotated[...]
+                        # which in turn must be inside an Assign node.
+
+                        if collect_datasources:
+                            for node_info_datasource in _collect_datasources(
+                                ast, variables
+                            ):
+                                ast_node = node_info_datasource["node"]
+                                node_range = _get_ast_node_range(ast_node)
+                                yield DatasourceInfoTypedDict(
+                                    range=node_range,
+                                    uri=uri,
+                                    name=node_info_datasource.get("name")
+                                    or "<name not found>",
+                                    engine=node_info_datasource.get(
+                                        "engine",
+                                    )
+                                    or "<engine not found>",
+                                    model_name=node_info_datasource.get("model_name"),
+                                    created_table=node_info_datasource.get(
+                                        "created_table"
+                                    ),
+                                    kind="datasource",
+                                    python_variable_name=node_info_datasource.get(
+                                        "python_variable_name"
+                                    ),
+                                )
                 except Exception as e:
                     log.error(
                         f"Unable to collect @action/@query/@predict/datasources from {f}. Error: {e}"

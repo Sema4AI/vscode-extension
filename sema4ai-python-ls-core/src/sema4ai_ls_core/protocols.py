@@ -999,6 +999,7 @@ class ActionInfoTypedDict(TypedDict):
 
 
 class DatasourceInfoTypedDict(TypedDict):
+    python_variable_name: str | None
     range: "RangeTypedDict"
     name: str
     uri: str
