@@ -126,7 +126,7 @@ def _collect_actions_from_ast(
     ast = ast_module.parse(action_contents_file, "<string>")
     variables = _collect_variables(ast)
 
-    for _stack, node in _iter_nodes(ast, recursive=True):
+    for _stack, node in _iter_nodes(ast, recursive=False):
         if isinstance(node, ast_module.FunctionDef):
             for decorator in node.decorator_list:
                 if isinstance(decorator, ast_module.Call):
@@ -140,6 +140,16 @@ def _collect_actions_from_ast(
                     "predict",
                 ]:
                     yield {"node": node, "kind": decorator.id}
+
+    # TODO: Instead of iterating over all nodes to collect datasources, we should
+    # try to find the following structure:
+    #
+    # DataSourceVarName = Annotated[DataSource, DataSourceSpec(name="my_datasource")]
+    #
+    # Note that the DataSourceSpec(...) is a Call node inside the Annotated[...]
+    # which in turn must be inside an Assign node.
+
+    for _stack, node in _iter_nodes(ast, recursive=True):
         if (
             collect_datasources
             and isinstance(node, ast_module.Call)

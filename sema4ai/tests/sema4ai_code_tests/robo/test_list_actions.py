@@ -4,8 +4,33 @@ from pathlib import Path
 import pytest
 from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
+from sema4ai_ls_core.protocols import ActionInfoTypedDict, DatasourceInfoTypedDict
 
 from sema4ai_code.robo.collect_actions import get_metadata
+
+
+def test_list_actions_and_datasources(ws_root_path, cases, data_regression):
+    import json
+
+    action_package_path = Path(cases.get_path("action_package", must_exist=True))
+
+    from sema4ai_code.robo.collect_actions_ast import iter_actions_and_datasources
+
+    result = list(
+        iter_actions_and_datasources(action_package_path, collect_datasources=True)
+    )
+    result = _fix_result(result)
+    print(json.dumps(result, indent=2))
+
+    # data_regression.check(result)
+
+
+def _fix_result(result: list[ActionInfoTypedDict | DatasourceInfoTypedDict]):
+    for entry in result:
+        entry["uri"] = os.path.basename(entry["uri"])
+
+    result = sorted(result, key=lambda x: x["name"])
+    return result
 
 
 def test_list_actions(
@@ -28,10 +53,8 @@ def test_list_actions(
             }
         ],
     )["result"]["result"]
-    for entry in result:
-        entry["uri"] = os.path.basename(entry["uri"])
+    result = _fix_result(result)
 
-    result = sorted(result, key=lambda x: x["name"])
     data_regression.check(result)
 
 
