@@ -135,14 +135,7 @@ class _HttpConnectionHelper:
 
 class DataServerConnection:
     def __init__(
-        self,
-        http_url: str,
-        http_user: Optional[str],
-        http_password: Optional[str],
-        mysql_host: str,
-        mysql_port: int,
-        mysql_user: Optional[str],
-        mysql_password: Optional[str],
+        self, http_url: str, http_user: Optional[str], http_password: Optional[str]
     ):
         """
         Creates a connection to the data server.
@@ -152,6 +145,9 @@ class DataServerConnection:
         self._http_connection = _HttpConnectionHelper(
             http_url, http_user or "", http_password or ""
         )
+
+    def login(self) -> None:
+        self._http_connection.login()
 
     def query(
         self,
@@ -193,3 +189,21 @@ class DataServerConnection:
 
     # It's actually the same thing internally, so we can just alias it.
     predict = query
+
+    def run_sql(
+        self,
+        sql: str,
+        params: Optional[dict[str, str | int | float] | list[str | int | float]] = None,
+    ) -> None:
+        database_name = ""
+        from .sql_handling import (
+            build_query_from_dict_params,
+            build_query_from_list_params,
+        )
+
+        if isinstance(params, list):
+            sql = build_query_from_list_params(sql, params)
+        else:
+            sql = build_query_from_dict_params(sql, params)
+
+        self._http_connection.run_sql(sql, database_name)

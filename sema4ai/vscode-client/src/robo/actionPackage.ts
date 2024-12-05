@@ -343,7 +343,6 @@ export interface DataServerConfig {
             port: string;
         };
         mysql: {
-            database: string;
             host: string;
             port: string;
             ssl: boolean;
@@ -368,7 +367,6 @@ function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string
     //           port: "47334",
     //         },
     //         mysql: {
-    //           database: "mindsdb",
     //           host: "127.0.0.1",
     //           port: "47335",
     //           ssl: false,

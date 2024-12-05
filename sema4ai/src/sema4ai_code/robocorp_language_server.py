@@ -846,7 +846,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         # about it.
         p = Path(uris.to_fs_path(action_package_uri))
         if not p.exists():
-            msg = f"Unable to collect actions from: {p} because it does not exist."
+            msg = f"Unable to collect actions/datasources from: {p} because it does not exist."
             return ActionResult.make_failure(msg).as_dict()  # type: ignore
 
         if not p.is_dir():
@@ -857,9 +857,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 iter_actions_and_datasources(p, collect_datasources)
             )
         except Exception as e:
-            log.exception("Error collecting actions.")
+            log.exception("Error collecting actions/datasources.")
             return dict(
-                success=False, message=f"Error collecting actions: {e}", result=None
+                success=False,
+                message=f"Error collecting actions/datasources: {e}",
+                result=None,
             )
 
         return dict(success=True, message=None, result=actions_and_datasources)
@@ -2383,7 +2385,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             )
 
         http = data_server_info["api"]["http"]
-        mysql = data_server_info["api"]["mysql"]
         auth = data_server_info["auth"]
         user = auth["username"]
         password = auth["password"]
@@ -2392,16 +2393,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             http_url=f"http://{http['host']}:{http['port']}",
             http_user=user,
             http_password=password,
-            mysql_host=mysql["host"],
-            mysql_port=int(mysql["port"]),
-            mysql_user=user,
-            mysql_password=password,
         )
 
         result_set = connection.query("", "SHOW DATABASES WHERE type = 'project'")
         info_as_dicts = list(result_set.iter_as_dicts())
         try:
-            data_source_names_in_data_server = set(x["database"] for x in info_as_dicts)
+            data_source_names_in_data_server = set(
+                x["database"].lower() for x in info_as_dicts
+            )
         except Exception:
             log.exception(
                 "Error getting data source names in data server. Query result: %s",
@@ -2446,6 +2445,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             for datasource in datasources:
                 uri = datasource.get("uri", "<uri-missing>")
                 datasource_name = datasource.get("name")
+
                 if not datasource_name:
                     uri_to_error_messages.setdefault(uri, []).append(
                         {
@@ -2467,7 +2467,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     )
                     continue
 
-                if datasource_name not in data_source_names_in_data_server:
+                if datasource_name.lower() not in data_source_names_in_data_server:
                     unconfigured_data_sources.append(datasource)
 
         return ActionResult[DataSourceStateDict].make_success(ret).as_dict()

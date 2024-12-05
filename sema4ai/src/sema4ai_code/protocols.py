@@ -516,7 +516,6 @@ class HttpConfigTypedDict(TypedDict):
 
 
 class MysqlConfigTypedDict(TypedDict):
-    database: str
     host: str
     port: str
     ssl: bool

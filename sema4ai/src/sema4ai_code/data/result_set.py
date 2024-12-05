@@ -6,7 +6,7 @@ T = typing.TypeVar("T")
 
 class ResultSet:
     def __init__(self, columns: list[str], rows: list[tuple[Any, ...]]):
-        self._columns = columns
+        self._columns = tuple(columns)
         self._data = rows
 
     def iter_as_dicts(self) -> Iterator[dict[str, Any]]:
@@ -36,3 +36,7 @@ class ResultSet:
         result set as keyword arguments.
         """
         return [item_class(**row) for row in self.iter_as_dicts()]
+
+    @property
+    def columns(self) -> tuple[str, ...]:
+        return self._columns
