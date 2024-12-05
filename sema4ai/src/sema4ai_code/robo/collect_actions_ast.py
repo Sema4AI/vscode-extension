@@ -105,7 +105,7 @@ def _extract_datasource_info(
     call_node: ast_module.Call,
     variable_values: dict,
     python_variable_name: str,
-    target_node: ast_module.Name | None = None,
+    target_node: ast_module.AST,
 ) -> _DatasourceInfo:
     """
     Extract datasource information from a DataSourceSpec(...) call node.
