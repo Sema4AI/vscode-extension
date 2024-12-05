@@ -119,6 +119,47 @@ def _extract_datasource_info(call_node: ast_module.Call, variable_values: dict) 
     return info
 
 
+def is_annotated_type(node: ast_module.AST) -> bool:
+    if isinstance(node, ast_module.Name):
+        return node.id == "Annotated"
+
+    if isinstance(node, ast_module.Attribute):
+        return node.attr == "Annotated"
+
+    return False
+
+
+def _collect_datasources(
+    ast: ast_module.AST, variables: dict[str, Any]
+) -> Iterator[dict]:
+    """
+    Collect datasource information by identifying specific structures in the AST.
+
+    Args:
+        ast: The root AST node.
+        variables: Dictionary of known variable values.
+    """
+    for _stack, node in _iter_nodes(ast, recursive=False):
+        if isinstance(node, ast_module.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast_module.Name) and isinstance(
+                node.value, ast_module.Subscript
+            ):
+                subscript = node.value
+                # Check if the value is an Annotated[...] or typing.Annotated[...]
+                if is_annotated_type(subscript.value):
+                    # Check if the slice is a Call node with DataSourceSpec
+                    if isinstance(subscript.slice, ast_module.Tuple):
+                        elts = subscript.slice.elts
+                        if len(elts) == 2:
+                            if isinstance(elts[1], ast_module.Call):
+                                if (
+                                    isinstance(elts[1].func, ast_module.Name)
+                                    and elts[1].func.id == "DataSourceSpec"
+                                ):
+                                    yield _extract_datasource_info(elts[1], variables)
+
+
 def _collect_actions_from_ast(
     p: Path, collect_datasources: bool = False
 ) -> Iterator[dict]:
@@ -141,7 +182,7 @@ def _collect_actions_from_ast(
                 ]:
                     yield {"node": node, "kind": decorator.id}
 
-    # TODO: Instead of iterating over all nodes to collect datasources, we should
+    # Note: Instead of iterating over all nodes to collect datasources, we
     # try to find the following structure:
     #
     # DataSourceVarName = Annotated[DataSource, DataSourceSpec(name="my_datasource")]
@@ -149,16 +190,8 @@ def _collect_actions_from_ast(
     # Note that the DataSourceSpec(...) is a Call node inside the Annotated[...]
     # which in turn must be inside an Assign node.
 
-    for _stack, node in _iter_nodes(ast, recursive=True):
-        if (
-            collect_datasources
-            and isinstance(node, ast_module.Call)
-            and isinstance(node.func, ast_module.Name)
-            and node.func.id == "DataSourceSpec"
-        ):
-            result = _extract_datasource_info(node, variables)
-            if result:
-                yield result
+    if collect_datasources:
+        yield from _collect_datasources(ast, variables)
 
 
 def _get_ast_node_range(

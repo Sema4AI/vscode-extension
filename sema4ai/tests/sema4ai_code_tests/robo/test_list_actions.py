@@ -9,9 +9,7 @@ from sema4ai_ls_core.protocols import ActionInfoTypedDict, DatasourceInfoTypedDi
 from sema4ai_code.robo.collect_actions import get_metadata
 
 
-def test_list_actions_and_datasources(ws_root_path, cases, data_regression):
-    import json
-
+def test_list_actions_and_datasources_simple(cases, data_regression):
     action_package_path = Path(cases.get_path("action_package", must_exist=True))
 
     from sema4ai_code.robo.collect_actions_ast import iter_actions_and_datasources
@@ -20,9 +18,8 @@ def test_list_actions_and_datasources(ws_root_path, cases, data_regression):
         iter_actions_and_datasources(action_package_path, collect_datasources=True)
     )
     result = _fix_result(result)
-    print(json.dumps(result, indent=2))
 
-    # data_regression.check(result)
+    data_regression.check(result)
 
 
 def _fix_result(result: list[ActionInfoTypedDict | DatasourceInfoTypedDict]):
@@ -292,6 +289,52 @@ ChurnPredictionDataSource = Annotated[
     ),
 ]
 """
+
+
+def data_sources_2() -> str:
+    return """
+import typing
+from sema4ai.data import DataSource, DataSourceSpec
+
+FileChurnDataSource = typing.Annotated[
+    DataSource,
+    DataSourceSpec(
+        created_table="churn",
+        file="files/customer-churn.csv",
+        engine="files",
+        description="Datasource which provides a table named 'churn' with customer churn data.",
+    ),
+]
+
+ChurnPredictionDataSource = typing.Annotated[
+    DataSource,
+    DataSourceSpec(
+        model_name="customer_churn_predictor",
+        engine="prediction:lightwood",
+        description="Datasource which provides along with a table named `customer_churn_predictor`.",
+        setup_sql="CREATE MODEL IF NOT EXISTS customer_churn_predictor FROM files (SELECT * FROM churn) PREDICT Churn;",
+    ),
+]
+"""
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [data_sources, data_sources_2],
+)
+def test_list_actions_and_datasources_mutiple(data_regression, scenario, tmpdir):
+    action_package_path = Path(tmpdir)
+    scenario_path = action_package_path / "data_sources.py"
+    scenario_path.write_text(scenario(), "utf-8")
+
+    from sema4ai_code.robo.collect_actions_ast import iter_actions_and_datasources
+
+    result = list(
+        iter_actions_and_datasources(action_package_path, collect_datasources=True)
+    )
+    result = _fix_result(result)
+
+    data_regression.check(result)
 
 
 @pytest.mark.parametrize(
