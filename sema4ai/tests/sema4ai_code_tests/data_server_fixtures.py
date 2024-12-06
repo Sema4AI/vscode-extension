@@ -172,9 +172,11 @@ def data_server_cli(request, tmpdir_factory) -> Iterator["DataServerCliWrapper"]
     from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
     from sema4ai_ls_core.system_mutex import timed_acquire_mutex
 
+    from sema4ai_code.rcc import RCC_CLOUD_ROBOT_MUTEX_NAME
+
     wrapper = DataServerCliWrapper(Path(str(tmpdir_factory.mktemp("data-server-cli"))))
     # This can be pretty slow (and may be common with pytest-xdist).
-    with timed_acquire_mutex("data-server-cli", timeout=60 * 10):
+    with timed_acquire_mutex(RCC_CLOUD_ROBOT_MUTEX_NAME, timeout=60 * 20):
         wrapper.download_data_server_cli()
         wrapper.start()
 

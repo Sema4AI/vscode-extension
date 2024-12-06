@@ -21,7 +21,7 @@ def cleanup_data_sources(data_server_cli: DataServerCliWrapper):
     )
 
 
-def _test_compute_data_sources_state(
+def test_compute_data_sources_state(
     data_server_cli: DataServerCliWrapper,
     language_server_initialized,
     ws_root_path,
