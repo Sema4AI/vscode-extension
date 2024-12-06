@@ -15,6 +15,7 @@
 - No longer use `robocorp-trustore` (it's no longer needed).
 - Use `sema4ai-http-helper` to make http requests (to data server).
 - Use `Python 3.11` as the base interpreter.
+- When launching, if the Data Sources are not properly configured, show error message to the user.
 
 ## New in 2.8.1 (2024-11-21)
 

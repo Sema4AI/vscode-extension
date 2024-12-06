@@ -42,5 +42,19 @@ required_data_sources:
       character: 0
       line: 34
   uri: data_sources.py
-unconfigured_data_sources: []
+unconfigured_data_sources:
+- created_table: null
+  engine: prediction:lightwood
+  kind: datasource
+  model_name: predict_compute_data_sources_state
+  name: models
+  python_variable_name: PredictDataSource
+  range:
+    end:
+      character: 17
+      line: 17
+    start:
+      character: 0
+      line: 17
+  uri: data_sources.py
 uri_to_error_messages: {}

@@ -1,6 +1,10 @@
+import logging
+
 import pytest
 from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 from sema4ai_ls_core.protocols import DataSourceStateDict
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -12,13 +16,64 @@ def cleanup_data_sources(data_server_cli: DataServerCliWrapper):
     data_server_cli.http_connection.run_sql(
         "DROP DATABASE IF EXISTS test_compute_data_sources_state"
     )
+    data_server_cli.http_connection.run_sql(
+        "DROP MODEL IF EXISTS models.predict_compute_data_sources_state"
+    )
     yield
     data_server_cli.http_connection.run_sql(
         "DROP TABLE IF EXISTS files.customers_in_test_compute_data_sources_state"
     )
     data_server_cli.http_connection.run_sql(
+        "DROP MODEL IF EXISTS models.predict_compute_data_sources_state"
+    )
+    data_server_cli.http_connection.run_sql(
         "DROP DATABASE IF EXISTS test_compute_data_sources_state"
     )
+
+
+def wait_for_models_to_be_ready(
+    data_server_cli: DataServerCliWrapper, project_name_to_model_names: dict
+):
+    import time
+
+    while project_name_to_model_names:
+        still_training: dict[str, list[str]] = {}
+
+        for project, models in project_name_to_model_names.items():
+            for model in models:
+                assert data_server_cli.http_connection is not None
+                result = data_server_cli.http_connection.query(
+                    database_name=project,
+                    query=f"SELECT status, error FROM models WHERE name = '{model}'",
+                )
+                assert (
+                    result is not None
+                ), f"Failed to get model {model} from project {project}"
+                if not result:
+                    continue  # Someone else removed it in the meanwhile?
+
+                row = next(result.iter_as_dicts())
+                status = row.get("status", "").lower()
+
+                if status in ("generating", "training"):
+                    still_training.setdefault(project, []).append(model)
+                    log.info(
+                        f"Waiting for model {project}.{model} to complete. Current status: {status}"
+                    )
+                elif status == "error":
+                    raise RuntimeError(
+                        f"Model {project}.{model} failed to generate. Error: {row.get('error')}"
+                    )
+                elif status == "complete":
+                    break
+                else:
+                    log.warning(f"Unexpected model status: {status}")
+
+        if not still_training:
+            break
+
+        time.sleep(2)
+        project_name_to_model_names = still_training
 
 
 @pytest.mark.data_server
@@ -104,6 +159,22 @@ def test_compute_data_sources_state(
     engine = "sqlite"
     data_server_cli.http_connection.run_sql(
         f"CREATE DATABASE `test_compute_data_sources_state` ENGINE = '{engine}' , PARAMETERS = {params}",
+    )
+
+    fixed_result = collect_data_source_state()
+    data_regression.check(fixed_result, basename="missing_data_source_prediction")
+
+    data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS models""")
+    data_server_cli.http_connection.run_sql(
+        """CREATE MODEL models.predict_compute_data_sources_state
+FROM files
+(SELECT * FROM customers_in_test_compute_data_sources_state)
+PREDICT Index
+WINDOW 8
+HORIZON 4;"""
+    )
+    wait_for_models_to_be_ready(
+        data_server_cli, {"models": ["predict_compute_data_sources_state"]}
     )
 
     fixed_result = collect_data_source_state()
