@@ -21,6 +21,7 @@ def cleanup_data_sources(data_server_cli: DataServerCliWrapper):
     )
 
 
+@pytest.mark.data_server
 def test_compute_data_sources_state(
     data_server_cli: DataServerCliWrapper,
     language_server_initialized,
