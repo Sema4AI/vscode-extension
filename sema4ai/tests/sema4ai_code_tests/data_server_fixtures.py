@@ -70,7 +70,7 @@ def _bootstrap_test_datasources(data_server_cli: "DataServerCliWrapper", tmpdir)
         print(f"Took {time.time() - curtime:.2f} seconds to connect/login")
 
     # Bootstrapping it can take a really long time...
-    wait_for_non_error_condition(make_connection, timeout=60 * 5, sleep=2)
+    wait_for_non_error_condition(make_connection, timeout=60 * 10, sleep=2)
 
     curtime = time.time()
     assert http_connection is not None
