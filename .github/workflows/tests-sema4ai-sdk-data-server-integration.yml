@@ -69,7 +69,7 @@ jobs:
         RUN_TESTS_TIMEOUT: 3000
         ACTION_SERVER_TEST_ACCESS_CREDENTIALS: ${{ secrets.ACTION_SERVER_TEST_ACCESS_CREDENTIALS }}
 
-      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output_data_server -vv -m data_server.
+      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output_data_server -vv -m data_server .
       
     - uses: actions/upload-artifact@v4
       if: always()
