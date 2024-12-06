@@ -9,9 +9,15 @@ def cleanup_data_sources(data_server_cli: DataServerCliWrapper):
     data_server_cli.http_connection.run_sql(
         "DROP TABLE IF EXISTS files.customers_in_test_compute_data_sources_state"
     )
+    data_server_cli.http_connection.run_sql(
+        "DROP DATABASE IF EXISTS test_compute_data_sources_state"
+    )
     yield
     data_server_cli.http_connection.run_sql(
         "DROP TABLE IF EXISTS files.customers_in_test_compute_data_sources_state"
+    )
+    data_server_cli.http_connection.run_sql(
+        "DROP DATABASE IF EXISTS test_compute_data_sources_state"
     )
 
 
@@ -22,10 +28,12 @@ def test_compute_data_sources_state(
     datadir,
     data_regression,
     cleanup_data_sources,
+    tmpdir,
 ):
     import json
     import shutil
 
+    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
     from sema4ai_ls_core import uris
 
     from sema4ai_code.protocols import DataServerConfigTypedDict
@@ -90,6 +98,15 @@ def test_compute_data_sources_state(
     )
     fixed_result = collect_data_source_state()
     data_regression.check(fixed_result, basename="missing_data_source_sqlite")
+
+    params = json.dumps({"db_file": str(create_another_sqlite_sample_db(tmpdir))})
+    engine = "sqlite"
+    data_server_cli.http_connection.run_sql(
+        f"CREATE DATABASE `test_compute_data_sources_state` ENGINE = '{engine}' , PARAMETERS = {params}",
+    )
+
+    fixed_result = collect_data_source_state()
+    data_regression.check(fixed_result, basename="missing_data_source_none")
 
 
 def fix_data_sources_state_result(result: DataSourceStateDict) -> DataSourceStateDict:

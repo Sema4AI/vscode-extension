@@ -2367,6 +2367,24 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         data_server_info: DataServerConfigTypedDict,
         monitor: IMonitor,
     ) -> ActionResultDict[DataSourceStateDict]:
+        try:
+            return self._impl_compute_data_source_state_impl(
+                action_package_yaml_directory_uri, data_server_info, monitor
+            )
+        except Exception as e:
+            log.exception("Error computing data source state")
+            return (
+                ActionResult[DataSourceStateDict]
+                .make_failure(f"Error computing data source state: {e}")
+                .as_dict()
+            )
+
+    def _impl_compute_data_source_state_impl(
+        self,
+        action_package_yaml_directory_uri: str,
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict[DataSourceStateDict]:
         from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
 
         from sema4ai_code.data.data_server_connection import DataServerConnection
@@ -2395,16 +2413,25 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             http_password=password,
         )
 
-        result_set = connection.query("", "SHOW DATABASES WHERE type = 'project'")
-        info_as_dicts = list(result_set.iter_as_dicts())
+        result_set_projects = connection.query(
+            "", "SHOW DATABASES WHERE type = 'project'"
+        )
+        result_set_not_projects = connection.query(
+            "", "SHOW DATABASES WHERE type != 'project'"
+        )
+        projects_as_dicts = list(result_set_projects.iter_as_dicts())
+        not_projects_as_dicts = list(result_set_not_projects.iter_as_dicts())
+
+        all_databases_as_dicts = projects_as_dicts + not_projects_as_dicts
+
         try:
             data_source_names_in_data_server = set(
-                x["database"].lower() for x in info_as_dicts
+                x["database"].lower() for x in all_databases_as_dicts
             )
         except Exception:
             log.exception(
                 "Error getting data source names in data server. Query result: %s",
-                info_as_dicts,
+                all_databases_as_dicts,
             )
             return (
                 ActionResult[DataSourceStateDict]
@@ -2412,17 +2439,21 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 .as_dict()
             )
 
+        projects_data_source_names_in_data_server = set(
+            x["database"].lower() for x in projects_as_dicts
+        )
+
         data_source_to_models = {}
-        for data_source in data_source_names_in_data_server:
+        for data_source in projects_data_source_names_in_data_server:
             result_set_models = connection.query(data_source, "SELECT * FROM models")
             if result_set_models:
                 data_source_to_models[data_source] = [
                     x["name"] for x in result_set_models.iter_as_dicts()
                 ]
 
-        files_result_set = connection.query("files", "SHOW TABLES")
         files_table_names = set(
-            x["tables_in_files"] for x in files_result_set.iter_as_dicts()
+            x["tables_in_files"]
+            for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
         )
 
         assert actions_and_datasources_result["result"] is not None
@@ -2471,7 +2502,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     )
                     continue
 
-                if datasource_engine == "files":
+                if datasource_engine == "files" or (
+                    datasource_name == "custom" and datasource.get("created_table")
+                ):
                     created_table = datasource.get("created_table")
                     if not created_table:
                         uri_to_error_messages.setdefault(uri, []).append(
@@ -2483,7 +2516,35 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                         )
                         continue
 
-                    if created_table not in files_table_names:
+                    if datasource_engine == "files":
+                        if created_table not in files_table_names:
+                            unconfigured_data_sources.append(datasource)
+                    else:
+                        # Custom datasource with created_table.
+                        custom_table_names = set(
+                            x["tables_in_files"]
+                            for x in connection.query(
+                                "files", "SHOW TABLES"
+                            ).iter_as_dicts()
+                        )
+                        if created_table not in custom_table_names:
+                            unconfigured_data_sources.append(datasource)
+                    continue
+
+                if datasource_engine.startswith("prediction:") or (
+                    datasource_name == "custom" and datasource.get("model_name")
+                ):
+                    model_name = datasource.get("model_name")
+                    if not model_name:
+                        uri_to_error_messages.setdefault(uri, []).append(
+                            {
+                                "range": datasource["range"],
+                                "severity": DiagnosticSeverity.Error,
+                                "message": "The prediction engine requires the model_name field to be set.",
+                            }
+                        )
+                        continue
+                    if model_name not in data_source_to_models.get(datasource_name, []):
                         unconfigured_data_sources.append(datasource)
                     continue
 
