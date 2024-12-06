@@ -3,14 +3,13 @@
   kind: datasource
   model_name: null
   name: files
-  python_variable_name: FileChurnDataSource
   range:
     end:
-      character: 19
-      line: 5
+      character: 5
+      line: 12
     start:
-      character: 0
-      line: 5
+      character: 4
+      line: 7
   uri: data_sources.py
 - kind: query
   name: get_churn_data
@@ -27,14 +26,13 @@
   kind: datasource
   model_name: customer_churn_predictor
   name: models
-  python_variable_name: ChurnPredictionDataSource
   range:
     end:
-      character: 25
-      line: 15
+      character: 5
+      line: 28
     start:
-      character: 0
-      line: 15
+      character: 4
+      line: 17
   uri: data_sources.py
 - kind: action
   name: my_action

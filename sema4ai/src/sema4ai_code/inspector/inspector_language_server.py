@@ -1,11 +1,10 @@
 import weakref
 from functools import partial
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
-from sema4ai_ls_core.protocols import ActionResultDict
 from sema4ai_ls_core.core_log import get_logger
-
+from sema4ai_ls_core.protocols import ActionResultDict
 
 log = get_logger(__name__)
 
@@ -69,6 +68,7 @@ class InspectorLanguageServer:
             }
             return ret
         locators = loaded_locators_action_result["result"]
+        assert locators is not None, "Locators should not be None"
 
         locators[name] = locator
 
@@ -120,6 +120,13 @@ class InspectorLanguageServer:
             return ret
 
         locators = loaded_locators_action_result["result"]
+        if locators is None:
+            ret = {
+                "success": False,
+                "message": "Locators not properly loaded (status was success but result was None).",
+                "result": None,
+            }
+            return ret
         for locator_id in ids:
             locators.pop(locator_id, None)
 

@@ -1,0 +1,57 @@
+name: Tests - Python Language Server Core (sema4ai-python-ls-core)
+
+on:
+  push:
+    paths:
+      - sema4ai-python-ls-core/**
+      - .github/**
+
+  pull_request:
+    paths:
+      - sema4ai-python-ls-core/**
+      - .github/**
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: ["windows-py311", "ubuntu-py311", "macos-py311"]
+
+        include:
+          - name: "windows-py311"
+            python: "3.11"
+            os: windows-latest
+          - name: "ubuntu-py311"
+            python: "3.11"
+            os: ubuntu-latest
+          - name: "macos-py311"
+            python: "3.11"
+            os: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Upgrade pip, install fire, poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install fire poetry
+      - name: poetry install
+        working-directory: ./sema4ai-python-ls-core
+        run: |
+          poetry install
+      - name: Test
+        working-directory: ./sema4ai-python-ls-core/tests
+        env:
+          PYTHONPATH: .
+        run: poetry run python -u ./run_tests.py -rfE -otests_output -vv .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tests_output.${{ matrix.name }}.txt
+          path: sema4ai-python-ls-core/tests/tests_output

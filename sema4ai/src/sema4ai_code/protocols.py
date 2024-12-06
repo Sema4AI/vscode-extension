@@ -79,64 +79,27 @@ class ActionServerVerifyLoginInfoDict(TypedDict):
 T = TypeVar("T")
 
 
-class ActionResultDictRobotLaunch(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: dict[str, Any] | None
+ActionResultDictRobotLaunch = ActionResultDict[dict[str, Any]]
+
+ActionResultDictLocatorsJson = ActionResultDict[tuple[Any, Path]]
+
+ActionResultDictLocatorsJsonInfo = ActionResultDict[list[LocatorEntryInfoDict]]
+
+ActionResultDictLocalRobotMetadata = ActionResultDict[
+    list[LocalPackageMetadataInfoDict]
+]
+
+ActionServerVerifyLoginResultDict = ActionResultDict[ActionServerVerifyLoginInfoDict]
 
 
-class ActionResultDictLocatorsJson(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: tuple[Any, Path] | None
-
-
-class ActionResultDictLocatorsJsonInfo(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: list[LocatorEntryInfoDict] | None
-
-
-class ActionResultDictLocalRobotMetadata(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: list[LocalPackageMetadataInfoDict] | None
-
-
-class ActionServerVerifyLoginResultDict(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: ActionServerVerifyLoginInfoDict | None
-
-
-class ActionServerListOrgsResultDict(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: list[str] | None
+ActionServerListOrgsResultDict = ActionResultDict[list[str]]
 
 
 class ActionServerPackageBuildInfo(TypedDict):
     package_path: str
 
 
-class ActionServerPackageBuildResultDict(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: ActionServerPackageBuildInfo
+ActionServerPackageBuildResultDict = ActionResultDict[ActionServerPackageBuildInfo]
 
 
 class ActionPackageUploadStatusError(TypedDict):
@@ -161,12 +124,7 @@ class ActionServerPackageUploadStatus(TypedDict):
     error: ActionPackageUploadStatusError | None
 
 
-class ActionServerPackageUploadStatusDict(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: ActionServerPackageUploadStatus
+ActionServerPackageUploadStatusDict = ActionResultDict[ActionServerPackageUploadStatus]
 
 
 class WorkItem(TypedDict):
@@ -189,12 +147,7 @@ class WorkItemsInfo(TypedDict):
     new_output_workitem_path: str
 
 
-class ActionResultDictWorkItems(TypedDict):
-    success: bool
-    message: None | (
-        str
-    )  # if success == False, this can be some message to show to the user
-    result: WorkItemsInfo | None
+ActionResultDictWorkItems = ActionResultDict[WorkItemsInfo]
 
 
 class ListWorkItemsParams(TypedDict):
@@ -555,3 +508,33 @@ class IRcc(Protocol):
         file_path: str,
     ) -> ActionResult[str]:
         pass
+
+
+class HttpConfigTypedDict(TypedDict):
+    host: str
+    port: str
+
+
+class MysqlConfigTypedDict(TypedDict):
+    host: str
+    port: str
+    ssl: bool
+
+
+class ApiConfigTypedDict(TypedDict):
+    http: HttpConfigTypedDict
+    mysql: MysqlConfigTypedDict
+
+
+class AuthConfigTypedDict(TypedDict):
+    http_auth_enabled: bool
+    password: str
+    username: str
+
+
+class DataServerConfigTypedDict(TypedDict):
+    api: ApiConfigTypedDict
+    auth: AuthConfigTypedDict
+    isRunning: bool
+    pid: int
+    pidFilePath: str

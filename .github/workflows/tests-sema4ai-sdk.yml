@@ -1,0 +1,84 @@
+name: Tests - Sema4.ai (sema4ai)
+
+on:
+  push:
+    paths:
+    - sema4ai/**
+    - sema4ai-python-ls-core/**
+    - .github/**
+
+  pull_request:
+    paths:
+    - sema4ai/**
+    - sema4ai-python-ls-core/**
+    - .github/**
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          "ubuntu-py311",
+          "windows-py311",
+#           "mac-py311", mac disabled because it takes too long for runners to pick the mac job up.
+        ]
+
+        include:
+          - name: "ubuntu-py311"
+            python: "3.11"
+            os: ubuntu-latest
+          - name: "windows-py311"
+            python: "3.11"
+            os: windows-latest
+#           - name: "mac-py311"
+#             python: "3.11"
+#             os: mac-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Upgrade pip
+      run: python -m pip install --upgrade pip
+    - name: Vendor sema4ai_ls_core
+      working-directory: ./sema4ai
+      run: |
+        pip install fire poetry
+        python -m dev vendor-robocorp-ls-core
+    - name: poetry install
+      working-directory: ./sema4ai
+      run: poetry install
+    - name: Run codegen
+      run: python -m dev codegen
+      working-directory: ./sema4ai
+      env:
+        PYTHONPATH: src
+    - name: Test
+      working-directory: ./sema4ai/tests
+      env:
+        PYTHONPATH: .
+        CI_CREDENTIALS: ${{ secrets.CI_CREDENTIALS }}
+        CI_ENDPOINT: ${{ secrets.CI_ENDPOINT }}
+        # Big timeout to create environment in windows.
+        RUN_TESTS_TIMEOUT: 3000
+        ACTION_SERVER_TEST_ACCESS_CREDENTIALS: ${{ secrets.ACTION_SERVER_TEST_ACCESS_CREDENTIALS }}
+
+      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv -m "not data_server" .
+      
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: tests_output.${{ matrix.name }}.txt
+        path: sema4ai/tests/tests_output
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: log.${{ matrix.name }}.html
+        path: sema4ai/tests/output/log.html
+

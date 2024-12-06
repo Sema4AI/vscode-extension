@@ -4,8 +4,8 @@ channels:
     - conda-forge
 
 dependencies:
-    - python=3.10.12 # https://pyreadiness.org/3.10/
-    - uv=0.2.37 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
+    - python=3.11.10 # https://pyreadiness.org/3.10/
+    - uv=0.4.17 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.1
     - ruamel.yaml=0.18.6
     - msgspec=0.18.2
@@ -16,7 +16,7 @@ dependencies:
     - psutil==5.9.8 # VSCode Windows Inspector dependency
     - java-access-bridge-wrapper==1.2.0 # VSCode Java Inspector dependency
     - pip:
-          - robocorp-truststore==0.9.1 # https://github.com/sethmlarson/truststore/blob/main/CHANGELOG.md
           - playwright==1.37.0
           - tree-sitter==0.22.3
           - tree-sitter-yaml==0.6.0
+          - sema4ai-http-helper==1.0.2

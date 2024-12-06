@@ -174,8 +174,6 @@
         "onCommand:sema4ai.importActionPackage",
         "onCommand:sema4ai.runActionPackageDevTask",
         "onCommand:sema4ai.getActionsMetadata",
-        "onCommand:sema4ai.startDataServer",
-        "onCommand:sema4ai.stopDataServer",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1007,16 +1005,6 @@
             {
                 "command": "sema4ai.getActionsMetadata",
                 "title": "Get Actions Metadata",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.startDataServer",
-                "title": "Start Data Server",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.stopDataServer",
-                "title": "Stop Data Server",
                 "category": "Sema4.ai"
             }
         ],

@@ -20,7 +20,12 @@ from sema4ai_ls_core.lsp import (
     HoverTypedDict,
     TextDocumentCodeActionTypedDict,
 )
-from sema4ai_ls_core.protocols import IConfig, IMonitor, LibraryVersionInfoDict
+from sema4ai_ls_core.protocols import (
+    DataSourceStateDict,
+    IConfig,
+    IMonitor,
+    LibraryVersionInfoDict,
+)
 from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
 from sema4ai_ls_core.watchdog_wrapper import IFSObserver
 
@@ -53,6 +58,7 @@ from sema4ai_code.protocols import (
     CreateActionPackageParamsDict,
     CreateAgentPackageParamsDict,
     CreateRobotParamsDict,
+    DataServerConfigTypedDict,
     DownloadToolDict,
     IRccRobotMetadata,
     IRccWorkspace,
@@ -79,6 +85,10 @@ from sema4ai_code.workspace_manager import WorkspaceManager
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.agents.gallery_actions import GalleryActionPackages
+    from sema4ai_code.robo.collect_actions_ast import (
+        ActionInfoTypedDict,
+        DatasourceInfoTypedDict,
+    )
 
 log = get_logger(__name__)
 
@@ -183,13 +193,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 f"sys.executable: {sys.executable}\n"
                 f"Env vars info: {env_vars_info}\n"
             )
-
-        try:
-            import truststore
-
-            truststore.inject_into_ssl()
-        except Exception:
-            log.exception("There was an error injecting trustore into ssl.")
 
         self._fs_observer: IFSObserver | None = None
 
@@ -664,7 +667,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ret: list[WorkspaceInfoDict] = []
             result = self._rcc.cloud_list_workspaces()
             if not result.success:
-                return result.as_dict()
+                # It's an error, so, the data should be None.
+                return typing.cast(
+                    ActionResultDict[list[WorkspaceInfoDict]], result.as_dict()
+                )
 
             workspaces = result.result
             for ws in workspaces or []:
@@ -708,7 +714,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 ret.append(ws_dict)
 
         if not ret and last_error_result is not None:
-            return last_error_result.as_dict()
+            # It's an error, so, the data should be None.
+            return typing.cast(
+                ActionResultDict[list[WorkspaceInfoDict]], last_error_result.as_dict()
+            )
 
         if ret:  # Only store if we got something.
             store: ListWorkspaceCachedInfoDict = {
@@ -810,40 +819,52 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     @command_dispatcher(commands.SEMA4AI_LIST_ACTIONS_INTERNAL)
     def _local_list_actions_internal(self, params: ListActionsParams | None):
         # i.e.: should not block.
-        return partial(self._local_list_actions_internal_impl, params=params)
+        if not params:
+            msg = f"Unable to collect actions because no arguments were given."
+            return dict(success=False, message=msg, result=None)
+
+        action_package_uri = params.get("action_package")
+        if not action_package_uri:
+            msg = f"Unable to collect actions because the target action_package was not given."
+            return dict(success=False, message=msg, result=None)
+
+        collect_datasources = bool(params.get("collect_datasources", False))
+
+        return partial(
+            self._local_list_actions_internal_impl,
+            action_package_uri=action_package_uri,
+            collect_datasources=collect_datasources,
+        )
 
     def _local_list_actions_internal_impl(
-        self, params: ListActionsParams | None
-    ) -> ActionResultDict:
+        self, action_package_uri: str, collect_datasources: bool
+    ) -> "ActionResultDict[list[ActionInfoTypedDict | DatasourceInfoTypedDict]]":
         from sema4ai_code.robo.collect_actions_ast import iter_actions_and_datasources
 
         # TODO: We should move this code somewhere else and have a cache of
         # things so that when the user changes anything the client is notified
         # about it.
-        if not params:
-            msg = f"Unable to collect actions because the target action package was not given."
-            return dict(success=False, message=msg, result=None)
-
-        action_package_uri = params["action_package"]
         p = Path(uris.to_fs_path(action_package_uri))
         if not p.exists():
-            msg = f"Unable to collect actions from: {p} because it does not exist."
-            return dict(success=False, message=msg, result=None)
+            msg = f"Unable to collect actions/datasources from: {p} because it does not exist."
+            return ActionResult.make_failure(msg).as_dict()  # type: ignore
 
         if not p.is_dir():
             p = p.parent
 
         try:
-            actions = list(
-                iter_actions_and_datasources(p, bool(params["collect_datasources"]))
+            actions_and_datasources = list(
+                iter_actions_and_datasources(p, collect_datasources)
             )
         except Exception as e:
-            log.exception("Error collecting actions.")
+            log.exception("Error collecting actions/datasources.")
             return dict(
-                success=False, message=f"Error collecting actions: {e}", result=None
+                success=False,
+                message=f"Error collecting actions/datasources: {e}",
+                result=None,
             )
 
-        return dict(success=True, message=None, result=actions)
+        return dict(success=True, message=None, result=actions_and_datasources)
 
     @command_dispatcher(commands.SEMA4AI_LIST_WORK_ITEMS_INTERNAL)
     def _local_list_work_items_internal(
@@ -1177,7 +1198,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return result
 
         try:
-            task_contents = result["result"][task_name]
+            dct = result["result"]
+            if dct is None:
+                return dict(
+                    success=False,
+                    message="Expected result to be a dict.",
+                    result=None,
+                )
+            task_contents = dct[task_name]
         except KeyError:
             return dict(
                 success=False,
@@ -2319,3 +2347,208 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 msg = f"Error importing action package: {str(e)}"
                 log.exception(msg)
                 return ActionResult.make_failure(msg).as_dict()
+
+    def m_compute_data_source_state(
+        self,
+        action_package_yaml_directory_uri: str,
+        data_server_info: DataServerConfigTypedDict,
+    ):
+        return require_monitor(
+            partial(
+                self._compute_data_source_state_impl,
+                action_package_yaml_directory_uri,
+                data_server_info,
+            )
+        )
+
+    def _compute_data_source_state_impl(
+        self,
+        action_package_yaml_directory_uri: str,
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict[DataSourceStateDict]:
+        try:
+            return self._impl_compute_data_source_state_impl(
+                action_package_yaml_directory_uri, data_server_info, monitor
+            )
+        except Exception as e:
+            log.exception("Error computing data source state")
+            return (
+                ActionResult[DataSourceStateDict]
+                .make_failure(f"Error computing data source state: {e}")
+                .as_dict()
+            )
+
+    def _impl_compute_data_source_state_impl(
+        self,
+        action_package_yaml_directory_uri: str,
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict[DataSourceStateDict]:
+        from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
+
+        from sema4ai_code.data.data_server_connection import DataServerConnection
+
+        actions_and_datasources_result: ActionResultDict[
+            "list[ActionInfoTypedDict | DatasourceInfoTypedDict]"
+        ] = self._local_list_actions_internal_impl(
+            action_package_uri=action_package_yaml_directory_uri,
+            collect_datasources=True,
+        )
+        if not actions_and_datasources_result["success"]:
+            # Ok to cast as it's an error.
+            return typing.cast(
+                ActionResultDict[DataSourceStateDict],
+                actions_and_datasources_result,
+            )
+
+        http = data_server_info["api"]["http"]
+        auth = data_server_info["auth"]
+        user = auth["username"]
+        password = auth["password"]
+
+        connection = DataServerConnection(
+            http_url=f"http://{http['host']}:{http['port']}",
+            http_user=user,
+            http_password=password,
+        )
+
+        result_set_projects = connection.query(
+            "", "SHOW DATABASES WHERE type = 'project'"
+        )
+        result_set_not_projects = connection.query(
+            "", "SHOW DATABASES WHERE type != 'project'"
+        )
+        projects_as_dicts = list(result_set_projects.iter_as_dicts())
+        not_projects_as_dicts = list(result_set_not_projects.iter_as_dicts())
+
+        all_databases_as_dicts = projects_as_dicts + not_projects_as_dicts
+
+        try:
+            data_source_names_in_data_server = set(
+                x["database"].lower() for x in all_databases_as_dicts
+            )
+        except Exception:
+            log.exception(
+                "Error getting data source names in data server. Query result: %s",
+                all_databases_as_dicts,
+            )
+            return (
+                ActionResult[DataSourceStateDict]
+                .make_failure("Error getting data source names in data server")
+                .as_dict()
+            )
+
+        projects_data_source_names_in_data_server = set(
+            x["database"].lower() for x in projects_as_dicts
+        )
+
+        data_source_to_models = {}
+        for data_source in projects_data_source_names_in_data_server:
+            result_set_models = connection.query(data_source, "SELECT * FROM models")
+            if result_set_models:
+                data_source_to_models[data_source] = [
+                    x["name"] for x in result_set_models.iter_as_dicts()
+                ]
+
+        files_table_names = set(
+            x["tables_in_files"]
+            for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
+        )
+
+        assert actions_and_datasources_result["result"] is not None
+        actions_and_datasources: "list[ActionInfoTypedDict | DatasourceInfoTypedDict]" = actions_and_datasources_result[
+            "result"
+        ]
+        required_data_sources: list["DatasourceInfoTypedDict"] = [
+            typing.cast("DatasourceInfoTypedDict", d)
+            for d in actions_and_datasources
+            if d["kind"] == "datasource"
+        ]
+
+        unconfigured_data_sources: list["DatasourceInfoTypedDict"] = []
+        uri_to_error_messages: dict[str, list[DiagnosticsTypedDict]] = {}
+        ret: DataSourceStateDict = {
+            "unconfigured_data_sources": unconfigured_data_sources,
+            "uri_to_error_messages": uri_to_error_messages,
+            "required_data_sources": required_data_sources,
+            "data_sources_in_data_server": sorted(data_source_names_in_data_server),
+        }
+
+        if required_data_sources:
+            datasource: "DatasourceInfoTypedDict"
+            for datasource in required_data_sources:
+                uri = datasource.get("uri", "<uri-missing>")
+                datasource_name = datasource.get("name")
+
+                if not datasource_name:
+                    uri_to_error_messages.setdefault(uri, []).append(
+                        {
+                            "range": datasource["range"],
+                            "severity": DiagnosticSeverity.Error,
+                            "message": "It was not possible to statically discover the name of a datasource. Please specify the name of the datasource directly in the datasource definition.",
+                        }
+                    )
+                    continue
+
+                datasource_engine = datasource.get("engine")
+                if not datasource_engine:
+                    uri_to_error_messages.setdefault(uri, []).append(
+                        {
+                            "range": datasource["range"],
+                            "severity": DiagnosticSeverity.Error,
+                            "message": f"It was not possible to statically discover the engine of a datasource ({datasource_name}). Please specify the engine of the datasource directly in the datasource definition.",
+                        }
+                    )
+                    continue
+
+                if datasource_engine == "files" or (
+                    datasource_name == "custom" and datasource.get("created_table")
+                ):
+                    created_table = datasource.get("created_table")
+                    if not created_table:
+                        uri_to_error_messages.setdefault(uri, []).append(
+                            {
+                                "range": datasource["range"],
+                                "severity": DiagnosticSeverity.Error,
+                                "message": "The files engine requires the created_table field to be set.",
+                            }
+                        )
+                        continue
+
+                    if datasource_engine == "files":
+                        if created_table not in files_table_names:
+                            unconfigured_data_sources.append(datasource)
+                    else:
+                        # Custom datasource with created_table.
+                        custom_table_names = set(
+                            x["tables_in_files"]
+                            for x in connection.query(
+                                "files", "SHOW TABLES"
+                            ).iter_as_dicts()
+                        )
+                        if created_table not in custom_table_names:
+                            unconfigured_data_sources.append(datasource)
+                    continue
+
+                if datasource_engine.startswith("prediction:") or (
+                    datasource_name == "custom" and datasource.get("model_name")
+                ):
+                    model_name = datasource.get("model_name")
+                    if not model_name:
+                        uri_to_error_messages.setdefault(uri, []).append(
+                            {
+                                "range": datasource["range"],
+                                "severity": DiagnosticSeverity.Error,
+                                "message": "The prediction engine requires the model_name field to be set.",
+                            }
+                        )
+                        continue
+                    if model_name not in data_source_to_models.get(datasource_name, []):
+                        unconfigured_data_sources.append(datasource)
+                    continue
+
+                if datasource_name.lower() not in data_source_names_in_data_server:
+                    unconfigured_data_sources.append(datasource)
+
+        return ActionResult[DataSourceStateDict].make_success(ret).as_dict()

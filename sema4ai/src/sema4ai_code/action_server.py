@@ -18,10 +18,9 @@ from sema4ai_ls_core.protocols import (
 )
 
 from sema4ai_code.protocols import (
-    ActionServerListOrgsResultDict,
-    ActionServerPackageBuildResultDict,
-    ActionServerPackageUploadStatusDict,
-    ActionServerVerifyLoginResultDict,
+    ActionServerPackageBuildInfo,
+    ActionServerPackageUploadStatus,
+    ActionServerVerifyLoginInfoDict,
     ActionTemplate,
 )
 
@@ -228,26 +227,12 @@ class ActionServerAsService:
                     f"Expected: {cert_file_path} to exist (it should've been created "
                     "when the action server is started with the option to use a self-signed certificate)."
                 )
-            # Create a context with certificate verification
-            try:
-                import truststore
-
-                truststore.extract_from_ssl()
-            except Exception:
-                pass
-
             from ssl import Purpose
 
             ctx = ssl.create_default_context(Purpose.SERVER_AUTH)
             ctx.load_verify_locations(cert_file_path)
             kwargs["context"] = ctx
 
-            try:
-                import truststore
-
-                truststore.inject_into_ssl()
-            except Exception:
-                pass
         return kwargs
 
     def build_full_url(self, url: str) -> str:
@@ -719,7 +704,7 @@ class ActionServer:
             message=f"Error login to Control Room.\n{command_result.message or ''}",
         )
 
-    def verify_login(self) -> ActionResult[ActionServerVerifyLoginResultDict]:
+    def verify_login(self) -> ActionResult[ActionServerVerifyLoginInfoDict]:
         """
         Verify authentication information from the Control Room for action server.
         """
@@ -751,7 +736,7 @@ class ActionServer:
 
     def list_organizations(
         self, access_credentials: str | None, hostname: str | None
-    ) -> ActionResult[ActionServerListOrgsResultDict]:
+    ) -> ActionResult[list[str]]:
         """
         List available organizations with access credentials used at login.
         """
@@ -783,7 +768,7 @@ class ActionServer:
 
     def package_build(
         self, workspace_dir: str, output_dir: str
-    ) -> ActionResult[ActionServerPackageBuildResultDict]:
+    ) -> ActionResult[ActionServerPackageBuildInfo]:
         """
         Build action package.
 
@@ -833,7 +818,7 @@ class ActionServer:
         organization_id: str,
         access_credentials: str | None,
         hostname: str | None,
-    ) -> ActionResult[ActionServerPackageUploadStatusDict]:
+    ) -> ActionResult[ActionServerPackageUploadStatus]:
         """
         Upload action package to Control Room.
 
@@ -887,7 +872,7 @@ class ActionServer:
         organization_id: str,
         access_credentials: str | None,
         hostname: str | None,
-    ) -> ActionResult[ActionServerPackageUploadStatusDict]:
+    ) -> ActionResult[ActionServerPackageUploadStatus]:
         """
         Get uploaded action package status from Control Room.
 
@@ -1010,23 +995,3 @@ class ActionServer:
             success=False,
             message=f"Error creating the metadata file.\n{command_result.message or ''}",
         )
-
-
-if __name__ == "__main__":
-    import truststore
-
-    # It seems that if trustore is installed we can't use a self-signed
-    # certificate to access the action server unless it's actually installed
-    # in the computer.
-    truststore.extract_from_ssl()
-
-    s = ActionServerAsService(
-        "", cwd=".", port=4567, use_https=True, ssl_self_signed=True
-    )
-    print(s.get_config(timeout=10))
-
-    truststore.inject_into_ssl()
-    s = ActionServerAsService(
-        "", cwd=".", port=4567, use_https=True, ssl_self_signed=True
-    )
-    print(s.get_config(timeout=10))

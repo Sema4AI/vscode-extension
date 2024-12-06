@@ -7,6 +7,7 @@ import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
 import path = require("path");
+import { getDataSourceCaption } from "./robo/actionPackage";
 
 let _globalSentMetric: boolean = false;
 
@@ -520,21 +521,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 const children: RobotEntry[] = [];
 
                 for (const datasource of element.extraData.datasources) {
-                    let name = "";
-                    switch (true) {
-                        case datasource.engine === "files":
-                            name = `${datasource.name}.${datasource.created_table} (${datasource.engine})`;
-                            break;
-                        case datasource.engine === "custom":
-                            name = `${datasource.name} (${datasource.engine})`;
-                            break;
-                        case datasource.engine.startsWith("prediction"):
-                            name = `${datasource.name}.${datasource.model_name} (${datasource.engine})`;
-                            break;
-                        default:
-                            name = `${datasource.name} (${datasource.engine})`;
-                            break;
-                    }
+                    let name = getDataSourceCaption(datasource);
                     children.push({
                         "label": name,
                         "actionName": datasource.name,
