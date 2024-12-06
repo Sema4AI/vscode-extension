@@ -207,3 +207,6 @@ class DataServerConnection:
             sql = build_query_from_dict_params(sql, params)
 
         self._http_connection.run_sql(sql, database_name)
+
+    def upload_file(self, file_path: Path, table_name: str) -> None:
+        self._http_connection.upload_file(file_path, table_name)

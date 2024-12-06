@@ -2420,11 +2420,16 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     x["name"] for x in result_set_models.iter_as_dicts()
                 ]
 
+        files_result_set = connection.query("files", "SHOW TABLES")
+        files_table_names = set(
+            x["tables_in_files"] for x in files_result_set.iter_as_dicts()
+        )
+
         assert actions_and_datasources_result["result"] is not None
         actions_and_datasources: "list[ActionInfoTypedDict | DatasourceInfoTypedDict]" = actions_and_datasources_result[
             "result"
         ]
-        datasources: list["DatasourceInfoTypedDict"] = [
+        required_data_sources: list["DatasourceInfoTypedDict"] = [
             typing.cast("DatasourceInfoTypedDict", d)
             for d in actions_and_datasources
             if d["kind"] == "datasource"
@@ -2432,7 +2437,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         unconfigured_data_sources: list["DatasourceInfoTypedDict"] = []
         uri_to_error_messages: dict[str, list[DiagnosticsTypedDict]] = {}
-        required_data_sources: list["DatasourceInfoTypedDict"] = []
         ret: DataSourceStateDict = {
             "unconfigured_data_sources": unconfigured_data_sources,
             "uri_to_error_messages": uri_to_error_messages,
@@ -2440,9 +2444,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             "data_sources_in_data_server": sorted(data_source_names_in_data_server),
         }
 
-        if datasources:
+        if required_data_sources:
             datasource: "DatasourceInfoTypedDict"
-            for datasource in datasources:
+            for datasource in required_data_sources:
                 uri = datasource.get("uri", "<uri-missing>")
                 datasource_name = datasource.get("name")
 
@@ -2465,6 +2469,22 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                             "message": f"It was not possible to statically discover the engine of a datasource ({datasource_name}). Please specify the engine of the datasource directly in the datasource definition.",
                         }
                     )
+                    continue
+
+                if datasource_engine == "files":
+                    created_table = datasource.get("created_table")
+                    if not created_table:
+                        uri_to_error_messages.setdefault(uri, []).append(
+                            {
+                                "range": datasource["range"],
+                                "severity": DiagnosticSeverity.Error,
+                                "message": "The files engine requires the created_table field to be set.",
+                            }
+                        )
+                        continue
+
+                    if created_table not in files_table_names:
+                        unconfigured_data_sources.append(datasource)
                     continue
 
                 if datasource_name.lower() not in data_source_names_in_data_server:
