@@ -98,7 +98,7 @@ class LaunchJsonTypedDict(TypedDict):
 
 
 class DataServerCliWrapper:
-    VERSION = "0.0.9"
+    VERSION = "1.0.2"
 
     def __init__(self, tmpdir: Path) -> None:
         from typing import Optional
@@ -167,7 +167,7 @@ class DataServerCliWrapper:
         log.info(f"Starting data server cli at {self.target}")
         curtime = time.time()
         output = subprocess.check_output(
-            [self.target, "launch", "-i", "-j"],
+            [self.target, "launch", "-i", "-j", "--wait"],
             cwd=self._tmpdir,
             stderr=subprocess.PIPE,
         )
