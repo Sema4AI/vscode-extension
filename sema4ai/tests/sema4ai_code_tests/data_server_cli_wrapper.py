@@ -25,7 +25,7 @@ def get_release_artifact_relative_path(sys_platform: str, executable_name: str) 
             return f"windows32/{executable_name}.exe"
 
     elif sys_platform == "darwin":
-        return f"macos64/{executable_name}"
+        return f"macos_arm64/{executable_name}"
 
     else:
         if is_64:

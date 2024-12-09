@@ -1,8 +1,9 @@
 import logging
 
 import pytest
-from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 from sema4ai_ls_core.protocols import DataSourceStateDict
+
+from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 
 log = logging.getLogger(__name__)
 
@@ -89,10 +90,10 @@ def test_compute_data_sources_state(
     import json
     import shutil
 
-    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
     from sema4ai_ls_core import uris
 
     from sema4ai_code.protocols import DataServerConfigTypedDict
+    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
 
     shutil.copytree(datadir / "package", ws_root_path)
 
