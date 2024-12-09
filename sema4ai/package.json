@@ -1540,7 +1540,13 @@
                     "when": "false"
                 }
             ]
-        }
+        },
+        "snippets": [
+            {
+                "language": "markdown",
+                "path": "./vscode-client/snippets/markdown.code-snippets"
+            }
+        ]
     },
     "main": "./vscode-client/out/extension",
     "prettier": {
