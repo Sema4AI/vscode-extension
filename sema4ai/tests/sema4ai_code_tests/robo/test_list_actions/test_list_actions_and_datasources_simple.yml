@@ -1,5 +1,7 @@
 - created_table: churn
+  description: Ddts.
   engine: files
+  file: files/customer-churn.csv
   kind: datasource
   model_name: null
   name: files
@@ -11,6 +13,8 @@
     start:
       character: 0
       line: 5
+  setup_sql: null
+  setup_sql_files: null
   uri: data_sources.py
 - kind: query
   name: get_churn_data
@@ -23,7 +27,9 @@
       line: 8
   uri: data_actions.py
 - created_table: null
+  description: Datasource which provides along with a table named `customer_churn_predictor`.
   engine: prediction:lightwood
+  file: null
   kind: datasource
   model_name: customer_churn_predictor
   name: models
@@ -35,6 +41,10 @@
     start:
       character: 0
       line: 15
+  setup_sql: "\n            CREATE MODEL IF NOT EXISTS models.customer_churn_predictor\n\
+    \            FROM files\n            (SELECT * FROM churn)\n            PREDICT\
+    \ Churn;\n    "
+  setup_sql_files: null
   uri: data_sources.py
 - kind: action
   name: my_action

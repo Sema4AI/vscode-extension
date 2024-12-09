@@ -99,6 +99,10 @@ class _DatasourceInfo(TypedDict, total=False):
     model_name: str | None
     created_table: str | None
     python_variable_name: str
+    description: str | None
+    file: str | None
+    setup_sql: str | None
+    setup_sql_files: list[str] | None
 
 
 def _extract_datasource_info(
@@ -116,14 +120,33 @@ def _extract_datasource_info(
     """
     import typing
 
-    collect_info = ("name", "model_name", "engine", "created_table")
+    collect_info = (
+        "name",
+        "model_name",
+        "engine",
+        "description",
+        "file",
+        "created_table",
+        "setup_sql",
+        "setup_sql_files",
+    )
 
     info: _DatasourceInfo = {"kind": "datasource", "node": target_node}
 
     for keyword in call_node.keywords:
         if keyword.arg in collect_info:
             key = typing.cast(
-                Literal["name", "model_name", "engine", "created_table"], keyword.arg
+                Literal[
+                    "name",
+                    "model_name",
+                    "engine",
+                    "description",
+                    "file",
+                    "created_table",
+                    "setup_sql",
+                    "setup_sql_files",
+                ],
+                keyword.arg,
             )
             name = _resolve_value(keyword.value, variable_values)
             info[key] = name
@@ -308,6 +331,12 @@ def iter_actions_and_datasources(
                                     python_variable_name=node_info_datasource.get(
                                         "python_variable_name"
                                     ),
+                                    setup_sql=node_info_datasource.get("setup_sql"),
+                                    setup_sql_files=node_info_datasource.get(
+                                        "setup_sql_files"
+                                    ),
+                                    description=node_info_datasource.get("description"),
+                                    file=node_info_datasource.get("file"),
                                 )
                 except Exception as e:
                     log.error(
