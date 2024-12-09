@@ -20,7 +20,7 @@ PredictDataSource = Annotated[
         model_name="predict_compute_data_sources_state",
         engine="prediction:lightwood",
         description="Predict something.",
-        sql="""
+        setup_sql="""
 CREATE MODEL models.predict_compute_data_sources_state
 (SELECT * FROM files.customers)
 PREDICT country

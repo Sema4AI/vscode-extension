@@ -1,7 +1,9 @@
 data_sources_in_data_server: []
 required_data_sources:
 - created_table: customers_in_test_compute_data_sources_state
+  description: Data source for customers.
   engine: files
+  file: files/customers.csv
   kind: datasource
   model_name: null
   name: files
@@ -13,9 +15,13 @@ required_data_sources:
     start:
       character: 0
       line: 6
+  setup_sql: null
+  setup_sql_files: null
   uri: data_sources.py
 - created_table: null
+  description: Predict something.
   engine: prediction:lightwood
+  file: null
   kind: datasource
   model_name: predict_compute_data_sources_state
   name: models
@@ -27,9 +33,25 @@ required_data_sources:
     start:
       character: 0
       line: 17
+  setup_sql: '
+
+    CREATE MODEL models.predict_compute_data_sources_state
+
+    (SELECT * FROM files.customers)
+
+    PREDICT country
+
+    ORDER BY first_name
+
+    WINDOW 8
+
+    HORIZON 4;'
+  setup_sql_files: null
   uri: data_sources.py
 - created_table: null
+  description: Data source for tests.
   engine: sqlite
+  file: null
   kind: datasource
   model_name: null
   name: test_compute_data_sources_state
@@ -41,10 +63,14 @@ required_data_sources:
     start:
       character: 0
       line: 34
+  setup_sql: null
+  setup_sql_files: null
   uri: data_sources.py
 unconfigured_data_sources:
 - created_table: null
+  description: Predict something.
   engine: prediction:lightwood
+  file: null
   kind: datasource
   model_name: predict_compute_data_sources_state
   name: models
@@ -56,5 +82,19 @@ unconfigured_data_sources:
     start:
       character: 0
       line: 17
+  setup_sql: '
+
+    CREATE MODEL models.predict_compute_data_sources_state
+
+    (SELECT * FROM files.customers)
+
+    PREDICT country
+
+    ORDER BY first_name
+
+    WINDOW 8
+
+    HORIZON 4;'
+  setup_sql_files: null
   uri: data_sources.py
 uri_to_error_messages: {}

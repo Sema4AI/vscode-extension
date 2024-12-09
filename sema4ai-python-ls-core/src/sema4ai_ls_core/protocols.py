@@ -1007,6 +1007,10 @@ class DatasourceInfoTypedDict(TypedDict):
     engine: str
     model_name: str | None
     created_table: str | None
+    setup_sql: str | list[str] | None
+    setup_sql_files: list[str] | str | None
+    description: str | None
+    file: str | None
 
 
 class DataSourceStateDict(TypedDict):
