@@ -147,6 +147,7 @@ SEMA4AI_COLLAPSE_ALL_ENTRIES = "sema4ai.collapseAllEntries"  # Collapse All Entr
 SEMA4AI_IMPORT_ACTION_PACKAGE = "sema4ai.importActionPackage"  # Import Action Package
 SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK = "sema4ai.runActionPackageDevTask"  # Run dev-task (from Action Package)
 SEMA4AI_GET_ACTIONS_METADATA = "sema4ai.getActionsMetadata"  # Get Actions Metadata
+SEMA4AI_DROP_DATA_SOURCE = "sema4ai.dropDataSource"  # Drop Data Sources
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,

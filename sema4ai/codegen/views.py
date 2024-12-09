@@ -149,6 +149,11 @@ TREE_VIEW_CONTAINERS = [
                             MenuGroup.NAVIGATION,
                             "viewItem == actionItem",
                         ),
+                        Menu(
+                            "sema4ai.dropDataSource",
+                            MenuGroup.INLINE,
+                            "viewItem == datasourceItem",
+                        ),
                         # New action: reveal in explorer.
                         Menu(
                             "sema4ai.revealRobotInExplorer",

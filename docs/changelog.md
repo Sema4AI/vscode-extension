@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add `sema4ai.dropDataSource` command
 - Add Datasources to the UI
 - Add `sema4ai.getActionsMetadata` command
 - Add `query` and `predict` actions to UI

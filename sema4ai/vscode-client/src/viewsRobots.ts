@@ -211,6 +211,18 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                     },
                 ];
+            } else if (element.type === RobotEntryType.DataSource) {
+                return [
+                    {
+                        "label": "Drop",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "actionName": element.actionName,
+                        "iconPath": "trash",
+                        "type": RobotEntryType.DropDataSource,
+                        "parent": element,
+                    },
+                ];
             } else if (element.type === RobotEntryType.ActionPackage) {
                 let children: RobotEntry[] = [
                     {
@@ -532,6 +544,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "type": RobotEntryType.DataSource,
                         "parent": element,
                         "range": datasource.range,
+                        "extraData": { "datasource": datasource },
                     });
                 }
                 return children;
@@ -780,6 +793,14 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.DropDataSource) {
+            treeItem.command = {
+                "title": "Drop Data Source",
+                "command": roboCommands.SEMA4AI_DROP_DATA_SOURCE,
+                "arguments": [element],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            treeItem.contextValue = "datasourceItemDrop";
         }
         if (element.tooltip) {
             treeItem.tooltip = element.tooltip;

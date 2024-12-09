@@ -162,6 +162,8 @@ import {
     SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
     SEMA4AI_CONFIGURE_ACTION_INPUT,
     SEMA4AI_GET_ACTIONS_METADATA,
+    SEMA4AI_DROP_DATA_SOURCE,
+    SEMA4AI_LIST_ACTIONS_INTERNAL,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -180,7 +182,12 @@ import { RobotOutputViewProvider } from "./output/outView";
 import { setupDebugSessionOutViewIntegration } from "./output/outViewRunIntegration";
 import { showInspectorUI } from "./inspector/inspectorView";
 import { IAppRoutes } from "./inspector/protocols";
-import { actionServerCloudLogin, downloadOrGetActionServerLocation, startActionServer } from "./actionServer";
+import {
+    actionServerCloudLogin,
+    downloadOrGetActionServerLocation,
+    findActionPackagePath,
+    startActionServer,
+} from "./actionServer";
 import {
     askAndRunRobocorpActionFromActionPackage,
     createActionPackage,
@@ -188,6 +195,7 @@ import {
     buildActionPackage,
     openMetadata,
     getActionsMetadata,
+    getDataSourceCaption,
 } from "./robo/actionPackage";
 import { oauth2Logout } from "./robo/oauth2InInput";
 import {
@@ -199,9 +207,15 @@ import {
     refreshAgentSpec,
 } from "./robo/agentPackage";
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
-import { LocalPackageMetadataInfo } from "./protocols";
+import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
+import {
+    DATA_SERVER_STATUS_COMMAND_ID,
+    DATABASE_ADD_COMMAND_ID,
+    verifyDataExtensionIsInstalled,
+} from "./dataExtension";
+import { QuickPickItemWithAction, showSelectOneQuickPick } from "./ask";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -520,6 +534,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         runActionPackageDevTask(devTaskInfo)
     );
     C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
+    C.register(SEMA4AI_DROP_DATA_SOURCE, async (datasource?: RobotEntry) => dropDataSource(datasource));
 }
 
 async function clearEnvAndRestart() {
@@ -1003,3 +1018,69 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
 export const collapseAllEntries = async (): Promise<void> => {
     vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
 };
+
+export async function dropDataSource(entry?: RobotEntry) {
+    if (!(await verifyDataExtensionIsInstalled())) {
+        return;
+    }
+    const dataServerStatus = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
+    if (!dataServerStatus["success"]) {
+        window.showErrorMessage("Unable to get the data server status.");
+        return;
+    }
+
+    let datasource: DatasourceInfo | undefined;
+    if (!entry) {
+        let selectedActionPackage = await findActionPackagePath({ includeSemaOrg: false });
+        if (!selectedActionPackage) {
+            return;
+        }
+        let listDataSourcesResult = await vscode.commands.executeCommand(SEMA4AI_LIST_ACTIONS_INTERNAL, {
+            "action_package": selectedActionPackage.toString(),
+            "collect_datasources": true,
+        });
+
+        if (!listDataSourcesResult["success"]) {
+            window.showErrorMessage(listDataSourcesResult["message"] || "Unknown error");
+        }
+
+        const dataSources: DatasourceInfo[] = listDataSourcesResult["result"].filter((ds) => {
+            return ds.kind === "datasource";
+        });
+
+        if (dataSources.length === 0) {
+            window.showInformationMessage("No Data Sources found.");
+            return;
+        }
+
+        let captions: QuickPickItemWithAction[] = new Array();
+        for (const source of dataSources) {
+            let caption: QuickPickItemWithAction = {
+                "label": getDataSourceCaption(source),
+                "action": source,
+            };
+            captions.push(caption);
+        }
+        let selectedItem = await showSelectOneQuickPick(captions, "Please select which Data Source to drop.");
+
+        if (!selectedItem) {
+            return;
+        }
+
+        datasource = selectedItem.action;
+    } else {
+        datasource = entry?.extraData?.datasource;
+    }
+
+    const result = await langServer.sendRequest("dropDataSource", {
+        "datasource": datasource,
+        "data_server_info": dataServerStatus["data"],
+    });
+
+    if (!result["success"]) {
+        window.showErrorMessage(result["message"] || "Unknown error");
+        return;
+    }
+
+    window.showInformationMessage("Data Source dropped successfully.");
+}
