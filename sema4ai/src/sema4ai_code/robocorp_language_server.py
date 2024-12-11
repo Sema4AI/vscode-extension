@@ -2348,10 +2348,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 log.exception(msg)
                 return ActionResult.make_failure(msg).as_dict()
 
-    def m_drop_data_source(
+    def _drop_data_source_impl(
         self,
         datasource: DatasourceInfoTypedDict,
         data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
     ) -> ActionResultDict:
         from sema4ai_code.data.data_server_connection import DataServerConnection
 
@@ -2373,25 +2374,55 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         query = ""
         if engine == "files":
-            query = f"DROP TABLE files.{created_table}dsada"
+            files_table_names = set(
+                x["tables_in_files"]
+                for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
+            )
+            if created_table not in files_table_names:
+                return ActionResult(
+                    success=True,
+                    message="Data source does not exist, no action needed.",
+                ).as_dict()
+            query = f"DROP TABLE files.{created_table}"
 
         elif name == "custom" and created_table:
             query = f"DROP TABLE {name}.{created_table}"
 
         elif engine.startswith("prediction:") or (name == "custom" and model_name):
-            query = f"DROP MODEL IF EXISTS {name}.{datasource.get('model_name')}"
+            query = f"DROP MODEL {name}.{model_name}"
         else:
-            query = f"DROP DATABASE IF EXISTS {name}"
+            query = f"DROP DATABASE {name}"
 
         try:
             connection.run_sql(query)
         except Exception as e:
+            if "not exist" in str(e).lower():
+                return ActionResult(
+                    success=True,
+                    message="Data source does not exist, no action needed.",
+                ).as_dict()
+
             log.exception(f"Error while executing query: {query}. {str(e)}")
             return ActionResult.make_failure(
-                f"Error while dropping data source."
+                f"Error while dropping data source: {str(e)}"
             ).as_dict()
 
-        return ActionResult.make_success(None).as_dict()
+        return ActionResult(
+            success=True, message="Data Source dropped successfully."
+        ).as_dict()
+
+    def m_drop_data_source(
+        self,
+        datasource: DatasourceInfoTypedDict,
+        data_server_info: DataServerConfigTypedDict,
+    ) -> partial[ActionResultDict]:
+        return require_monitor(
+            partial(
+                self._drop_data_source_impl,
+                datasource,
+                data_server_info,
+            )
+        )
 
     def m_compute_data_source_state(
         self,

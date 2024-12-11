@@ -1069,7 +1069,20 @@ export async function dropDataSource(entry?: RobotEntry) {
 
         datasource = selectedItem.action;
     } else {
-        datasource = entry?.extraData?.datasource;
+        datasource = entry.extraData?.datasource;
+        if (!datasource) {
+            window.showErrorMessage("Data Source object was not provided in extraData.");
+            return;
+        }
+        const userChoice = await vscode.window.showWarningMessage(
+            `Are you sure you want to drop ${entry.label}?.`,
+            { modal: true },
+            "Yes",
+            "No"
+        );
+        if (userChoice === "No" || userChoice === undefined) {
+            return;
+        }
     }
 
     const result = await langServer.sendRequest("dropDataSource", {
@@ -1082,5 +1095,5 @@ export async function dropDataSource(entry?: RobotEntry) {
         return;
     }
 
-    window.showInformationMessage("Data Source dropped successfully.");
+    window.showInformationMessage(result["message"]);
 }

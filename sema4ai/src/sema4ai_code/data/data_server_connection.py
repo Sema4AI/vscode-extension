@@ -88,6 +88,7 @@ class _HttpConnectionHelper:
             json={"query": sql, "context": {"db": database or ""}},
             headers=self._session_headers,
         )
+
         if result.status != 200:
             raise Exception(
                 f"Failed to run sql. Status: {result.status}. Data: {result.data.decode('utf-8', errors='backslashreplace')}"
