@@ -1,7 +1,8 @@
 ## Unreleased
 
-- Add `sema4ai.dropDataSource` command
-- Add Datasources to the UI
+- Add Data Sources to the UI
+  - A Data Source may be dropped from the tree item in the UI
+  - A Data Source may be setup from the tree item in the UI
 - Add `sema4ai.getActionsMetadata` command
 - Add `query` and `predict` actions to UI
 - Update Action Server to `2.3.0`.
