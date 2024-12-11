@@ -60,9 +60,9 @@ class AuthNamedTypedDict(TypedDict):
 class LaunchJsonDataTypedDict(TypedDict):
     api: ApiNamedTypedDict
     auth: AuthNamedTypedDict
-    isRunning: bool
+    is_running: bool
     pid: int
-    pidFilePath: str
+    pid_file_path: str
 
 
 class LaunchJsonTypedDict(TypedDict):
@@ -90,9 +90,9 @@ class LaunchJsonTypedDict(TypedDict):
 #       "password": "",
 #       "username": "mindsdb"
 #     },
-#     "isRunning": true,
+#     "is_running": true,
 #     "pid": 14848,
-#     "pidFilePath": "%localappdata%\\sema4ai\\data-server\\data_server.pid"
+#     "pid_file_path": "%localappdata%\\sema4ai\\data-server\\data_server.pid"
 #   }
 # }
 

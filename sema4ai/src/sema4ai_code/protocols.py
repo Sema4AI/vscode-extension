@@ -535,6 +535,6 @@ class AuthConfigTypedDict(TypedDict):
 class DataServerConfigTypedDict(TypedDict):
     api: ApiConfigTypedDict
     auth: AuthConfigTypedDict
-    isRunning: bool
+    is_running: bool
     pid: int
-    pidFilePath: str
+    pid_file_path: str

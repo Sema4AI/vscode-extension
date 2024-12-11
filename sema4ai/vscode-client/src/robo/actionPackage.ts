@@ -349,9 +349,9 @@ export interface DataServerConfig {
         password: string;
         username: string;
     };
-    isRunning: boolean;
+    is_running: boolean;
     pid: number;
-    pidFilePath: string;
+    pid_file_path: string;
 }
 
 function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string {

@@ -100,10 +100,10 @@ export async function startDataServerAndGetInfo(): Promise<DataServerConfig | un
         "showUIMessages": false,
     })) as DataServerConfig | undefined;
     if (dataServerInfo) {
-        if (!dataServerInfo.isRunning) {
+        if (!dataServerInfo.is_running) {
             failWithErrorMessage(
                 dataServerInfo,
-                "After starting the data server, isRunning still returning false in provided data server config."
+                "After starting the data server, is_running still returning false in provided data server config."
             );
             return undefined;
         }
