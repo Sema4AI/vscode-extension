@@ -205,6 +205,10 @@ export interface DatasourceInfo {
     engine: string;
     model_name?: string;
     created_table?: string;
+    description?: string;
+    python_variable_name?: string;
+    setup_sql?: string | string[];
+    setup_sql_files?: string | string[];
 }
 
 export interface DiagnosticInfo {

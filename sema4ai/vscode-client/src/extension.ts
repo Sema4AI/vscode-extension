@@ -164,6 +164,7 @@ import {
     SEMA4AI_GET_ACTIONS_METADATA,
     SEMA4AI_DROP_DATA_SOURCE,
     SEMA4AI_LIST_ACTIONS_INTERNAL,
+    SEMA4AI_SETUP_DATA_SOURCE,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -216,6 +217,7 @@ import {
     verifyDataExtensionIsInstalled,
 } from "./dataExtension";
 import { QuickPickItemWithAction, showSelectOneQuickPick } from "./ask";
+import { setupDataSource } from "./robo/dataSourceHandling";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -525,6 +527,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
     C.register(SEMA4AI_AGENT_PACKAGE_IMPORT, importAgentPackage);
     C.register(SEMA4AI_PACK_AGENT_PACKAGE, async (agentPath: string) => selectAndPackAgentPackage(agentPath));
+    C.register(SEMA4AI_SETUP_DATA_SOURCE, (robot?: RobotEntry) => setupDataSource(robot));
     C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
     C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
     C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));

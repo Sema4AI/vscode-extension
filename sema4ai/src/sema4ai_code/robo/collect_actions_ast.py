@@ -76,7 +76,7 @@ def _collect_variables(ast: ast_module.AST) -> dict[str, Any]:
     return variables
 
 
-def _resolve_value(node: ast_module.AST, variable_values: dict[str, str]) -> str | None:
+def _resolve_value(node: ast_module.AST, variable_values: dict[str, str]) -> Any:
     """
     Resolve a value from an AST node, considering variable references.
 
@@ -88,6 +88,8 @@ def _resolve_value(node: ast_module.AST, variable_values: dict[str, str]) -> str
         return node.value
     elif isinstance(node, ast_module.Name) and node.id in variable_values:
         return variable_values[node.id]
+    elif isinstance(node, ast_module.List):
+        return [_resolve_value(item, variable_values) for item in node.elts]
     return None
 
 
@@ -148,8 +150,8 @@ def _extract_datasource_info(
                 ],
                 keyword.arg,
             )
-            name = _resolve_value(keyword.value, variable_values)
-            info[key] = name
+            value = _resolve_value(keyword.value, variable_values)
+            info[key] = value
 
     if info.get("engine") == "files":
         info["name"] = "files"

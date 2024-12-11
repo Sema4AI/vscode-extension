@@ -21,6 +21,8 @@ from sema4ai_ls_core.lsp import (
     TextDocumentCodeActionTypedDict,
 )
 from sema4ai_ls_core.protocols import (
+    ActionInfoTypedDict,
+    DatasourceInfoTypedDict,
     DataSourceStateDict,
     IConfig,
     IMonitor,
@@ -89,6 +91,9 @@ from sema4ai_code.workspace_manager import WorkspaceManager
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.agents.gallery_actions import GalleryActionPackages
+    from sema4ai_code.data.data_server_connection import DataServerConnection
+
+DataSourceSetupResponse = list[str]
 
 log = get_logger(__name__)
 
@@ -2348,12 +2353,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 log.exception(msg)
                 return ActionResult.make_failure(msg).as_dict()
 
-    def _drop_data_source_impl(
-        self,
-        datasource: DatasourceInfoTypedDict,
-        data_server_info: DataServerConfigTypedDict,
-        monitor: IMonitor,
-    ) -> ActionResultDict:
+    def _get_connection(
+        self, data_server_info: DataServerConfigTypedDict
+    ) -> "DataServerConnection":
         from sema4ai_code.data.data_server_connection import DataServerConnection
 
         http = data_server_info["api"]["http"]
@@ -2366,7 +2368,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             http_user=user,
             http_password=password,
         )
+        return connection
 
+    def _drop_data_source_impl(
+        self,
+        datasource: DatasourceInfoTypedDict,
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict:
+        connection = self._get_connection(data_server_info)
         name = datasource.get("name")
         engine = datasource["engine"]
         created_table = datasource.get("created_table")
@@ -2424,6 +2434,164 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             )
         )
 
+    def m_setup_data_source(
+        self,
+        action_package_yaml_directory_uri: str,
+        datasource: DatasourceInfoTypedDict,
+        data_server_info: DataServerConfigTypedDict,
+    ) -> partial[ActionResultDict[DataSourceSetupResponse]]:
+        return require_monitor(
+            partial(
+                self._setup_data_source_impl,
+                action_package_yaml_directory_uri,
+                datasource,
+                data_server_info,
+            )
+        )
+
+    def _setup_data_source_impl(
+        self,
+        action_package_yaml_directory_uri: str,
+        datasource: DatasourceInfoTypedDict | list[DatasourceInfoTypedDict],
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict[DataSourceSetupResponse]:
+        from sema4ai_ls_core.progress_report import progress_context
+
+        from sema4ai_code.data.data_source_helper import DataSourceHelper
+
+        with progress_context(
+            self._endpoint, "Setting up data sources", self._dir_cache
+        ):
+            root_path = Path(uris.to_fs_path(action_package_yaml_directory_uri))
+            if not root_path.exists():
+                return (
+                    ActionResult[DataSourceSetupResponse]
+                    .make_failure(
+                        f"Unable to setup data source. Root path does not exist: {root_path}"
+                    )
+                    .as_dict()
+                )
+
+            if not isinstance(datasource, list):
+                datasources = [datasource]
+            else:
+                datasources = datasource
+
+            connection = self._get_connection(data_server_info)
+            messages = []
+            for datasource in datasources:
+                monitor.check_cancelled()
+                datasource_helper = DataSourceHelper(
+                    Path(uris.to_fs_path(action_package_yaml_directory_uri)),
+                    datasource,
+                    connection,
+                )
+                validation_errors = datasource_helper.get_validation_errors()
+                if validation_errors:
+                    return (
+                        ActionResult[DataSourceSetupResponse]
+                        .make_failure(
+                            f"Unable to setup data source. {validation_errors[0]}"
+                        )
+                        .as_dict()
+                    )
+
+                if datasource["engine"] == "files":
+                    created_table = datasource["created_table"]
+                    relative_path = datasource["file"]
+
+                    # These asserts should've been caught by the validation.
+                    assert (
+                        datasource_helper.is_table_datasource
+                    ), "Expected a table datasource for the files engine."
+                    assert (
+                        created_table
+                    ), "Expected a created_table for the files engine."
+                    assert relative_path, "Expected a file for the files engine."
+
+                    full_path = Path(root_path) / relative_path
+                    if not full_path.exists():
+                        return (
+                            ActionResult[DataSourceSetupResponse]
+                            .make_failure(
+                                f"Unable to setup files engine data source. File does not exist: {full_path}"
+                            )
+                            .as_dict()
+                        )
+                    try:
+                        connection.upload_file(full_path, created_table)
+                    except Exception as e:
+                        return (
+                            ActionResult[DataSourceSetupResponse]
+                            .make_failure(
+                                f"Unable to upload file {full_path} to table files.{created_table}. Error: {e}"
+                            )
+                            .as_dict()
+                        )
+
+                    messages.append(
+                        f"Uploaded file {full_path} to table {created_table}"
+                    )
+                    continue
+
+                if datasource["engine"] == "custom":
+                    # These asserts should've been caught by the validation.
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the sql to be defined for the custom engine."
+
+                    for sql in datasource_helper.custom_sql:
+                        try:
+                            connection.run_sql(sql)
+                        except Exception as e:
+                            return (
+                                ActionResult[DataSourceSetupResponse]
+                                .make_failure(
+                                    f"Unable to setup custom engine data source. Error executing SQL: {sql}. Error: {e}"
+                                )
+                                .as_dict()
+                            )
+
+                    messages.append(
+                        f"custom engine setup: executed {len(datasource_helper.custom_sql)} SQL statements."
+                    )
+                    continue
+
+                if datasource["engine"].startswith("prediction:"):
+                    model_name = datasource["model_name"]
+                    assert (
+                        model_name
+                    ), "Expected a model_name for the prediction engine."
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the setup sql to be defined for the prediction engine."
+
+                    for sql in datasource_helper.custom_sql:
+                        try:
+                            connection.run_sql(sql)
+                        except Exception as e:
+                            return (
+                                ActionResult[DataSourceSetupResponse]
+                                .make_failure(
+                                    f"Unable to setup prediction engine data source. Error executing SQL: {sql}. Error: {e}"
+                                )
+                                .as_dict()
+                            )
+
+                    messages.append(
+                        f"prediction engine setup: executed {len(datasource_helper.custom_sql)} SQL statements."
+                    )
+                    continue
+
+                messages.append(
+                    f"Unable to setup external data source automatically (engine: {datasource['engine']}). Please use the `Sema4.ai: Add New Data Source` command to setup this data source."
+                )
+
+            return (
+                ActionResult[DataSourceSetupResponse].make_success(messages).as_dict()
+            )
+
     def m_compute_data_source_state(
         self,
         action_package_yaml_directory_uri: str,
@@ -2462,169 +2630,147 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         monitor: IMonitor,
     ) -> ActionResultDict[DataSourceStateDict]:
         from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
+        from sema4ai_ls_core.progress_report import progress_context
 
-        from sema4ai_code.data.data_server_connection import DataServerConnection
+        from sema4ai_code.data.data_source_helper import DataSourceHelper
 
-        actions_and_datasources_result: ActionResultDict[
-            "list[ActionInfoTypedDict | DatasourceInfoTypedDict]"
-        ] = self._local_list_actions_internal_impl(
-            action_package_uri=action_package_yaml_directory_uri,
-            collect_datasources=True,
-        )
-        if not actions_and_datasources_result["success"]:
-            # Ok to cast as it's an error.
-            return typing.cast(
-                ActionResultDict[DataSourceStateDict],
-                actions_and_datasources_result,
+        with progress_context(
+            self._endpoint, "Computing data sources state", self._dir_cache
+        ) as progress_reporter:
+            progress_reporter.set_additional_info("Listing actions")
+            actions_and_datasources_result: ActionResultDict[
+                "list[ActionInfoTypedDict | DatasourceInfoTypedDict]"
+            ] = self._local_list_actions_internal_impl(
+                action_package_uri=action_package_yaml_directory_uri,
+                collect_datasources=True,
+            )
+            if not actions_and_datasources_result["success"]:
+                # Ok to cast as it's an error.
+                return typing.cast(
+                    ActionResultDict[DataSourceStateDict],
+                    actions_and_datasources_result,
+                )
+
+            monitor.check_cancelled()
+            progress_reporter.set_additional_info("Getting data sources")
+            connection = self._get_connection(data_server_info)
+            projects_as_dicts = connection.get_data_sources("WHERE type = 'project'")
+            not_projects_as_dicts = connection.get_data_sources(
+                "WHERE type != 'project'"
             )
 
-        http = data_server_info["api"]["http"]
-        auth = data_server_info["auth"]
-        user = auth["username"]
-        password = auth["password"]
+            all_databases_as_dicts = projects_as_dicts + not_projects_as_dicts
 
-        connection = DataServerConnection(
-            http_url=f"http://{http['host']}:{http['port']}",
-            http_user=user,
-            http_password=password,
-        )
+            try:
+                data_source_names_in_data_server = set(
+                    x["database"].lower() for x in all_databases_as_dicts
+                )
+            except Exception:
+                log.exception(
+                    "Error getting data source names in data server. Query result: %s",
+                    all_databases_as_dicts,
+                )
+                return (
+                    ActionResult[DataSourceStateDict]
+                    .make_failure("Error getting data source names in data server")
+                    .as_dict()
+                )
 
-        result_set_projects = connection.query(
-            "", "SHOW DATABASES WHERE type = 'project'"
-        )
-        result_set_not_projects = connection.query(
-            "", "SHOW DATABASES WHERE type != 'project'"
-        )
-        projects_as_dicts = list(result_set_projects.iter_as_dicts())
-        not_projects_as_dicts = list(result_set_not_projects.iter_as_dicts())
-
-        all_databases_as_dicts = projects_as_dicts + not_projects_as_dicts
-
-        try:
-            data_source_names_in_data_server = set(
-                x["database"].lower() for x in all_databases_as_dicts
-            )
-        except Exception:
-            log.exception(
-                "Error getting data source names in data server. Query result: %s",
-                all_databases_as_dicts,
-            )
-            return (
-                ActionResult[DataSourceStateDict]
-                .make_failure("Error getting data source names in data server")
-                .as_dict()
+            projects_data_source_names_in_data_server = set(
+                x["database"].lower() for x in projects_as_dicts
             )
 
-        projects_data_source_names_in_data_server = set(
-            x["database"].lower() for x in projects_as_dicts
-        )
+            monitor.check_cancelled()
+            progress_reporter.set_additional_info("Getting models")
 
-        data_source_to_models = {}
-        for data_source in projects_data_source_names_in_data_server:
-            result_set_models = connection.query(data_source, "SELECT * FROM models")
-            if result_set_models:
-                data_source_to_models[data_source] = [
-                    x["name"] for x in result_set_models.iter_as_dicts()
-                ]
+            data_source_to_models = {}
+            for data_source in projects_data_source_names_in_data_server:
+                result_set_models = connection.query(
+                    data_source, "SELECT * FROM models"
+                )
+                if result_set_models:
+                    data_source_to_models[data_source] = [
+                        x["name"] for x in result_set_models.iter_as_dicts()
+                    ]
 
-        files_table_names = set(
-            x["tables_in_files"]
-            for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
-        )
+            monitor.check_cancelled()
+            progress_reporter.set_additional_info("Getting files")
 
-        assert actions_and_datasources_result["result"] is not None
-        actions_and_datasources: "list[ActionInfoTypedDict | DatasourceInfoTypedDict]" = actions_and_datasources_result[
-            "result"
-        ]
-        required_data_sources: list["DatasourceInfoTypedDict"] = [
-            typing.cast("DatasourceInfoTypedDict", d)
-            for d in actions_and_datasources
-            if d["kind"] == "datasource"
-        ]
+            files_table_names = set(
+                x["tables_in_files"]
+                for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
+            )
 
-        unconfigured_data_sources: list["DatasourceInfoTypedDict"] = []
-        uri_to_error_messages: dict[str, list[DiagnosticsTypedDict]] = {}
-        ret: DataSourceStateDict = {
-            "unconfigured_data_sources": unconfigured_data_sources,
-            "uri_to_error_messages": uri_to_error_messages,
-            "required_data_sources": required_data_sources,
-            "data_sources_in_data_server": sorted(data_source_names_in_data_server),
-        }
+            monitor.check_cancelled()
+            progress_reporter.set_additional_info("Computing data sources state")
 
-        if required_data_sources:
-            datasource: "DatasourceInfoTypedDict"
-            for datasource in required_data_sources:
-                uri = datasource.get("uri", "<uri-missing>")
-                datasource_name = datasource.get("name")
+            assert actions_and_datasources_result["result"] is not None
+            actions_and_datasources: "list[ActionInfoTypedDict | DatasourceInfoTypedDict]" = actions_and_datasources_result[
+                "result"
+            ]
+            required_data_sources: list["DatasourceInfoTypedDict"] = [
+                typing.cast("DatasourceInfoTypedDict", d)
+                for d in actions_and_datasources
+                if d["kind"] == "datasource"
+            ]
 
-                if not datasource_name:
-                    uri_to_error_messages.setdefault(uri, []).append(
-                        {
-                            "range": datasource["range"],
-                            "severity": DiagnosticSeverity.Error,
-                            "message": "It was not possible to statically discover the name of a datasource. Please specify the name of the datasource directly in the datasource definition.",
-                        }
+            unconfigured_data_sources: list["DatasourceInfoTypedDict"] = []
+            uri_to_error_messages: dict[str, list[DiagnosticsTypedDict]] = {}
+            ret: DataSourceStateDict = {
+                "unconfigured_data_sources": unconfigured_data_sources,
+                "uri_to_error_messages": uri_to_error_messages,
+                "required_data_sources": required_data_sources,
+                "data_sources_in_data_server": sorted(data_source_names_in_data_server),
+            }
+
+            if required_data_sources:
+                root_path = Path(uris.to_fs_path(action_package_yaml_directory_uri))
+                datasource: "DatasourceInfoTypedDict"
+                for datasource in required_data_sources:
+                    uri = datasource.get("uri", "<uri-missing>")
+                    datasource_helper = DataSourceHelper(
+                        root_path, datasource, connection
                     )
-                    continue
+                    validation_errors = datasource_helper.get_validation_errors()
+                    if validation_errors:
+                        for validation_error in validation_errors:
+                            uri_to_error_messages.setdefault(uri, []).append(
+                                {
+                                    "range": datasource["range"],
+                                    "severity": DiagnosticSeverity.Error,
+                                    "message": validation_error,
+                                }
+                            )
+                        continue  # this one is invalid, so, we can't go forward.
 
-                datasource_engine = datasource.get("engine")
-                if not datasource_engine:
-                    uri_to_error_messages.setdefault(uri, []).append(
-                        {
-                            "range": datasource["range"],
-                            "severity": DiagnosticSeverity.Error,
-                            "message": f"It was not possible to statically discover the engine of a datasource ({datasource_name}). Please specify the engine of the datasource directly in the datasource definition.",
-                        }
-                    )
-                    continue
+                    datasource_name = datasource["name"]
+                    datasource_engine = datasource["engine"]
 
-                if datasource_engine == "files" or (
-                    datasource_name == "custom" and datasource.get("created_table")
-                ):
-                    created_table = datasource.get("created_table")
-                    if not created_table:
-                        uri_to_error_messages.setdefault(uri, []).append(
-                            {
-                                "range": datasource["range"],
-                                "severity": DiagnosticSeverity.Error,
-                                "message": "The files engine requires the created_table field to be set.",
-                            }
-                        )
+                    if datasource_helper.is_table_datasource:
+                        created_table = datasource["created_table"]
+                        if datasource_engine == "files":
+                            if created_table not in files_table_names:
+                                unconfigured_data_sources.append(datasource)
+                        else:
+                            # Custom datasource with created_table.
+                            tables_result_set = connection.query("files", "SHOW TABLES")
+                            custom_table_names = set(
+                                x["tables_in_files"]
+                                for x in tables_result_set.iter_as_dicts()
+                            )
+                            if created_table not in custom_table_names:
+                                unconfigured_data_sources.append(datasource)
+                        continue  # Ok, handled use case.
+
+                    if datasource_helper.is_model_datasource:
+                        model_name = datasource["model_name"]
+                        if model_name not in data_source_to_models.get(
+                            datasource_name, []
+                        ):
+                            unconfigured_data_sources.append(datasource)
                         continue
 
-                    if datasource_engine == "files":
-                        if created_table not in files_table_names:
-                            unconfigured_data_sources.append(datasource)
-                    else:
-                        # Custom datasource with created_table.
-                        custom_table_names = set(
-                            x["tables_in_files"]
-                            for x in connection.query(
-                                "files", "SHOW TABLES"
-                            ).iter_as_dicts()
-                        )
-                        if created_table not in custom_table_names:
-                            unconfigured_data_sources.append(datasource)
-                    continue
-
-                if datasource_engine.startswith("prediction:") or (
-                    datasource_name == "custom" and datasource.get("model_name")
-                ):
-                    model_name = datasource.get("model_name")
-                    if not model_name:
-                        uri_to_error_messages.setdefault(uri, []).append(
-                            {
-                                "range": datasource["range"],
-                                "severity": DiagnosticSeverity.Error,
-                                "message": "The prediction engine requires the model_name field to be set.",
-                            }
-                        )
-                        continue
-                    if model_name not in data_source_to_models.get(datasource_name, []):
+                    if datasource_name.lower() not in data_source_names_in_data_server:
                         unconfigured_data_sources.append(datasource)
-                    continue
 
-                if datasource_name.lower() not in data_source_names_in_data_server:
-                    unconfigured_data_sources.append(datasource)
-
-        return ActionResult[DataSourceStateDict].make_success(ret).as_dict()
+            return ActionResult[DataSourceStateDict].make_success(ret).as_dict()

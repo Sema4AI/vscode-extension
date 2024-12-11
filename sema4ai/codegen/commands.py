@@ -1026,6 +1026,13 @@ COMMANDS = [
         add_to_package_json=True,
         icon="$(trash)",
     ),
+    Command(
+        "sema4ai.setupDataSource",
+        "Setup Data Source",
+        server_handled=False,
+        hide_from_command_palette=False,
+        icon="$(diff-added)",
+    ),
 ]
 
 

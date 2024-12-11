@@ -318,9 +318,30 @@ ChurnPredictionDataSource = typing.Annotated[
 """
 
 
+def data_sources_3() -> str:
+    return """
+import typing
+from sema4ai.data import DataSource, DataSourceSpec
+
+ChurnPredictionDataSource = typing.Annotated[
+    DataSource,
+    DataSourceSpec(
+        model_name="customer_churn_predictor",
+        engine="prediction:lightwood",
+        description="Datasource which provides along with a table named `customer_churn_predictor`.",
+        setup_sql=["CREATE MODEL IF NOT EXISTS customer_churn_predictor FROM files (SELECT * FROM churn) PREDICT Churn;"],
+    ),
+]
+"""
+
+
 @pytest.mark.parametrize(
     "scenario",
-    [data_sources, data_sources_2],
+    [
+        data_sources,
+        data_sources_2,
+        data_sources_3,
+    ],
 )
 def test_list_actions_and_datasources_mutiple(data_regression, scenario, tmpdir):
     action_package_path = Path(tmpdir)
