@@ -5,6 +5,7 @@ const DATA_EXTENSION_ID = "sema4ai.sema4ai-data-access";
 export const DATA_SERVER_START_COMMAND_ID = "sema4ai-data.dataserver.start";
 export const DATA_SERVER_STOP_COMMAND_ID = "sema4ai-data.dataserver.stop";
 export const DATA_SERVER_STATUS_COMMAND_ID = "sema4ai-data.dataserver.status";
+export const DATABASE_ADD_COMMAND_ID = "sema4ai-data.database.add";
 
 /**
  * Returns true if the data extension is installed, false otherwise.

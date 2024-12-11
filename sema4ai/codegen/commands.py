@@ -1019,6 +1019,13 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=True,
     ),
+    Command(
+        "sema4ai.dropDataSource",
+        "Drop Data Sources",
+        server_handled=False,
+        add_to_package_json=True,
+        icon="$(trash)",
+    ),
 ]
 
 

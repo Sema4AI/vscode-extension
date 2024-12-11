@@ -1,8 +1,10 @@
 import logging
 
 import pytest
-from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 from sema4ai_ls_core.protocols import DataSourceStateDict
+
+from sema4ai_code.protocols import DataServerConfigTypedDict
+from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 
 log = logging.getLogger(__name__)
 
@@ -76,28 +78,49 @@ def wait_for_models_to_be_ready(
         project_name_to_model_names = still_training
 
 
-@pytest.mark.data_server
-def test_compute_data_sources_state(
-    data_server_cli: DataServerCliWrapper,
-    language_server_initialized,
-    ws_root_path,
-    datadir,
-    data_regression,
-    cleanup_data_sources,
-    tmpdir,
-):
-    import json
-    import shutil
+def _create_prediction_model(data_server_cli: DataServerCliWrapper):
+    data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS models""")
+    data_server_cli.http_connection.run_sql(
+        """CREATE MODEL models.predict_compute_data_sources_state
+FROM files
+(SELECT * FROM customers_in_test_compute_data_sources_state)
+PREDICT Index
+WINDOW 8
+HORIZON 4;"""
+    )
+    wait_for_models_to_be_ready(
+        data_server_cli, {"models": ["predict_compute_data_sources_state"]}
+    )
 
-    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
+
+def _collect_data_source_state(
+    language_server, data_server_info, root_path
+) -> DataSourceStateDict:
+    import json
+
     from sema4ai_ls_core import uris
 
-    from sema4ai_code.protocols import DataServerConfigTypedDict
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "computeDataSourceState",
+            "params": {
+                "action_package_yaml_directory_uri": uris.from_fs_path(root_path),
+                "data_server_info": data_server_info,
+            },
+        }
+    )["result"]
+    assert result[
+        "success"
+    ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
 
-    shutil.copytree(datadir / "package", ws_root_path)
+    assert result["result"] is not None, "Expected result to be not None"
+    fixed_result: DataSourceStateDict = fix_data_sources_state_result(result["result"])
+    return fixed_result
 
-    language_server = language_server_initialized
 
+def _get_data_server_info(data_server_cli) -> DataServerConfigTypedDict:
     http_port, mysql_port = data_server_cli.get_http_and_mysql_ports()
 
     data_server_info: DataServerConfigTypedDict = {
@@ -119,31 +142,33 @@ def test_compute_data_sources_state(
         "pidFilePath": "",
     }
 
-    def collect_data_source_state() -> DataSourceStateDict:
-        result = language_server.request(
-            {
-                "jsonrpc": "2.0",
-                "id": language_server.next_id(),
-                "method": "computeDataSourceState",
-                "params": {
-                    "action_package_yaml_directory_uri": uris.from_fs_path(
-                        ws_root_path
-                    ),
-                    "data_server_info": data_server_info,
-                },
-            }
-        )["result"]
-        assert result[
-            "success"
-        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+    return data_server_info
 
-        assert result["result"] is not None, "Expected result to be not None"
-        fixed_result: DataSourceStateDict = fix_data_sources_state_result(
-            result["result"]
-        )
-        return fixed_result
 
-    fixed_result = collect_data_source_state()
+@pytest.mark.data_server
+def test_compute_data_sources_state(
+    data_server_cli: DataServerCliWrapper,
+    language_server_initialized,
+    ws_root_path,
+    datadir,
+    data_regression,
+    cleanup_data_sources,
+    tmpdir,
+):
+    import json
+    import shutil
+
+    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
+
+    shutil.copytree(datadir / "package", ws_root_path)
+
+    language_server = language_server_initialized
+
+    data_server_info = _get_data_server_info(data_server_cli)
+
+    fixed_result = _collect_data_source_state(
+        language_server, data_server_info, ws_root_path
+    )
     data_regression.check(fixed_result, basename="missing_data_source_all")
 
     # Now, let's configure the file data source.
@@ -152,7 +177,9 @@ def test_compute_data_sources_state(
         datadir / "package" / "files" / "customers.csv",
         "customers_in_test_compute_data_sources_state",
     )
-    fixed_result = collect_data_source_state()
+    fixed_result = _collect_data_source_state(
+        language_server, data_server_info, ws_root_path
+    )
     data_regression.check(fixed_result, basename="missing_data_source_sqlite")
 
     params = json.dumps({"db_file": str(create_another_sqlite_sample_db(tmpdir))})
@@ -161,23 +188,16 @@ def test_compute_data_sources_state(
         f"CREATE DATABASE `test_compute_data_sources_state` ENGINE = '{engine}' , PARAMETERS = {params}",
     )
 
-    fixed_result = collect_data_source_state()
+    fixed_result = _collect_data_source_state(
+        language_server, data_server_info, ws_root_path
+    )
     data_regression.check(fixed_result, basename="missing_data_source_prediction")
 
-    data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS models""")
-    data_server_cli.http_connection.run_sql(
-        """CREATE MODEL models.predict_compute_data_sources_state
-FROM files
-(SELECT * FROM customers_in_test_compute_data_sources_state)
-PREDICT Index
-WINDOW 8
-HORIZON 4;"""
-    )
-    wait_for_models_to_be_ready(
-        data_server_cli, {"models": ["predict_compute_data_sources_state"]}
-    )
+    _create_prediction_model(data_server_cli)
 
-    fixed_result = collect_data_source_state()
+    fixed_result = _collect_data_source_state(
+        language_server, data_server_info, ws_root_path
+    )
     data_regression.check(fixed_result, basename="missing_data_source_none")
 
 
@@ -204,3 +224,77 @@ def fix_data_sources_state_result(result: DataSourceStateDict) -> DataSourceStat
 
     _fix_uri(result)
     return result
+
+
+@pytest.mark.data_server
+def test_drop_data_sources(
+    data_server_cli: DataServerCliWrapper,
+    language_server_initialized,
+    ws_root_path,
+    datadir,
+    data_regression,
+    cleanup_data_sources,
+    tmpdir,
+):
+    import json
+    import shutil
+
+    from sema4ai_code_tests.data_server_fixtures import create_another_sqlite_sample_db
+
+    shutil.copytree(datadir / "package", ws_root_path)
+
+    language_server = language_server_initialized
+    data_server_info = _get_data_server_info(data_server_cli)
+
+    assert data_server_cli.http_connection is not None
+    data_server_cli.http_connection.upload_file(
+        datadir / "package" / "files" / "customers.csv",
+        "customers_in_test_compute_data_sources_state",
+    )
+
+    params = json.dumps({"db_file": str(create_another_sqlite_sample_db(tmpdir))})
+    engine = "sqlite"
+    data_server_cli.http_connection.run_sql(
+        f"CREATE DATABASE `test_compute_data_sources_state` ENGINE = '{engine}' , PARAMETERS = {params}",
+    )
+
+    _create_prediction_model(data_server_cli)
+
+    data_sources_state = _collect_data_source_state(
+        language_server, data_server_info, ws_root_path
+    )
+
+    for data_source in data_sources_state["required_data_sources"]:
+        result = language_server.request(
+            {
+                "jsonrpc": "2.0",
+                "id": language_server.next_id(),
+                "method": "dropDataSource",
+                "params": {
+                    "datasource": data_source,
+                    "data_server_info": data_server_info,
+                },
+            }
+        )["result"]
+        assert result[
+            "success"
+        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        assert result["message"] == "Data Source dropped successfully."
+
+    # DROP again, should return success but with no action message
+    for data_source in data_sources_state["required_data_sources"]:
+        result = language_server.request(
+            {
+                "jsonrpc": "2.0",
+                "id": language_server.next_id(),
+                "method": "dropDataSource",
+                "params": {
+                    "datasource": data_source,
+                    "data_server_info": data_server_info,
+                },
+            }
+        )["result"]
+        assert result[
+            "success"
+        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        assert result["message"] == "Data source does not exist, no action needed."

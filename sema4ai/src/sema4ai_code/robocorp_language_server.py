@@ -77,6 +77,10 @@ from sema4ai_code.protocols import (
     WorkspaceInfoDict,
 )
 from sema4ai_code.refresh_agent_spec_helper import update_agent_spec
+from sema4ai_code.robo.collect_actions_ast import (
+    ActionInfoTypedDict,
+    DatasourceInfoTypedDict,
+)
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
     IPyPiCloud,
@@ -85,10 +89,6 @@ from sema4ai_code.workspace_manager import WorkspaceManager
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.agents.gallery_actions import GalleryActionPackages
-    from sema4ai_code.robo.collect_actions_ast import (
-        ActionInfoTypedDict,
-        DatasourceInfoTypedDict,
-    )
 
 log = get_logger(__name__)
 
@@ -2348,11 +2348,87 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 log.exception(msg)
                 return ActionResult.make_failure(msg).as_dict()
 
+    def _drop_data_source_impl(
+        self,
+        datasource: DatasourceInfoTypedDict,
+        data_server_info: DataServerConfigTypedDict,
+        monitor: IMonitor,
+    ) -> ActionResultDict:
+        from sema4ai_code.data.data_server_connection import DataServerConnection
+
+        http = data_server_info["api"]["http"]
+        auth = data_server_info["auth"]
+        user = auth["username"]
+        password = auth["password"]
+
+        connection = DataServerConnection(
+            http_url=f"http://{http['host']}:{http['port']}",
+            http_user=user,
+            http_password=password,
+        )
+
+        name = datasource.get("name")
+        engine = datasource["engine"]
+        created_table = datasource.get("created_table")
+        model_name = datasource.get("model_name")
+
+        query = ""
+        if engine == "files":
+            files_table_names = set(
+                x["tables_in_files"]
+                for x in connection.query("files", "SHOW TABLES").iter_as_dicts()
+            )
+            if created_table not in files_table_names:
+                return ActionResult(
+                    success=True,
+                    message="Data source does not exist, no action needed.",
+                ).as_dict()
+            query = f"DROP TABLE files.{created_table}"
+
+        elif name == "custom" and created_table:
+            query = f"DROP TABLE {name}.{created_table}"
+
+        elif engine.startswith("prediction:") or (name == "custom" and model_name):
+            query = f"DROP MODEL {name}.{model_name}"
+        else:
+            query = f"DROP DATABASE {name}"
+
+        try:
+            connection.run_sql(query)
+        except Exception as e:
+            if "not exist" in str(e).lower():
+                return ActionResult(
+                    success=True,
+                    message="Data source does not exist, no action needed.",
+                ).as_dict()
+
+            log.exception(f"Error while executing query: {query}. {str(e)}")
+            return ActionResult.make_failure(
+                f"Error while dropping data source: {str(e)}"
+            ).as_dict()
+
+        return ActionResult(
+            success=True, message="Data Source dropped successfully."
+        ).as_dict()
+
+    def m_drop_data_source(
+        self,
+        datasource: DatasourceInfoTypedDict,
+        data_server_info: DataServerConfigTypedDict,
+    ) -> partial[ActionResultDict]:
+        return require_monitor(
+            partial(
+                self._drop_data_source_impl,
+                datasource,
+                data_server_info,
+            )
+        )
+
     def m_compute_data_source_state(
         self,
         action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
-    ):
+    ) -> partial[ActionResultDict[DataSourceStateDict]]:
         return require_monitor(
             partial(
                 self._compute_data_source_state_impl,

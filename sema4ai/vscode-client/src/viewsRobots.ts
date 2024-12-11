@@ -532,6 +532,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "type": RobotEntryType.DataSource,
                         "parent": element,
                         "range": datasource.range,
+                        "extraData": { "datasource": datasource },
                     });
                 }
                 return children;
