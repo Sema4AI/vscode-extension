@@ -1,10 +1,9 @@
-import { commands, Uri, window } from "vscode";
+import { Uri, window } from "vscode";
 import { OUTPUT_CHANNEL } from "../channel";
 import { RobotEntry } from "../viewsCommon";
 import { DatasourceInfo } from "../protocols";
 import { langServer } from "../extension";
-import { DataServerConfig } from "./actionPackage";
-import { DATA_SERVER_START_COMMAND_ID } from "../dataExtension";
+import { startDataServerAndGetInfo } from "../dataExtension";
 
 export const setupDataSource = async (entry?: RobotEntry) => {
     if (!entry || !entry.extraData || !entry.extraData.datasource) {
@@ -12,12 +11,10 @@ export const setupDataSource = async (entry?: RobotEntry) => {
         return;
     }
 
-    const dataServerInfo = (await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
-        "showUIMessages": false,
-    })) as DataServerConfig | undefined;
+    const dataServerInfo = await startDataServerAndGetInfo();
     if (!dataServerInfo) {
         window.showErrorMessage(
-            "Unable to run (error getting local data server connection info and validating data sources):\n" +
+            "Unable to run (error getting local data server connection info):\n" +
                 JSON.stringify(dataServerInfo, null, 4)
         );
         return false;

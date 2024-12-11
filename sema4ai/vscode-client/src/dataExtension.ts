@@ -1,5 +1,6 @@
 import { commands, extensions, window } from "vscode";
-import { logError } from "./channel";
+import { logError, OUTPUT_CHANNEL } from "./channel";
+import { DataServerConfig } from "./robo/actionPackage";
 
 const DATA_EXTENSION_ID = "sema4ai.sema4ai-data-access";
 export const DATA_SERVER_START_COMMAND_ID = "sema4ai-data.dataserver.start";
@@ -84,4 +85,70 @@ export async function verifyDataExtensionIsInstalled(
     }
 
     return false;
+}
+
+function failWithErrorMessage(dataServerInfo: DataServerConfig, errorMessage: string) {
+    OUTPUT_CHANNEL.appendLine(
+        `${errorMessage} (obtained from the ${DATA_SERVER_START_COMMAND_ID} command). Full data server info: ` +
+            JSON.stringify(dataServerInfo, null, 4)
+    );
+    window.showErrorMessage(errorMessage);
+}
+
+export async function startDataServerAndGetInfo(): Promise<DataServerConfig | undefined> {
+    const dataServerInfo = (await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
+        "showUIMessages": false,
+    })) as DataServerConfig | undefined;
+    if (dataServerInfo) {
+        if (!dataServerInfo.isRunning) {
+            failWithErrorMessage(
+                dataServerInfo,
+                "After starting the data server, isRunning still returning false in provided data server config."
+            );
+            return undefined;
+        }
+
+        // Let's validate that the data server info has the correct structure (check each field one by one and
+        // show error if it's not correct)
+        if (!dataServerInfo.api) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.http) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.http' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.http.host) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.http.host' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.http.port) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.http.port' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.mysql) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.mysql' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.mysql.host) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.mysql.host' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.api.mysql.port) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'api.mysql.port' field");
+            return undefined;
+        }
+
+        if (!dataServerInfo.auth) {
+            failWithErrorMessage(dataServerInfo, "The data server info is missing the 'auth' field");
+            return undefined;
+        }
+    }
+    return dataServerInfo;
 }
