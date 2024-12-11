@@ -56,11 +56,7 @@ import { loginToAuth2WhereRequired } from "./oauth2InInput";
 import { RobotEntryType } from "../viewsCommon";
 import { createActionInputs, errorMessageValidatingV2Input } from "./actionInputs";
 import { langServer } from "../extension";
-import {
-    DATA_SERVER_START_COMMAND_ID,
-    DATA_SERVER_STATUS_COMMAND_ID,
-    verifyDataExtensionIsInstalled,
-} from "../dataExtension";
+import { startDataServerAndGetInfo, verifyDataExtensionIsInstalled } from "../dataExtension";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -574,12 +570,10 @@ advised to regenerate it as it may not work with future versions of the extensio
                             progress.report({
                                 message: "Waiting for data server info... ",
                             });
-                            const dataServerInfo = (await commands.executeCommand(DATA_SERVER_START_COMMAND_ID, {
-                                "showUIMessages": false,
-                            })) as DataServerConfig | undefined;
+                            const dataServerInfo = await startDataServerAndGetInfo();
                             if (!dataServerInfo) {
                                 window.showErrorMessage(
-                                    "Unable to run (error getting local data server connection info and validating data sources):\n" +
+                                    "Unable to run (error getting local data server connection info):\n" +
                                         JSON.stringify(dataServerInfo, null, 4)
                                 );
                                 return false;
