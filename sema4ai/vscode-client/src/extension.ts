@@ -24,7 +24,19 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as cp from "child_process";
 
-import { workspace, Disposable, ExtensionContext, window, commands, extensions, env, Uri } from "vscode";
+import {
+    workspace,
+    Disposable,
+    ExtensionContext,
+    window,
+    commands,
+    extensions,
+    env,
+    Uri,
+    ProgressLocation,
+    Progress,
+    CancellationToken,
+} from "vscode";
 import { LanguageClientOptions, State } from "vscode-languageclient";
 import { LanguageClient, ServerOptions } from "vscode-languageclient/node";
 import * as playwright from "./playwright";
@@ -1026,9 +1038,20 @@ export async function dropDataSource(entry?: RobotEntry) {
     if (!(await verifyDataExtensionIsInstalled())) {
         return;
     }
-    const dataServerStatus = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
+    const dataServerStatus = await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Getting data server status...",
+            cancellable: false,
+        },
+        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
+            const dataServerStatus = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
+            return dataServerStatus;
+        }
+    );
+
     if (!dataServerStatus["success"]) {
-        window.showErrorMessage("Unable to get the data server status.");
+        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
 
@@ -1078,7 +1101,7 @@ export async function dropDataSource(entry?: RobotEntry) {
             return;
         }
         const userChoice = await vscode.window.showWarningMessage(
-            `Are you sure you want to drop ${entry.label}?.`,
+            `Are you sure you want to drop ${entry.label}?`,
             { modal: true },
             "Yes",
             "No"
@@ -1088,10 +1111,20 @@ export async function dropDataSource(entry?: RobotEntry) {
         }
     }
 
-    const result = await langServer.sendRequest("dropDataSource", {
-        "datasource": datasource,
-        "data_server_info": dataServerStatus["data"],
-    });
+    const result = await window.withProgress(
+        {
+            location: ProgressLocation.Notification,
+            title: "Dropping Data Source...",
+            cancellable: false,
+        },
+        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
+            OUTPUT_CHANNEL.appendLine("Dropping Data Source: " + JSON.stringify(datasource));
+            return await langServer.sendRequest("dropDataSource", {
+                "datasource": datasource,
+                "data_server_info": dataServerStatus["data"],
+            });
+        }
+    );
 
     if (!result["success"]) {
         window.showErrorMessage(result["message"] || "Unknown error");

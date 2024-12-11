@@ -122,9 +122,9 @@ def create_setup_config(
             "password": data_server_cli.get_password(),
             "username": data_server_cli.get_username(),
         },
-        "isRunning": True,
+        "is_running": True,
         "pid": -1,
-        "pidFilePath": "",
+        "pid_file_path": "",
     }
     return data_server_info
 
