@@ -175,6 +175,7 @@
         "onCommand:sema4ai.runActionPackageDevTask",
         "onCommand:sema4ai.getActionsMetadata",
         "onCommand:sema4ai.dropDataSource",
+        "onCommand:sema4ai.setupDataSource",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1013,6 +1014,12 @@
                 "title": "Drop Data Sources",
                 "category": "Sema4.ai",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "sema4ai.setupDataSource",
+                "title": "Setup Data Source",
+                "category": "Sema4.ai",
+                "icon": "$(diff-added)"
             }
         ],
         "menus": {
@@ -1143,6 +1150,11 @@
                     "command": "sema4ai.revealRobotInExplorer",
                     "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
                     "group": "navigation"
+                },
+                {
+                    "command": "sema4ai.setupDataSource",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
+                    "group": "inline"
                 },
                 {
                     "command": "sema4ai.openRobotTreeSelection",

@@ -3,6 +3,8 @@ import typing
 from pathlib import Path
 from typing import Any, Optional
 
+from sema4ai_ls_core.protocols import DatasourceInfoTypedDict
+
 if typing.TYPE_CHECKING:
     from .result_set import ResultSet
 
@@ -211,3 +213,7 @@ class DataServerConnection:
 
     def upload_file(self, file_path: Path, table_name: str) -> None:
         self._http_connection.upload_file(file_path, table_name)
+
+    def get_data_sources(self, where: str) -> list[dict[str, Any]]:
+        result_set = self.query("", f"SHOW DATABASES {where}")
+        return list(result_set.iter_as_dicts())

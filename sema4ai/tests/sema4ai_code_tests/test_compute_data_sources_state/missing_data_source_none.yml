@@ -37,11 +37,11 @@ required_data_sources:
 
     CREATE MODEL models.predict_compute_data_sources_state
 
-    (SELECT * FROM files.customers)
+    FROM files
 
-    PREDICT country
+    (SELECT * FROM customers_in_test_compute_data_sources_state)
 
-    ORDER BY first_name
+    PREDICT Index
 
     WINDOW 8
 

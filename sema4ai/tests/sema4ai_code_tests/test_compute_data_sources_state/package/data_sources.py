@@ -22,9 +22,9 @@ PredictDataSource = Annotated[
         description="Predict something.",
         setup_sql="""
 CREATE MODEL models.predict_compute_data_sources_state
-(SELECT * FROM files.customers)
-PREDICT country
-ORDER BY first_name
+FROM files
+(SELECT * FROM customers_in_test_compute_data_sources_state)
+PREDICT Index
 WINDOW 8
 HORIZON 4;""",
     ),

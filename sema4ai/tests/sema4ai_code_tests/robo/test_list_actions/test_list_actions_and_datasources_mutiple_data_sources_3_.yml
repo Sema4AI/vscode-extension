@@ -1,0 +1,20 @@
+- created_table: null
+  description: Datasource which provides along with a table named `customer_churn_predictor`.
+  engine: prediction:lightwood
+  file: null
+  kind: datasource
+  model_name: customer_churn_predictor
+  name: models
+  python_variable_name: ChurnPredictionDataSource
+  range:
+    end:
+      character: 25
+      line: 5
+    start:
+      character: 0
+      line: 5
+  setup_sql:
+  - CREATE MODEL IF NOT EXISTS customer_churn_predictor FROM files (SELECT * FROM
+    churn) PREDICT Churn;
+  setup_sql_files: null
+  uri: data_sources.py

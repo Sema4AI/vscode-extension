@@ -148,6 +148,7 @@ SEMA4AI_IMPORT_ACTION_PACKAGE = "sema4ai.importActionPackage"  # Import Action P
 SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK = "sema4ai.runActionPackageDevTask"  # Run dev-task (from Action Package)
 SEMA4AI_GET_ACTIONS_METADATA = "sema4ai.getActionsMetadata"  # Get Actions Metadata
 SEMA4AI_DROP_DATA_SOURCE = "sema4ai.dropDataSource"  # Drop Data Sources
+SEMA4AI_SETUP_DATA_SOURCE = "sema4ai.setupDataSource"  # Setup Data Source
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
