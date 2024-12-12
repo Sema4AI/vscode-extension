@@ -9,6 +9,7 @@ import {
     ProgressLocation,
     Progress,
     CancellationToken,
+    Uri,
 } from "vscode";
 import * as vscode from "vscode";
 import * as roboCommands from "../robocorpCommands";
@@ -389,6 +390,37 @@ function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string
         http: { url: httpUrl, user: httpUser, password: httpPassword },
         mysql: { host: mysqlHost, port: mysqlPort, user: httpUser, password: httpPassword },
     });
+}
+
+export function getDataSourceTooltip(dataSource: DatasourceInfo): string {
+    let tooltip = [];
+    tooltip.push(getDataSourceCaption(dataSource));
+    if (dataSource.description) {
+        tooltip.push(dataSource.description);
+    }
+    if (dataSource.python_variable_name) {
+        tooltip.push(`Python variable name: ${dataSource.python_variable_name}`);
+    }
+    if (dataSource.uri) {
+        let definedAt = dataSource.uri;
+        try {
+            const uri = Uri.parse(dataSource.uri);
+            definedAt = uri.fsPath;
+        } catch (error) {
+            // Ignore error
+        }
+
+        let line = undefined;
+        if (dataSource.range) {
+            line = dataSource.range?.start?.line;
+        }
+        if (line !== undefined) {
+            tooltip.push(`Defined at: ${definedAt}, line: ${line}`);
+        } else {
+            tooltip.push(`Defined at: ${definedAt}`);
+        }
+    }
+    return tooltip.join("\n");
 }
 
 export function getDataSourceCaption(dataSource: DatasourceInfo): string {
