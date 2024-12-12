@@ -610,6 +610,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def _cloud_list_workspaces(
         self, params: CloudListWorkspaceDict
     ) -> ListWorkspacesActionResultDict:
+        return require_monitor(partial(self._cloud_list_workspaces_impl, params))
+
+    def _cloud_list_workspaces_impl(
+        self, params: CloudListWorkspaceDict, monitor: IMonitor
+    ) -> ListWorkspacesActionResultDict:
         from sema4ai_ls_core.progress_report import progress_context
 
         DEFAULT_SORT_KEY = 10
@@ -663,72 +668,80 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         last_error_result = None
 
-        with progress_context(
-            self._endpoint, "Listing Control Room workspaces", self._dir_cache
-        ):
-            ws: IRccWorkspace
-            ret: list[WorkspaceInfoDict] = []
-            result = self._rcc.cloud_list_workspaces()
-            if not result.success:
-                # It's an error, so, the data should be None.
-                return typing.cast(
-                    ActionResultDict[list[WorkspaceInfoDict]], result.as_dict()
-                )
-
-            workspaces = result.result
-            for ws in workspaces or []:
-                packages: list[PackageInfoDict] = []
-
-                activity_package: IRccRobotMetadata
-                activities_result = self._rcc.cloud_list_workspace_robots(
-                    ws.workspace_id
-                )
-                if not activities_result.success:
-                    # If we can't list the robots of a specific workspace, just skip it
-                    # (the log should still show it but we can proceed to list the
-                    # contents of other workspaces).
-                    last_error_result = activities_result
-                    continue
-
-                workspace_activities = activities_result.result
-                for activity_package in workspace_activities or []:
-                    key = (ws.workspace_id, activity_package.robot_id)
-                    sort_key = "%05d%s" % (
-                        ws_id_and_pack_id_to_lru_index.get(key, DEFAULT_SORT_KEY),
-                        activity_package.robot_name.lower(),
+        try:
+            with progress_context(
+                self._endpoint, "Listing Control Room workspaces", self._dir_cache
+            ):
+                ws: IRccWorkspace
+                ret: list[WorkspaceInfoDict] = []
+                result = self._rcc.cloud_list_workspaces()
+                if not result.success:
+                    # It's an error, so, the data should be None.
+                    return typing.cast(
+                        ActionResultDict[list[WorkspaceInfoDict]], result.as_dict()
                     )
 
-                    package_info = {
-                        "name": activity_package.robot_name,
-                        "id": activity_package.robot_id,
-                        "sortKey": sort_key,
+                workspaces = result.result
+                for ws in workspaces or []:
+                    packages: list[PackageInfoDict] = []
+
+                    activity_package: IRccRobotMetadata
+                    activities_result = self._rcc.cloud_list_workspace_robots(
+                        ws.workspace_id
+                    )
+                    if not activities_result.success:
+                        # If we can't list the robots of a specific workspace, just skip it
+                        # (the log should still show it but we can proceed to list the
+                        # contents of other workspaces).
+                        last_error_result = activities_result
+                        continue
+
+                    workspace_activities = activities_result.result
+                    for activity_package in workspace_activities or []:
+                        key = (ws.workspace_id, activity_package.robot_id)
+                        sort_key = "%05d%s" % (
+                            ws_id_and_pack_id_to_lru_index.get(key, DEFAULT_SORT_KEY),
+                            activity_package.robot_name.lower(),
+                        )
+
+                        package_info = {
+                            "name": activity_package.robot_name,
+                            "id": activity_package.robot_id,
+                            "sortKey": sort_key,
+                            "organizationName": ws.organization_name,
+                            "workspaceId": ws.workspace_id,
+                            "workspaceName": ws.workspace_name,
+                        }
+                        packages.append(package_info)
+
+                    ws_dict = {
                         "organizationName": ws.organization_name,
-                        "workspaceId": ws.workspace_id,
                         "workspaceName": ws.workspace_name,
+                        "workspaceId": ws.workspace_id,
+                        "packages": packages,
                     }
-                    packages.append(package_info)
+                    ret.append(ws_dict)
 
-                ws_dict = {
-                    "organizationName": ws.organization_name,
-                    "workspaceName": ws.workspace_name,
-                    "workspaceId": ws.workspace_id,
-                    "packages": packages,
+            if not ret and last_error_result is not None:
+                # It's an error, so, the data should be None.
+                return typing.cast(
+                    ActionResultDict[list[WorkspaceInfoDict]],
+                    last_error_result.as_dict(),
+                )
+
+            if ret:  # Only store if we got something.
+                store: ListWorkspaceCachedInfoDict = {
+                    "ws_info": ret,
+                    "account_cache_key": account_cache_key,
                 }
-                ret.append(ws_dict)
-
-        if not ret and last_error_result is not None:
-            # It's an error, so, the data should be None.
-            return typing.cast(
-                ActionResultDict[list[WorkspaceInfoDict]], last_error_result.as_dict()
-            )
-
-        if ret:  # Only store if we got something.
-            store: ListWorkspaceCachedInfoDict = {
-                "ws_info": ret,
-                "account_cache_key": account_cache_key,
+                self._dir_cache.store(self.CLOUD_LIST_WORKSPACE_CACHE_KEY, store)
+            return {"success": True, "message": None, "result": ret}
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Error listing workspaces: {e}",
+                "result": None,
             }
-            self._dir_cache.store(self.CLOUD_LIST_WORKSPACE_CACHE_KEY, store)
-        return {"success": True, "message": None, "result": ret}
 
     @command_dispatcher(commands.SEMA4AI_CREATE_ROBOT_INTERNAL)
     def _create_robot(self, params: CreateRobotParamsDict) -> ActionResultDict:

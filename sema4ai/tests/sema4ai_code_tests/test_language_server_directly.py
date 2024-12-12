@@ -39,15 +39,21 @@ def test_cloud_list_workspaces_cache_invalidate(
     rcc = language_server._rcc
     rcc._last_verified_account_info = AccountInfo("default account", "123", "", "")
 
-    assert language_server._cloud_list_workspaces({"refresh": False})["success"]
+    assert language_server._cloud_list_workspaces({"refresh": False})(monitor=NULL)[
+        "success"
+    ]
     rcc_patch.disallow_calls()
-    assert language_server._cloud_list_workspaces({"refresh": False})["success"]
+    assert language_server._cloud_list_workspaces({"refresh": False})(monitor=NULL)[
+        "success"
+    ]
 
     rcc._last_verified_account_info = AccountInfo("another account", "123", "", "")
 
     # As account changed, the data should be fetched (as we can't due to the patching
     # the error is expected).
-    with pytest.raises(AssertionError) as e:
-        assert not language_server._cloud_list_workspaces({"refresh": False})["success"]
+    result = language_server._cloud_list_workspaces({"refresh": False})(monitor=NULL)
+    assert not result["success"]
 
-    assert "This should not be called at this time (data should be cached)." in str(e)
+    assert "This should not be called at this time (data should be cached)." in str(
+        result["message"]
+    )
