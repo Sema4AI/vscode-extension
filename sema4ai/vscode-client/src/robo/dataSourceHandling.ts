@@ -1,5 +1,5 @@
 import { Uri, window, commands } from "vscode";
-import { OUTPUT_CHANNEL } from "../channel";
+import { logError, OUTPUT_CHANNEL } from "../channel";
 import { RobotEntry } from "../viewsCommon";
 import { DatasourceInfo } from "../protocols";
 import { langServer } from "../extension";
@@ -7,13 +7,7 @@ import { startDataServerAndGetInfo } from "../dataExtension";
 
 function isExternalDatasource(datasource: DatasourceInfo): boolean {
     const externalEngines = ["custom", "files", "models"];
-    const isEngineExternal =
-        !externalEngines.includes(datasource.engine) && !datasource.engine.startsWith("prediction");
-
-    const isMissingModelAndTable =
-        !datasource.model_name && !datasource.created_table && datasource.engine !== "custom";
-
-    return isEngineExternal || isMissingModelAndTable;
+    return !externalEngines.includes(datasource.engine) && !datasource.engine.startsWith("prediction");
 }
 
 export const setupDataSource = async (entry?: RobotEntry) => {
@@ -38,7 +32,8 @@ export const setupDataSource = async (entry?: RobotEntry) => {
         try {
             await commands.executeCommand("sema4ai-data.database.add");
         } catch (e) {
-            window.showErrorMessage("Could not run setup command. Make sure you have a data server active.");
+            logError("Could not run setup data source command", e, "ERR_DATA_SOURCE_SETUP");
+            window.showErrorMessage(`"Could not run setup data source command: ${e.message}"`);
         }
 
         return;

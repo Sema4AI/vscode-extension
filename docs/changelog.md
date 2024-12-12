@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add setup support for external data sources
 - Add `sema4ai.dropDataSource` command
 - Add Datasources to the UI
 - Add `sema4ai.getActionsMetadata` command
