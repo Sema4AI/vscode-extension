@@ -169,6 +169,15 @@ def _is_current_db_data_valid(
 
 @pytest.fixture(scope="session")
 def data_server_cli(request, tmpdir_factory) -> Iterator["DataServerCliWrapper"]:
+    import os
+
+    if os.getenv("GITHUB_ACTIONS"):
+        # Detect if running in github actions
+        if not os.getenv("PYTEST_CAN_RUN_DATA_SERVER"):
+            raise RuntimeError(
+                "Test must be marked with @pytest.mark.data_server to run in github actions to use `data_server_cli` fixture"
+            )
+
     from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
     from sema4ai_ls_core.system_mutex import timed_acquire_mutex
 

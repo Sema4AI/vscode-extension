@@ -234,7 +234,7 @@ else:  # Linux
                     try:
                         try:
                             with open(filename) as stream:
-                                curr_pid = stream.readline().strip()[-1]
+                                curr_pid = stream.readline().strip()
                         except:
                             log.exception("Unable to get locking pid.")
                             curr_pid = "<unable to get locking pid>"

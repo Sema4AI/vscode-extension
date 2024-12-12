@@ -262,7 +262,6 @@ def test_setup_datasource(
     data_regression.check(fixed_result, basename="missing_data_source_none")
 
 
-@pytest.mark.data_server
 def setup_sqlite_data_source(data_server_cli, tmpdir):
     import json
 
@@ -275,6 +274,7 @@ def setup_sqlite_data_source(data_server_cli, tmpdir):
     )
 
 
+@pytest.mark.data_server
 def test_compute_data_sources_state(
     data_server_cli: DataServerCliWrapper,
     ws_root_path,

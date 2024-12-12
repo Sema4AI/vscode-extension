@@ -1,4 +1,4 @@
-name: Tests - Sema4.ai (sema4ai)
+name: Tests - Sema4.ai RCC Integration (sema4ai)
 
 on:
   push:
@@ -69,16 +69,16 @@ jobs:
         RUN_TESTS_TIMEOUT: 3000
         ACTION_SERVER_TEST_ACCESS_CREDENTIALS: ${{ secrets.ACTION_SERVER_TEST_ACCESS_CREDENTIALS }}
 
-      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv -n 1 -m "not data_server and not rcc_env" .
+      run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -n 1 -otests_output_rcc -vv -m rcc_env .
       
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: tests_output.${{ matrix.name }}.txt
-        path: sema4ai/tests/tests_output
+        name: tests_output_rcc.${{ matrix.name }}.txt
+        path: sema4ai/tests/tests_output_rcc
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: log.${{ matrix.name }}.html
+        name: log_rcc.${{ matrix.name }}.html
         path: sema4ai/tests/output/log.html
 

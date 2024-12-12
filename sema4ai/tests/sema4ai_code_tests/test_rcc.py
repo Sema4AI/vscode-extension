@@ -103,6 +103,7 @@ def test_rcc_cloud_issues(rcc: IRcc, ci_credentials: str, tmpdir, rcc_patch: Rcc
     assert [ws.workspace_name for ws in workspaces_listed] == ["Ex3"]
 
 
+@pytest.mark.rcc_env
 def test_rcc_cloud(rcc: IRcc, ci_credentials: str, tmpdir):
     """
     Note on the setup:
@@ -243,6 +244,7 @@ class _RobotInfo:
         return self.conda_yaml.read_text("utf-8")
 
 
+@pytest.mark.rcc_env
 def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
     from sema4ai_ls_core.protocols import ActionResult
 
@@ -386,6 +388,7 @@ def test_get_robot_yaml_environ(rcc: IRcc, datadir, holotree_manager):
     )
 
 
+@pytest.mark.rcc_env
 def test_get_robot_yaml_environ_not_ok(rcc: IRcc, datadir, holotree_manager):
     # Test what happens when things go don't go as planned (i.e.: an environment
     # cannot be created).

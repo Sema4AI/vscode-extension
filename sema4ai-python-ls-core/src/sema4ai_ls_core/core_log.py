@@ -22,13 +22,13 @@ Note that we have 3 levels:
 """
 
 import os.path
-import traceback
-import threading
 import sys
+import threading
+import traceback
 from datetime import datetime
-from sema4ai_ls_core.protocols import ILog
-from typing import Dict
+
 from sema4ai_ls_core.constants import NULL
+from sema4ai_ls_core.protocols import ILog
 
 name_to_logger: dict[str, ILog] = {}
 
@@ -39,7 +39,7 @@ def _as_str(s):
     return s
 
 
-MAX_LOG_MSG_SIZE = 2000
+MAX_LOG_MSG_SIZE = 20000
 try:
     MAX_LOG_MSG_SIZE = int(os.environ.get("MAX_LOG_MSG_SIZE", MAX_LOG_MSG_SIZE))
 except Exception:

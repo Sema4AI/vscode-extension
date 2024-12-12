@@ -8,6 +8,7 @@ from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
 
+@pytest.mark.rcc_env
 def test_resolve_interpreter_with_changing_pythonpath(
     config_provider: IConfigProvider, rcc_conda_installed, datadir
 ) -> None:
@@ -63,6 +64,7 @@ def test_resolve_interpreter_with_changing_pythonpath(
     assert additional_pythonpath_entries2 == (datadir / "robot4" / "new-path",)
 
 
+@pytest.mark.rcc_env
 def test_resolve_interpreter_relocate_robot_root(
     config_provider: IConfigProvider, rcc_conda_installed, datadir
 ) -> None:
@@ -125,6 +127,7 @@ def test_resolve_interpreter_relocate_robot_root(
     assert Path(interpreter_info2.get_interpreter_id()) == path2
 
 
+@pytest.mark.rcc_env
 def test_resolve_interpreter_environment_config(
     config_provider: IConfigProvider, rcc_conda_installed, datadir
 ) -> None:
