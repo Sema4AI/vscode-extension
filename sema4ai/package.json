@@ -176,6 +176,7 @@
         "onCommand:sema4ai.getActionsMetadata",
         "onCommand:sema4ai.dropDataSource",
         "onCommand:sema4ai.setupDataSource",
+        "onCommand:sema4ai.openDataSourceDefinition",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1011,7 +1012,7 @@
             },
             {
                 "command": "sema4ai.dropDataSource",
-                "title": "Drop Data Sources",
+                "title": "Remove Data Source",
                 "category": "Sema4.ai",
                 "icon": "$(trash)"
             },
@@ -1020,6 +1021,12 @@
                 "title": "Setup Data Source",
                 "category": "Sema4.ai",
                 "icon": "$(diff-added)"
+            },
+            {
+                "command": "sema4ai.openDataSourceDefinition",
+                "title": "Open Data Source definition",
+                "category": "Sema4.ai",
+                "icon": "$(go-to-file)"
             }
         ],
         "menus": {
@@ -1142,6 +1149,16 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "sema4ai.openDataSourceDefinition",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.setupDataSource",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
+                    "group": "inline"
+                },
+                {
                     "command": "sema4ai.dropDataSource",
                     "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
                     "group": "inline"
@@ -1150,11 +1167,6 @@
                     "command": "sema4ai.revealRobotInExplorer",
                     "when": "view == sema4ai-task-packages-tree && viewItem == robotItem",
                     "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.setupDataSource",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
-                    "group": "inline"
                 },
                 {
                     "command": "sema4ai.openRobotTreeSelection",
@@ -1561,6 +1573,14 @@
                 },
                 {
                     "command": "sema4ai.getActionsMetadata",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.setupDataSource",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.openDataSourceDefinition",
                     "when": "false"
                 }
             ]

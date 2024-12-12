@@ -21,8 +21,6 @@ from sema4ai_ls_core.lsp import (
     TextDocumentCodeActionTypedDict,
 )
 from sema4ai_ls_core.protocols import (
-    ActionInfoTypedDict,
-    DatasourceInfoTypedDict,
     DataSourceStateDict,
     IConfig,
     IMonitor,

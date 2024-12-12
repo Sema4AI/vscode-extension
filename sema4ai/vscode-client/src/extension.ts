@@ -177,6 +177,7 @@ import {
     SEMA4AI_DROP_DATA_SOURCE,
     SEMA4AI_LIST_ACTIONS_INTERNAL,
     SEMA4AI_SETUP_DATA_SOURCE,
+    SEMA4AI_OPEN_DATA_SOURCE_DEFINITION,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -550,6 +551,9 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     );
     C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
     C.register(SEMA4AI_DROP_DATA_SOURCE, async (datasource?: RobotEntry) => dropDataSource(datasource));
+    C.register(SEMA4AI_OPEN_DATA_SOURCE_DEFINITION, async (datasource?: RobotEntry) =>
+        openDataSourceDefinition(datasource)
+    );
 }
 
 async function clearEnvAndRestart() {
@@ -1033,6 +1037,41 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
 export const collapseAllEntries = async (): Promise<void> => {
     vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
 };
+
+export async function openDataSourceDefinition(entry?: RobotEntry) {
+    if (!entry) {
+        return;
+    }
+    const datasource: DatasourceInfo = entry.extraData?.datasource;
+    if (!datasource) {
+        window.showErrorMessage("Data Source object was not provided in extraData.");
+        return;
+    }
+    const uri = Uri.parse(datasource.uri);
+    if (!(await uriExists(uri))) {
+        window.showErrorMessage(`Data Source file: ${uri.fsPath} not found.`);
+        return;
+    }
+    const document = await vscode.workspace.openTextDocument(uri);
+    const editor = await window.showTextDocument(document, { preview: false });
+    if (editor) {
+        editor.revealRange(
+            new vscode.Range(
+                datasource.range.start.line - 1,
+                datasource.range.start.character,
+                datasource.range.end.line - 1,
+                datasource.range.end.character
+            ),
+            vscode.TextEditorRevealType.InCenter
+        );
+        editor.selection = new vscode.Selection(
+            datasource.range.start.line - 1,
+            datasource.range.start.character,
+            datasource.range.start.line - 1,
+            datasource.range.start.character
+        );
+    }
+}
 
 export async function dropDataSource(entry?: RobotEntry) {
     if (!(await verifyDataExtensionIsInstalled())) {
