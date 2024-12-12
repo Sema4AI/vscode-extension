@@ -7,7 +7,7 @@ import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
 import path = require("path");
-import { getDataSourceCaption } from "./robo/actionPackage";
+import { getDataSourceCaption, getDataSourceTooltip } from "./robo/actionPackage";
 
 let _globalSentMetric: boolean = false;
 
@@ -533,6 +533,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "parent": element,
                         "range": datasource.range,
                         "extraData": { "datasource": datasource },
+                        "tooltip": getDataSourceTooltip(datasource),
                     });
                 }
                 return children;

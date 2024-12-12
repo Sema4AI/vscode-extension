@@ -1021,7 +1021,9 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.dropDataSource",
-        "Drop Data Sources",
+        # Note: changed from Drop to Remove so that it appears after the open in the tree
+        # (the order is defined by the name).
+        "Remove Data Source",
         server_handled=False,
         add_to_package_json=True,
         icon="$(trash)",
@@ -1030,8 +1032,15 @@ COMMANDS = [
         "sema4ai.setupDataSource",
         "Setup Data Source",
         server_handled=False,
-        hide_from_command_palette=False,
+        hide_from_command_palette=True,
         icon="$(diff-added)",
+    ),
+    Command(
+        "sema4ai.openDataSourceDefinition",
+        "Open Data Source definition",
+        server_handled=False,
+        hide_from_command_palette=True,
+        icon="$(go-to-file)",
     ),
 ]
 

@@ -150,6 +150,16 @@ TREE_VIEW_CONTAINERS = [
                             "viewItem == actionItem",
                         ),
                         Menu(
+                            "sema4ai.openDataSourceDefinition",
+                            MenuGroup.INLINE,
+                            when="viewItem == datasourceItem",
+                        ),
+                        Menu(
+                            "sema4ai.setupDataSource",
+                            MenuGroup.INLINE,
+                            when="viewItem == datasourceItem",
+                        ),
+                        Menu(
                             "sema4ai.dropDataSource",
                             MenuGroup.INLINE,
                             "viewItem == datasourceItem",
@@ -159,11 +169,6 @@ TREE_VIEW_CONTAINERS = [
                             "sema4ai.revealRobotInExplorer",
                             MenuGroup.NAVIGATION,
                             when="viewItem == robotItem",
-                        ),
-                        Menu(
-                            "sema4ai.setupDataSource",
-                            MenuGroup.INLINE,
-                            when="viewItem == datasourceItem",
                         ),
                         Menu(
                             "sema4ai.openRobotTreeSelection",
