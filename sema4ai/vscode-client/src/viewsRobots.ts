@@ -703,6 +703,9 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         } else if (element.type === RobotEntryType.DataSource) {
             treeItem.contextValue = "datasourceItem";
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.DataSourcesInActionPackage) {
+            treeItem.contextValue = "datasourcesInActionPackageItem";
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         } else if (element.type === RobotEntryType.Error) {
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.StartActionServer) {

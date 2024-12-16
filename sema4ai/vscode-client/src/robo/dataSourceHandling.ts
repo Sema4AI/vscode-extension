@@ -5,7 +5,7 @@ import { DatasourceInfo } from "../protocols";
 import { langServer } from "../extension";
 import { startDataServerAndGetInfo } from "../dataExtension";
 
-function isExternalDatasource(datasource: DatasourceInfo): boolean {
+export function isExternalDatasource(datasource: DatasourceInfo): boolean {
     const externalEngines = ["custom", "files", "models"];
     return !externalEngines.includes(datasource.engine) && !datasource.engine.startsWith("prediction");
 }
