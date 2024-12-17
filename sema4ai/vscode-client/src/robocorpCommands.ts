@@ -149,3 +149,4 @@ export const SEMA4AI_GET_ACTIONS_METADATA = "sema4ai.getActionsMetadata";  // Ge
 export const SEMA4AI_DROP_DATA_SOURCE = "sema4ai.dropDataSource";  // Remove Data Source
 export const SEMA4AI_SETUP_DATA_SOURCE = "sema4ai.setupDataSource";  // Setup Data Source
 export const SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefinition";  // Open Data Source definition
+export const SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources";  // Remove All Data Sources

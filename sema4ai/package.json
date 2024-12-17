@@ -177,6 +177,7 @@
         "onCommand:sema4ai.dropDataSource",
         "onCommand:sema4ai.setupDataSource",
         "onCommand:sema4ai.openDataSourceDefinition",
+        "onCommand:sema4ai.dropAllDataSources",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1027,6 +1028,12 @@
                 "title": "Open Data Source definition",
                 "category": "Sema4.ai",
                 "icon": "$(go-to-file)"
+            },
+            {
+                "command": "sema4ai.dropAllDataSources",
+                "title": "Remove All Data Sources",
+                "category": "Sema4.ai",
+                "icon": "$(trash)"
             }
         ],
         "menus": {
@@ -1161,6 +1168,11 @@
                 {
                     "command": "sema4ai.dropDataSource",
                     "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "sema4ai.dropAllDataSources",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourcesInActionPackageItem",
                     "group": "inline"
                 },
                 {

@@ -1,3 +1,6 @@
+## Unreleased
+
+- Add `sema4ai.dropAllDataSources` command
 - Add setup support for external data sources
   - Show a progress bar until all models are ready
 - Add Data Sources to the Packages tree
