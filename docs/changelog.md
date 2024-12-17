@@ -1,28 +1,30 @@
 ## Unreleased
 
-- Add `sema4ai.dropAllDataSources` command
-- Add setup support for external data sources
-  - Show a progress bar until all models are ready
 - Add Data Sources to the Packages tree
+  - Hover (tree item) action in root element to Drop all Data Sources
   - Hover (tree item) action: remove Data Source
   - Hover (tree item) action: setup Data Source
+    - Supports external Data Sources (requires `VSCode Sema4.ai Data Extension` to be installed)
+    - Supports generated Data Sources (files, models and custom SQL)
+      - A progress bar is shown until all models are actually ready
   - Hover (tree item) action: open Data Source definition location
-  - Tooltip showing Data Source information
-- Add `sema4ai.getActionsMetadata` command
-- Add `query` and `predict` actions to UI
-- Update Action Server to `2.3.0`.
-- Extension Display Name updated to `Sema4.ai SDK`.
-- New icons for the extension.
-- Aligned the release details for the extension
-- Update Agent CLI to `0.2.2`
-- Search for actions/queries/predictions considering all glob patterns supported by `sema4ai.actions`.
-- Use `package.yaml` directory as the `cwd` when searching for actions/queries/predictions if available (otherwise imports could fail).
-- Show progress when creating the input file for an action/query/prediction.
-- Integrate with the VSCode Sema4.ai Data Extension to get the data server info to run data actions.
-- No longer use `robocorp-trustore` (it's no longer needed).
-- Use `sema4ai-http-helper` to make http requests (to data server).
-- Use `Python 3.11` as the base interpreter.
+  - Tooltip shows Data Source information
+- New command to get actions metadata: `sema4ai.getActionsMetadata`
+- Branding:
+  - A new icon is used to represent the view and the extension.
+  - The extension display name is now `Sema4.ai SDK`.
+- Search for `actions`/`queries`/`predictions` considering all glob patterns supported by `sema4ai.actions`.
+- Use `package.yaml` directory as the `cwd` when searching for `actions`/`queries`/`predictions` if available (otherwise imports could fail).
+- Progress is shown when creating the input file for an `action`/`query`/`prediction`.
+- Integrate with the `VSCode Sema4.ai Data Extension` to get the Data Server info to run data actions.
+- `robocorp-trustore` is no longer used (it's not needed anymore).
+- `sema4ai-http-helper` is now used to make http requests (to the Data Server).
+- `Python 3.11` is now used as the base interpreter.
 - When launching, if the Data Sources are not properly configured, show error message to the user.
+- It's now possible to run `@query` and `@predict` decorated methods from the tree.
+- Code lenses are now shown to run `@query` and `@predict` decorated methods.
+- Action Server updated to `2.3.0`.
+- Agent CLI updated to `0.2.2`
 
 ## New in 2.8.1 (2024-11-21)
 

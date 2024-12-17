@@ -102,6 +102,30 @@ def _is_sema4ai_actions_import(node: "ast.AST") -> bool:
     return False
 
 
+def _is_sema4ai_queries_import(node: "ast.AST") -> bool:
+    import ast
+
+    if isinstance(node, ast.ImportFrom):
+        # Check if the module is 'sema4ai.data' and 'query' is in the names
+        if node.module == "sema4ai.data":
+            for alias in node.names:
+                if alias.name == "query":
+                    return True
+    return False
+
+
+def _is_sema4ai_predict_import(node: "ast.AST") -> bool:
+    import ast
+
+    if isinstance(node, ast.ImportFrom):
+        # Check if the module is 'sema4ai.data' and 'predict' is in the names
+        if node.module == "sema4ai.data":
+            for alias in node.names:
+                if alias.name == "predict":
+                    return True
+    return False
+
+
 def _create_code_lens(start_line, title, command, arguments) -> CodeLensTypedDict:
     return {
         "range": {
@@ -178,7 +202,6 @@ def _collect_python_code_lenses_in_thread(
     monitor: IMonitor,
 ) -> list[CodeLensTypedDict] | None:
     import ast
-    import os
 
     from sema4ai_code.commands import (
         SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
@@ -197,6 +220,8 @@ def _collect_python_code_lenses_in_thread(
 
     found_robocorp_tasks_import = False
     found_sema4ai_actions_import = False
+    found_sema4ai_queries_import = False
+    found_sema4ai_predict_import = False
 
     package_yaml_path = _find_package_yaml_from_path(Path(document.path))
     if not package_yaml_path:
@@ -214,10 +239,19 @@ def _collect_python_code_lenses_in_thread(
         if not found_sema4ai_actions_import and compute_action_packages_code_lenses:
             found_sema4ai_actions_import = _is_sema4ai_actions_import(node)
 
+        # Detect if there's a `from sema4ai.data import query` import.
+        if not found_sema4ai_queries_import and compute_action_packages_code_lenses:
+            found_sema4ai_queries_import = _is_sema4ai_queries_import(node)
+
+        # Detect if there's a `from sema4ai.data import predict` import.
+        if not found_sema4ai_predict_import and compute_action_packages_code_lenses:
+            found_sema4ai_predict_import = _is_sema4ai_predict_import(node)
+
         if isinstance(node, ast.FunctionDef) and node.decorator_list:
             for decorator in node.decorator_list:
                 if (
                     compute_action_packages_code_lenses
+                    and found_sema4ai_actions_import
                     and isinstance(decorator, ast.Name)
                     and decorator.id == "action"
                 ):
@@ -251,7 +285,79 @@ def _collect_python_code_lenses_in_thread(
                         )
                     )
 
-                if (
+                elif (
+                    compute_action_packages_code_lenses
+                    and found_sema4ai_queries_import
+                    and isinstance(decorator, ast.Name)
+                    and decorator.id == "query"
+                ):
+                    assert (
+                        package_yaml_path is not None
+                    ), "Expected package_yaml_path to be defined at this point."
+                    function_name = node.name
+                    start_line = decorator.lineno - 1  # AST line numbers are 1-based
+                    robot_entry = {
+                        "actionName": function_name,
+                        "robot": {
+                            "directory": str(package_yaml_path.parent),
+                            "filePath": str(package_yaml_path),
+                        },
+                        "uri": document.uri,
+                    }
+                    actions_code_lenses.append(
+                        _create_code_lens(
+                            start_line,
+                            "Run Query",
+                            SEMA4AI_ROBOTS_VIEW_ACTION_RUN,
+                            [robot_entry],
+                        )
+                    )
+                    actions_code_lenses.append(
+                        _create_code_lens(
+                            start_line,
+                            "Debug Query",
+                            SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
+                            [robot_entry],
+                        )
+                    )
+
+                elif (
+                    compute_action_packages_code_lenses
+                    and found_sema4ai_predict_import
+                    and isinstance(decorator, ast.Name)
+                    and decorator.id == "predict"
+                ):
+                    assert (
+                        package_yaml_path is not None
+                    ), "Expected package_yaml_path to be defined at this point."
+                    function_name = node.name
+                    start_line = decorator.lineno - 1  # AST line numbers are 1-based
+                    robot_entry = {
+                        "actionName": function_name,
+                        "robot": {
+                            "directory": str(package_yaml_path.parent),
+                            "filePath": str(package_yaml_path),
+                        },
+                        "uri": document.uri,
+                    }
+                    actions_code_lenses.append(
+                        _create_code_lens(
+                            start_line,
+                            "Run Predict",
+                            SEMA4AI_ROBOTS_VIEW_ACTION_RUN,
+                            [robot_entry],
+                        )
+                    )
+                    actions_code_lenses.append(
+                        _create_code_lens(
+                            start_line,
+                            "Debug Predict",
+                            SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
+                            [robot_entry],
+                        )
+                    )
+
+                elif (
                     compute_robo_tasks_code_lenses
                     and isinstance(decorator, ast.Name)
                     and decorator.id == "task"
@@ -292,7 +398,5 @@ def _collect_python_code_lenses_in_thread(
         # If there was no import, then @task decorators are from some other library!
         all_lenses.extend(tasks_code_lenses)
 
-    if found_sema4ai_actions_import:
-        # If there was no import, then @action decorators are from some other library!
-        all_lenses.extend(actions_code_lenses)
+    all_lenses.extend(actions_code_lenses)
     return all_lenses

@@ -99,6 +99,7 @@ def _fix_code_lenses(code_lenses: list | None, root):
         "simple",
         "no_import",
         "actions",
+        "queries",
     ],
 )
 def test_call_compute_code_lenses_directly(
@@ -126,6 +127,23 @@ from robocorp.tasks import task
 def my_entry_point():
     pass
     """
+
+    elif scenario == "queries":
+        txt = """
+from sema4ai.data import query, predict
+
+@query
+def my_query_entry_point():
+    pass
+
+@predict
+def my_predict_entry_point():
+    pass
+    """
+
+        # We must have a package.yaml file in the root directory for actions to be searched for.
+        (root / "package.yaml").write_text("")
+
     elif scenario == "actions":
         txt = """
 from sema4ai.actions import action
