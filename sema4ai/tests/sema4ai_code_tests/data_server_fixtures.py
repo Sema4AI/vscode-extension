@@ -5,9 +5,8 @@ from typing import TYPE_CHECKING, Callable, Iterator
 import pytest
 
 if TYPE_CHECKING:
-    from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
-
     from sema4ai_code.data.data_server_connection import DataServerConnection
+    from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 
 INSERT_SQL_DATA = [
     ("Alice", 30),
@@ -178,10 +177,10 @@ def data_server_cli(request, tmpdir_factory) -> Iterator["DataServerCliWrapper"]
                 "Test must be marked with @pytest.mark.data_server to run in github actions to use `data_server_cli` fixture"
             )
 
-    from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
     from sema4ai_ls_core.system_mutex import timed_acquire_mutex
 
     from sema4ai_code.rcc import RCC_CLOUD_ROBOT_MUTEX_NAME
+    from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 
     wrapper = DataServerCliWrapper(Path(str(tmpdir_factory.mktemp("data-server-cli"))))
     # This can be pretty slow (and may be common with pytest-xdist).

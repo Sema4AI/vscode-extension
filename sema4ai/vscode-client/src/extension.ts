@@ -1032,9 +1032,58 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
     return globalCachedPythonInfo;
 }
 
+async function fetchDataServerStatus(): Promise<any | null> {
+    return window.withProgress(
+        { location: ProgressLocation.Notification, title: "Getting data server status...", cancellable: false },
+        async () => {
+            const status = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
+            return status["success"] ? status : null;
+        }
+    );
+}
+
+async function resolveActionPackageUri(entry?: RobotEntry): Promise<vscode.Uri | undefined> {
+    if (entry) return entry.uri;
+
+    return findActionPackagePath({ includeSemaOrg: false });
+}
+
 export const collapseAllEntries = async (): Promise<void> => {
     vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
 };
+
+async function fetchDataSources(actionPackageUri: vscode.Uri): Promise<DatasourceInfo[] | null> {
+    const result = await vscode.commands.executeCommand(SEMA4AI_LIST_ACTIONS_INTERNAL, {
+        action_package: actionPackageUri.toString(),
+        collect_datasources: true,
+    });
+
+    if (!result["success"]) {
+        window.showErrorMessage(result["message"] || "Unknown error fetching data sources.");
+        return null;
+    }
+
+    const dataSources = result["result"].filter((ds: DatasourceInfo) => ds.kind === "datasource");
+    if (dataSources.length === 0) {
+        window.showInformationMessage("No Data Sources found.");
+        return null;
+    }
+
+    return dataSources;
+}
+
+async function dropSingleDataSource(dataSource: DatasourceInfo, dataServerInfo: any): Promise<boolean> {
+    const result = await langServer.sendRequest("dropDataSource", {
+        datasource: dataSource,
+        data_server_info: dataServerInfo,
+    });
+
+    if (!result["success"]) {
+        window.showErrorMessage(result["message"] || `Failed to drop data source: ${getDataSourceCaption(dataSource)}`);
+        return false;
+    }
+    return true;
+}
 
 export async function openDataSourceDefinition(entry?: RobotEntry) {
     if (!entry) {
@@ -1075,19 +1124,8 @@ export async function dropDataSource(entry?: RobotEntry) {
     if (!(await verifyDataExtensionIsInstalled())) {
         return;
     }
-    const dataServerStatus = await window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: "Getting data server status...",
-            cancellable: false,
-        },
-        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
-            const dataServerStatus = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
-            return dataServerStatus;
-        }
-    );
-
-    if (!dataServerStatus["success"]) {
+    const dataServerStatus = await fetchDataServerStatus();
+    if (!dataServerStatus) {
         window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
@@ -1098,21 +1136,9 @@ export async function dropDataSource(entry?: RobotEntry) {
         if (!selectedActionPackage) {
             return;
         }
-        let listDataSourcesResult = await vscode.commands.executeCommand(SEMA4AI_LIST_ACTIONS_INTERNAL, {
-            "action_package": selectedActionPackage.toString(),
-            "collect_datasources": true,
-        });
 
-        if (!listDataSourcesResult["success"]) {
-            window.showErrorMessage(listDataSourcesResult["message"] || "Unknown error");
-        }
-
-        const dataSources: DatasourceInfo[] = listDataSourcesResult["result"].filter((ds) => {
-            return ds.kind === "datasource";
-        });
-
-        if (dataSources.length === 0) {
-            window.showInformationMessage("No Data Sources found.");
+        const dataSources = await fetchDataSources(selectedActionPackage);
+        if (!dataSources) {
             return;
         }
 
@@ -1175,61 +1201,38 @@ export async function dropAllDataSources(entry?: RobotEntry) {
     if (!(await verifyDataExtensionIsInstalled())) {
         return;
     }
-    const dataServerStatus = await window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: "Getting data server status...",
-            cancellable: false,
-        },
-        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
-            const dataServerStatus = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
-            return dataServerStatus;
-        }
-    );
 
-    if (!dataServerStatus["success"]) {
+    const dataServerStatus = await fetchDataServerStatus();
+    if (!dataServerStatus) {
         window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
 
-    let selectedActionPackage: vscode.Uri | undefined;
-    if (!entry) {
-        selectedActionPackage = await findActionPackagePath({ includeSemaOrg: false });
-    } else {
-        selectedActionPackage = entry.uri;
-    }
-
-    if (!selectedActionPackage) {
+    const actionPackageUri = await resolveActionPackageUri(entry);
+    if (!actionPackageUri) {
         return;
     }
 
-    let listDataSourcesResult = await vscode.commands.executeCommand(SEMA4AI_LIST_ACTIONS_INTERNAL, {
-        "action_package": selectedActionPackage.toString(),
-        "collect_datasources": true,
+    const dataSources = await fetchDataSources(actionPackageUri);
+    if (!dataSources) {
+        return;
+    }
+
+    let deleteExternalSources;
+    const externalDataSources = dataSources.filter((ds) => {
+        return isExternalDatasource(ds);
     });
+    if (externalDataSources.length > 0) {
+        deleteExternalSources = await vscode.window.showInformationMessage(
+            `Do you want to remove external sources as well?`,
+            { modal: true },
+            "Yes",
+            "No"
+        );
 
-    if (!listDataSourcesResult["success"]) {
-        window.showErrorMessage(listDataSourcesResult["message"] || "Unknown error");
-    }
-
-    const dataSources: DatasourceInfo[] = listDataSourcesResult["result"].filter((ds) => {
-        return ds.kind === "datasource";
-    });
-
-    if (dataSources.length === 0) {
-        window.showInformationMessage("No Data Sources found.");
-        return;
-    }
-
-    const deleteExternalSources = await vscode.window.showInformationMessage(
-        `Do you want to remove external sources as well?`,
-        { modal: true },
-        "Yes",
-        "No"
-    );
-
-    if (deleteExternalSources === undefined) {
-        return;
+        if (deleteExternalSources === undefined) {
+            return;
+        }
     }
 
     await window.withProgress(
@@ -1245,23 +1248,26 @@ export async function dropAllDataSources(entry?: RobotEntry) {
                     return;
                 }
 
-                if (isExternalDatasource(item) && deleteExternalSources === "No") {
+                // Drop the external data sources last
+                if (isExternalDatasource(item)) {
                     continue;
                 }
 
-                const result = await langServer.sendRequest("dropDataSource", {
-                    "datasource": item,
-                    "data_server_info": dataServerStatus["data"],
-                });
-
-                if (!result["success"]) {
-                    window.showErrorMessage(result["message"] || "Unknown error");
-                    return;
-                }
+                const success = await dropSingleDataSource(item, dataServerStatus["data"]);
+                if (!success) return;
 
                 progress.report({ message: `Dropped: ${getDataSourceCaption(item)}` });
             }
+
+            if (deleteExternalSources === "Yes") {
+                for (const item of externalDataSources) {
+                    const success = await dropSingleDataSource(item, dataServerStatus["data"]);
+                    if (!success) return;
+
+                    progress.report({ message: `Dropped: ${getDataSourceCaption(item)}` });
+                }
+            }
+            window.showInformationMessage("Data Sources dropped succesfully.");
         }
     );
-    window.showInformationMessage("Data Sources dropped succesfully.");
 }
