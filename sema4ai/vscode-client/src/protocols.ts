@@ -197,6 +197,11 @@ export interface ActionServerPackageUploadStatusOutput {
     };
 }
 
+export interface ModelState {
+    status: "complete" | "error" | "generating" | "training" | "creating";
+    error?: string;
+}
+
 export interface DatasourceInfo {
     range: Range;
     name: string;
@@ -209,6 +214,13 @@ export interface DatasourceInfo {
     python_variable_name?: string;
     setup_sql?: string | string[];
     setup_sql_files?: string | string[];
+    file?: string;
+
+    // Data Source State below (just available when computeDataSourceState is called)
+    configured?: boolean;
+    model_state?: ModelState;
+    configuration_valid?: boolean;
+    configuration_errors?: string[];
 }
 
 export interface DiagnosticInfo {

@@ -1,11 +1,15 @@
 data_sources_in_data_server: []
 required_data_sources:
-- created_table: customers_in_test_compute_data_sources_state
+- configuration_errors: null
+  configuration_valid: true
+  configured: true
+  created_table: customers_in_test_compute_data_sources_state
   description: Data source for customers.
   engine: files
   file: files/customers.csv
   kind: datasource
   model_name: null
+  model_state: null
   name: files
   python_variable_name: CustomersDataSource
   range:
@@ -18,12 +22,18 @@ required_data_sources:
   setup_sql: null
   setup_sql_files: null
   uri: data_sources.py
-- created_table: null
+- configuration_errors: null
+  configuration_valid: true
+  configured: true
+  created_table: null
   description: Predict something.
   engine: prediction:lightwood
   file: null
   kind: datasource
   model_name: predict_compute_data_sources_state
+  model_state:
+    error: null
+    status: complete
   name: models
   python_variable_name: PredictDataSource
   range:
@@ -48,12 +58,16 @@ required_data_sources:
     HORIZON 4;'
   setup_sql_files: null
   uri: data_sources.py
-- created_table: null
+- configuration_errors: null
+  configuration_valid: true
+  configured: true
+  created_table: null
   description: Data source for tests.
   engine: sqlite
   file: null
   kind: datasource
   model_name: null
+  model_state: null
   name: test_compute_data_sources_state
   python_variable_name: TestSqliteDataSource
   range:

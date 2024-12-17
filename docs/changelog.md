@@ -1,6 +1,5 @@
-## Unreleased
-
 - Add setup support for external data sources
+  - Show a progress bar until all models are ready
 - Add Data Sources to the Packages tree
   - Hover (tree item) action: remove Data Source
   - Hover (tree item) action: setup Data Source

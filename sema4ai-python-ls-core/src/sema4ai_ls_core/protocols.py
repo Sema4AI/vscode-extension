@@ -998,6 +998,11 @@ class ActionInfoTypedDict(TypedDict):
     kind: str
 
 
+class ModelStateTypedDict(TypedDict):
+    status: Literal["complete", "error", "generating", "training", "creating"]
+    error: str | None
+
+
 class DatasourceInfoTypedDict(TypedDict):
     python_variable_name: str | None
     range: "RangeTypedDict"
@@ -1013,8 +1018,23 @@ class DatasourceInfoTypedDict(TypedDict):
     file: str | None
 
 
+class DatasourceInfoWithStatusTypedDict(DatasourceInfoTypedDict):
+    # --- Data Source State below ---
+    # if None, it means it wasn't set yet
+    configured: bool | None
+    # if None, it means it wasn't set yet or it's not a model
+    model_state: ModelStateTypedDict | None
+    configuration_valid: bool | None
+    configuration_errors: list[str] | None
+
+
 class DataSourceStateDict(TypedDict):
-    unconfigured_data_sources: list[DatasourceInfoTypedDict]
+    # Unconfigured Data Sources (kind of redundant now that DataSourceInfoTypedDict has the 'configured' field
+    # but it's kept for backward compatibility).
+    unconfigured_data_sources: list[DatasourceInfoWithStatusTypedDict]
+    # Error messages on Data Sources.
     uri_to_error_messages: dict[str, list["DiagnosticsTypedDict"]]
-    required_data_sources: list[DatasourceInfoTypedDict]
+    # All the required Data Sources.
+    required_data_sources: list[DatasourceInfoWithStatusTypedDict]
+    # All Data Sources in the data server.
     data_sources_in_data_server: list[str]
