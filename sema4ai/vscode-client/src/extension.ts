@@ -788,9 +788,9 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async (actionPackagePath?: vscode.Uri) => {
         if (!actionPackagePath) {
             const selected = await listAndAskRobotSelection(
-                "Please select the Action Package for which you'd like to rebuild the environment",
-                "Unable to continue because no Action Package was found in the workspace.",
-                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false }
+                "Please select the Action or Task Package for which you'd like to rebuild the environment",
+                "Unable to continue because no Action nor Task Package was found in the workspace.",
+                { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
             );
             if (!selected) {
                 return;

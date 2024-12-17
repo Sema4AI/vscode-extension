@@ -159,31 +159,19 @@ export async function resolveInterpreter(targetRobot: string): Promise<ActionRes
     // Note: this may also activate `Sema4.ai` if it's still not activated
     // (so, it cannot be used during startup as there'd be a cyclic dependency).
     try {
-        let interpreter: InterpreterInfo | undefined = await commands.executeCommand(
-            "robot.resolveInterpreter",
-            targetRobot
+        let interpreter: ActionResult<InterpreterInfo | undefined> = await commands.executeCommand(
+            roboCommands.SEMA4AI_RESOLVE_INTERPRETER,
+            {
+                "target_robot": targetRobot,
+            }
         );
         if (interpreter === null || (typeof interpreter === "string" && interpreter === "null")) {
-            throw Error("Interpreter not found. Retrying call...");
+            throw Error("Interpreter not found");
         }
-        return { "success": true, "message": "", "result": interpreter };
+        return interpreter;
     } catch (error) {
-        // We couldn't resolve with the robotframework language server command, fallback to the robocorp code command.
-        try {
-            let interpreter: ActionResult<InterpreterInfo | undefined> = await commands.executeCommand(
-                roboCommands.SEMA4AI_RESOLVE_INTERPRETER,
-                {
-                    "target_robot": targetRobot,
-                }
-            );
-            if (interpreter === null || (typeof interpreter === "string" && interpreter === "null")) {
-                throw Error("Interpreter not found");
-            }
-            return interpreter;
-        } catch (error) {
-            logError("Error resolving interpreter.", error, "ACT_RESOLVE_INTERPRETER");
-            return { "success": false, "message": "Unable to resolve interpreter.", "result": undefined };
-        }
+        logError("Error resolving interpreter.", error, "ACT_RESOLVE_INTERPRETER");
+        return { "success": false, "message": "Unable to resolve interpreter.", "result": undefined };
     }
 }
 
@@ -223,7 +211,7 @@ export async function listAndAskRobotSelection(
     );
 
     if (!actionResult.success) {
-        window.showInformationMessage("Error listing robots: " + actionResult.message);
+        window.showInformationMessage("Error listing packages: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
