@@ -142,3 +142,31 @@ class DataSourceHelper:
                 sqls.append(txt)
             self._custom_sql = tuple(sqls)
         return None
+
+
+def get_data_source_caption(data_source: "DatasourceInfoTypedDict") -> str:
+    if data_source.get("created_table") and data_source.get("model_name"):
+        return f"Bad datasource: {data_source['name']} - created_table: {data_source['created_table']} and model_name: {data_source['model_name']} ({data_source['engine']})"
+
+    if data_source.get("created_table"):
+        if data_source["engine"] == "files" or data_source["engine"] == "custom":
+            return f"{data_source['name']}.{data_source['created_table']} ({data_source['engine']})"
+        return f"Bad datasource: {data_source['name']} - created_table: {data_source['created_table']} ({data_source['engine']}) - created_table is only expected in 'files' and 'custom' engines"
+
+    if data_source.get("model_name"):
+        if (
+            data_source["engine"].startswith("prediction")
+            or data_source["engine"] == "custom"
+        ):
+            return f"{data_source['name']}.{data_source['model_name']} ({data_source['engine']})"
+        return f"Bad datasource: {data_source['name']} - model_name: {data_source['model_name']} ({data_source['engine']}) - model_name is only expected in 'prediction' and 'custom' engines"
+
+    # Created table is expected for files engine
+    if data_source["engine"] == "files":
+        return f"Bad datasource: {data_source['name']} ({data_source['engine']}) - expected created_table to be defined"
+
+    # Model name is expected for prediction engines
+    if data_source["engine"].startswith("prediction"):
+        return f"Bad datasource: {data_source['name']} ({data_source['engine']}) - expected model_name to be defined"
+
+    return f"{data_source['name']} ({data_source['engine']})"
