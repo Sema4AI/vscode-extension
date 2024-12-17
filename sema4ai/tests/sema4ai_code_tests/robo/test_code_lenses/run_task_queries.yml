@@ -1,0 +1,68 @@
+- command:
+    arguments:
+    - actionName: my_query_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionRun
+    title: Run Query
+  data: null
+  range:
+    end:
+      character: 0
+      line: 3
+    start:
+      character: 0
+      line: 3
+- command:
+    arguments:
+    - actionName: my_query_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionDebug
+    title: Debug Query
+  data: null
+  range:
+    end:
+      character: 0
+      line: 3
+    start:
+      character: 0
+      line: 3
+- command:
+    arguments:
+    - actionName: my_predict_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionRun
+    title: Run Predict
+  data: null
+  range:
+    end:
+      character: 0
+      line: 7
+    start:
+      character: 0
+      line: 7
+- command:
+    arguments:
+    - actionName: my_predict_entry_point
+      robot:
+        directory: root
+        filePath: package.yaml
+      uri: my.py
+    command: sema4ai.robotsViewActionDebug
+    title: Debug Predict
+  data: null
+  range:
+    end:
+      character: 0
+      line: 7
+    start:
+      character: 0
+      line: 7
