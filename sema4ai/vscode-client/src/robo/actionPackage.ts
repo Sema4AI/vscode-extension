@@ -451,7 +451,7 @@ export function getDataSourceCaption(dataSource: DatasourceInfo): string {
     return `${dataSource.name} (${dataSource.engine})`;
 }
 
-async function computeDataSourceState(
+export async function computeDataSourceState(
     actionPackageYamlDirectoryUri: string,
     dataServerInfo: DataServerConfig
 ): Promise<ActionResult<DataSourceState>> {

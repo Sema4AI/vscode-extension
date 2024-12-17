@@ -21,6 +21,9 @@ from sema4ai_ls_core.lsp import (
     TextDocumentCodeActionTypedDict,
 )
 from sema4ai_ls_core.protocols import (
+    ActionInfoTypedDict,
+    DatasourceInfoTypedDict,
+    DatasourceInfoWithStatusTypedDict,
     DataSourceStateDict,
     IConfig,
     IMonitor,
@@ -77,10 +80,6 @@ from sema4ai_code.protocols import (
     WorkspaceInfoDict,
 )
 from sema4ai_code.refresh_agent_spec_helper import update_agent_spec
-from sema4ai_code.robo.collect_actions_ast import (
-    ActionInfoTypedDict,
-    DatasourceInfoTypedDict,
-)
 from sema4ai_code.vendored_deps.package_deps._deps_protocols import (
     ICondaCloud,
     IPyPiCloud,
@@ -2469,11 +2468,22 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     ) -> ActionResultDict[DataSourceSetupResponse]:
         from sema4ai_ls_core.progress_report import progress_context
 
-        from sema4ai_code.data.data_source_helper import DataSourceHelper
+        from sema4ai_code.data.data_source_helper import (
+            DataSourceHelper,
+            get_data_source_caption,
+        )
 
-        with progress_context(
-            self._endpoint, "Setting up data sources", self._dir_cache
-        ):
+        if not isinstance(datasource, list):
+            datasources = [datasource]
+        else:
+            datasources = datasource
+
+        if len(datasources) == 1:
+            caption = f"Data Source: {get_data_source_caption(datasources[0])}"
+        else:
+            caption = f"{len(datasources)} Data Sources"
+
+        with progress_context(self._endpoint, f"Setting up {caption}", self._dir_cache):
             root_path = Path(uris.to_fs_path(action_package_yaml_directory_uri))
             if not root_path.exists():
                 return (
@@ -2483,11 +2493,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     )
                     .as_dict()
                 )
-
-            if not isinstance(datasource, list):
-                datasources = [datasource]
-            else:
-                datasources = datasource
 
             connection = self._get_connection(data_server_info)
             messages = []
@@ -2607,12 +2612,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self,
         action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
+        show_progress: bool = True,
     ) -> partial[ActionResultDict[DataSourceStateDict]]:
         return require_monitor(
             partial(
                 self._compute_data_source_state_impl,
                 action_package_yaml_directory_uri,
                 data_server_info,
+                show_progress,
             )
         )
 
@@ -2620,11 +2627,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self,
         action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
+        show_progress: bool,
         monitor: IMonitor,
     ) -> ActionResultDict[DataSourceStateDict]:
         try:
             return self._impl_compute_data_source_state_impl(
-                action_package_yaml_directory_uri, data_server_info, monitor
+                action_package_yaml_directory_uri,
+                data_server_info,
+                show_progress,
+                monitor,
             )
         except Exception as e:
             log.exception("Error computing data source state")
@@ -2638,16 +2649,25 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self,
         action_package_yaml_directory_uri: str,
         data_server_info: DataServerConfigTypedDict,
+        show_progress: bool,
         monitor: IMonitor,
     ) -> ActionResultDict[DataSourceStateDict]:
+        from sema4ai_ls_core.constants import NULL
         from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
         from sema4ai_ls_core.progress_report import progress_context
+        from sema4ai_ls_core.protocols import ModelStateTypedDict
 
         from sema4ai_code.data.data_source_helper import DataSourceHelper
 
-        with progress_context(
-            self._endpoint, "Computing data sources state", self._dir_cache
-        ) as progress_reporter:
+        ctx: Any
+        if show_progress:
+            ctx = progress_context(
+                self._endpoint, "Computing data sources state", self._dir_cache
+            )
+        else:
+            ctx = NULL
+
+        with ctx as progress_reporter:
             progress_reporter.set_additional_info("Listing actions")
             actions_and_datasources_result: ActionResultDict[
                 "list[ActionInfoTypedDict | DatasourceInfoTypedDict]"
@@ -2665,7 +2685,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             monitor.check_cancelled()
             progress_reporter.set_additional_info("Getting data sources")
             connection = self._get_connection(data_server_info)
+            monitor.check_cancelled()
             projects_as_dicts = connection.get_data_sources("WHERE type = 'project'")
+            monitor.check_cancelled()
             not_projects_as_dicts = connection.get_data_sources(
                 "WHERE type != 'project'"
             )
@@ -2694,15 +2716,25 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             monitor.check_cancelled()
             progress_reporter.set_additional_info("Getting models")
 
-            data_source_to_models = {}
+            data_source_to_model_name_to_model_state: dict[
+                str, dict[str, ModelStateTypedDict]
+            ] = {}
             for data_source in projects_data_source_names_in_data_server:
+                monitor.check_cancelled()
                 result_set_models = connection.query(
                     data_source, "SELECT * FROM models"
                 )
                 if result_set_models:
-                    data_source_to_models[data_source] = [
-                        x["name"] for x in result_set_models.iter_as_dicts()
-                    ]
+                    name_to_status_and_error: dict[str, ModelStateTypedDict] = {}
+                    for entry in result_set_models.iter_as_dicts():
+                        name_to_status_and_error[entry["name"]] = {
+                            "status": entry["status"],
+                            "error": entry["error"],
+                        }
+
+                    data_source_to_model_name_to_model_state[data_source] = (
+                        name_to_status_and_error
+                    )
 
             monitor.check_cancelled()
             progress_reporter.set_additional_info("Getting files")
@@ -2719,14 +2751,38 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             actions_and_datasources: "list[ActionInfoTypedDict | DatasourceInfoTypedDict]" = actions_and_datasources_result[
                 "result"
             ]
-            required_data_sources: list["DatasourceInfoTypedDict"] = [
-                typing.cast("DatasourceInfoTypedDict", d)
-                for d in actions_and_datasources
-                if d["kind"] == "datasource"
-            ]
 
-            unconfigured_data_sources: list["DatasourceInfoTypedDict"] = []
+            required_data_sources: list["DatasourceInfoWithStatusTypedDict"] = []
+            for d in actions_and_datasources:
+                if d["kind"] == "datasource":
+                    datasource_info = typing.cast("DatasourceInfoTypedDict", d)
+                    required_data_sources.append(
+                        {
+                            "python_variable_name": datasource_info[
+                                "python_variable_name"
+                            ],
+                            "range": datasource_info["range"],
+                            "name": datasource_info["name"],
+                            "uri": datasource_info["uri"],
+                            "kind": "datasource",
+                            "engine": datasource_info["engine"],
+                            "model_name": datasource_info["model_name"],
+                            "created_table": datasource_info["created_table"],
+                            "setup_sql": datasource_info["setup_sql"],
+                            "setup_sql_files": datasource_info["setup_sql_files"],
+                            "description": datasource_info["description"],
+                            "file": datasource_info["file"],
+                            # --- Data Source State below (we'll set these later) ---
+                            "configured": None,
+                            "model_state": None,
+                            "configuration_valid": None,
+                            "configuration_errors": None,
+                        }
+                    )
+
+            unconfigured_data_sources: list["DatasourceInfoWithStatusTypedDict"] = []
             uri_to_error_messages: dict[str, list[DiagnosticsTypedDict]] = {}
+
             ret: DataSourceStateDict = {
                 "unconfigured_data_sources": unconfigured_data_sources,
                 "uri_to_error_messages": uri_to_error_messages,
@@ -2736,13 +2792,15 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
             if required_data_sources:
                 root_path = Path(uris.to_fs_path(action_package_yaml_directory_uri))
-                datasource: "DatasourceInfoTypedDict"
+                datasource: "DatasourceInfoWithStatusTypedDict"
                 for datasource in required_data_sources:
                     uri = datasource.get("uri", "<uri-missing>")
                     datasource_helper = DataSourceHelper(
                         root_path, datasource, connection
                     )
-                    validation_errors = datasource_helper.get_validation_errors()
+                    validation_errors: tuple[str, ...] = (
+                        datasource_helper.get_validation_errors()
+                    )
                     if validation_errors:
                         for validation_error in validation_errors:
                             uri_to_error_messages.setdefault(uri, []).append(
@@ -2752,7 +2810,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                                     "message": validation_error,
                                 }
                             )
+                        datasource["configuration_valid"] = False
+                        datasource["configuration_errors"] = list(validation_errors)
                         continue  # this one is invalid, so, we can't go forward.
+
+                    datasource["configuration_valid"] = True
 
                     datasource_name = datasource["name"]
                     datasource_engine = datasource["engine"]
@@ -2761,7 +2823,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                         created_table = datasource["created_table"]
                         if datasource_engine == "files":
                             if created_table not in files_table_names:
+                                datasource["configured"] = False
                                 unconfigured_data_sources.append(datasource)
+                                continue
                         else:
                             # Custom datasource with created_table.
                             tables_result_set = connection.query("files", "SHOW TABLES")
@@ -2770,18 +2834,32 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                                 for x in tables_result_set.iter_as_dicts()
                             )
                             if created_table not in custom_table_names:
+                                datasource["configured"] = False
                                 unconfigured_data_sources.append(datasource)
+                                continue
+
+                        datasource["configured"] = True
                         continue  # Ok, handled use case.
 
                     if datasource_helper.is_model_datasource:
                         model_name = datasource["model_name"]
-                        if model_name not in data_source_to_models.get(
-                            datasource_name, []
-                        ):
+                        found = data_source_to_model_name_to_model_state.get(
+                            datasource_name, {}
+                        )
+
+                        if model_name not in found:
+                            datasource["configured"] = False
                             unconfigured_data_sources.append(datasource)
+                            continue
+
+                        datasource["model_state"] = found[model_name]
+                        datasource["configured"] = True
                         continue
 
                     if datasource_name.lower() not in data_source_names_in_data_server:
+                        datasource["configured"] = False
                         unconfigured_data_sources.append(datasource)
+                    else:
+                        datasource["configured"] = True
 
             return ActionResult[DataSourceStateDict].make_success(ret).as_dict()

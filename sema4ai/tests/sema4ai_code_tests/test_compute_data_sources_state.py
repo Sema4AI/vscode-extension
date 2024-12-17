@@ -66,7 +66,7 @@ def wait_for_models_to_be_ready(
                 row = next(iter(found))
                 status = row.get("status", "").lower()
 
-                if status in ("generating", "training"):
+                if status in ("generating", "training", "creating"):
                     still_training.setdefault(project, []).append(model)
                     log.info(
                         f"Waiting for model {project}.{model} to complete. Current status: {status}"

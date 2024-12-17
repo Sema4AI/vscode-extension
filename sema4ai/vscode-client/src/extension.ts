@@ -1181,11 +1181,15 @@ export async function dropDataSource(entry?: RobotEntry) {
             cancellable: false,
         },
         async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
-            OUTPUT_CHANNEL.appendLine("Dropping Data Source: " + JSON.stringify(datasource));
-            return await langServer.sendRequest("dropDataSource", {
-                "datasource": datasource,
-                "data_server_info": dataServerStatus["data"],
-            });
+            OUTPUT_CHANNEL.appendLine("Dropping Data Source: " + JSON.stringify(datasource, null, 4));
+            return await langServer.sendRequest(
+                "dropDataSource",
+                {
+                    "datasource": datasource,
+                    "data_server_info": dataServerStatus["data"],
+                },
+                token
+            );
         }
     );
 
