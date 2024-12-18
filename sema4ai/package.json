@@ -1594,6 +1594,10 @@
                 {
                     "command": "sema4ai.openDataSourceDefinition",
                     "when": "false"
+                },
+                {
+                    "command": "sema4ai.dropAllDataSources",
+                    "when": "false"
                 }
             ]
         }
