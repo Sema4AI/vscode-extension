@@ -1046,8 +1046,15 @@ COMMANDS = [
         "sema4ai.dropAllDataSources",
         "Remove All Data Sources",
         server_handled=False,
-        hide_from_command_palette=True,
+        add_to_package_json=True,
         icon="$(trash)",
+    ),
+    Command(
+        "sema4ai.setupAllDataSources",
+        "Setup All Data Sources",
+        server_handled=False,
+        add_to_package_json=True,
+        icon="$(diff-added)",
     ),
 ]
 
