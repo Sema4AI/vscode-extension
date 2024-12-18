@@ -1046,7 +1046,7 @@ COMMANDS = [
         "sema4ai.dropAllDataSources",
         "Remove All Data Sources",
         server_handled=False,
-        add_to_package_json=True,
+        hide_from_command_palette=True,
         icon="$(trash)",
     ),
 ]
