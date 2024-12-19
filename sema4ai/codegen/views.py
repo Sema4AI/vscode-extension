@@ -165,6 +165,11 @@ TREE_VIEW_CONTAINERS = [
                             "viewItem == datasourceItem",
                         ),
                         Menu(
+                            "sema4ai.setupAllDataSources",
+                            MenuGroup.INLINE,
+                            "viewItem == datasourcesInActionPackageItem",
+                        ),
+                        Menu(
                             "sema4ai.dropAllDataSources",
                             MenuGroup.INLINE,
                             "viewItem == datasourcesInActionPackageItem",

@@ -357,6 +357,17 @@ export async function dropAllDataSources(entry?: RobotEntry) {
         return;
     }
 
+    const areYouSureAsk = await window.showInformationMessage(
+        `Are you sure you want to delete all data sources?`,
+        { modal: true },
+        "Yes",
+        "No"
+    );
+
+    if (areYouSureAsk === undefined || areYouSureAsk === "No") {
+        return;
+    }
+
     let deleteExternalSources;
     const externalDataSources = dataSources.filter((ds) => {
         return isExternalDatasource(ds);
@@ -416,7 +427,12 @@ export async function setupAllDataSources(entry?: RobotEntry) {
         return;
     }
 
-    const actionPackageUri = await resolveActionPackageUri(entry);
+    let actionPackageUri;
+    if (entry) {
+        actionPackageUri = entry.robot.directory;
+    } else {
+        actionPackageUri = findActionPackagePath({ includeSemaOrg: false });
+    }
     if (!actionPackageUri) {
         return;
     }

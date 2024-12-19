@@ -1178,6 +1178,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "sema4ai.setupAllDataSources",
+                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourcesInActionPackageItem",
+                    "group": "inline"
+                },
+                {
                     "command": "sema4ai.dropAllDataSources",
                     "when": "view == sema4ai-task-packages-tree && viewItem == datasourcesInActionPackageItem",
                     "group": "inline"
