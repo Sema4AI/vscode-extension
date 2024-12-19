@@ -24,19 +24,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as cp from "child_process";
 
-import {
-    workspace,
-    Disposable,
-    ExtensionContext,
-    window,
-    commands,
-    extensions,
-    env,
-    Uri,
-    ProgressLocation,
-    Progress,
-    CancellationToken,
-} from "vscode";
+import { workspace, Disposable, ExtensionContext, window, commands, extensions, env, Uri } from "vscode";
 import { LanguageClientOptions, State } from "vscode-languageclient";
 import { LanguageClient, ServerOptions } from "vscode-languageclient/node";
 import * as playwright from "./playwright";
@@ -53,7 +41,7 @@ import {
     getRobocorpHome,
     submitIssue,
 } from "./rcc";
-import { sleep, Timing } from "./time";
+import { Timing } from "./time";
 import {
     createRobot,
     uploadRobot,
@@ -179,6 +167,7 @@ import {
     SEMA4AI_SETUP_DATA_SOURCE,
     SEMA4AI_OPEN_DATA_SOURCE_DEFINITION,
     SEMA4AI_DROP_ALL_DATA_SOURCES,
+    SEMA4AI_SETUP_ALL_DATA_SOURCES,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -197,12 +186,7 @@ import { RobotOutputViewProvider } from "./output/outView";
 import { setupDebugSessionOutViewIntegration } from "./output/outViewRunIntegration";
 import { showInspectorUI } from "./inspector/inspectorView";
 import { IAppRoutes } from "./inspector/protocols";
-import {
-    actionServerCloudLogin,
-    downloadOrGetActionServerLocation,
-    findActionPackagePath,
-    startActionServer,
-} from "./actionServer";
+import { actionServerCloudLogin, downloadOrGetActionServerLocation, startActionServer } from "./actionServer";
 import {
     askAndRunRobocorpActionFromActionPackage,
     createActionPackage,
@@ -210,7 +194,6 @@ import {
     buildActionPackage,
     openMetadata,
     getActionsMetadata,
-    getDataSourceCaption,
 } from "./robo/actionPackage";
 import { oauth2Logout } from "./robo/oauth2InInput";
 import {
@@ -225,9 +208,7 @@ import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } 
 import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
-import { DATA_SERVER_STATUS_COMMAND_ID, verifyDataExtensionIsInstalled } from "./dataExtension";
-import { QuickPickItemWithAction, showSelectOneQuickPick } from "./ask";
-import { isExternalDatasource, setupDataSource } from "./robo/dataSourceHandling";
+import { dropAllDataSources, dropDataSource, setupAllDataSources, setupDataSource } from "./robo/dataSourceHandling";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -552,6 +533,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OPEN_DATA_SOURCE_DEFINITION, async (datasource?: RobotEntry) =>
         openDataSourceDefinition(datasource)
     );
+    C.register(SEMA4AI_SETUP_ALL_DATA_SOURCES, async (datasource?: RobotEntry) => setupAllDataSources(datasource));
 }
 
 async function clearEnvAndRestart() {
@@ -1032,58 +1014,9 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
     return globalCachedPythonInfo;
 }
 
-async function fetchDataServerStatus(): Promise<any | null> {
-    return window.withProgress(
-        { location: ProgressLocation.Notification, title: "Getting data server status...", cancellable: false },
-        async () => {
-            const status = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
-            return status["success"] ? status : null;
-        }
-    );
-}
-
-async function resolveActionPackageUri(entry?: RobotEntry): Promise<vscode.Uri | undefined> {
-    if (entry) return entry.uri;
-
-    return findActionPackagePath({ includeSemaOrg: false });
-}
-
 export const collapseAllEntries = async (): Promise<void> => {
     vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
 };
-
-async function fetchDataSources(actionPackageUri: vscode.Uri): Promise<DatasourceInfo[] | null> {
-    const result = await vscode.commands.executeCommand(SEMA4AI_LIST_ACTIONS_INTERNAL, {
-        action_package: actionPackageUri.toString(),
-        collect_datasources: true,
-    });
-
-    if (!result["success"]) {
-        window.showErrorMessage(result["message"] || "Unknown error fetching data sources.");
-        return null;
-    }
-
-    const dataSources = result["result"].filter((ds: DatasourceInfo) => ds.kind === "datasource");
-    if (dataSources.length === 0) {
-        window.showInformationMessage("No Data Sources found.");
-        return null;
-    }
-
-    return dataSources;
-}
-
-async function dropSingleDataSource(dataSource: DatasourceInfo, dataServerInfo: any): Promise<boolean> {
-    const result = await langServer.sendRequest("dropDataSource", {
-        datasource: dataSource,
-        data_server_info: dataServerInfo,
-    });
-
-    if (!result["success"]) {
-        window.showErrorMessage(result["message"] || `Failed to drop data source: ${getDataSourceCaption(dataSource)}`);
-        return false;
-    }
-    return true;
-}
 
 export async function openDataSourceDefinition(entry?: RobotEntry) {
     if (!entry) {
@@ -1118,160 +1051,4 @@ export async function openDataSourceDefinition(entry?: RobotEntry) {
             datasource.range.start.character
         );
     }
-}
-
-export async function dropDataSource(entry?: RobotEntry) {
-    if (!(await verifyDataExtensionIsInstalled())) {
-        return;
-    }
-    const dataServerStatus = await fetchDataServerStatus();
-    if (!dataServerStatus) {
-        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
-        return;
-    }
-
-    let datasource: DatasourceInfo | undefined;
-    if (!entry) {
-        let selectedActionPackage = await findActionPackagePath({ includeSemaOrg: false });
-        if (!selectedActionPackage) {
-            return;
-        }
-
-        const dataSources = await fetchDataSources(selectedActionPackage);
-        if (!dataSources) {
-            return;
-        }
-
-        let captions: QuickPickItemWithAction[] = new Array();
-        for (const source of dataSources) {
-            let caption: QuickPickItemWithAction = {
-                "label": getDataSourceCaption(source),
-                "action": source,
-            };
-            captions.push(caption);
-        }
-        let selectedItem = await showSelectOneQuickPick(captions, "Please select which Data Source to drop.");
-
-        if (!selectedItem) {
-            return;
-        }
-
-        datasource = selectedItem.action;
-    } else {
-        datasource = entry.extraData?.datasource;
-        if (!datasource) {
-            window.showErrorMessage("Data Source object was not provided in extraData.");
-            return;
-        }
-        const userChoice = await vscode.window.showWarningMessage(
-            `Are you sure you want to drop ${entry.label}?`,
-            { modal: true },
-            "Yes",
-            "No"
-        );
-        if (userChoice === "No" || userChoice === undefined) {
-            return;
-        }
-    }
-
-    const result = await window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: "Dropping Data Source...",
-            cancellable: false,
-        },
-        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
-            OUTPUT_CHANNEL.appendLine("Dropping Data Source: " + JSON.stringify(datasource, null, 4));
-            return await langServer.sendRequest(
-                "dropDataSource",
-                {
-                    "datasource": datasource,
-                    "data_server_info": dataServerStatus["data"],
-                },
-                token
-            );
-        }
-    );
-
-    if (!result["success"]) {
-        window.showErrorMessage(result["message"] || "Unknown error");
-        return;
-    }
-
-    window.showInformationMessage(result["message"]);
-}
-
-export async function dropAllDataSources(entry?: RobotEntry) {
-    if (!(await verifyDataExtensionIsInstalled())) {
-        return;
-    }
-
-    const dataServerStatus = await fetchDataServerStatus();
-    if (!dataServerStatus) {
-        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
-        return;
-    }
-
-    const actionPackageUri = await resolveActionPackageUri(entry);
-    if (!actionPackageUri) {
-        return;
-    }
-
-    const dataSources = await fetchDataSources(actionPackageUri);
-    if (!dataSources) {
-        return;
-    }
-
-    let deleteExternalSources;
-    const externalDataSources = dataSources.filter((ds) => {
-        return isExternalDatasource(ds);
-    });
-    if (externalDataSources.length > 0) {
-        deleteExternalSources = await vscode.window.showInformationMessage(
-            `Do you want to remove external sources as well?`,
-            { modal: true },
-            "Yes",
-            "No"
-        );
-
-        if (deleteExternalSources === undefined) {
-            return;
-        }
-    }
-
-    await window.withProgress(
-        {
-            location: ProgressLocation.Notification,
-            title: "Dropping Data Sources...",
-            cancellable: true,
-        },
-        async (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => {
-            for (const item of dataSources.reverse()) {
-                if (token.isCancellationRequested) {
-                    OUTPUT_CHANNEL.appendLine("Operation cancelled.");
-                    return;
-                }
-
-                // Drop the external data sources last
-                if (isExternalDatasource(item)) {
-                    continue;
-                }
-
-                const success = await dropSingleDataSource(item, dataServerStatus["data"]);
-                if (!success) return;
-
-                progress.report({ message: `Dropped: ${getDataSourceCaption(item)}` });
-            }
-
-            if (deleteExternalSources === "Yes") {
-                for (const item of externalDataSources) {
-                    const success = await dropSingleDataSource(item, dataServerStatus["data"]);
-                    if (!success) return;
-
-                    progress.report({ message: `Dropped: ${getDataSourceCaption(item)}` });
-                }
-            }
-            window.showInformationMessage("Data Sources dropped succesfully.");
-        }
-    );
 }

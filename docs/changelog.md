@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Add Data Sources to the Packages tree
+  - Hover (tree item) action in root element to Setup all Data Sources
   - Hover (tree item) action in root element to Drop all Data Sources
   - Hover (tree item) action: remove Data Source
   - Hover (tree item) action: setup Data Source
