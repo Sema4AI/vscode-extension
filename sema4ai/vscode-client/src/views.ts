@@ -232,6 +232,11 @@ export function registerViews(context: ExtensionContext) {
         "treeDataProvider": robotsTreeDataProvider,
     });
 
+    // Periodic refresh every 60 seconds
+    setInterval(() => {
+        robotsTreeDataProvider.updateDatasourceStatuses();
+    }, 5 * 1000);
+
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, robotsTreeDataProvider);
 

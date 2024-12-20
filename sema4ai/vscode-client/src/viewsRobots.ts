@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
 import { OUTPUT_CHANNEL, logError } from "./channel";
 import { uriExists } from "./files";
-import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
+import { LocalPackageMetadataInfo, ActionResult, IActionInfo, DatasourceInfo, DataSourceState } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
 import path = require("path");
-import { getDataSourceCaption, getDataSourceTooltip } from "./robo/actionPackage";
+import { getDataSourceCaption, getDataSourceTooltip, listAllActionPackages } from "./robo/actionPackage";
+import { langServer } from "./extension";
 
 let _globalSentMetric: boolean = false;
 
@@ -43,12 +44,50 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
     readonly onForceSelectionFromTreeData: vscode.Event<RobotEntry[]> = this._onForceSelectionFromTreeData.event;
 
     private lastRoot: RobotEntry[] | undefined = undefined;
+    globalDataSourceState: Map<string, Map<string, DatasourceInfo>> = new Map();
 
     fireRootChange() {
         this._onDidChangeTreeData.fire(null);
     }
 
     public onAgentsTreeSelectionChanged() {
+        this.fireRootChange();
+    }
+
+    async updateDatasourceStatuses(): Promise<void> {
+        let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await listAllActionPackages();
+        if (!actionResult.success) {
+            return;
+        }
+        let localActionPackages: LocalPackageMetadataInfo[] = actionResult.result;
+        if (localActionPackages.length == 0) {
+            return;
+        }
+
+        const dataServerStatus = await vscode.commands.executeCommand("sema4ai-data.dataserver.status");
+        if (!dataServerStatus["success"]) {
+            return;
+        }
+
+        this.globalDataSourceState.clear();
+
+        for (const actionPackage of localActionPackages) {
+            const dataSourceStateResult = (await langServer.sendRequest("computeDataSourceState", {
+                "action_package_yaml_directory_uri": actionPackage.directory,
+                "data_server_info": dataServerStatus["data"],
+            })) as ActionResult<DataSourceState>;
+
+            if (dataSourceStateResult.success) {
+                const dataSourcesState: DatasourceInfo[] = dataSourceStateResult.result.required_data_sources;
+                for (const item of dataSourcesState) {
+                    const innerMap = this.globalDataSourceState.get(actionPackage.filePath) ?? new Map();
+                    innerMap.set(getDataSourceCaption(item), item);
+
+                    this.globalDataSourceState.set(actionPackage.filePath, innerMap);
+                }
+            }
+        }
+
         this.fireRootChange();
     }
 
@@ -521,7 +560,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 const children: RobotEntry[] = [];
 
                 for (const datasource of element.extraData.datasources) {
-                    let name = getDataSourceCaption(datasource);
+                    let dbName = getDataSourceCaption(datasource);
+                    let dataSourcesFromActionPackage = this.globalDataSourceState.get(element.robot.filePath);
+                    let isConfigured = dataSourcesFromActionPackage?.get(dbName)?.configured;
+
+                    let name = `${dbName} ?`;
+                    if (isConfigured !== undefined) {
+                        name = `${dbName} ${isConfigured ? "✓" : "✗"}`;
+                    }
+
                     children.push({
                         "label": name,
                         "actionName": datasource.name,
