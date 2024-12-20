@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { langServer } from "../extension";
 import { window } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "../channel";
+import { ActionResult } from "../protocols";
 
 interface ExtractedActionInfo {
     default_values: any;
@@ -11,6 +12,7 @@ interface ExtractedActionInfo {
     managed_params_json_schema: any;
     action_name: string;
     action_relative_path: string;
+    kind: "action" | "query" | "prediction";
 }
 
 // Create interface for the input we write.
@@ -25,28 +27,79 @@ export interface ActionInputsV2 {
     };
 }
 
+// Same as v2, but with the kind field in the metadata.
+export interface ActionInputsV3 {
+    inputs: { inputName: string; inputValue: any }[];
+    metadata: {
+        actionName: string;
+        actionRelativePath: string;
+        schemaDescription: string[];
+        managedParamsSchemaDescription: any;
+        inputFileVersion: "v3";
+        // Kind is new in v3
+        kind: "action" | "query" | "prediction";
+        // Action signature is new in v3
+        // This can be later gotten from the actionRelativePath and action name to validate if the function signature is still the same
+        // (if it's not, we should ask the user to update the input file).
+        actionSignature: string;
+    };
+}
+
 /**
  * Returns an error message if the input is not in v2 format or if the v2 input is not properly followed, otherwise returns undefined.
  */
-export const errorMessageValidatingV2Input = (input: any): string | undefined => {
-    if (input.metadata.inputFileVersion !== "v2") {
-        return "Input file is not in v2 format.";
+export const errorMessageValidatingV2OrV3Input = (input: any): string | undefined => {
+    if (input.metadata.inputFileVersion !== "v2" && input.metadata.inputFileVersion !== "v3") {
+        return "Input file is not in v2 or v3 format.";
     }
     if (!input.inputs || !Array.isArray(input.inputs) || input.inputs.length === 0) {
-        return "Input file is in v2 format, but the inputs array is missing or empty.";
+        return "Input file is in v2 or v3 format, but the inputs array is missing or empty.";
     }
     // Check inputName
     if (!input.inputs.every((input) => typeof input.inputName === "string" && input.inputName.length > 0)) {
-        return "Input file is in v2 format, but one of the `inputName` fields is not a string, is missing or is empty.";
+        return "Input file is in v2 or v3 format, but one of the `inputName` fields is not a string, is missing or is empty.";
     }
     // Check the metadata
     if (!input.metadata.actionName || typeof input.metadata.actionName !== "string") {
-        return "Input file is in v2 format, but the action name in metadata is missing or not a string.";
+        return "Input file is in v2 or v3 format, but the action name in metadata is missing or not a string.";
     }
     if (!input.metadata.actionRelativePath || typeof input.metadata.actionRelativePath !== "string") {
-        return "Input file is in v2 format, but the action relative path in metadata is missing or not a string.";
+        return "Input file is in v2 or v3 format, but the action relative path in metadata is missing or not a string.";
     }
     return undefined;
+};
+
+export const updateActionInputsMetadata = async (
+    actionFileUri: vscode.Uri,
+    actionName: string,
+    targetInput: string,
+    actionPackageYamlDirectory: string,
+    existingInputs: ActionInputsV2 | ActionInputsV3,
+    showToUser: boolean = false
+): Promise<ActionInputsV3 | undefined> => {
+    const result = await window.withProgress(
+        {
+            location: vscode.ProgressLocation.Window,
+            title: "Creating input file",
+            cancellable: false,
+        },
+        async (progress) => {
+            const result = await _createActionInputs(actionFileUri, actionName, actionPackageYamlDirectory, progress);
+            if (result !== undefined) {
+                OUTPUT_CHANNEL.appendLine(`Updating input file ${targetInput} metadata.`);
+                // Update the input file
+                result.inputs = existingInputs.inputs; // Keep the same inputs that were there before
+                const inputUri = vscode.Uri.file(targetInput);
+                await vscode.workspace.fs.writeFile(inputUri, Buffer.from(JSON.stringify(result, null, 4)));
+                if (showToUser) {
+                    await vscode.window.showTextDocument(inputUri);
+                }
+                return result;
+            }
+            return undefined;
+        }
+    );
+    return result;
 };
 
 export const createActionInputs = async (
@@ -62,13 +115,14 @@ export const createActionInputs = async (
             cancellable: false,
         },
         async (progress) => {
-            return await _createActionInputs(
-                actionFileUri,
-                actionName,
-                targetInput,
-                actionPackageYamlDirectory,
-                progress
-            );
+            const result = await _createActionInputs(actionFileUri, actionName, actionPackageYamlDirectory, progress);
+            if (result !== undefined) {
+                const inputUri = vscode.Uri.file(targetInput);
+                await vscode.workspace.fs.writeFile(inputUri, Buffer.from(JSON.stringify(result, null, 4)));
+                await vscode.window.showTextDocument(inputUri);
+                return true;
+            }
+            return false;
         }
     );
     return result;
@@ -77,10 +131,9 @@ export const createActionInputs = async (
 const _createActionInputs = async (
     actionFileUri: vscode.Uri,
     actionName: string,
-    targetInput: string,
     actionPackageYamlDirectory: string,
     progress: vscode.Progress<{ message?: string; increment?: number }>
-): Promise<boolean> => {
+): Promise<ActionInputsV3 | undefined> => {
     try {
         progress.report({ message: "Listing actions/queries/predictions in the package" });
         const result: any = await langServer.sendRequest("listActionsFullAndSlow", {
@@ -99,7 +152,7 @@ If that's the case, please fix the Action python code and try again.`,
             if (option === OPEN_OUTPUT_CHANNEL) {
                 OUTPUT_CHANNEL.show();
             }
-            return false;
+            return undefined;
         }
         const actions = result.result;
         const action: ExtractedActionInfo = actions[actionName];
@@ -110,25 +163,39 @@ If that's the case, please fix the Action python code and try again.`,
                 ).join(", ")}`,
                 { modal: true }
             );
-            return false;
+            return undefined;
         }
-        const inputUri = vscode.Uri.file(targetInput);
-        const inputData: ActionInputsV2 = {
+
+        const actionSignatureResult: ActionResult<string> = await langServer.sendRequest("getActionSignature", {
+            action_relative_path: action.action_relative_path,
+            action_package_yaml_directory: actionPackageYamlDirectory,
+            action_name: actionName,
+        });
+
+        let actionSignature: string | undefined;
+        if (!actionSignatureResult.success) {
+            window.showErrorMessage("Error getting action signature: " + actionSignatureResult.message);
+            actionSignature = undefined;
+        } else {
+            actionSignature = actionSignatureResult.result;
+        }
+
+        const inputData: ActionInputsV3 = {
             inputs: [{ inputName: "input-1", inputValue: action.default_values }],
             metadata: {
                 actionName: action.action_name,
                 actionRelativePath: action.action_relative_path,
                 schemaDescription: action.informal_schema_representation,
                 managedParamsSchemaDescription: action.managed_params_json_schema,
-                inputFileVersion: "v2",
+                inputFileVersion: "v3",
+                kind: action.kind,
+                actionSignature: actionSignature,
             },
         };
-        await vscode.workspace.fs.writeFile(inputUri, Buffer.from(JSON.stringify(inputData, null, 4)));
-        await vscode.window.showTextDocument(inputUri);
-        return true;
+        return inputData;
     } catch (error) {
         window.showErrorMessage("Error creating action inputs: " + error);
         logError("Error creating action inputs.", error, "ERROR_CREATING_ACTION_INPUTS");
-        return false;
+        return undefined;
     }
 };

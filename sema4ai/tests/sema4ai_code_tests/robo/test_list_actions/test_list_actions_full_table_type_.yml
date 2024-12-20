@@ -37,4 +37,5 @@ my_action:
     required:
     - entry
     type: object
+  kind: action
   managed_params_json_schema: {}

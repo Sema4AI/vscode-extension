@@ -9,6 +9,22 @@ from sema4ai_ls_core.protocols import ActionInfoTypedDict, DatasourceInfoTypedDi
 from sema4ai_code.robo.collect_actions import get_metadata
 
 
+@pytest.mark.parametrize("action_name", ["get_churn_data", "predict_churn"])
+def test_get_action_signature(cases, data_regression, action_name):
+    from sema4ai_ls_core.jsonrpc.monitor import Monitor
+
+    from sema4ai_code.robo.collect_actions_ast import get_action_signature
+
+    action_package_path = Path(cases.get_path("action_package", must_exist=True))
+    action_relative_path = "data_actions.py"
+    monitor = Monitor()
+    result = get_action_signature(
+        action_relative_path, action_package_path, action_name, monitor
+    )
+    assert result.success, result.message
+    data_regression.check(result.result)
+
+
 def test_list_actions_and_datasources_simple(cases, data_regression):
     action_package_path = Path(cases.get_path("action_package", must_exist=True))
 

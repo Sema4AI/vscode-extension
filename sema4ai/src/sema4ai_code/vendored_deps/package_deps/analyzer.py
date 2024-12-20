@@ -186,7 +186,7 @@ class BaseAnalyzer:
         if sqlite_queries:
             with sqlite_queries.db_cursors() as db_cursors:
                 for conda_dep in self._conda_deps.iter_deps_infos():
-                    if conda_dep.name in ("python", "pip"):
+                    if conda_dep.name in ("python", "pip", "uv"):
                         continue
 
                     if conda_dep.error_msg:
