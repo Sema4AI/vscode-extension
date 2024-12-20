@@ -1,4 +1,4 @@
-## Unreleased
+## New in 2.9.0 (2024-12-21)
 
 - Add Data Sources to the Packages tree
   - Hover (tree item) action in root element to Drop all Data Sources
