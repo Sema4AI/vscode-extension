@@ -26,6 +26,9 @@
 - Code lenses are now shown to run `@query` and `@predict` decorated methods.
 - Action Server updated to `2.3.0`.
 - Agent CLI updated to `0.2.2`
+- Action input format automatically updated to `v3` (now have a `kind` field and an `actionSignature` field).
+  - If the signature changes between action launches, the input file metadata is automatically updated.
+- Don't warn the user if the `uv` version is not the latest in `package.yaml`.
 
 ## New in 2.8.1 (2024-11-21)
 

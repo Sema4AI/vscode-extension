@@ -56,7 +56,10 @@ export async function uriExists(uri: Uri) {
     }
 }
 
-export async function readFromFile(targetFile: string) {
+/**
+ * @returns undefined if the file does not exist, otherwise the file contents.
+ */
+export async function readFromFile(targetFile: string): Promise<string | undefined> {
     if (!(await fileExists(targetFile))) {
         return undefined;
     }

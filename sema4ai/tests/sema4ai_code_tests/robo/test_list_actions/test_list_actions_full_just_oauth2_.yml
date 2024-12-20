@@ -14,6 +14,7 @@ my_action:
   json_schema:
     properties: {}
     type: object
+  kind: action
   managed_params_json_schema:
     google_secret:
       provider: google
