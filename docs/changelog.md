@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Show datasource configuration status in the tree
 - Add Data Sources to the Packages tree
   - Hover (tree item) action in root element to Setup all Data Sources
   - Hover (tree item) action in root element to Drop all Data Sources

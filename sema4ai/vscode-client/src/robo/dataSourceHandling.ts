@@ -1,6 +1,6 @@
 import { Uri, window, commands, ProgressLocation, Progress, CancellationToken } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "../channel";
-import { RobotEntry } from "../viewsCommon";
+import { RobotEntry, treeViewIdToTreeDataProvider } from "../viewsCommon";
 import { DatasourceInfo, DataSourceState } from "../protocols";
 import { langServer } from "../extension";
 import {
@@ -13,6 +13,8 @@ import { sleep } from "../time";
 import { findActionPackagePath } from "../actionServer";
 import { SEMA4AI_LIST_ACTIONS_INTERNAL } from "../robocorpCommands";
 import { QuickPickItemWithAction, showSelectOneQuickPick } from "../ask";
+import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "../robocorpViews";
+import { RobotsTreeDataProvider } from "../viewsRobots";
 
 function isExternalDatasource(datasource: DatasourceInfo): boolean {
     const externalEngines = ["custom", "files", "models"];
@@ -253,6 +255,11 @@ export const setupDataSource = async (entry?: RobotEntry) => {
     }
 
     await setupSingleDataSource(datasource, dataServerInfo, Uri.file(entry.robot.directory).toString());
+
+    const dataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+    dataProvider.updateDatasourceStatuses();
 };
 
 export async function dropDataSource(entry?: RobotEntry) {
@@ -332,6 +339,11 @@ export async function dropDataSource(entry?: RobotEntry) {
         window.showErrorMessage(result["message"] || "Unknown error");
         return;
     }
+
+    const dataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+    dataProvider.updateDatasourceStatuses();
 
     window.showInformationMessage(result["message"]);
 }
@@ -420,6 +432,11 @@ export async function dropAllDataSources(entry?: RobotEntry) {
             window.showInformationMessage("Data Sources dropped succesfully.");
         }
     );
+
+    const dataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+    dataProvider.updateDatasourceStatuses();
 }
 
 export async function setupAllDataSources(entry?: RobotEntry) {
@@ -512,4 +529,9 @@ export async function setupAllDataSources(entry?: RobotEntry) {
             }
         }
     );
+
+    const dataProvider = treeViewIdToTreeDataProvider.get(
+        TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE
+    ) as RobotsTreeDataProvider;
+    dataProvider.updateDatasourceStatuses();
 }

@@ -1,18 +1,50 @@
 import * as vscode from "vscode";
 import { OUTPUT_CHANNEL, logError } from "./channel";
 import { uriExists } from "./files";
-import { LocalPackageMetadataInfo, ActionResult, IActionInfo } from "./protocols";
+import { LocalPackageMetadataInfo, ActionResult, IActionInfo, DatasourceInfo, DataSourceState } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
 import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 import { isActionPackage, isAgentPackage } from "./common";
 import path = require("path");
-import { getDataSourceCaption, getDataSourceTooltip } from "./robo/actionPackage";
+import { getDataSourceCaption, getDataSourceTooltip, listAllActionPackages } from "./robo/actionPackage";
+import { langServer } from "./extension";
 
 let _globalSentMetric: boolean = false;
 
 function empty<T>(array: T[]) {
     return array === undefined || array.length === 0;
+}
+
+function dataSourcesAreDifferent(
+    globalDataSourceState: Map<string, Map<string, DatasourceInfo>>,
+    currentDatasources: Map<string, Map<string, DatasourceInfo>>
+): boolean {
+    if (globalDataSourceState.size !== currentDatasources.size) {
+        return true;
+    }
+
+    for (const [actionPath, currentInnerMap] of currentDatasources) {
+        const globalInnerMap = globalDataSourceState.get(actionPath);
+
+        if (!globalInnerMap) {
+            return true;
+        }
+
+        if (globalInnerMap.size !== currentInnerMap.size) {
+            return true;
+        }
+
+        for (const [sourceName, currentInfo] of currentInnerMap) {
+            const globalInfo = globalInnerMap.get(sourceName);
+
+            if (!globalInfo || JSON.stringify(currentInfo) !== JSON.stringify(globalInfo)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function getRobotLabel(robotInfo: LocalPackageMetadataInfo): string {
@@ -43,6 +75,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
     readonly onForceSelectionFromTreeData: vscode.Event<RobotEntry[]> = this._onForceSelectionFromTreeData.event;
 
     private lastRoot: RobotEntry[] | undefined = undefined;
+    globalDataSourceState: Map<string, Map<string, DatasourceInfo>> = new Map();
 
     fireRootChange() {
         this._onDidChangeTreeData.fire(null);
@@ -50,6 +83,46 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
 
     public onAgentsTreeSelectionChanged() {
         this.fireRootChange();
+    }
+
+    async updateDatasourceStatuses(): Promise<void> {
+        let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await listAllActionPackages();
+        if (!actionResult.success) {
+            return;
+        }
+        let localActionPackages: LocalPackageMetadataInfo[] = actionResult.result;
+        if (localActionPackages.length == 0) {
+            return;
+        }
+
+        const dataServerStatus = await vscode.commands.executeCommand("sema4ai-data.dataserver.status");
+        if (!dataServerStatus["success"]) {
+            return;
+        }
+
+        const currentDatasources: Map<string, Map<string, DatasourceInfo>> = new Map();
+
+        for (const actionPackage of localActionPackages) {
+            const dataSourceStateResult = (await langServer.sendRequest("computeDataSourceState", {
+                "action_package_yaml_directory_uri": actionPackage.directory,
+                "data_server_info": dataServerStatus["data"],
+            })) as ActionResult<DataSourceState>;
+
+            if (dataSourceStateResult.success) {
+                const dataSourcesState: DatasourceInfo[] = dataSourceStateResult.result.required_data_sources;
+                for (const item of dataSourcesState) {
+                    const innerMap = currentDatasources.get(actionPackage.filePath) ?? new Map();
+                    innerMap.set(getDataSourceCaption(item), item);
+
+                    currentDatasources.set(actionPackage.filePath, innerMap);
+                }
+            }
+        }
+
+        if (currentDatasources.size > 0 && dataSourcesAreDifferent(this.globalDataSourceState, currentDatasources)) {
+            this.globalDataSourceState = currentDatasources;
+            this.fireRootChange();
+        }
     }
 
     /**
@@ -93,6 +166,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         if (element === undefined) {
             // i.e.: this is the root entry, so, we've
             // collected the actual robots here.
+            this.updateDatasourceStatuses();
 
             let notifySelection = false;
             if (empty(this.lastRoot) && empty(ret)) {
@@ -521,7 +595,22 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 const children: RobotEntry[] = [];
 
                 for (const datasource of element.extraData.datasources) {
-                    let name = getDataSourceCaption(datasource);
+                    let dbName = getDataSourceCaption(datasource);
+                    let dataSourcesFromActionPackage = this.globalDataSourceState.get(element.robot.filePath);
+                    let isConfigured = dataSourcesFromActionPackage?.get(dbName)?.configured;
+
+                    let name = `${dbName} ?`;
+                    if (isConfigured !== undefined) {
+                        if (
+                            datasource.model_state &&
+                            ["generating", "training", "creating"].includes(datasource.model_state)
+                        ) {
+                            name = `${dbName} ◌`;
+                        } else {
+                            name = `${dbName} ${isConfigured ? "✓" : "✗"}`;
+                        }
+                    }
+
                     children.push({
                         "label": name,
                         "actionName": datasource.name,
