@@ -23,4 +23,5 @@ my_action:
     required:
     - model
     type: object
+  kind: action
   managed_params_json_schema: {}

@@ -773,6 +773,34 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return dict(success=False, message=str(e), result=None)
         return ret.as_dict()
 
+    def m_get_action_signature(
+        self,
+        action_relative_path: str,
+        action_package_yaml_directory: str,
+        action_name: str,
+    ) -> ActionResultDict[str]:
+        return require_monitor(
+            partial(
+                self._get_action_signature,
+                action_relative_path,
+                action_package_yaml_directory,
+                action_name,
+            )
+        )
+
+    def _get_action_signature(
+        self,
+        action_relative_path: str,
+        action_package_yaml_directory: str,
+        action_name: str,
+        monitor: IMonitor,
+    ) -> ActionResultDict[str]:
+        from sema4ai_code.robo.collect_actions_ast import get_action_signature
+
+        return get_action_signature(
+            action_relative_path, action_package_yaml_directory, action_name, monitor
+        ).as_dict()
+
     def m_list_actions_full_and_slow(
         self, action_package_uri: str = "", action_package_yaml_directory: str = ""
     ):

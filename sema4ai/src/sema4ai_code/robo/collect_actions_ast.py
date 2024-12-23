@@ -6,7 +6,12 @@ from typing import Any, Literal, TypedDict
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.lsp import RangeTypedDict
-from sema4ai_ls_core.protocols import ActionInfoTypedDict, DatasourceInfoTypedDict
+from sema4ai_ls_core.protocols import (
+    ActionInfoTypedDict,
+    ActionResult,
+    DatasourceInfoTypedDict,
+    IMonitor,
+)
 
 log = get_logger(__name__)
 
@@ -211,7 +216,12 @@ def _collect_datasources(
                                     )
 
 
-def _collect_actions_from_ast(ast: ast_module.AST) -> Iterator[dict]:
+class _ActionInfo(TypedDict):
+    kind: str
+    node: ast_module.FunctionDef
+
+
+def _collect_actions_from_ast(ast: ast_module.AST) -> Iterator[_ActionInfo]:
     for _stack, node in _iter_nodes(ast, recursive=False):
         if isinstance(node, ast_module.FunctionDef):
             for decorator in node.decorator_list:
@@ -291,12 +301,12 @@ def iter_actions_and_datasources(
                     uri = uris.from_fs_path(str(f))
 
                     for node_info_action in _collect_actions_from_ast(ast):
-                        ast_node = node_info_action["node"]
-                        node_range = _get_ast_node_range(ast_node)
+                        function_def_node = node_info_action["node"]
+                        node_range = _get_ast_node_range(function_def_node)
                         yield ActionInfoTypedDict(
                             uri=uri,
                             range=node_range,
-                            name=ast_node.name,
+                            name=function_def_node.name,
                             kind=node_info_action["kind"],
                         )
 
@@ -344,3 +354,33 @@ def iter_actions_and_datasources(
                     log.error(
                         f"Unable to collect @action/@query/@predict/datasources from {f}. Error: {e}"
                     )
+
+
+def get_action_signature(
+    action_relative_path: str,
+    action_package_yaml_directory: str,
+    action_name: str,
+    monitor: IMonitor,
+) -> ActionResult[str]:
+    action_file_path = Path(action_package_yaml_directory) / action_relative_path
+    if not action_file_path.exists():
+        return ActionResult.make_failure(f"Action file not found: {action_file_path}")
+
+    action_contents_file = action_file_path.read_bytes()
+    try:
+        ast = ast_module.parse(action_contents_file, "<string>")
+    except Exception:
+        return ActionResult.make_failure(
+            f"Unable to parse action file: {action_file_path}"
+        )
+
+    for node_info_action in _collect_actions_from_ast(ast):
+        function_def_node = node_info_action["node"]
+        if function_def_node.name == action_name:
+            # Convert the function signature to a string
+            signature = ast_module.unparse(function_def_node.args)
+            return ActionResult.make_success(
+                f"{node_info_action['kind']}/args: {signature!r}"
+            )
+
+    return ActionResult.make_failure(f"Action not found: {action_name}")

@@ -55,7 +55,13 @@ import {
 } from "../actionServer";
 import { loginToAuth2WhereRequired } from "./oauth2InInput";
 import { RobotEntryType } from "../viewsCommon";
-import { createActionInputs, errorMessageValidatingV2Input } from "./actionInputs";
+import {
+    ActionInputsV2,
+    ActionInputsV3,
+    createActionInputs,
+    errorMessageValidatingV2OrV3Input,
+    updateActionInputsMetadata,
+} from "./actionInputs";
 import { langServer } from "../extension";
 import { startDataServerAndGetInfo, verifyDataExtensionIsInstalled } from "../dataExtension";
 
@@ -474,9 +480,9 @@ export async function runActionFromActionPackage(
     const nameSlugified = slugify(actionName);
     const multiTargetInput = await getTargetInputJson(actionName, actionPackageYamlDirectory);
 
-    const contents = await readFromFile(multiTargetInput);
+    const contents: string | undefined = await readFromFile(multiTargetInput);
 
-    if (!(await fileExists(multiTargetInput)) || contents.length === 0) {
+    if (!contents || contents.length === 0) {
         let items: QuickPickItemWithAction[] = new Array();
 
         items.push({
@@ -510,7 +516,7 @@ export async function runActionFromActionPackage(
     }
 
     // Now, in the new format, we need to check if the input is in the new format and then extract the input from there
-    let input;
+    let input: ActionInputsV3 | ActionInputsV2;
     try {
         input = JSON.parse(contents);
     } catch (error) {
@@ -521,21 +527,70 @@ export async function runActionFromActionPackage(
     }
     let targetInput: string;
     const isV2 = input?.metadata?.inputFileVersion === "v2";
-    if (!isV2) {
+    const isV3 = input?.metadata?.inputFileVersion === "v3";
+    if (!isV2 && !isV3) {
         window.showWarningMessage(
-            `The format of the input file is not v2.
+            `The format of the input file is not v2 or v3.
 Please remove the contents of the file (${multiTargetInput}) and relaunch the action to regenerate
 the input file in the new format. The launch will proceed with the current values, but it's
 advised to regenerate it as it may not work with future versions of the extension.`
         );
     }
     let baseEnv: Record<string, string> = {};
-    if (isV2) {
-        const errorMessage = errorMessageValidatingV2Input(input);
+    if (isV2 || isV3) {
+        const errorMessage = errorMessageValidatingV2OrV3Input(input);
         if (errorMessage) {
-            window.showErrorMessage("Unable to run action package (input file is not valid v2):\n" + errorMessage);
+            window.showErrorMessage(
+                "Unable to run action package (input file is not valid v2 or v3):\n" + errorMessage
+            );
             return;
         }
+
+        if (isV2) {
+            // Update from v2 to v3
+            const result = await updateActionInputsMetadata(
+                actionFileUri,
+                actionName,
+                multiTargetInput,
+                actionPackageYamlDirectory,
+                input as ActionInputsV2
+            );
+            if (result) {
+                input = result;
+            }
+        } else {
+            // We have a v3 input file, check if the action signature is available and still matches
+            // the metadata in the input file.
+
+            const actionSignatureResult: ActionResult<string> = await langServer.sendRequest("getActionSignature", {
+                action_relative_path: input.metadata.actionRelativePath,
+                action_package_yaml_directory: actionPackageYamlDirectory,
+                action_name: actionName,
+            });
+            if (!actionSignatureResult.success) {
+                const errorMessage =
+                    "There was an error getting the action signature. Proceeding with the input file as is.\n" +
+                    actionSignatureResult.message;
+                OUTPUT_CHANNEL.appendLine(errorMessage);
+                window.showErrorMessage(errorMessage);
+            } else {
+                const inputV3 = input as ActionInputsV3;
+                if (inputV3.metadata.actionSignature !== actionSignatureResult.result) {
+                    // The action signature doesn't match, so we need to update the input file metadata.
+                    const result = await updateActionInputsMetadata(
+                        actionFileUri,
+                        actionName,
+                        multiTargetInput,
+                        actionPackageYamlDirectory,
+                        input
+                    );
+                    if (result) {
+                        input = result;
+                    }
+                }
+            }
+        }
+
         // Ok, now, check if we have just one input or multiple (if we have just one, create a temporary file with the input)
         let inputValue;
         if (input.inputs.length === 1) {
@@ -561,113 +616,117 @@ advised to regenerate it as it may not work with future versions of the extensio
         targetInput = tempInputFile;
 
         // If we need data sources, we need to update the launch environment with information on the connection
-        // (we can only detect this with v2 input files at this point)
+        // (we can only detect this with v2/v3 input files at this point)
+        let requiresDataSource = false;
+        const inputV3 = input as ActionInputsV3;
+        if (inputV3.metadata?.kind === "query" || inputV3.metadata?.kind === "prediction") {
+            requiresDataSource = true;
+        }
         if (input.metadata?.managedParamsSchemaDescription) {
-            let requiresDataSource = false;
             for (const param of Object.values(input.metadata.managedParamsSchemaDescription)) {
                 if (param["type"] === "DataSource") {
                     requiresDataSource = true;
                     break;
                 }
             }
-            if (requiresDataSource) {
-                const installed = await verifyDataExtensionIsInstalled(
-                    "To run actions, queries or predictions that require data sources, the Sema4AI data extension must be installed. Do you wish to install it?"
-                );
-                if (!installed) {
-                    const msg =
-                        "Unable to run action package (data extension is not installed). Please install it to run actions that require data sources.";
-                    OUTPUT_CHANNEL.appendLine(msg);
-                    window.showErrorMessage(msg);
-                    return;
-                }
-                // The information required is an env variable such as:
-                // SET SEMA4AI_DATA_SERVER_INFO={"http": {"url": "http://localhost:47334", "user": "dataServerUser", "password": "dataServerPass"}, "mysql": {"host": "localhost", "port": 55758, "user": "foo", "password": "bar"}}
-                // We need to get the value of this variable and add it to the launch environment
-                try {
-                    let result = await window.withProgress(
-                        {
-                            location: vscode.ProgressLocation.Window,
-                            title: "Getting local data server connection info and validating data sources",
-                            cancellable: false,
-                        },
-                        async (
-                            progress: vscode.Progress<{ message?: string; increment?: number }>,
-                            token: vscode.CancellationToken
-                        ): Promise<boolean> => {
-                            if (token.isCancellationRequested) {
-                                return false;
-                            }
-
-                            progress.report({
-                                message: "Waiting for data server info... ",
-                            });
-                            const dataServerInfo = await startDataServerAndGetInfo();
-                            if (!dataServerInfo) {
-                                window.showErrorMessage(
-                                    "Unable to run (error getting local data server connection info):\n" +
-                                        JSON.stringify(dataServerInfo, null, 4)
-                                );
-                                return false;
-                            }
-
-                            try {
-                                baseEnv["SEMA4AI_DATA_SERVER_INFO"] = convertDataServerInfoToEnvVar(dataServerInfo);
-                            } catch (error) {
-                                window.showErrorMessage(
-                                    "Unable to run (error converting data server info to env var):\n" +
-                                        JSON.stringify(error, null, 4)
-                                );
-                                return false;
-                            }
-
-                            progress.report({
-                                message: "Validating data sources... ",
-                            });
-
-                            // Ok, now, let's verify that the data sources are available.
-                            const dataSourceStateResult = await computeDataSourceState(
-                                vscode.Uri.file(actionPackageYamlDirectory).toString(),
-                                dataServerInfo
-                            );
-                            if (!dataSourceStateResult.success) {
-                                showErrorMessageWithShowOutputButton(dataSourceStateResult.message);
-                                return false;
-                            }
-                            const dataSourceState = dataSourceStateResult.result;
-                            // Check error messages
-                            if (Object.keys(dataSourceState.uri_to_error_messages).length > 0) {
-                                for (const errorMessages of Object.values(dataSourceState.uri_to_error_messages)) {
-                                    for (const errorMessage of errorMessages) {
-                                        window.showErrorMessage(errorMessage.message);
-                                    }
-                                }
-                                return false;
-                            }
-                            // Check unconfigured data sources
-                            if (dataSourceState.unconfigured_data_sources.length > 0) {
-                                window.showErrorMessage(
-                                    "Unable to run because the following data sources are not configured in the local data server (please configure them and retry):\n" +
-                                        dataSourceState.unconfigured_data_sources
-                                            .map((ds) => getDataSourceCaption(ds))
-                                            .join(", ")
-                                );
-                                return false;
-                            }
-
-                            return true;
+        }
+        if (requiresDataSource) {
+            const installed = await verifyDataExtensionIsInstalled(
+                "To run actions, queries or predictions that require data sources, the Sema4AI data extension must be installed. Do you wish to install it?"
+            );
+            if (!installed) {
+                const msg =
+                    "Unable to run action package (data extension is not installed). Please install it to run actions that require data sources.";
+                OUTPUT_CHANNEL.appendLine(msg);
+                window.showErrorMessage(msg);
+                return;
+            }
+            // The information required is an env variable such as:
+            // SET SEMA4AI_DATA_SERVER_INFO={"http": {"url": "http://localhost:47334", "user": "dataServerUser", "password": "dataServerPass"}, "mysql": {"host": "localhost", "port": 55758, "user": "foo", "password": "bar"}}
+            // We need to get the value of this variable and add it to the launch environment
+            try {
+                let result = await window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Window,
+                        title: "Getting local data server connection info and validating data sources",
+                        cancellable: false,
+                    },
+                    async (
+                        progress: vscode.Progress<{ message?: string; increment?: number }>,
+                        token: vscode.CancellationToken
+                    ): Promise<boolean> => {
+                        if (token.isCancellationRequested) {
+                            return false;
                         }
-                    );
-                    if (!result) {
-                        return;
+
+                        progress.report({
+                            message: "Waiting for data server info... ",
+                        });
+                        const dataServerInfo = await startDataServerAndGetInfo();
+                        if (!dataServerInfo) {
+                            window.showErrorMessage(
+                                "Unable to run (error getting local data server connection info):\n" +
+                                    JSON.stringify(dataServerInfo, null, 4)
+                            );
+                            return false;
+                        }
+
+                        try {
+                            baseEnv["SEMA4AI_DATA_SERVER_INFO"] = convertDataServerInfoToEnvVar(dataServerInfo);
+                        } catch (error) {
+                            window.showErrorMessage(
+                                "Unable to run (error converting data server info to env var):\n" +
+                                    JSON.stringify(error, null, 4)
+                            );
+                            return false;
+                        }
+
+                        progress.report({
+                            message: "Validating data sources... ",
+                        });
+
+                        // Ok, now, let's verify that the data sources are available.
+                        const dataSourceStateResult = await computeDataSourceState(
+                            vscode.Uri.file(actionPackageYamlDirectory).toString(),
+                            dataServerInfo
+                        );
+                        if (!dataSourceStateResult.success) {
+                            showErrorMessageWithShowOutputButton(dataSourceStateResult.message);
+                            return false;
+                        }
+                        const dataSourceState = dataSourceStateResult.result;
+                        // Check error messages
+                        if (Object.keys(dataSourceState.uri_to_error_messages).length > 0) {
+                            for (const errorMessages of Object.values(dataSourceState.uri_to_error_messages)) {
+                                for (const errorMessage of errorMessages) {
+                                    window.showErrorMessage(errorMessage.message);
+                                }
+                            }
+                            return false;
+                        }
+                        // Check unconfigured data sources
+                        if (dataSourceState.unconfigured_data_sources.length > 0) {
+                            window.showErrorMessage(
+                                "Unable to run because the following data sources are not configured in the local data server (please configure them and retry):\n" +
+                                    dataSourceState.unconfigured_data_sources
+                                        .map((ds) => getDataSourceCaption(ds))
+                                        .join(", ")
+                            );
+                            return false;
+                        }
+
+                        return true;
                     }
-                } catch (error) {
-                    logError("Error getting data server info", error, "ERR_GET_DATA_SERVER_INFO");
-                    window.showErrorMessage(
-                        "Unable to run action package (error getting local data server connection info)."
-                    );
+                );
+                if (!result) {
                     return;
                 }
+            } catch (error) {
+                logError("Error getting data server info", error, "ERR_GET_DATA_SERVER_INFO");
+                window.showErrorMessage(
+                    "Unable to run action package (error getting local data server connection info)."
+                );
+                return;
             }
         }
     } else {

@@ -33,6 +33,7 @@ class ExtractedActionInfo(TypedDict):
     managed_params_json_schema: dict
     action_name: str
     action_relative_path: str
+    kind: str
 
 
 def extract_info(
@@ -53,6 +54,7 @@ def extract_info(
     for item in action_info_found:
         action_name = item.get("name", "")
         target_file = item.get("file", "")
+        kind = item.get("options", {}).get("kind", "action")
         relative_path = ""
         # Now, make relative to the action_package_yaml_directory
         if target_file:
@@ -96,6 +98,7 @@ def extract_info(
             "managed_params_json_schema": managed_params_schema,
             "action_name": action_name,
             "action_relative_path": relative_path,
+            "kind": kind,
         }
 
         action_name_to_extracted_info[item.get("name")] = full

@@ -95,6 +95,7 @@ my_action:
     - d
     - model
     type: object
+  kind: action
   managed_params_json_schema:
     secret:
       type: Secret

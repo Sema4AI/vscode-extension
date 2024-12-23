@@ -1,0 +1,2 @@
+'predict/args: ''datasource: Annotated[DataSource, ChurnPredictionDataSource | FileChurnDataSource],
+  limit: int=10'''
