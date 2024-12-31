@@ -9,6 +9,7 @@ import {
     getWorkspacePackages,
     PackageTargetAndNameResult,
     revealInExtension,
+    showErrorMessageWithShowOutputButton,
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
@@ -134,7 +135,7 @@ export const createAgentPackage = async (): Promise<void> => {
         const errorMsg = "Error creating Agent Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
         OUTPUT_CHANNEL.appendLine(errorMsg);
-        window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai` for more details).");
+        showErrorMessageWithShowOutputButton(errorMsg);
     }
 };
 
@@ -154,9 +155,8 @@ export const packAgentPackage = async (targetDir: string): Promise<{ zipPath: st
         const errorMsg = `Failed to package the agent at: ${targetDir}`;
         logError(errorMsg, error, "ERR_PACK_ACTION_PACKAGE");
 
-        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
-        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
-        window.showErrorMessage(detailedErrorMsg);
+        OUTPUT_CHANNEL.appendLine(errorMsg);
+        showErrorMessageWithShowOutputButton(errorMsg);
     }
 
     return null;
@@ -253,9 +253,8 @@ export const updateAgentVersion = async (agentPath: string): Promise<void> => {
         const errorMsg = `Failed to update the agent at: ${agentPath}`;
         logError(errorMsg, error, "ERR_UPDATE_AGENT_VERSION");
 
-        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
-        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
-        window.showErrorMessage(detailedErrorMsg);
+        OUTPUT_CHANNEL.appendLine(errorMsg);
+        showErrorMessageWithShowOutputButton(errorMsg);
     }
 };
 
@@ -287,8 +286,7 @@ export const refreshAgentSpec = async (agentPath: string): Promise<void> => {
         const errorMsg = `Failed to refresh the Agent Configuration`;
         logError(errorMsg, error, "ERR_REFRESH_AGENT_SPEC");
 
-        const detailedErrorMsg = `${errorMsg}. Please check the 'OUTPUT > Sema4.ai' for more details.`;
-        OUTPUT_CHANNEL.appendLine(detailedErrorMsg);
-        window.showErrorMessage(detailedErrorMsg);
+        OUTPUT_CHANNEL.appendLine(errorMsg);
+        showErrorMessageWithShowOutputButton(errorMsg);
     }
 };
