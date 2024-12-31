@@ -956,7 +956,6 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
-        OUTPUT_CHANNEL.appendLine(errorMsg);
         window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai` for more details).");
     }
 }
@@ -1015,7 +1014,7 @@ const buildPackage = async (workspaceDir: string, outputDir: string): Promise<st
         }
     );
     if (!result.success) {
-        window.showErrorMessage(`Failed to build action package: ${result.message}`);
+        showErrorMessageWithShowOutputButton("Failed to build the action package");
         return;
     }
 
@@ -1047,7 +1046,7 @@ const uploadActionPackage = async (
         }
     );
     if (!result.success) {
-        window.showErrorMessage(`Failed to upload action package: ${result.message}`);
+        showErrorMessageWithShowOutputButton("Failed to upload action package");
         return;
     }
 
@@ -1066,7 +1065,7 @@ const getActionPackageStatus = async (
         }
     );
     if (!result.success) {
-        window.showErrorMessage(`Failed to get action package status: ${result.message}`);
+        showErrorMessageWithShowOutputButton("Failed to get action package status");
         return;
     }
 
@@ -1143,7 +1142,7 @@ const createMetadataFile = async (actionPackagePath: string, outputFilePath: str
     );
 
     if (!result.success) {
-        window.showErrorMessage(`Failed to create the metadata file: ${result.message}`);
+        showErrorMessageWithShowOutputButton("Failed to create the metadata file");
         return false;
     }
 
@@ -1230,7 +1229,7 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
                     return;
                 }
             } catch (error) {
-                window.showErrorMessage(`Failed to publish action package: ${error.message}`);
+                showErrorMessageWithShowOutputButton("Failed to publish action package");
                 return;
             } finally {
                 try {

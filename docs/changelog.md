@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Show Output button when there are errors while running action or agent package commands
 - Show datasource configuration status in the tree
 - Add Data Sources to the Packages tree
   - Hover (tree item) action in root element to Setup all Data Sources
