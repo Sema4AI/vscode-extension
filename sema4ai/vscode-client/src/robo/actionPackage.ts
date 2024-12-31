@@ -956,7 +956,6 @@ export async function createActionPackage(agentPackage?: LocalPackageMetadataInf
     } catch (err) {
         const errorMsg = "Error creating Action Package at: " + targetDir;
         logError(errorMsg, err, "ERR_CREATE_ACTION_PACKAGE");
-        OUTPUT_CHANNEL.appendLine(errorMsg);
         window.showErrorMessage(errorMsg + " (see `OUTPUT > Sema4.ai` for more details).");
     }
 }
