@@ -1056,6 +1056,12 @@ COMMANDS = [
         add_to_package_json=True,
         icon="$(diff-added)",
     ),
+    Command(
+        "sema4ai.fixWrongAgentImport",
+        "Fix wrong agent import",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 

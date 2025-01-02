@@ -282,3 +282,25 @@ export const refreshAgentSpec = async (agentPath: string): Promise<void> => {
         showErrorMessageWithShowOutputButton(errorMsg);
     }
 };
+
+export const fixWrongAgentImport = async (agentPath: string): Promise<void> => {
+    getAgentCliLocation();
+
+    if (!agentPath) {
+        agentPath = await selectAgentPackage();
+        if (!agentPath) {
+            return;
+        }
+    }
+
+    const result = await langServer.sendRequest("fixWrongAgentImport", {
+        agent_dir: agentPath,
+    });
+
+    if (!result["success"]) {
+        window.showErrorMessage(result["message"] || `Unknown error while fixing the agent at: ${agentPath}`);
+        return;
+    }
+
+    await refreshAgentSpec(agentPath);
+};

@@ -50,6 +50,7 @@ class _YamlNodeKind(Enum):
 class ErrorCode(Enum):
     action_package_info_unsynchronized = "action_package_info_unsynchronized"
     agent_package_incomplete = "agent_package_incomplete"
+    zipped_action_inside_unzipped_agent = "zipped_action_inside_unzipped_agent"
 
 
 @dataclass
@@ -742,6 +743,7 @@ class Validator:
                                     "maybe it was just unzipped instead of using the `Import Agent Package` to import the agent into VSCode?",
                                     node=yaml_node.data.node,
                                     severity=Severity.critical,
+                                    code=ErrorCode.zipped_action_inside_unzipped_agent,
                                 )
 
             elif spec_node.data.expected_type.expected_type == _ExpectedTypeEnum.file:

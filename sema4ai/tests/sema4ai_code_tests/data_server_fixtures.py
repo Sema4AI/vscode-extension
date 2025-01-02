@@ -277,5 +277,4 @@ def create_another_sqlite_sample_db(tmpdir) -> Path:
     # Commit changes and close the connection
     conn.commit()
     conn.close()
-
     return db_path
