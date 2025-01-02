@@ -12,6 +12,7 @@ from robocorp import browser
 
 HEADLESS_BROWSER = not os.getenv("HEADLESS_BROWSER")
 
+
 @action
 def get_wikipedia_article_summary(article_url: str) -> str:
     """
@@ -31,7 +32,7 @@ def get_wikipedia_article_summary(article_url: str) -> str:
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_load_state("networkidle")
 
-    paragraphs = page.query_selector_all('.mw-content-ltr>p:not(.mw-empty-elt)')
+    paragraphs = page.query_selector_all(".mw-content-ltr>p:not(.mw-empty-elt)")
     summary = paragraphs[0].inner_text()
 
     # Pretty print for log

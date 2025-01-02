@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add `sema4ai.fixWrongAgentImport` command
 - Show Output button when there are errors while running action or agent package commands
 - Show datasource configuration status in the tree
 - Add Data Sources to the Packages tree
