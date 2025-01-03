@@ -2271,6 +2271,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         try:
             for zip_path in actions_dir.rglob("*.zip"):
+                # Check if a package.yaml exists in the same directory as the zip file then skip
+                if (zip_path.parent / "package.yaml").exists():
+                    continue
+
                 had_zips = True
                 zip_folder_name = zip_path.name.replace(".zip", "")
                 temp_extract_path = zip_path.parent / zip_folder_name
@@ -2280,7 +2284,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 # Move files and directories from the versioned folder to the root action directory
                 for item in temp_extract_path.rglob("*"):
-                    if item.is_file():
+                    if item.is_file() and item.name != "metadata.json":
                         relative_path = item.relative_to(temp_extract_path)
                         final_path = zip_path.parent / relative_path
 
