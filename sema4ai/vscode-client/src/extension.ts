@@ -168,6 +168,7 @@ import {
     SEMA4AI_OPEN_DATA_SOURCE_DEFINITION,
     SEMA4AI_DROP_ALL_DATA_SOURCES,
     SEMA4AI_SETUP_ALL_DATA_SOURCES,
+    SEMA4AI_FIX_WRONG_AGENT_IMPORT,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -203,6 +204,7 @@ import {
     importAgentPackage,
     updateAgentVersion,
     refreshAgentSpec,
+    fixWrongAgentImport,
 } from "./robo/agentPackage";
 import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
@@ -534,6 +536,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
         openDataSourceDefinition(datasource)
     );
     C.register(SEMA4AI_SETUP_ALL_DATA_SOURCES, async (datasource?: RobotEntry) => setupAllDataSources(datasource));
+    C.register(SEMA4AI_FIX_WRONG_AGENT_IMPORT, async (agentPath: string) => fixWrongAgentImport(agentPath));
 }
 
 async function clearEnvAndRestart() {

@@ -151,3 +151,4 @@ export const SEMA4AI_SETUP_DATA_SOURCE = "sema4ai.setupDataSource";  // Setup Da
 export const SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefinition";  // Open Data Source definition
 export const SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources";  // Remove All Data Sources
 export const SEMA4AI_SETUP_ALL_DATA_SOURCES = "sema4ai.setupAllDataSources";  // Setup All Data Sources
+export const SEMA4AI_FIX_WRONG_AGENT_IMPORT = "sema4ai.fixWrongAgentImport";  // Fix wrong agent import

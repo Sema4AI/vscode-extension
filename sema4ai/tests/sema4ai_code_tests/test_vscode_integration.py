@@ -8,8 +8,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
@@ -33,6 +31,8 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1082,9 +1082,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1681,10 +1682,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -3045,3 +3047,52 @@ def test_get_external_api_url(
     # Cleanup: Remove the PID file after the test
     if pid_file_content:
         os.remove(str(pid_file_path))
+
+
+def test_fix_wrong_agent_import(
+    language_server_initialized, cases: CasesFixture, tmpdir, ws_root_path
+) -> None:
+    language_server = language_server_initialized
+
+    cases.copy_to("agent-package", ws_root_path)
+
+    from sema4ai_code import commands
+
+    language_server.execute_command(
+        commands.SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": ws_root_path,
+            }
+        ],
+    )
+
+    agent_package_zip = f"{ws_root_path}/agent-package.zip"
+
+    import zipfile
+
+    temp_dir = Path(ws_root_path) / "temp"
+    with zipfile.ZipFile(agent_package_zip, "r") as zip_ref:
+        zip_ref.extractall(temp_dir)
+
+    action_zip = Path(f"{temp_dir}/actions/MyActions/action-one/0.0.1.zip")
+    assert action_zip.exists()
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "fixWrongAgentImport",
+            "params": {
+                "agent_dir": str(temp_dir),
+            },
+        }
+    )["result"]
+
+    assert result["success"]
+    assert not action_zip.exists()
+    assert (action_zip.parent / "package.yaml").exists()
+    assert not (temp_dir / "__agent_package_metadata__.json").exists()
+    assert not (
+        temp_dir / "actions/MyActions/action-one/__action_server_metadata__.json"
+    ).exists()

@@ -179,6 +179,7 @@
         "onCommand:sema4ai.openDataSourceDefinition",
         "onCommand:sema4ai.dropAllDataSources",
         "onCommand:sema4ai.setupAllDataSources",
+        "onCommand:sema4ai.fixWrongAgentImport",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1041,6 +1042,11 @@
                 "title": "Setup All Data Sources",
                 "category": "Sema4.ai",
                 "icon": "$(diff-added)"
+            },
+            {
+                "command": "sema4ai.fixWrongAgentImport",
+                "title": "Fix wrong agent import",
+                "category": "Sema4.ai"
             }
         ],
         "menus": {

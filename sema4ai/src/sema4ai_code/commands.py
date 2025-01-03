@@ -152,6 +152,7 @@ SEMA4AI_SETUP_DATA_SOURCE = "sema4ai.setupDataSource"  # Setup Data Source
 SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefinition"  # Open Data Source definition
 SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources"  # Remove All Data Sources
 SEMA4AI_SETUP_ALL_DATA_SOURCES = "sema4ai.setupAllDataSources"  # Setup All Data Sources
+SEMA4AI_FIX_WRONG_AGENT_IMPORT = "sema4ai.fixWrongAgentImport"  # Fix wrong agent import
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,

@@ -1,0 +1,22 @@
+agent-package:
+  spec-version: v2
+  agents:
+  - name: Test Agent
+    description: New Agent Description
+    model:
+      provider: OpenAI
+      name: gpt-4o
+    version: 0.0.1
+    architecture: agent
+    reasoning: disabled
+    runbook: runbook.md
+    action-packages:
+    - name: Action One
+      organization: MyActions
+      version: 0.0.1
+      path: MyActions/action-one
+      type: folder
+      whitelist: ''
+    knowledge: []
+    metadata:
+      mode: conversational

@@ -453,9 +453,29 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ]
         ]
 
+        manually_unpacked_agent = [
+            d
+            for d in diagnostics
+            if d.get("code") == ErrorCode.zipped_action_inside_unzipped_agent.value
+        ]
+
         document_dir = Path(
             sema4ai_ls_core.uris.to_fs_path(params["textDocument"]["uri"])
         )
+
+        if manually_unpacked_agent:
+            code_action_list.append(
+                {
+                    "title": "Fix wrong agent import",
+                    "kind": "quickfix",
+                    "diagnostics": manually_unpacked_agent,
+                    "command": {
+                        "title": "Fix wrong agent import",
+                        "command": commands.SEMA4AI_FIX_WRONG_AGENT_IMPORT,
+                        "arguments": [str(document_dir.parent)],
+                    },
+                }
+            )
 
         if incomplete_package_diags:
             code_action_list.append(
@@ -2240,6 +2260,57 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             ).as_dict()
 
         return ActionResult(success=True, message=None).as_dict()
+
+    def _fix_wrong_agent_import(self, agent_dir, monitor: IMonitor) -> ActionResultDict:
+        import shutil
+        import zipfile
+
+        agent_root_dir = Path(agent_dir)
+        actions_dir: Path = (agent_root_dir / "actions").absolute()
+        had_zips = False
+
+        try:
+            for zip_path in actions_dir.rglob("*.zip"):
+                # Check if a package.yaml exists in the same directory as the zip file then skip
+                if (zip_path.parent / "package.yaml").exists():
+                    continue
+
+                had_zips = True
+                zip_folder_name = zip_path.name.replace(".zip", "")
+                temp_extract_path = zip_path.parent / zip_folder_name
+
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(temp_extract_path)
+
+                # Move files and directories from the versioned folder to the root action directory
+                for item in temp_extract_path.rglob("*"):
+                    if (
+                        item.is_file()
+                        and item.name != "__action_server_metadata__.json"
+                    ):
+                        relative_path = item.relative_to(temp_extract_path)
+                        final_path = zip_path.parent / relative_path
+
+                        final_path.parent.mkdir(parents=True, exist_ok=True)
+
+                        shutil.move(str(item), str(final_path))
+
+                shutil.rmtree(temp_extract_path)
+                zip_path.unlink()
+
+            if had_zips:
+                metadata_file = agent_root_dir / "__agent_package_metadata__.json"
+                if metadata_file.exists():
+                    metadata_file.unlink()
+        except Exception as e:
+            return ActionResult(
+                success=False, message=f"Failed to unzip action zips: {e}"
+            ).as_dict()
+
+        return ActionResult(success=True, message=None).as_dict()
+
+    def m_fix_wrong_agent_import(self, agent_dir) -> ActionResultDict:
+        return require_monitor(partial(self._fix_wrong_agent_import, agent_dir))
 
     def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
         from sema4ai_ls_core.progress_report import progress_context

@@ -120,6 +120,10 @@ def list_actions_from_agent(
             )
 
         for zip_path in actions_dir.rglob("*.zip"):
+            # Skip zips if there is a package.yaml in the same directory.
+            if (zip_path.parent / "package.yaml").exists():
+                continue
+
             zip_path = zip_path.absolute()
             package_yaml_contents = get_package_yaml_from_zip(zip_path)
             relative_path = zip_path.relative_to(actions_dir).as_posix()
