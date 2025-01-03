@@ -3093,3 +3093,6 @@ def test_fix_wrong_agent_import(
     assert not action_zip.exists()
     assert (action_zip.parent / "package.yaml").exists()
     assert not (temp_dir / "__agent_package_metadata__.json").exists()
+    assert not (
+        temp_dir / "actions/MyActions/action-one/__action_server_metadata__.json"
+    ).exists()

@@ -2284,7 +2284,10 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 # Move files and directories from the versioned folder to the root action directory
                 for item in temp_extract_path.rglob("*"):
-                    if item.is_file() and item.name != "metadata.json":
+                    if (
+                        item.is_file()
+                        and item.name != "__action_server_metadata__.json"
+                    ):
                         relative_path = item.relative_to(temp_extract_path)
                         final_path = zip_path.parent / relative_path
 
