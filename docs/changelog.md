@@ -1,6 +1,6 @@
 ## Unreleased
 
-- Update Action Server to `2.5.0`
+- Update Action Server to `2.5.1`
 - Add `sema4ai.fixWrongAgentImport` command
 - Show Output button when there are errors while running action or agent package commands
 - Show datasource configuration status in the tree
@@ -28,7 +28,6 @@
 - When launching, if the Data Sources are not properly configured, show error message to the user.
 - It's now possible to run `@query` and `@predict` decorated methods from the tree.
 - Code lenses are now shown to run `@query` and `@predict` decorated methods.
-- Action Server updated to `2.3.0`.
 - Agent CLI updated to `0.2.2`
 - Action input format automatically updated to `v3` (now have a `kind` field and an `actionSignature` field).
   - If the signature changes between action launches, the input file metadata is automatically updated.
