@@ -23,7 +23,7 @@ jobs:
 
           cd sema4ai
 
-          poetry config virtualenvs.prefer-active-python true
+          poetry config virtualenvs.use-poetry-python false
           poetry install
 
       - name: Install prettier
