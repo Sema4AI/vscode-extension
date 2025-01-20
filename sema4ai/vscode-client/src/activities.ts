@@ -1000,7 +1000,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     // - Vault
     // - Work items
 
-    const newEnv = updateLaunchEnvironmentCommonTasksAndActions(environment);
+    const newEnv: { [key: string]: string } = await updateLaunchEnvironmentCommonTasksAndActions(environment);
 
     let vaultInfoActionResult: ActionResult<IVaultInfo> = await commands.executeCommand(
         roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL

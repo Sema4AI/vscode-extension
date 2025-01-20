@@ -1,5 +1,10 @@
 ## Unreleased
 
+## New in 2.9.2 (2025-01-20)
+
+- Fixed error internally setting up the environment when running a task or action.
+  - Note: this made running with work items locally fail.
+
 ## New in 2.9.1 (2025-01-20)
 
 - Fixed error where the extension would not pass data server information when running a `@predict`.
