@@ -1,7 +1,10 @@
 ## Unreleased
 
+## New in 2.9.1 (2025-01-20)
 
-## New in 2.9.0 (2025-01-15)
+- Fixed error where the extension would not pass data server information when running a `@predict`.
+
+## New in 2.9.0 (2025-01-20)
 
 - Update Action Server to `2.5.1`
 - Add `sema4ai.fixWrongAgentImport` command
