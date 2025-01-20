@@ -3,6 +3,7 @@ import { OUTPUT_CHANNEL, logError } from "../channel";
 import { SEMA4AI_RESOLVE_INTERPRETER, SEMA4AI_UPDATE_LAUNCH_ENV } from "../robocorpCommands";
 import { ActionResult, InterpreterInfo } from "../protocols";
 import * as path from "path";
+import { updateDebugConfigurationAndAutoActivatePythonExtension } from "../debugger";
 
 export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
     // Code lens should always make sure that the first arg is the .py
@@ -60,5 +61,6 @@ export async function runRobocorpTasks(noDebug: boolean, args: string[]) {
         }
     }
     let debugSessionOptions: DebugSessionOptions = {};
+    debugConfiguration = await updateDebugConfigurationAndAutoActivatePythonExtension(debugConfiguration);
     debug.startDebugging(undefined, debugConfiguration, debugSessionOptions);
 }
