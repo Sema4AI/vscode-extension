@@ -619,7 +619,7 @@ advised to regenerate it as it may not work with future versions of the extensio
         // (we can only detect this with v2/v3 input files at this point)
         let requiresDataSource = false;
         const inputV3 = input as ActionInputsV3;
-        if (inputV3.metadata?.kind === "query" || inputV3.metadata?.kind === "prediction") {
+        if (inputV3.metadata?.kind === "query" || inputV3.metadata?.kind === "predict") {
             requiresDataSource = true;
         }
         if (input.metadata?.managedParamsSchemaDescription) {

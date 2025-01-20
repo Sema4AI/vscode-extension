@@ -12,7 +12,7 @@ interface ExtractedActionInfo {
     managed_params_json_schema: any;
     action_name: string;
     action_relative_path: string;
-    kind: "action" | "query" | "prediction";
+    kind: "action" | "query" | "predict";
 }
 
 // Create interface for the input we write.
@@ -37,7 +37,7 @@ export interface ActionInputsV3 {
         managedParamsSchemaDescription: any;
         inputFileVersion: "v3";
         // Kind is new in v3
-        kind: "action" | "query" | "prediction";
+        kind: "action" | "query" | "predict";
         // Action signature is new in v3
         // This can be later gotten from the actionRelativePath and action name to validate if the function signature is still the same
         // (if it's not, we should ask the user to update the input file).
