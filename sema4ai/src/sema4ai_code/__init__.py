@@ -2,7 +2,7 @@ import os.path
 import sys
 from typing import List
 
-__version__ = "2.9.1"
+__version__ = "2.9.2"
 version_info: list[int] = [int(x) for x in __version__.split(".")]
 
 __file__ = os.path.abspath(__file__)

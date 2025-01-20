@@ -91,7 +91,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             return;
         }
 
-        let env = interpreter.environ;
+        let env: { [key: string]: string } = interpreter.environ;
         const baseEnv = debugConfiguration.baseEnv;
         if (baseEnv) {
             env = { ...env, ...baseEnv };
