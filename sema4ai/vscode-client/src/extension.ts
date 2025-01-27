@@ -211,6 +211,7 @@ import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
 import { dropAllDataSources, dropDataSource, setupAllDataSources, setupDataSource } from "./robo/dataSourceHandling";
+import { promptForUnsavedChanges } from "./common";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -805,6 +806,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             actionPackagePath = vscode.Uri.file(selected.filePath);
         }
 
+        await promptForUnsavedChanges();
         const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
         const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
         if (opened) {
@@ -828,7 +830,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             }
             agentPackagePath = selected.directory;
         }
-
+        await promptForUnsavedChanges();
         const packResult = await packAgentPackage(agentPackagePath);
         if (!packResult) {
             return;

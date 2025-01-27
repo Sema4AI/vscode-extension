@@ -10,6 +10,7 @@ import {
     PackageTargetAndNameResult,
     revealInExtension,
     showErrorMessageWithShowOutputButton,
+    promptForUnsavedChanges,
 } from "../common";
 import { ActionResult, LocalPackageMetadataInfo, PackageType, PackageYamlName } from "../protocols";
 import * as roboCommands from "../robocorpCommands";
@@ -208,6 +209,7 @@ export const selectAndPackAgentPackage = async (agentPath?: string): Promise<voi
         agentPath = await selectAgentPackage();
     }
 
+    await promptForUnsavedChanges();
     const result = await packAgentPackage(agentPath);
     if (result) {
         window.showInformationMessage(`Package successfully packed at:\n${result.zipPath}`);

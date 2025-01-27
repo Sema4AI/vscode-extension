@@ -357,3 +357,23 @@ export async function showErrorMessageWithShowOutputButton(message: string) {
         OUTPUT_CHANNEL.show();
     }
 }
+
+export async function promptForUnsavedChanges() {
+    const unsavedFiles = vscode.workspace.textDocuments.filter((doc) => doc.isDirty && doc.uri.scheme === "file");
+
+    if (unsavedFiles.length > 0) {
+        const userResponse = await vscode.window.showWarningMessage(
+            `You have unsaved changes. Do you want to save them before proceeding?`,
+            { modal: true },
+            "Save All",
+            "Ignore"
+        );
+
+        if (userResponse === "Save All") {
+            await vscode.workspace.saveAll();
+            vscode.window.showInformationMessage("All files saved.");
+        } else if (userResponse === "Ignore") {
+            vscode.window.showInformationMessage("Ignoring unsaved files.");
+        }
+    }
+}

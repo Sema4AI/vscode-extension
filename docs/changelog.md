@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Display a warning to alert users of any unsaved changes before publishing an agent or action package.
+
 ## New in 2.9.2 (2025-01-20)
 
 - Fixed error internally setting up the environment when running a task or action.
