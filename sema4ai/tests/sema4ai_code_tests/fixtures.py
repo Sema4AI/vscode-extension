@@ -27,11 +27,6 @@ RCC_TEMPLATE_NAMES = [
     "02-python-browser",
     "03-python-workitems",
     "04-python-assistant-ai",
-    "11-rfw-standard",
-    "12-rfw-playwright",
-    "13-rfw-assistant",
-    "14-rfw-producer-consumer",
-    "15-rfw-extended-producer-consumer",
 ]
 
 
