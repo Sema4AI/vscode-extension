@@ -41,6 +41,7 @@ import {
     ActionPackageTargetInfo,
     revealInExtension,
     showErrorMessageWithShowOutputButton,
+    promptForUnsavedChanges,
 } from "../common";
 import { slugify } from "../slugify";
 import { fileExists, makeDirs, readFromFile, writeToFile } from "../files";
@@ -1201,6 +1202,7 @@ export const publishActionPackage = async (actionPackagePath?: vscode.Uri) => {
                 return;
             }
 
+            await promptForUnsavedChanges();
             const tempDir = path.join(os.tmpdir(), "vscode-extension", Date.now().toString());
             try {
                 fs.mkdirSync(tempDir, { recursive: true });
@@ -1268,6 +1270,7 @@ export const buildActionPackage = async (actionPackagePath?: vscode.Uri) => {
                 return;
             }
 
+            await promptForUnsavedChanges();
             progress.report({ message: "Building package" });
             const packagePath = await buildPackage(actionPackagePath.fsPath, actionPackagePath.fsPath);
             if (!packagePath) {
