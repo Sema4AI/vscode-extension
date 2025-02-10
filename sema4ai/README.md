@@ -18,7 +18,7 @@ Main features include:
 
 -   **Deploy projects to Control Room** - Run unattended automation in a safe, reliable and easy to use Cloud Platform.
 
-> Note: the use of cloud-based orchestration in [Control Room](https://cloud.robocorp.com/) requires a free account.
+> Note: the use of cloud-based orchestration in [Control Room](https://sema4.ai/docs/manage-agents/meet-control-room) requires an account.
 
 ![Example of a Robot running with the extension](images/gif_run.gif)
 
@@ -34,7 +34,7 @@ Main features include:
 
 4. Open the sidebar and start running you actions. You can also start the Action Server from the sidebar.
 
-Full instructions are available at our [documentation site](https://sema4.ai/docs/platform/vs-code) for the VS Code Extension.
+Full instructions are available at our [documentation site](https://sema4.ai/docs/build-agents/develop-actions) for the VS Code Extension.
 
 This is under active development, so please [contact us](https://sema4.ai/contact-us/) for issues and feature requests.
 
