@@ -6,8 +6,8 @@ import collections
 import itertools
 import re
 import warnings
-from typing import List, Optional, SupportsInt, Tuple, Union
 from collections.abc import Callable, Iterator
+from typing import SupportsInt, Union
 
 from .pip_packaging_structure import (
     Infinity,

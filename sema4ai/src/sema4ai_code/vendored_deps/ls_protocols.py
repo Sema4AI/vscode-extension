@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypedDict, Union
+from typing import Any, TypedDict
 
 
 class _DiagnosticSeverity:

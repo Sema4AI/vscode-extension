@@ -1,5 +1,3 @@
-from typing import Optional
-
 import yaml
 
 from .ls_protocols import _RangeTypedDict
@@ -86,6 +84,21 @@ class dict_with_location(dict):
     # location: tuple(start_line, start_col, end_line, end_col)
     location: tuple[int, int, int, int] | None = None
 
+    def as_range(self) -> _RangeTypedDict:
+        assert self.location
+        start_line, start_col, end_line, end_col = self.location
+        return create_range_from_location(start_line, start_col, end_line, end_col)
+
+
+class float_with_location(float):
+    # location: tuple(start_line, start_col, end_line, end_col)
+    location: tuple[int, int, int, int] | None = None
+
+    def as_range(self) -> _RangeTypedDict:
+        assert self.location
+        start_line, start_col, end_line, end_col = self.location
+        return create_range_from_location(start_line, start_col, end_line, end_col)
+
 
 class LoaderWithLines(yaml.SafeLoader):
     def __init__(self, stream):
@@ -99,6 +112,20 @@ class LoaderWithLines(yaml.SafeLoader):
         self.add_constructor(
             "tag:yaml.org,2002:map", LoaderWithLines.construct_yaml_map
         )
+        self.add_constructor(
+            "tag:yaml.org,2002:float", LoaderWithLines.construct_yaml_float
+        )
+
+    def construct_yaml_float(self, node, *args, **kwargs):
+        scalar = yaml.SafeLoader.construct_yaml_float(self, node, *args, **kwargs)
+        ret = float_with_location(scalar)
+        ret.location = (
+            node.start_mark.line,
+            node.start_mark.column,
+            node.end_mark.line,
+            node.end_mark.column,
+        )
+        return ret
 
     def construct_yaml_map(self, node, *args, **kwargs):
         (obj,) = yaml.SafeLoader.construct_yaml_map(self, node, *args, **kwargs)

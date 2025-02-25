@@ -10,7 +10,6 @@ from collections import namedtuple
 from functools import lru_cache
 from getpass import getpass
 from os.path import abspath, expanduser
-from typing import Tuple
 from urllib.parse import quote_plus  # noqa: F401
 from urllib.parse import unquote  # noqa (add to public API).
 from urllib.parse import ParseResult

@@ -8,12 +8,11 @@ import shutil
 import threading
 import time
 import typing
+from collections.abc import Iterator, Sequence
 from concurrent.futures import Future
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
-from collections.abc import Iterator, Sequence
 
 from ._deps_protocols import (
     CondaVersionInfo,
@@ -396,7 +395,7 @@ class _AfterDownloadMakeSqlite:
         index_conda_info(json_file, target_sqlite_file)
         return target_sqlite_file
 
-    def __call__(self, download_future: "Future[Tuple[Path, Arch]]"):
+    def __call__(self, download_future: "Future[tuple[Path, Arch]]"):
         json_file = None
         try:
             json_file, arch = download_future.result()

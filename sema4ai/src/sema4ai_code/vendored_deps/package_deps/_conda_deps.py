@@ -1,6 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, Optional
 from collections.abc import Iterator
+from dataclasses import dataclass
 
 from ..ls_protocols import _RangeTypedDict
 from .conda_impl import conda_match_spec, conda_version

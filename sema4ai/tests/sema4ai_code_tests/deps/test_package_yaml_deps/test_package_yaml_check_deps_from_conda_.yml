@@ -1,5 +1,5 @@
 - message: 'Error: expected ''dependencies'' entry to be a dict (with ''conda-forge''
-    and ''pypi'' entries). Found: ''<class ''list''>'''
+    and ''pypi'' entries). Found: ''list'''
   range:
     end:
       character: 0
