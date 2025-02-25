@@ -3,7 +3,6 @@ import os
 import sys
 import typing
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from .cli_errors import ActionPackageError
 
@@ -425,7 +424,7 @@ def create_conda_from_package_yaml(datadir: Path, package_yaml: Path) -> Path:
         raise ActionPackageError(f"File does not exist ({package_yaml}).")
 
     try:
-        with open(package_yaml, encoding="utf-8") as stream:
+        with open(package_yaml, "r", encoding="utf-8") as stream:
             package_yaml_contents = yaml.safe_load(stream)
     except Exception:
         raise ActionPackageError(f"Error loading file as yaml ({package_yaml}).")

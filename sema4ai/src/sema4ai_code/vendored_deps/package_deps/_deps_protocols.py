@@ -2,10 +2,9 @@
 import datetime
 import sys
 import typing
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple, Union
-from collections.abc import Iterator, Sequence
 
 # Hack so that we don't break the runtime on versions prior to Python 3.8.
 if sys.version_info[:2] < (3, 8):

@@ -24,7 +24,7 @@ class InvalidVersionSpec(RuntimeError):
 log = getLogger(__name__)
 
 
-def normalized_version(version: str) -> VersionOrder:
+def normalized_version(version: str) -> "VersionOrder":
     """Parse a version string and return VersionOrder object."""
     return VersionOrder(version)
 

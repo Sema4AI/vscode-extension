@@ -2,7 +2,6 @@ import datetime
 import logging
 import typing
 import weakref
-from typing import Dict, List, Optional, Union
 from collections.abc import Iterator, Sequence
 
 from ._deps_protocols import PyPiInfoTypedDict, ReleaseData, Versions, VersionStr

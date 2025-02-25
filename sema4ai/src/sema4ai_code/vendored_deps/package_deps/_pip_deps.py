@@ -1,6 +1,6 @@
-from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple
 from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import Any
 
 from ..ls_protocols import _RangeTypedDict
 

@@ -14,8 +14,9 @@ def test_oauth2_server_basic():
 
     result = post(f"{address}/foo/bar")
     result.raise_for_status()
-    last_uri = last_request.result(timeout=10)
-    assert last_uri == {"uri": f"{address}/foo/bar", "body": ""}
+    info = last_request.result(timeout=10)
+    info.pop("headers")
+    assert info == {"uri": f"{address}/foo/bar", "body": ""}
 
 
 def test_oauth2_server_cancel():
