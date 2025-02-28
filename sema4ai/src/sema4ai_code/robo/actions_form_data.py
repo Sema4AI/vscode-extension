@@ -201,30 +201,59 @@ Payload = Dict[str, Any]
 
 
 def form_data_to_payload(data: List[PropertyFormData]) -> Payload:
+    import json
+
     root: Payload = {}
 
     for item in data:
         levels = item.name.split(".")
         property_name = levels[-1]
 
-        current_level = root
-        for level in levels[:-1]:
-            if isinstance(current_level, list):
-                current_level = current_level[-1]
-            elif isinstance(current_level, dict):
-                if current_level.get(level) is None:
-                    current_level[level] = {}
-                current_level = current_level[level]
-            else:
-                raise Exception(f"Unexpected type: {type(current_level)}")
+        current_level = parent = root
+        proceed = True
+        for i, level in enumerate(levels[:-1]):
+            try:
+                if isinstance(parent, list):
+                    if parent:
+                        current_level = parent[-1]
+                    else:
+                        if (
+                            len(levels) > i + 1 and levels[i + 1] == "0"
+                        ):  # This means list[list] -- in which case we just create one empty list.
+                            proceed = False
+                            break
+                        else:
+                            parent.append({})
+                            current_level = parent[-1]
+                elif isinstance(parent, dict):
+                    if parent.get(level) is None:
+                        parent[level] = {}
+                    current_level = parent[level]
+                else:
+                    raise Exception(f"Unexpected type: {type(current_level)}")
+            except Exception:
+                raise Exception(
+                    f"Error setting {level} for {item.name}. Built defaults so far:\n{json.dumps(root, indent=2)}"
+                )
+            parent = current_level
+
+        if not proceed:
+            continue
 
         if item.prop.type == InputPropertyType.OBJECT:
-            current_level[property_name] = eval(str(item.value))
+            if isinstance(current_level, list):
+                current_level.append(json.loads(str(item.value)))
+            else:
+                current_level[property_name] = json.loads(str(item.value))
         elif item.prop.type == InputPropertyType.ARRAY:
-            if property_name not in current_level:
-                current_level[property_name] = [{}]
+            if isinstance(current_level, dict):
+                if property_name not in current_level:
+                    current_level[property_name] = []
         elif isinstance(current_level, list):
-            current_level[0] = item.value
+            if not current_level:
+                current_level.append(item.value)
+            else:
+                current_level[0] = item.value
         else:
             current_level[property_name] = item.value
 

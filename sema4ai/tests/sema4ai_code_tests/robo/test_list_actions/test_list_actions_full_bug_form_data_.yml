@@ -1,0 +1,143 @@
+send_chat_message_with_options:
+  action_name: send_chat_message_with_options
+  action_relative_path: my_action.py
+  default_values:
+    account_url: <specify-secret>
+    authorization_token: <specify-secret>
+    debug: false
+    messages:
+    - {}
+    model: ''
+    query: ''
+    search_services:
+      services:
+      - filter: {}
+        id_column: ''
+        max_results: 0
+        name: ''
+        title_column: ''
+    semantic_models:
+      models:
+      - file: ''
+        inline: ''
+  informal_schema_representation:
+  - 'query: string'
+  - 'search_services.services: array: List of search services.'
+  - 'search_services.services.0.name: string: The fully-qualified name of the Cortex
+    Search Service (e.g., ''database.schema.cortex_search_service'').'
+  - 'search_services.services.0.max_results: integer: Maximum number of search results
+    to provide.'
+  - 'search_services.services.0.title_column: string: Column to serve as the document
+    title.'
+  - 'search_services.services.0.id_column: string: Column to serve as the document
+    ID.'
+  - 'search_services.services.0.filter: object: A filter object to apply to the search
+    results.'
+  - 'semantic_models.models: array: List of semantic models.'
+  - 'semantic_models.models.0.file: string: Path to the semantic model YAML file (e.g.,
+    ''@my_db.my_schema.my_stage/my_semantic_model.yaml'').'
+  - 'semantic_models.models.0.inline: string: A string containing the entire semantic
+    model YAML.'
+  - 'model: string'
+  - 'messages: array'
+  - 'messages.0: object'
+  - 'debug: boolean'
+  json_schema:
+    properties:
+      debug:
+        default: false
+        description: ''
+        title: Debug
+        type: boolean
+      messages:
+        default: []
+        items:
+          type: object
+        title: Messages
+        type: array
+      model:
+        default: llama3.1-405b
+        description: ''
+        title: Model
+        type: string
+      query:
+        description: ''
+        title: Query
+        type: string
+      search_services:
+        default:
+          services: []
+        properties:
+          services:
+            description: List of search services.
+            items:
+              properties:
+                filter:
+                  description: A filter object to apply to the search results.
+                  title: Filter
+                  type: object
+                id_column:
+                  default: ''
+                  description: Column to serve as the document ID.
+                  title: Id Column
+                  type: string
+                max_results:
+                  default: 4
+                  description: Maximum number of search results to provide.
+                  title: Max Results
+                  type: integer
+                name:
+                  description: The fully-qualified name of the Cortex Search Service
+                    (e.g., 'database.schema.cortex_search_service').
+                  title: Name
+                  type: string
+                title_column:
+                  default: ''
+                  description: Column to serve as the document title.
+                  title: Title Column
+                  type: string
+              required:
+              - name
+              title: SearchService
+              type: object
+            title: Services
+            type: array
+        required:
+        - services
+        title: Search Services
+        type: object
+      semantic_models:
+        default:
+          models: []
+        properties:
+          models:
+            description: List of semantic models.
+            items:
+              properties:
+                file:
+                  default: ''
+                  description: Path to the semantic model YAML file (e.g., '@my_db.my_schema.my_stage/my_semantic_model.yaml').
+                  title: File
+                  type: string
+                inline:
+                  default: ''
+                  description: A string containing the entire semantic model YAML.
+                  title: Inline
+                  type: string
+              title: SemanticModel
+              type: object
+            title: Models
+            type: array
+        required:
+        - models
+        title: Semantic Models
+        type: object
+    required:
+    - query
+    type: object
+  kind: action
+  managed_params_json_schema:
+    account_url:
+      type: Secret
+    authorization_token:
+      type: Secret

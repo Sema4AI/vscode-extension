@@ -4,6 +4,7 @@
 - Support launching tasks from code lenses with the `Python Debugger (PyDev)` extension.
 - Support (validating) `external-endpoints` in `package.yaml` (to allow configuring firewall settings for egress rules).
 - Using Action Server `2.6.0` now.
+- Fix issue where the default values for the action run wouldn't be generated on some more complex use-cases.
 
 ## New in 2.9.2 (2025-01-20)
 

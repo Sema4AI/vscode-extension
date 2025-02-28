@@ -240,6 +240,67 @@ def my_action(google_secret: OAuth2Secret[
 """
 
 
+def bug_form_data() -> str:
+    return """
+from sema4ai.actions import action, Secret, Response
+import os
+from typing import List, Annotated
+from pydantic import BaseModel, Field
+
+
+class SearchService(BaseModel):
+    name: Annotated[str, Field(
+        description="The fully-qualified name of the Cortex Search Service (e.g., 'database.schema.cortex_search_service')."
+    )]
+    max_results: Annotated[int, Field(
+        default=4, description="Maximum number of search results to provide."
+    )]
+    title_column: Annotated[str, Field(
+        default="", description="Column to serve as the document title."
+    )]
+    id_column: Annotated[str, Field(
+        default="", description="Column to serve as the document ID."
+    )]
+    filter: Annotated[dict, Field(
+        default_factory=dict,
+        description="A filter object to apply to the search results.",
+    )]
+
+class SemanticModel(BaseModel):
+    file: str = Field(
+        default="",
+        description="Path to the semantic model YAML file (e.g., '@my_db.my_schema.my_stage/my_semantic_model.yaml').",
+    )
+    inline: str = Field(
+        default="", description="A string containing the entire semantic model YAML."
+    )
+
+
+class SearchServicesList(BaseModel):
+    services: Annotated[List[SearchService], Field(description="List of search services.")]
+
+
+class SemanticModelsList(BaseModel):
+    models: Annotated[List[SemanticModel], Field(description="List of semantic models.")]
+
+
+@action
+def send_chat_message_with_options(
+    query: str,
+    account_url: Secret,
+    search_services: SearchServicesList = SearchServicesList(services=[]),
+    semantic_models: SemanticModelsList = SemanticModelsList(models=[]),
+    model: str = "llama3.1-405b",
+    messages: list[dict] = [],
+    debug: bool = False,
+    authorization_token: Secret = Secret.model_validate(
+        os.getenv("authorization_token", "")
+    ),
+) -> Response[str]:
+    return Response(result="result")
+"""
+
+
 def data_types() -> str:
     return """
 from datasources import ChurnPredictionDataSource, FileChurnDataSource
@@ -376,7 +437,14 @@ def test_list_actions_and_datasources_mutiple(data_regression, scenario, tmpdir)
 
 @pytest.mark.parametrize(
     "scenario",
-    [just_oauth2, multiple_types, just_enum, table_type, complex_type],
+    [
+        just_oauth2,
+        multiple_types,
+        just_enum,
+        table_type,
+        complex_type,
+        bug_form_data,
+    ],
 )
 def test_list_actions_full(
     tmpdir, actions_version_fixture, scenario, data_regression
