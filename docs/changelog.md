@@ -1,4 +1,4 @@
-## Unreleased
+## New in 2.10.0 (2025-02-28)
 
 - Display a warning to alert users of any unsaved changes before publishing an agent or action package.
 - Support launching tasks from code lenses with the `Python Debugger (PyDev)` extension.
