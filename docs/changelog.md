@@ -1,3 +1,8 @@
+## Unreleased
+
+- The `Package Resources` and `Control Room` are initially collapsed when the Sema4.ai
+  extension is started the first time (after that, the state when vscode is closed is used).
+
 ## New in 2.10.0 (2025-02-28)
 
 - Display a warning to alert users of any unsaved changes before publishing an agent or action package.

@@ -303,12 +303,14 @@
                 {
                     "id": "sema4ai-package-resources-tree",
                     "name": "Package Resources",
-                    "contextualTitle": "Package Resources"
+                    "contextualTitle": "Package Resources",
+                    "visibility": "collapsed"
                 },
                 {
                     "id": "sema4ai-cloud-tree",
                     "name": "Control Room",
-                    "contextualTitle": "Sema4.ai"
+                    "contextualTitle": "Sema4.ai",
+                    "visibility": "collapsed"
                 }
             ],
             "sema4ai-python-view-output": [
