@@ -3,12 +3,21 @@ from typing import Optional, Union
 
 
 class TreeView:
-    def __init__(self, id, name, contextual_title, menus, add_to_package_json=True):
+    def __init__(
+        self,
+        id,
+        name,
+        contextual_title,
+        menus,
+        add_to_package_json=True,
+        visibility=None,
+    ):
         self.id = id
         self.name = name
         self.contextual_title = contextual_title
         self.menus = menus
         self.add_to_package_json = add_to_package_json
+        self.visibility = visibility
 
 
 class TreeViewContainer:
@@ -259,6 +268,7 @@ TREE_VIEW_CONTAINERS = [
                 id="sema4ai-package-resources-tree",
                 name="Package Resources",
                 contextual_title="Package Resources",
+                visibility="collapsed",
                 menus={
                     "view/item/context": [
                         # Locators (root)
@@ -334,6 +344,7 @@ TREE_VIEW_CONTAINERS = [
                 id="sema4ai-cloud-tree",
                 name="Control Room",
                 contextual_title="Sema4.ai",
+                visibility="collapsed",
                 menus={
                     "view/item/context": [
                         Menu(
@@ -400,12 +411,23 @@ def get_views_containers():
     }
 
 
+def create_tree_in_package_json(tree):
+    ret = {
+        "id": tree.id,
+        "name": tree.name,
+        "contextualTitle": tree.contextual_title,
+    }
+    if tree.visibility is not None:
+        ret["visibility"] = tree.visibility
+    return ret
+
+
 def get_tree_views_for_package_json():
     ret = {}
 
     for tree_view_container in TREE_VIEW_CONTAINERS:
         ret[tree_view_container.id] = [
-            {"id": tree.id, "name": tree.name, "contextualTitle": tree.contextual_title}
+            create_tree_in_package_json(tree)
             for tree in tree_view_container.tree_views
             if tree.add_to_package_json
         ]
