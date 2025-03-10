@@ -231,3 +231,13 @@ def get_default_tool_location(tool: Tool) -> str:
     return get_extension_relative_path(
         "bin", f"{executable_name}{executable_extension}"
     )
+
+
+def is_valid_semver_version(version: str) -> bool:
+    import re
+
+    SEMVER_REGEX = re.compile(
+        r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$"
+    )
+
+    return SEMVER_REGEX.match(version) is not None

@@ -9,6 +9,8 @@ from typing import Any, Generic, Optional, TypeVar
 
 from sema4ai_ls_core.core_log import get_logger
 
+from sema4ai_code.tools import is_valid_semver_version
+
 if typing.TYPE_CHECKING:
     from tree_sitter import Node, Tree
 
@@ -31,6 +33,7 @@ class _ExpectedTypeEnum(Enum):
     action_package_version_link = "action_package_version_link"
     action_package_name_link = "action_package_name_link"
     zip_or_folder_based_on_path = "zip_or_folder_based_on_path"
+    agent_semver_version = "agent_semver_version"
 
 
 class _YamlNodeKind(Enum):
@@ -620,6 +623,22 @@ class Validator:
                         message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
                         node=yaml_node.data.node,
                     )
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.agent_semver_version
+            ):
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    version = self._get_value_text(yaml_node)
+                    if not is_valid_semver_version(version):
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be a valid semantic version (found {version!r}).",
+                            node=yaml_node.data.node,
+                        )
             elif spec_node.data.expected_type.expected_type in (
                 _ExpectedTypeEnum.action_package_version_link,
                 _ExpectedTypeEnum.action_package_name_link,

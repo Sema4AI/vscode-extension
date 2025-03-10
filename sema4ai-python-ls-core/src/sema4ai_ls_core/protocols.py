@@ -916,7 +916,7 @@ class IMonitor(Protocol):
         """
 
 
-class ActionResultDict(TypedDict, Generic[T]):
+class ActionResultDict(TypedDict):
     success: bool
     message: None | (
         str
