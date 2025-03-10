@@ -466,7 +466,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             }
             self._additional_load_errors.append(diagnostic)
 
-        if version and not is_valid_semver_version(version):
+        if not is_valid_semver_version(version):
             diagnostic = {
                 "range": extract_range(version),
                 "severity": _DiagnosticSeverity.Error,

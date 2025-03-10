@@ -634,7 +634,7 @@ class Validator:
                     )
                 else:
                     version = self._get_value_text(yaml_node)
-                    if not is_valid_semver_version(version):
+                    if version and not is_valid_semver_version(version):
                         yield Error(
                             message=f"Expected {spec_node.data.path} to be a valid semantic version (found {version!r}).",
                             node=yaml_node.data.node,
