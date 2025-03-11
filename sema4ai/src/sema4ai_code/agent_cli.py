@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 log = get_logger(__name__)
 
-AGENT_CLI_VERSION = "v0.2.2"
+AGENT_CLI_VERSION = "v1.0.0"
 
 
 def download_agent_cli(

@@ -8,6 +8,8 @@ import typing
 from collections.abc import Iterator
 from typing import Optional, Union
 
+from sema4ai_code.tools import is_valid_semver_version
+
 from ..ls_protocols import _DiagnosticSeverity, _DiagnosticsTypedDict
 from ._deps_protocols import ICondaCloud, IPyPiCloud
 
@@ -453,6 +455,25 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         data = self._yaml_data
         if not data:
             return
+
+        version = data.get("version")
+        if not version:
+            diagnostic = {
+                "range": create_range_from_location(0, 0),
+                "severity": _DiagnosticSeverity.Error,
+                "source": "sema4ai",
+                "message": "Error: 'version' entry not found",
+            }
+            self._additional_load_errors.append(diagnostic)
+
+        if version and not is_valid_semver_version(version):
+            diagnostic = {
+                "range": extract_range(version),
+                "severity": _DiagnosticSeverity.Error,
+                "source": "sema4ai",
+                "message": "Error: 'version' entry must be a valid semver version",
+            }
+            self._additional_load_errors.append(diagnostic)
 
         diagnostic: _DiagnosticsTypedDict
         dependencies_key_entry: str_with_location_capture = str_with_location_capture(

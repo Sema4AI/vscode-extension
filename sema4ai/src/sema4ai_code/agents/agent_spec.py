@@ -67,7 +67,7 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   "agent-package/agents/version": {
     "description": "Version of the Agent Package. Example: \"1.3.0\"",
     "required": true,
-    "expected-type": "string"
+    "expected-type": "agent_semver_version"
   },
   "agent-package/agents/architecture": {
     "description": "The agent type. Accepted values are: \"agent\", \"plan_execute\". \"agent\" means using chat + RAG + tools, \"plan_execute\" means chat + RAG + Tools with the ability to plan/replan its approach to coming up with an answer to a user's question/prompt.",
@@ -200,6 +200,11 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   "agent-package/agents/runbooks": {
     "description": "Please use 'runbook' instead",
     "deprecated": true
+  },
+  "agent-package/exclude": {
+    "description": "Section with the excluded files.",
+    "required": false,
+    "expected-type": "list"
   }
 }
 """

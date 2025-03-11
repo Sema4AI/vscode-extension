@@ -11,3 +11,13 @@ agent-package:
       retrieval: retrieval.md
     action-packages: []
     resources: []
+  exclude:
+    - ./.git/**
+    - ./.vscode/**
+    - ./devdata/**
+    - ./output/**
+    - ./venv/**
+    - ./.venv/**
+    - ./.DS_store/**
+    - ./**/*.pyc
+    - ./**/*.zip
