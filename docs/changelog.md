@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Update Agent CLI to `v1.0.0`
+- Add semver version check for agent and action packages
 - The `Package Resources` and `Control Room` are initially collapsed when the Sema4.ai
   extension is started the first time (after that, the state when vscode is closed is used).
 
