@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.11.0 (2025-03-11)
+
 - Pass datasource `name` and `engine` parameters to `sema4ai-data.database.add` call
 - Update Agent CLI to `v1.0.0`
 - Add semver version check for agent and action packages
