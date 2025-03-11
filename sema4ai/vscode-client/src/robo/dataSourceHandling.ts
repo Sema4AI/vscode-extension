@@ -5,6 +5,7 @@ import { DatasourceInfo, DataSourceState } from "../protocols";
 import { langServer } from "../extension";
 import {
     DATA_SERVER_STATUS_COMMAND_ID,
+    DATABASE_ADD_COMMAND_ID,
     startDataServerAndGetInfo,
     verifyDataExtensionIsInstalled,
 } from "../dataExtension";
@@ -245,7 +246,7 @@ export const setupDataSource = async (entry?: RobotEntry) => {
 
     if (isExternalDatasource(datasource)) {
         try {
-            await commands.executeCommand("sema4ai-data.database.add");
+            await commands.executeCommand(DATABASE_ADD_COMMAND_ID, null, datasource.name, datasource.engine);
         } catch (e) {
             logError("Could not run setup data source command", e, "ERR_DATA_SOURCE_SETUP");
             window.showErrorMessage(`"Could not run setup data source command: ${e.message}"`);

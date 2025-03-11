@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Pass datasource `name` and `engine` parameters to `sema4ai-data.database.add` call
 - Update Agent CLI to `v1.0.0`
 - Add semver version check for agent and action packages
 - The `Package Resources` and `Control Room` are initially collapsed when the Sema4.ai
