@@ -2,7 +2,7 @@ import os
 import typing
 import weakref
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 log = get_logger(__name__)
 
-AGENT_CLI_VERSION = "v1.0.0"
+AGENT_CLI_VERSION = "v1.0.5"
 
 
 def download_agent_cli(

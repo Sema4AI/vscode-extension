@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Updated Action Server to `2.9.0`
+- Updated Agent CLI to `v1.0.5`
+- Updated RCC to `v19.0.2`
+
 ## New in 2.11.0 (2025-03-11)
 
 - Pass datasource `name` and `engine` parameters to `sema4ai-data.database.add` call
