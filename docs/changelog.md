@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Added `SEMA4AI_FILE_MANAGEMENT_URL` environment variable when running actions to `file://<path-to-package>/devdata/chat-files`.
 - Updated Action Server to `2.9.0`
 - Updated Agent CLI to `v1.0.5`
 - Updated RCC to `v19.0.2`

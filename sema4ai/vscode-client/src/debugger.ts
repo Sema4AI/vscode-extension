@@ -135,7 +135,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         }
 
         if (isActionPackageLaunch) {
-            env = await updateLaunchEnvironmentCommonTasksAndActions(env);
+            env = await updateLaunchEnvironmentCommonTasksAndActions(env, debugConfiguration.package);
             // Vault/work-items features not available in action server at this point.
         } else {
             // Resolve environment (updates the environment to add vault
