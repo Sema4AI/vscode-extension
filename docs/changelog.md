@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Added `SEMA4AI_FILE_MANAGEMENT_URL` environment variable when running actions to `file://<path-to-package>/devdata/chat-files`.
+
 ## New in 2.11.0 (2025-03-11)
 
 - Pass datasource `name` and `engine` parameters to `sema4ai-data.database.add` call

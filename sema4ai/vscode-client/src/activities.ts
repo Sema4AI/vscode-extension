@@ -52,6 +52,8 @@ import {
 import { createActionPackage } from "./robo/actionPackage";
 import { createAgentPackage } from "./robo/agentPackage";
 import { langServer } from "./extension";
+import * as path from "path";
+import * as fs from "fs";
 
 export interface ListRobotSelectionOpts {
     showTaskPackages: boolean;
@@ -494,7 +496,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     let refresh = false;
     SELECT_OR_REFRESH: do {
         let workspaceSelection = await selectWorkspace(
-            "Please select a Workspace to upload ‘" + robot.name + "’ to.",
+            "Please select a Workspace to upload '" + robot.name + "' to.",
             refresh
         );
         if (workspaceSelection === undefined) {
@@ -605,7 +607,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
             let selectedItem: QuickPickItemWithAction = await showSelectOneQuickPick(
                 updateExistingCaptions,
-                "This will overwrite the robot ‘" + robotInfo.name + "’ on Control Room. Are you sure? "
+                "This will overwrite the robot '" + robotInfo.name + "' on Control Room. Are you sure? "
             );
 
             // robot.language-server.python
@@ -892,13 +894,28 @@ export async function createPackage() {
  * tasks will use `updateLaunchEnvironment`).
  */
 export async function updateLaunchEnvironmentCommonTasksAndActions(
-    environment: Record<string, string>
+    environment: Record<string, string>,
+    targetYaml?: string
 ): Promise<Record<string, string>> {
     const newEnv = applyOutViewIntegrationEnvVars(environment);
 
     const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
     if (externalApiUrl) {
         newEnv["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
+    }
+
+    if (targetYaml) {
+        const packageDir = path.dirname(targetYaml);
+        const devdataPath = path.join(packageDir, "devdata", "chat-files");
+
+        try {
+            if (!fs.existsSync(devdataPath)) {
+                fs.mkdirSync(devdataPath, { recursive: true });
+            }
+            newEnv["SEMA4AI_FILE_MANAGEMENT_URL"] = `file://${devdataPath}`;
+        } catch (error) {
+            logError("Error creating devdata/chat-files directory", error, "ERR_CREATE_DEVDATA_DIR");
+        }
     }
 
     return newEnv;
