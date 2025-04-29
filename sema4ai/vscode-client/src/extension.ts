@@ -205,8 +205,9 @@ import {
     updateAgentVersion,
     refreshAgentSpec,
     fixWrongAgentImport,
+    validateAgentPackage,
 } from "./robo/agentPackage";
-import { getSema4AIStudioURLForAgentZipPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
+import { getSema4AIStudioURLForAgentFolderPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
 import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
@@ -831,12 +832,16 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             agentPackagePath = selected.directory;
         }
         await promptForUnsavedChanges();
-        const packResult = await packAgentPackage(agentPackagePath);
-        if (!packResult) {
+
+        const validationResult = await validateAgentPackage(agentPackagePath);
+        if (!validationResult || !validationResult.success) {
+            vscode.window.showErrorMessage(validationResult?.message);
             return;
         }
 
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentZipPath(packResult.zipPath);
+        const agentSpecPath = Uri.joinPath(Uri.file(agentPackagePath)).fsPath;
+        const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentFolderPath(agentSpecPath);
+
         const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
         if (opened) {
             vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
