@@ -159,7 +159,9 @@ export const packAgentPackage = async (targetDir: string): Promise<{ zipPath: st
     return null;
 };
 
-export const validateAgentPackage = async (targetDir: string): Promise<{ success: boolean, message: string | null } | null> => {
+export const validateAgentPackage = async (
+    targetDir: string
+): Promise<{ success: boolean; message: string | null } | null> => {
     try {
         const result = await langServer.sendRequest<ActionResult<string>>("validateAgentPackage", {
             directory: targetDir,
@@ -168,7 +170,7 @@ export const validateAgentPackage = async (targetDir: string): Promise<{ success
         if (!result.success) {
             return {
                 success: false,
-                message: result.message || "Unknown validation error"
+                message: result.message || "Unknown validation error",
             };
         }
 
@@ -181,7 +183,6 @@ export const validateAgentPackage = async (targetDir: string): Promise<{ success
 
     return null;
 };
-
 
 const selectAgentPackage = async (): Promise<string> => {
     let ws: WorkspaceFolder | undefined = await askForWs();

@@ -207,7 +207,11 @@ import {
     fixWrongAgentImport,
     validateAgentPackage,
 } from "./robo/agentPackage";
-import { getSema4AIStudioURLForAgentFolderPath, getSema4AIStudioURLForFolderPath, getSema4AIStudioURLForAgentZipPath } from "./deepLink";
+import {
+    getSema4AIStudioURLForAgentFolderPath,
+    getSema4AIStudioURLForFolderPath,
+    getSema4AIStudioURLForAgentZipPath,
+} from "./deepLink";
 import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
