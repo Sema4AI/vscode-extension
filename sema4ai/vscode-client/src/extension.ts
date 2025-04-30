@@ -207,7 +207,7 @@ import {
     fixWrongAgentImport,
     validateAgentPackage,
 } from "./robo/agentPackage";
-import { getSema4AIStudioURLForAgentFolderPath, getSema4AIStudioURLForFolderPath } from "./deepLink";
+import { getSema4AIStudioURLForAgentFolderPath, getSema4AIStudioURLForFolderPath, getSema4AIStudioURLForAgentZipPath } from "./deepLink";
 import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
 import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
@@ -833,16 +833,36 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         }
         await promptForUnsavedChanges();
 
-        const validationResult = await validateAgentPackage(agentPackagePath);
-        if (!validationResult || !validationResult.success) {
-            vscode.window.showErrorMessage(validationResult?.message);
+        const sema4aiHome = await getRobocorpHome();
+        if (!sema4aiHome) {
+            vscode.window.showErrorMessage(`Unable to publish because no Sema4.ai Home was found.`);
             return;
         }
 
-        const agentSpecPath = Uri.joinPath(Uri.file(agentPackagePath)).fsPath;
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentFolderPath(agentSpecPath);
+        const versionTxtPath = path.join(sema4aiHome, "sema4ai-studio", "version.txt");
+        let opened: Thenable<boolean>;
+        if (await fileExists(versionTxtPath)) {
+            const validationResult = await validateAgentPackage(agentPackagePath);
+            if (!validationResult || !validationResult.success) {
+                vscode.window.showErrorMessage(validationResult?.message);
+                return;
+            }
 
-        const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
+            const agentSpecPath = Uri.joinPath(Uri.file(agentPackagePath)).fsPath;
+            const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentFolderPath(agentSpecPath);
+
+            opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
+        } else {
+            const packResult = await packAgentPackage(agentPackagePath);
+            if (!packResult) {
+                vscode.window.showErrorMessage(`Failed to pack the agent package`);
+                return;
+            }
+
+            const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentZipPath(packResult.zipPath);
+            opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
+        }
+
         if (opened) {
             vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
         } else {
