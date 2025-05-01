@@ -845,6 +845,8 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
 
         const versionTxtPath = path.join(sema4aiHome, "sema4ai-studio", "version.txt");
         let opened: Thenable<boolean>;
+
+        // if version.txt folder exists it means that studio is new enough to have this agent as a folder feature
         if (await fileExists(versionTxtPath)) {
             const validationResult = await validateAgentPackage(agentPackagePath);
             if (!validationResult || !validationResult.success) {
