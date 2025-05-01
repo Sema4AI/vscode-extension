@@ -5,8 +5,6 @@
 - Changed agent package publishing to use the folder instead of the packaging it as zip if Studio supports it.
 - Added `SEMA4AI_FILE_MANAGEMENT_URL` environment variable when running actions to `file://<path-to-package>/devdata/chat-files`.
 - Updated Action Server to `2.9.0`
-- Updated Agent CLI to `v1.0.5`
-- Updated RCC to `v19.0.2`
 
 ## New in 2.11.0 (2025-03-11)
 
