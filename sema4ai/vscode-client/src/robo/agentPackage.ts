@@ -159,6 +159,31 @@ export const packAgentPackage = async (targetDir: string): Promise<{ zipPath: st
     return null;
 };
 
+export const validateAgentPackage = async (
+    targetDir: string
+): Promise<{ success: boolean; message: string | null } | null> => {
+    try {
+        const result = await langServer.sendRequest<ActionResult<string>>("validateAgentPackage", {
+            directory: targetDir,
+        });
+
+        if (!result.success) {
+            return {
+                success: false,
+                message: result.message || "Unknown validation error",
+            };
+        }
+
+        return { success: true, message: null };
+    } catch (error) {
+        const errorMsg = `Failed to validate the agent at: ${targetDir}`;
+        logError(errorMsg, error, "ERR_VALIDATE_AGENT_PACKAGE");
+        showErrorMessageWithShowOutputButton(errorMsg);
+    }
+
+    return null;
+};
+
 const selectAgentPackage = async (): Promise<string> => {
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {

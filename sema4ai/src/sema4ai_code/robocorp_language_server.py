@@ -27,6 +27,7 @@ from sema4ai_ls_core.protocols import (
     DataSourceStateDict,
     IConfig,
     IMonitor,
+    IWorkspace,
     LibraryVersionInfoDict,
 )
 from sema4ai_ls_core.python_ls import BaseLintManager, PythonLanguageServer
@@ -530,6 +531,36 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return self._agent_cli.import_agent_package(
                 agent_package_zip, target_dir, monitor
             ).as_dict()
+
+    def m_validate_agent_package(
+        self, directory: str | None = None
+    ) -> ActionResultDict:
+        if not directory:
+            return ActionResult.make_failure(
+                f"directory not sent in arguments."
+            ).as_dict()
+
+        ws = self.workspace
+        if ws is None:
+            return {
+                "success": False,
+                "message": "Workspace already closed",
+                "result": None,
+            }
+
+        return require_monitor(
+            partial(self._validate_agent_package_threaded, directory, ws)
+        )
+
+    def _validate_agent_package_threaded(
+        self, directory: str, workspace: IWorkspace, monitor: IMonitor
+    ) -> ActionResultDict:
+        from sema4ai_ls_core.progress_report import progress_context
+
+        with progress_context(
+            self._endpoint, "Validating Agent Package", self._dir_cache
+        ):
+            return self._agent_cli.validate_agent_package(directory, workspace, monitor)
 
     @command_dispatcher(commands.SEMA4AI_CONFIGURATION_DIAGNOSTICS_INTERNAL)
     def _configuration_diagnostics_internal(

@@ -262,6 +262,17 @@ class AgentCli:
         )
         return command_result
 
+    def validate_agent_package(
+        self, directory: str, workspace: IWorkspace, monitor: IMonitor
+    ) -> ActionResultDict:
+        valid, error_message = self._validate_agent_package(
+            directory, workspace, monitor
+        )
+        if not valid:
+            return ActionResult(success=False, message=error_message).as_dict()
+
+        return ActionResult(success=True, message="").as_dict()
+
     def pack_agent_package(
         self, directory: str, workspace: IWorkspace, monitor: IMonitor
     ) -> ActionResultDict:
