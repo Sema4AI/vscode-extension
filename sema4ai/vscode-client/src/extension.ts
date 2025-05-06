@@ -217,6 +217,8 @@ import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
 import { dropAllDataSources, dropDataSource, setupAllDataSources, setupDataSource } from "./robo/dataSourceHandling";
 import { promptForUnsavedChanges } from "./common";
+import { installPackageYamlWatcher } from "./robo/packageYamlWatcher";
+import { installSema4aiActionWatcher } from "./robo/sema4aiActionWatcher";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -725,6 +727,12 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     C.registerWithoutStub(SEMA4AI_SUBMIT_ISSUE, async () => {
         await showSubmitIssueUI(context);
     });
+
+    // Install package.yaml watcher
+    installPackageYamlWatcher(context);
+
+    // Install Sema4.ai action package watcher
+    installSema4aiActionWatcher(context);
 
     // register Inspector applications
     C.registerWithoutStub(SEMA4AI_INSPECTOR, async () => {

@@ -316,6 +316,7 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         yield from self.iter_conda_issues()
         yield from self.iter_pip_issues()
         yield from self._iter_external_endpoints_issues()
+        yield from self._iter_version_consistency_issues()
 
     def _iter_external_endpoints_issues(self) -> Iterator[_DiagnosticsTypedDict]:
         from ..yaml_with_location import dict_with_location
@@ -440,6 +441,56 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                                     "source": "sema4ai",
                                     "message": f"Error: 'port' must be a valid integer between 0 and 65535 if provided in a rule. Found: {rule['port']!r} (type: {type_repr(rule['port'])})",
                                 }
+
+    def _iter_version_consistency_issues(self) -> Iterator[_DiagnosticsTypedDict]:
+        """Check if the package.yaml version matches the action package version in agent-spec.yaml."""
+        import yaml
+
+        data = self._yaml_data
+        if not data:
+            return
+
+        version = data.get("version")
+        if not version:
+            return  # Version check already reported in _load_yaml_info
+
+        agent_spec_path = (
+            pathlib.Path(self.path).parent.parent.parent.parent / "agent-spec.yaml"
+        )
+        if not agent_spec_path.exists():
+            return
+
+        try:
+            with agent_spec_path.open("r") as f:
+                agent_spec = yaml.safe_load(f)
+                action_packages = (
+                    agent_spec.get("agent-package", {})
+                    .get("agents", [{}])[0]
+                    .get("action-packages", [])
+                )
+
+                matching_action_inside_agent = None
+                for action in action_packages:
+                    if action.get("name") == data.get("name"):
+                        matching_action_inside_agent = action
+                        break
+
+                if matching_action_inside_agent:
+                    action_version_inside_agent = matching_action_inside_agent.get(
+                        "version"
+                    )
+                    if (
+                        action_version_inside_agent
+                        and version != action_version_inside_agent
+                    ):
+                        yield {
+                            "range": version.as_range(),
+                            "severity": _DiagnosticSeverity.Warning,
+                            "source": "sema4ai",
+                            "message": f"Action package version ({version}) does not match version in agent-spec.yaml ({action_version_inside_agent})",
+                        }
+        except Exception:
+            pass
 
     def _load_yaml_info(self) -> None:
         if self._loaded_yaml:

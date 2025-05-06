@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add better linting when an action is modified inside an agent.
+- Add error message when an action from an agent inside Sema4ai folder is modified.
 - Update RCC to `v20.1.1`
 - Update Agent CLI to `v1.1.0`
 - Changed agent package publishing to use the folder instead of the packaging it as zip if Studio supports it.

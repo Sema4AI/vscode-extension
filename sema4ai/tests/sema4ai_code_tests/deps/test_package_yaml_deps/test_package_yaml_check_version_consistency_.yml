@@ -1,0 +1,11 @@
+- message: Action package version (0.0.2) does not match version in agent-spec.yaml
+    (0.0.1)
+  range:
+    end:
+      character: 14
+      line: 6
+    start:
+      character: 9
+      line: 6
+  severity: 2
+  source: sema4ai
