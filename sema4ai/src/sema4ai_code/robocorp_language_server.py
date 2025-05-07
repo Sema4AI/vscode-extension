@@ -91,6 +91,10 @@ if typing.TYPE_CHECKING:
     from sema4ai_code.agents.gallery_actions import GalleryActionPackages
     from sema4ai_code.data.data_server_connection import DataServerConnection
 
+# Track when the last warning message was shown
+_last_warning_message_time: float = 0
+_WARNING_MESSAGE_THROTTLE_MS = 5 * 60 * 1000  # 5 minutes in milliseconds
+
 DataSourceSetupResponse = list[str]
 
 log = get_logger(__name__)
@@ -272,6 +276,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             plugin_manager=self._pm,
             lsp_messages=self._lsp_messages,
         )
+        self._last_warning_message_time: float = 0
 
         InspectorLanguageServer.__init__(self)
 
@@ -499,6 +504,50 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     def m_workspace__execute_command(self, command=None, arguments=()) -> Any:
         return command_dispatcher.dispatch(self, command, arguments)
+
+    @overrides(PythonLanguageServer.m_text_document__did_save)
+    def m_text_document__did_save(self, textDocument=None, **_kwargs):
+        PythonLanguageServer.m_text_document__did_save(self, textDocument, **_kwargs)
+
+        doc_uri = textDocument["uri"]
+
+        fs_path = uris.to_fs_path(doc_uri)
+
+        # Handle Sema4.ai folder files changes with warning message
+        if "Sema4.ai" in fs_path:
+            from sema4ai_ls_core.lsp import MessageType
+
+            now = time.time() * 1000  # Convert to milliseconds
+            if now - self._last_warning_message_time > _WARNING_MESSAGE_THROTTLE_MS:
+                self._last_warning_message_time = now
+                message = (
+                    "Changes to files under Sema4.ai folder will not be picked up when "
+                    "deploying, as gallery actions are always fetched from the gallery."
+                )
+                self._lsp_messages.show_message(
+                    message,
+                    MessageType.Warning,
+                )
+                return
+
+        # Handle package.yaml files changes with agent spec refresh
+        if fs_path.endswith(("package.yaml", "robot.yaml")):
+            from pathlib import Path
+
+            package_yaml_dir = Path(fs_path).parent
+
+            check_dir = package_yaml_dir.parent.parent
+            for _ in range(6):
+                agent_spec_path = check_dir / "agent-spec.yaml"
+                if agent_spec_path.exists():
+                    break
+                if not check_dir.parent or check_dir.parent == check_dir:
+                    return
+                check_dir = check_dir.parent
+
+            if agent_spec_path.exists():
+                # This is inside an agent package, refresh the agent spec
+                self._refresh_agent_spec({"agent_spec_path": str(agent_spec_path)})
 
     def m_import_agent_package_from_zip(
         self, target_dir: str | None = None, agent_package_zip: str | None = None

@@ -454,11 +454,14 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         if not version:
             return  # Version check already reported in _load_yaml_info
 
-        agent_spec_path = (
-            pathlib.Path(self.path).parent.parent.parent.parent / "agent-spec.yaml"
-        )
-        if not agent_spec_path.exists():
-            return
+        check_dir = pathlib.Path(self.path).parent.parent
+        for _ in range(6):
+            agent_spec_path = check_dir / "agent-spec.yaml"
+            if agent_spec_path.exists():
+                break
+            if not check_dir.parent or check_dir.parent == check_dir:
+                return
+            check_dir = check_dir.parent
 
         try:
             with agent_spec_path.open("r") as f:
@@ -489,6 +492,15 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                             "source": "sema4ai",
                             "message": f"Action package version ({version}) does not match version in agent-spec.yaml ({action_version_inside_agent})",
                         }
+                else:
+                    from ..yaml_with_location import create_range_from_location
+
+                    yield {
+                        "range": create_range_from_location(0, 0),
+                        "severity": _DiagnosticSeverity.Warning,
+                        "source": "sema4ai",
+                        "message": "Action package is not registered in agent-spec.yaml.",
+                    }
         except Exception:
             pass
 

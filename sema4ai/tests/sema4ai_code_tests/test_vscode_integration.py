@@ -3096,3 +3096,54 @@ def test_fix_wrong_agent_import(
     assert not (
         temp_dir / "actions/MyActions/action-one/__action_server_metadata__.json"
     ).exists()
+
+
+def test_warning_message_throttling(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    cases: CasesFixture,
+) -> None:
+    """Test that warning messages for Sema4.ai folder changes are properly throttled."""
+    import time
+
+    from sema4ai_ls_core import uris
+
+    language_server = language_server_initialized
+    agent_path = Path(cases.get_path("complex-agent"))
+    package_yaml = agent_path / "actions/Sema4.ai/guide/package.yaml"
+    test_file_uri = uris.from_fs_path(str(package_yaml))
+
+    language_server.write(
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": {"textDocument": {"uri": test_file_uri}},
+        }
+    )
+    time.sleep(0.1)
+
+    # Second save within throttle period - should not update _last_warning_message_time
+    time_before_second_save = _last_warning_message_time
+    language_server.write(
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": {"textDocument": {"uri": test_file_uri}},
+        }
+    )
+    time.sleep(0.1)
+    assert _last_warning_message_time == time_before_second_save
+
+    # Mock time to be after throttle period
+    with mock.patch("time.time") as mock_time:
+        mock_time.return_value = time.time() + (6 * 60)
+
+        time_before_third_save = _last_warning_message_time
+        language_server.write(
+            {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didSave",
+                "params": {"textDocument": {"uri": test_file_uri}},
+            }
+        )
+        time.sleep(0.1)
+        assert _last_warning_message_time > time_before_third_save

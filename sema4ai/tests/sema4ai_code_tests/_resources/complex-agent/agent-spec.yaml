@@ -1,0 +1,39 @@
+agent-package:
+  spec-version: v2
+  agents:
+  - name: TestAgent
+    description: New Agent Description
+    model:
+      provider: OpenAI
+      name: gpt-4o
+    version: 0.0.1
+    architecture: agent
+    reasoning: disabled
+    runbook: runbook.md
+    action-packages:
+    - name: Guide
+      organization: Sema4.ai
+      version: 0.0.1
+      path: Sema4.ai/guide
+      type: folder
+      whitelist: ''
+    - name: Follow
+      organization: MyActions
+      version: 0.0.1
+      path: MyActions/follow
+      type: folder
+      whitelist: ''
+    knowledge: []
+    metadata:
+      mode: conversational
+  exclude:
+  - ./.git/**
+  - ./.vscode/**
+  - ./devdata/**
+  - ./output/**
+  - ./venv/**
+  - ./.venv/**
+  - ./**/.env
+  - ./**/.DS_Store
+  - ./**/*.pyc
+  - ./*.zip
