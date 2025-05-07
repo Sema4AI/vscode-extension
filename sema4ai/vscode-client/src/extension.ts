@@ -725,6 +725,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     C.registerWithoutStub(SEMA4AI_SUBMIT_ISSUE, async () => {
         await showSubmitIssueUI(context);
     });
+
     // register Inspector applications
     C.registerWithoutStub(SEMA4AI_INSPECTOR, async () => {
         await showInspectorUI(context, IAppRoutes.LOCATORS_MANAGER);
