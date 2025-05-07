@@ -92,7 +92,6 @@ if typing.TYPE_CHECKING:
     from sema4ai_code.data.data_server_connection import DataServerConnection
 
 # Track when the last warning message was shown
-_last_warning_message_time: float = 0
 _WARNING_MESSAGE_THROTTLE_MS = 5 * 60 * 1000  # 5 minutes in milliseconds
 
 DataSourceSetupResponse = list[str]
@@ -529,9 +528,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     MessageType.Warning,
                 )
                 return
-
-        # Handle package.yaml files changes with agent spec refresh
-        if fs_path.endswith(("package.yaml", "robot.yaml")):
+        elif fs_path.endswith("package.yaml"):
             from pathlib import Path
 
             package_yaml_dir = Path(fs_path).parent

@@ -3098,20 +3098,29 @@ def test_fix_wrong_agent_import(
     ).exists()
 
 
-def test_warning_message_throttling(
+def test_document_did_save_on_sema4ai_folder(
     language_server_initialized: IRobocorpLanguageServerClient,
     cases: CasesFixture,
 ) -> None:
-    """Test that warning messages for Sema4.ai folder changes are properly throttled."""
     import time
 
     from sema4ai_ls_core import uris
+    from sema4ai_ls_core.callbacks import Callback
 
     language_server = language_server_initialized
     agent_path = Path(cases.get_path("complex-agent"))
     package_yaml = agent_path / "actions/Sema4.ai/guide/package.yaml"
     test_file_uri = uris.from_fs_path(str(package_yaml))
 
+    # Set up message listener to capture warning messages
+    message_matcher = language_server.obtain_pattern_message_matcher(
+        {"method": "window/showMessage"}
+    )
+    warning_messages = []
+    message_matcher.on_message = Callback()
+    message_matcher.on_message.register(warning_messages.append)
+
+    # First save - should trigger a warning
     language_server.write(
         {
             "jsonrpc": "2.0",
@@ -3119,10 +3128,11 @@ def test_warning_message_throttling(
             "params": {"textDocument": {"uri": test_file_uri}},
         }
     )
-    time.sleep(0.1)
+    assert message_matcher.event.wait(1)
+    assert len(warning_messages) == 1
+    assert "Changes to files under Sema4.ai" in warning_messages[0]["params"]["message"]
 
-    # Second save within throttle period - should not update _last_warning_message_time
-    time_before_second_save = _last_warning_message_time
+    # Second save - should be throttled
     language_server.write(
         {
             "jsonrpc": "2.0",
@@ -3130,20 +3140,48 @@ def test_warning_message_throttling(
             "params": {"textDocument": {"uri": test_file_uri}},
         }
     )
-    time.sleep(0.1)
-    assert _last_warning_message_time == time_before_second_save
+    assert message_matcher.event.wait(1)
+    assert len(warning_messages) == 1, "Expected second save to be throttled"
 
-    # Mock time to be after throttle period
-    with mock.patch("time.time") as mock_time:
-        mock_time.return_value = time.time() + (6 * 60)
 
-        time_before_third_save = _last_warning_message_time
-        language_server.write(
-            {
-                "jsonrpc": "2.0",
-                "method": "textDocument/didSave",
-                "params": {"textDocument": {"uri": test_file_uri}},
-            }
-        )
-        time.sleep(0.1)
-        assert _last_warning_message_time > time_before_third_save
+def test_document_did_save_on_myactions_package_yaml(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    create_agent_and_action: str,
+) -> None:
+    import yaml
+    from sema4ai_ls_core import uris
+
+    language_server = language_server_initialized
+    agent_dir = create_agent_and_action
+    package_yaml = Path(agent_dir) / "actions/MyActions/action-one/package.yaml"
+    agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
+    test_file_uri = uris.from_fs_path(str(package_yaml))
+
+    # Update package.yaml version
+    with open(package_yaml) as file:
+        package_yaml_content = yaml.safe_load(file)
+
+    package_yaml_content["version"] = "0.0.2"
+    with open(package_yaml, "w") as file:
+        yaml.dump(package_yaml_content, file)
+
+    # Save the file to trigger refresh
+    language_server.write(
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": {"textDocument": {"uri": test_file_uri}},
+        }
+    )
+
+    time.sleep(0.5)
+    # Verify agent spec was updated with new version
+    with open(agent_spec_path) as file:
+        updated_agent_spec = yaml.safe_load(file)
+        updated_version = updated_agent_spec["agent-package"]["agents"][0][
+            "action-packages"
+        ][0]["version"]
+
+    assert (
+        updated_version == "0.0.2"
+    ), f"Expected version to be updated to 0.0.2, got {updated_version}"
