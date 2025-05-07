@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.12.0 (2025-05-07)
+
 - Update RCC to `v20.1.1`
 - Update Agent CLI to `v1.1.0`
 - Changed agent package publishing to use the folder instead of the packaging it as zip if Studio supports it.
