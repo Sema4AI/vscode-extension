@@ -11,7 +11,13 @@ def get_package_yaml_doc(datadir, name) -> IDocument:
 
     ws = Workspace(str(datadir), create_observer("dummy", None))
     check_path = datadir / name
-    uri = uris.from_fs_path(str(check_path / "package.yaml"))
+
+    # Special case for version consistency check
+    if name == "check_version_consistency":
+        uri = uris.from_fs_path(str(check_path / "actions/MyActions/foo/package.yaml"))
+    else:
+        uri = uris.from_fs_path(str(check_path / "package.yaml"))
+
     doc = ws.get_document(uri, accept_from_file=True)
     assert doc
     return doc
@@ -20,9 +26,7 @@ def get_package_yaml_doc(datadir, name) -> IDocument:
 @pytest.fixture
 def check_package_yaml(datadir, data_regression, cached_conda_cloud) -> Iterator:
     def check(name):
-        from sema4ai_code.vendored_deps.package_deps.analyzer import (
-            PackageYamlAnalyzer,
-        )
+        from sema4ai_code.vendored_deps.package_deps.analyzer import PackageYamlAnalyzer
 
         doc = get_package_yaml_doc(datadir, name)
 
@@ -42,6 +46,7 @@ def check_package_yaml(datadir, data_regression, cached_conda_cloud) -> Iterator
         "check_deps_from_conda",
         "check_bad_version",
         "check_bad_op",
+        "check_version_consistency",
     ],
 )
 def test_package_yaml(check_package_yaml, name: str, patch_pypi_cloud) -> None:

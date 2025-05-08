@@ -40,6 +40,7 @@ def collect_package_yaml_diagnostics(
         return []
     if monitor:
         monitor.check_cancelled()
+
     return list(
         analyzer.PackageYamlAnalyzer(
             doc.source, doc.path, conda_cloud, pypi_cloud
