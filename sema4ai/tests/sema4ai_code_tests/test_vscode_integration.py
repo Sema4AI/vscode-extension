@@ -3102,8 +3102,6 @@ def test_document_did_save_on_sema4ai_folder(
     language_server_initialized: IRobocorpLanguageServerClient,
     cases: CasesFixture,
 ) -> None:
-    import time
-
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.callbacks import Callback
 
@@ -3162,7 +3160,6 @@ def test_document_did_save_on_myactions_package_yaml(
     agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
     test_file_uri = uris.from_fs_path(str(package_yaml))
 
-    # Update package.yaml version
     with open(package_yaml) as file:
         package_yaml_content = yaml.safe_load(file)
 

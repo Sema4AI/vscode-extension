@@ -506,6 +506,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
     @overrides(PythonLanguageServer.m_text_document__did_save)
     def m_text_document__did_save(self, textDocument=None, **_kwargs):
+        from sema4ai_ls_core.lsp import MessageType
+
         PythonLanguageServer.m_text_document__did_save(self, textDocument, **_kwargs)
 
         doc_uri = textDocument["uri"]
@@ -513,9 +515,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         fs_path = uris.to_fs_path(doc_uri)
 
         # Handle Sema4.ai folder files changes with warning message
-        if "Sema4.ai" in fs_path:
-            from sema4ai_ls_core.lsp import MessageType
-
+        if "Sema4.ai" in fs_path and self._find_agent_package_spec_path(Path(fs_path)):
             now = time.time() * 1000  # Convert to milliseconds
             if now - self._last_warning_message_time > _WARNING_MESSAGE_THROTTLE_MS:
                 self._last_warning_message_time = now
@@ -529,22 +529,26 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 )
                 return
         elif fs_path.endswith("package.yaml"):
-            from pathlib import Path
-
             package_yaml_dir = Path(fs_path).parent
 
             check_dir = package_yaml_dir.parent.parent
-            for _ in range(6):
-                agent_spec_path = check_dir / "agent-spec.yaml"
-                if agent_spec_path.exists():
-                    break
-                if not check_dir.parent or check_dir.parent == check_dir:
-                    return
-                check_dir = check_dir.parent
+            agent_spec_path = self._find_agent_package_spec_path(check_dir)
 
-            if agent_spec_path.exists():
+            if agent_spec_path:
                 # This is inside an agent package, refresh the agent spec
                 self._refresh_agent_spec({"agent_spec_path": str(agent_spec_path)})
+
+    def _find_agent_package_spec_path(self, path: Path) -> Path | None:
+        """Return the agent-spec.yaml path if the given path is inside an agent package."""
+        check_dir = path.parent
+        for _ in range(6):
+            agent_spec_path = check_dir / "agent-spec.yaml"
+            if agent_spec_path.exists():
+                return agent_spec_path
+            if not check_dir.parent or check_dir.parent == check_dir:
+                return None
+            check_dir = check_dir.parent
+        return None
 
     def m_import_agent_package_from_zip(
         self, target_dir: str | None = None, agent_package_zip: str | None = None
