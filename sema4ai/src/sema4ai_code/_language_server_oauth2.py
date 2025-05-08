@@ -426,7 +426,7 @@ class _OAuth2:
                 if self._last_key == key:
                     # See if we can make a request and if it's live.
                     try:
-                        self._action_server_as_service.get_config()
+                        self._action_server_as_service.get_config(timeout=2)
                     except Exception:
                         self._last_key = None
                         self._action_server_as_service.stop()

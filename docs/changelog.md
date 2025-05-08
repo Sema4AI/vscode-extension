@@ -4,6 +4,7 @@
 - Update Action server to `2.10.0`
 - Add better linting when an action is modified inside an agent.
 - Add error message when an action from an agent inside Sema4ai folder is modified.
+- Add `kill-lock-holder` flag to action server to kill the lock holder when starting action server for doing OAuth2 flows.
 
 ## New in 2.12.0 (2025-05-07)
 

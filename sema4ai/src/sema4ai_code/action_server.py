@@ -196,6 +196,8 @@ class ActionServerAsService:
         if self._ssl_certfile:
             args.append(f"--ssl-cerfile={self._ssl_certfile}")
 
+        args.append("--kill-lock-holder")
+
         self._process = Process(args, cwd=self._cwd)
         self._process.on_stderr.register(self._on_stderr)
         self._process.on_stdout.register(self._on_stdout)
