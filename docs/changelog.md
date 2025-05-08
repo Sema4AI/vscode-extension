@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Update Agent CLI to `v1.1.5`
+- Update Agent server to `2.10.0`
 - Add better linting when an action is modified inside an agent.
 - Add error message when an action from an agent inside Sema4ai folder is modified.
 
