@@ -45,8 +45,15 @@ def get_release_artifact_relative_path(sys_platform: str, executable_name: str) 
         else:
             return f"windows32/{executable_name}.exe"
 
+    # This will come from release-sema4ai-sdk.yml workflow.
+    elif sys_platform == "darwin-arm64":
+        return f"macos-arm64/{executable_name}"
+
     elif sys_platform == "darwin":
-        return f"macos64/{executable_name}"
+        if machine == "arm64":
+            return f"macos-arm64/{executable_name}"
+        else:
+            return f"macos64/{executable_name}"
 
     else:
         if is_64:

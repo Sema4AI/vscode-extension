@@ -256,7 +256,7 @@ class Dev:
         assert "Sema4.ai End User License Agreement" in written_content
 
     def download_rcc(self, plat):
-        assert plat in ("win32", "linux", "darwin")
+        assert plat in ("win32", "linux", "darwin", "darwin-arm64")
         import stat
         import time
 

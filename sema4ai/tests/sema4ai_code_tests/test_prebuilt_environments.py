@@ -11,6 +11,7 @@ log = get_logger(__name__)
 def test_prebuilt_environments(rcc: IRcc, tmpdir):
     # We download the env and check that we can create it in the ci.
     import io
+    import platform
 
     from sema4ai_ls_core import http
 
@@ -41,10 +42,14 @@ def test_prebuilt_environments(rcc: IRcc, tmpdir):
         check = "const BASENAME_PREBUILT_LINUX_AMD64 = "
         conda_yaml /= "conda_vscode_linux_amd64.yaml"
     elif sys.platform == "darwin":
-        check = "const BASENAME_PREBUILT_DARWIN = "
-        conda_yaml /= "conda_vscode_darwin_amd64.yaml"
+        if platform.machine() == "arm64":
+            check = "const BASENAME_PREBUILT_DARWIN_ARM64 = "
+            conda_yaml /= "conda_vscode_darwin_arm64.yaml"
+        else:
+            check = "const BASENAME_PREBUILT_DARWIN_AMD64 = "
+            conda_yaml /= "conda_vscode_darwin_amd64.yaml"
     else:
-        raise AssertionError("Unexpected platform: {sys.platform}.")
+        raise AssertionError(f"Unexpected platform: {sys.platform}.")
 
     assert conda_yaml.exists()
 

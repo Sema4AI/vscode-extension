@@ -131,6 +131,7 @@ def test_resolve_interpreter_relocate_robot_root(
 def test_resolve_interpreter_environment_config(
     config_provider: IConfigProvider, rcc_conda_installed, datadir
 ) -> None:
+    import platform
     import subprocess
     from subprocess import CalledProcessError
 
@@ -172,10 +173,11 @@ def test_resolve_interpreter_environment_config(
         )
     if sys.platform == "win32":
         assert "(3, 9)" in output
-
     elif sys.platform == "darwin":
-        assert "(3, 10)" in output
-
+        if platform.machine() == "arm64":
+            assert "(3, 11)" in output
+        else:
+            assert "(3, 10)" in output
     else:
         assert "(3, 11)" in output
 
