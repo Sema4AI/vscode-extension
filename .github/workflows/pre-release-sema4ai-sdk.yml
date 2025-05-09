@@ -110,8 +110,8 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       # Deal with Darwin arm64 --------------
-      - name: Download rcc for darwin
-        run: python -m dev download-rcc darwin
+      - name: Download rcc for darwin arm64
+        run: python -m dev download-rcc darwin-arm64
 
       - run: vsce package --pre-release --target darwin-arm64 -o sema4ai-darwin-arm64.vsix
 
