@@ -106,6 +106,10 @@ class Dev:
         update_version(version, os.path.join(".", "bin", "develop.bat"))
         update_version(version, os.path.join(".", "src", "sema4ai_code", "rcc.py"))
         update_version(version, os.path.join(".", "vscode-client", "src", "rcc.ts"))
+        update_version(
+            version,
+            os.path.join(".", ".github", "workflows", "build_environments.yaml"),
+        )
 
         print(
             f"New RCC version set.\nErase the rcc executable from {os.path.abspath(os.path.join('.', 'bin'))} to re-download locally."

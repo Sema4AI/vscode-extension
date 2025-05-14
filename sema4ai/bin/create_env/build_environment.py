@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 
 import requests
-from robocorp.tasks import task
 
 
 def get_working_dir() -> Path:
@@ -96,7 +95,6 @@ def get_environment_url(fingerprint: str) -> str:
     return f"{base_environments_url}{fingerprint}"
 
 
-@task
 def build_vscode_environment() -> None:
     ensure_holotree_shared()
 

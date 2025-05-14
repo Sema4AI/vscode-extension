@@ -42,7 +42,7 @@ jobs:
           curl -L -o rcc "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc"
           chmod +x rcc
 
-          ./rcc run -r sema4ai/bin/create_env/robot.yaml -t "Build environment"
+          python build_environment.py
 
       - name: Build Environment [Windows]
         if: ${{ matrix.os == 'windows-latest' }}
@@ -51,7 +51,7 @@ jobs:
           Invoke-WebRequest -Uri "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc.exe" -OutFile rcc.exe
           icacls .\rcc.exe /grant Everyone:F
 
-          Invoke-Expression -Command ".\rcc.exe run -r robot.yaml -t `"Build environment`""
+          python build_environment.py
 
       - name: Save environment artifact
         uses: actions/upload-artifact@v4
