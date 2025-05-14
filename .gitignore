@@ -128,3 +128,8 @@ node_modules
 **/.mypy_cache
 
 *.robolog
+
+# CI test specific
+environments/
+rcc
+rcc.exe
