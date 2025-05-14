@@ -58,6 +58,9 @@ def _fix_rcc_contents_version(contents, version):
         r"(RCC_VERSION\s*=\s*)\"v\d+\.\d+\.\d+", rf'\1"{version}', contents
     )
 
+    # RCC_VERSION: v11.5.5 (YAML style)
+    contents = re.sub(r"(RCC_VERSION\s*:\s*)v\d+\.\d+\.\d+", rf"\1{version}", contents)
+
     # Change `rcc/releases/v18.3.0/` to `rcc/releases/v18.5.0/`
     contents = re.sub(
         r"rcc/releases/v\d+\.\d+\.\d+/", rf"rcc/releases/{version}/", contents
@@ -108,7 +111,7 @@ class Dev:
         update_version(version, os.path.join(".", "vscode-client", "src", "rcc.ts"))
         update_version(
             version,
-            os.path.join(".", ".github", "workflows", "build_environments.yaml"),
+            os.path.join(root, ".github", "workflows", "build_environments.yaml"),
         )
 
         print(
