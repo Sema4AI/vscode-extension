@@ -25,10 +25,10 @@ jobs:
             os: windows-latest
             rcc_folder: windows64
           - name: macos-intel
-            os: macos-latest
+            os: macos-13
             rcc_folder: macos64
           - name: macos-arm
-            os: macos-latest
+            os: macos-15
             rcc_folder: macos64-arm
 
     steps:
