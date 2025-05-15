@@ -29,7 +29,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
 tomli = { version = "^2.0.1", python = "<3.11" }
-msgspec = "^0.18"
+msgspec = "^0.19"
 pyyaml = "^6"
 playwright = "<2"
 pillow = "^10.2.0"
@@ -41,10 +41,10 @@ mss = "^9.0.1"
 
 java-access-bridge-wrapper = "^1.2.0"
 ruff = "^0.6.5"
-tree-sitter = "^0.22.3"
-tree-sitter-yaml = "^0.6.0"
-ruamel-yaml = "^0.18.6"
-sema4ai-http-helper = "^1.0.2"
+tree-sitter = "^0.24.0"
+tree-sitter-yaml = "^0.7.0"
+ruamel-yaml = "^0.18.10"
+sema4ai-http-helper = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
