@@ -78,11 +78,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::710450854638:role/github-action-gallery
+          role-to-assume: arn:aws:iam::710450854638:role/github-action-vscode-extension
 
       - name: Publish environments
         run: |
-          S3_BASE_URL="s3://downloads.robocorp.com/holotree/bin"
+          S3_BASE_URL="s3://downloads.robocorp.com/vscode-extension/holotree"
           cd sema4ai/bin/create_env/environments
           ls -la
 

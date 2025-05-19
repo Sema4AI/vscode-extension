@@ -91,7 +91,7 @@ def blueprint_for(condafile):
 
 
 def get_environment_url(fingerprint: str) -> str:
-    base_environments_url = "https://downloads.robocorp.com/holotree/bin/"
+    base_environments_url = "https://cdn.sema4.ai/vscode-extension/holotree/"
     return f"{base_environments_url}{fingerprint}"
 
 
