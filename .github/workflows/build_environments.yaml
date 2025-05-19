@@ -12,14 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name:
-          - ubuntu
-          - windows
-          - macos-intel
-          - macos-arm
+        os: [macos-15]
         include:
-          - name: macos-arm
-            os: macos-15
+          - os: macos-15
+            name: macos-arm
             rcc_folder: macos-arm64
 
     steps:
