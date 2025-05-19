@@ -35,6 +35,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install requirements
+        run: |
+          pip install requests
+
       - name: Build Environment [Linux | MacOS]
         if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-13' || matrix.os == 'macos-15' }}
         run: |
@@ -50,8 +54,6 @@ jobs:
           Set-Location -Path sema4ai\bin\create_env
           Invoke-WebRequest -Uri "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc.exe" -OutFile rcc.exe
           icacls .\rcc.exe /grant Everyone:F
-
-          pip install requests
 
           python build_environment.py
 
