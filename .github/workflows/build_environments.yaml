@@ -29,7 +29,7 @@ jobs:
             rcc_folder: macos64
           - name: macos-arm
             os: macos-15
-            rcc_folder: macos64-arm
+            rcc_folder: macos-arm64
 
     steps:
       - name: Checkout repository
