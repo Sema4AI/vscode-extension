@@ -37,8 +37,7 @@ def run_rcc_command(
         capture_output=True,
         text=True,
         shell=shell,
-        cwd=str(get_working_dir()),
-        check=True,
+        cwd=str(get_working_dir())
     )
 
 
@@ -88,6 +87,8 @@ def blueprint_for(condafile):
         return fingerprint
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Failed to parse blueprint output: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to parse blueprint output: {e}, {result.stdout}, {result.stderr}")
 
 
 def get_environment_url(fingerprint: str) -> str:
