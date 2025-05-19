@@ -18,15 +18,6 @@ jobs:
           - macos-intel
           - macos-arm
         include:
-          # - name: ubuntu
-          #   os: ubuntu-latest
-          #   rcc_folder: linux64
-          # - name: windows
-          #   os: windows-latest
-          #   rcc_folder: windows64
-          # - name: macos-intel
-          #   os: macos-13
-          #   rcc_folder: macos64
           - name: macos-arm
             os: macos-15
             rcc_folder: macos-arm64
