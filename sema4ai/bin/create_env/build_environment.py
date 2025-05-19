@@ -32,19 +32,20 @@ def run_rcc_command(
     if not executable_path.is_file():
         raise FileNotFoundError(f"Could not find rcc executable at {executable_path}")
 
-    return subprocess.run(
+    result = subprocess.run(
         [str(executable_path), *args],
         capture_output=True,
         text=True,
         shell=shell,
-        cwd=str(get_working_dir()),
-        check=True,
+        cwd=str(get_working_dir())
     )
+    assert result.returncode == 0, f"Could not run rcc command with args: {args}! Reason: {result.stderr}"
+
+    return result
 
 
 def os_architecture():
     result = run_rcc_command(["conf", "diag", "-j"])
-    assert result.returncode == 0, f"Could not run diagnostics!"
 
     parsed = json.loads(result.stdout)
     details = parsed.get("details", {})
@@ -77,7 +78,6 @@ def url_exists(url: str) -> bool:
 
 def blueprint_for(condafile):
     result = run_rcc_command(["ht", "blueprint", "-j", str(condafile)])
-    assert result.returncode == 0, f"Could not run blueprint! Reason: {result.stderr}"
 
     try:
         parsed = json.loads(result.stdout)
