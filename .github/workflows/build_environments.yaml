@@ -18,15 +18,15 @@ jobs:
           - macos-intel
           - macos-arm
         include:
-          - name: ubuntu
-            os: ubuntu-latest
-            rcc_folder: linux64
-          - name: windows
-            os: windows-latest
-            rcc_folder: windows64
-          - name: macos-intel
-            os: macos-13
-            rcc_folder: macos64
+          # - name: ubuntu
+          #   os: ubuntu-latest
+          #   rcc_folder: linux64
+          # - name: windows
+          #   os: windows-latest
+          #   rcc_folder: windows64
+          # - name: macos-intel
+          #   os: macos-13
+          #   rcc_folder: macos64
           - name: macos-arm
             os: macos-15
             rcc_folder: macos-arm64
@@ -64,41 +64,41 @@ jobs:
           path: sema4ai/bin/create_env/environments
           if-no-files-found: error
 
-  publish:
-    runs-on: ubuntu-latest
-    needs: build_environments
-    permissions:
-      id-token: write # required by AWS aws-actions/configure-aws-credentials
-      contents: read
-    steps:
-      - name: Download Environments artifact
-        uses: actions/download-artifact@v4
-        with:
-          pattern: environments-artifact-*
-          path: sema4ai/bin/create_env/environments
-          merge-multiple: true
+  # publish:
+  #   runs-on: ubuntu-latest
+  #   needs: build_environments
+  #   permissions:
+  #     id-token: write # required by AWS aws-actions/configure-aws-credentials
+  #     contents: read
+  #   steps:
+  #     - name: Download Environments artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: environments-artifact-*
+  #         path: sema4ai/bin/create_env/environments
+  #         merge-multiple: true
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::710450854638:role/github-action-vscode-extension
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-region: eu-west-1
+  #         role-to-assume: arn:aws:iam::710450854638:role/github-action-vscode-extension
 
-      - name: Publish environments
-        run: |
-          S3_BASE_URL="s3://downloads.robocorp.com/vscode-extension/holotree"
-          cd sema4ai/bin/create_env/environments
-          ls -la
+  #     - name: Publish environments
+  #       run: |
+  #         S3_BASE_URL="s3://downloads.robocorp.com/vscode-extension/holotree"
+  #         cd sema4ai/bin/create_env/environments
+  #         ls -la
 
-          # Copy the environments
-          # cache-control max-age=31536000, because these should be immutable
-          for file in *; do
-            aws s3 cp "$file" "$S3_BASE_URL/$file" --cache-control max-age=31536000
+  #         # Copy the environments
+  #         # cache-control max-age=31536000, because these should be immutable
+  #         for file in *; do
+  #           aws s3 cp "$file" "$S3_BASE_URL/$file" --cache-control max-age=31536000
 
-            returnCode=$?
+  #           returnCode=$?
 
-            if [ $returnCode -ne 0 ]; then
-              echo "Uploading of '$file' environments failed, exiting..."
-              exit 1
-            fi
-          done
+  #           if [ $returnCode -ne 0 ]; then
+  #             echo "Uploading of '$file' environments failed, exiting..."
+  #             exit 1
+  #           fi
+  #         done
