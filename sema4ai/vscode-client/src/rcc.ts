@@ -205,7 +205,7 @@ async function downloadBaseAsZip(
     let httpSettings = workspace.getConfiguration("http");
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     const basename = getBaseAsZipBasename();
-    const url: string = "https://cdn.sema4.ai/holotree/sema4ai/" + basename;
+    const url: string = "https://cdn.sema4.ai/vscode-extension/holotree/" + basename;
     const ret = await downloadWithProgress(url, progress, token, zipDownloadLocation);
 
     OUTPUT_CHANNEL.appendLine(
