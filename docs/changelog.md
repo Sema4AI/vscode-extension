@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add support for macOS ARM64 build
 - Update Agent CLI to `v1.1.5`
 - Update Action server to `2.10.0`
 - Add better linting when an action is modified inside an agent.

@@ -156,9 +156,10 @@ async function downloadRcc(
 
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
-const BASENAME_PREBUILT_WIN_AMD64 = "0ae698fa04c74035_windows_amd64.zip";
-const BASENAME_PREBUILT_DARWIN = "03224defd2ad9de9_darwin_amd64.zip";
-const BASENAME_PREBUILT_LINUX_AMD64 = "a0b7a21132034510_linux_amd64.zip";
+const BASENAME_PREBUILT_WIN_AMD64 = "0616de98432374f7-windows_amd64.zip";
+const BASENAME_PREBUILT_DARWIN_AMD64 = "06c4781a0ef6eca2-darwin_amd64.zip";
+const BASENAME_PREBUILT_DARWIN_ARM64 = "7c0a0f12d4344a60-darwin_arm64.zip";
+const BASENAME_PREBUILT_LINUX_AMD64 = "374fae348c11d72a-linux_amd64.zip";
 
 function getBaseAsZipBasename() {
     let basename: string;
@@ -170,7 +171,11 @@ function getBaseAsZipBasename() {
             throw new Error("Currently only Windows amd64 is supported.");
         }
     } else if (process.platform == "darwin") {
-        basename = BASENAME_PREBUILT_DARWIN;
+        if (process.arch === "arm64") {
+            basename = BASENAME_PREBUILT_DARWIN_ARM64;
+        } else {
+            basename = BASENAME_PREBUILT_DARWIN_AMD64;
+        }
     } else {
         // Linux
         if (process.arch === "x64") {
@@ -200,7 +205,7 @@ async function downloadBaseAsZip(
     let httpSettings = workspace.getConfiguration("http");
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     const basename = getBaseAsZipBasename();
-    const url: string = "https://cdn.sema4.ai/holotree/sema4ai/" + basename;
+    const url: string = "https://cdn.sema4.ai/vscode-extension/holotree/" + basename;
     const ret = await downloadWithProgress(url, progress, token, zipDownloadLocation);
 
     OUTPUT_CHANNEL.appendLine(
