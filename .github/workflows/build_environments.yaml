@@ -1,0 +1,104 @@
+name: SDK - Build Environments
+
+on:
+  workflow_dispatch:
+    # Enables manual triggering via GitHub Actions
+
+jobs:
+  build_environments:
+    runs-on: ${{ matrix.os }}
+    env:
+      RCC_VERSION: v20.1.1
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - ubuntu
+          - windows
+          - macos-intel
+          - macos-arm
+        include:
+          - name: ubuntu
+            os: ubuntu-latest
+            rcc_folder: linux64
+          - name: windows
+            os: windows-latest
+            rcc_folder: windows64
+          - name: macos-intel
+            os: macos-13
+            rcc_folder: macos64
+          - name: macos-arm
+            os: macos-15
+            rcc_folder: macos-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install requirements
+        run: |
+          pip install requests
+
+      - name: Build Environment [Linux | MacOS]
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-13' || matrix.os == 'macos-15' }}
+        run: |
+          cd sema4ai/bin/create_env
+          curl -L -o rcc "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc"
+          chmod +x rcc
+
+          python build_environment.py
+
+      - name: Build Environment [Windows]
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          Set-Location -Path sema4ai\bin\create_env
+          Invoke-WebRequest -Uri "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc.exe" -OutFile rcc.exe
+          icacls .\rcc.exe /grant Everyone:F
+
+          python build_environment.py
+
+      - name: Save environment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: environments-artifact-${{ matrix.os }}
+          path: sema4ai/bin/create_env/environments
+          if-no-files-found: error
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build_environments
+    permissions:
+      id-token: write # required by AWS aws-actions/configure-aws-credentials
+      contents: read
+    steps:
+      - name: Download Environments artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: environments-artifact-*
+          path: sema4ai/bin/create_env/environments
+          merge-multiple: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::710450854638:role/github-action-vscode-extension
+
+      - name: Publish environments
+        run: |
+          S3_BASE_URL="s3://downloads.robocorp.com/vscode-extension/holotree"
+          cd sema4ai/bin/create_env/environments
+          ls -la
+
+          # Copy the environments
+          # cache-control max-age=31536000, because these should be immutable
+          for file in *; do
+            aws s3 cp "$file" "$S3_BASE_URL/$file" --cache-control max-age=31536000
+
+            returnCode=$?
+
+            if [ $returnCode -ne 0 ]; then
+              echo "Uploading of '$file' environments failed, exiting..."
+              exit 1
+            fi
+          done

@@ -4,7 +4,8 @@ tasks:
       - python
       - get_env_info.py
 
-artifactsDir: output
+  Build environment:
+    shell: python -m robocorp.tasks run build_environment.py
 
 environmentConfigs:
   - conda_vscode_windows_amd64.yaml
@@ -12,3 +13,5 @@ environmentConfigs:
   - conda_vscode_darwin_arm64.yaml
   - conda_vscode_linux_amd64.yaml
   - conda.yaml
+
+artifactsDir: output
