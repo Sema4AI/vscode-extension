@@ -2590,6 +2590,8 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         elif engine.startswith("prediction:") or (name == "custom" and model_name):
             query = f"DROP MODEL {name}.{model_name}"
+        elif engine == "sema4_knowledge_base":
+            query = f"DROP KNOWLEDGE_BASE sema4ai.{name}"
         else:
             query = f"DROP DATABASE {name}"
 
@@ -2871,8 +2873,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             not_projects_as_dicts = connection.get_data_sources(
                 "WHERE type != 'project'"
             )
+            knowledge_bases = connection.get_knowledge_bases()
 
-            all_databases_as_dicts = projects_as_dicts + not_projects_as_dicts
+            all_databases_as_dicts = (
+                projects_as_dicts + not_projects_as_dicts + knowledge_bases
+            )
 
             try:
                 data_source_names_in_data_server = set(

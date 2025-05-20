@@ -217,3 +217,11 @@ class DataServerConnection:
     def get_data_sources(self, where: str) -> list[dict[str, Any]]:
         result_set = self.query("", f"SHOW DATABASES {where}")
         return list(result_set.iter_as_dicts())
+
+    def get_knowledge_bases(self) -> list[dict[str, Any]]:
+        return list(
+            self.query(
+                "",
+                "SELECT name as database FROM information_schema.knowledge_bases;",
+            ).iter_as_dicts()
+        )

@@ -2,10 +2,10 @@ import logging
 from typing import Any
 
 import pytest
-from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 from sema4ai_ls_core.protocols import DataSourceStateDict
 
 from sema4ai_code.protocols import DataServerConfigTypedDict
+from sema4ai_code_tests.data_server_cli_wrapper import DataServerCliWrapper
 
 log = logging.getLogger(__name__)
 
@@ -13,93 +13,21 @@ log = logging.getLogger(__name__)
 @pytest.fixture
 def cleanup_data_sources(data_server_cli: DataServerCliWrapper):
     assert data_server_cli.http_connection is not None
+    data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS sema4ai""")
     data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS models""")
 
     data_server_cli.http_connection.run_sql(
-        "DROP TABLE IF EXISTS files.customers_in_test_compute_data_sources_state"
-    )
-    data_server_cli.http_connection.run_sql(
         "DROP DATABASE IF EXISTS test_compute_data_sources_state"
-    )
-    data_server_cli.http_connection.run_sql(
-        "DROP MODEL IF EXISTS models.predict_compute_data_sources_state"
     )
     yield
     data_server_cli.http_connection.run_sql(
         "DROP TABLE IF EXISTS files.customers_in_test_compute_data_sources_state"
     )
     data_server_cli.http_connection.run_sql(
-        "DROP MODEL IF EXISTS models.predict_compute_data_sources_state"
-    )
-    data_server_cli.http_connection.run_sql(
         "DROP DATABASE IF EXISTS test_compute_data_sources_state"
     )
-
-
-def wait_for_models_to_be_ready(
-    data_server_cli: DataServerCliWrapper, project_name_to_model_names: dict
-):
-    import time
-
-    while project_name_to_model_names:
-        still_training: dict[str, list[str]] = {}
-
-        for project, models in project_name_to_model_names.items():
-            for model in models:
-                assert data_server_cli.http_connection is not None
-                result = data_server_cli.http_connection.query(
-                    database_name=project,
-                    query=f"SELECT status, error FROM models WHERE name = '{model}'",
-                )
-                assert (
-                    result is not None
-                ), f"Failed to get model {model} from project {project}"
-                if not result:
-                    continue  # Someone else removed it in the meanwhile?
-
-                found = list(result.iter_as_dicts())
-                if not found:
-                    raise RuntimeError(
-                        f"Model {project}.{model} not found in the data server."
-                    )
-
-                row = next(iter(found))
-                status = row.get("status", "").lower()
-
-                if status in ("generating", "training", "creating"):
-                    still_training.setdefault(project, []).append(model)
-                    log.info(
-                        f"Waiting for model {project}.{model} to complete. Current status: {status}"
-                    )
-                elif status == "error":
-                    raise RuntimeError(
-                        f"Model {project}.{model} failed to generate. Error: {row.get('error')}"
-                    )
-                elif status == "complete":
-                    break
-                else:
-                    log.warning(f"Unexpected model status: {status}")
-
-        if not still_training:
-            break
-
-        time.sleep(2)
-        project_name_to_model_names = still_training
-
-
-def _create_prediction_model(data_server_cli: DataServerCliWrapper):
-    assert data_server_cli.http_connection is not None
-    data_server_cli.http_connection.run_sql("""CREATE PROJECT IF NOT EXISTS models""")
     data_server_cli.http_connection.run_sql(
-        """CREATE MODEL models.predict_compute_data_sources_state
-FROM files
-(SELECT * FROM customers_in_test_compute_data_sources_state)
-PREDICT Index
-WINDOW 8
-HORIZON 4;"""
-    )
-    wait_for_models_to_be_ready(
-        data_server_cli, {"models": ["predict_compute_data_sources_state"]}
+        "DROP KNOWLEDGE_BASE IF EXISTS sema4ai.wikipedia_kb;"
     )
 
 
@@ -127,6 +55,17 @@ def create_setup_config(
         "pid_file_path": "",
     }
     return data_server_info
+
+
+def setup_knowledge_base(data_server_cli: DataServerCliWrapper) -> None:
+    create_kb = """
+    CREATE KNOWLEDGE_BASE sema4ai.wikipedia_kb
+    USING
+        metadata_columns = ['wiki_id', 'infobox'],
+        content_columns = ['wikitext', 'categories', 'general'],
+        id_column = 'title';
+    """
+    data_server_cli.http_connection.run_sql(create_kb)
 
 
 @pytest.fixture
@@ -223,6 +162,8 @@ def test_setup_datasource(
         return result["result"]
 
     result = setup_data_source(files_data_sources[0])
+    setup_knowledge_base(data_server_cli)
+
     assert result[
         "success"
     ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
@@ -233,33 +174,14 @@ def test_setup_datasource(
     fixed_result = collect_data_source_state()
     unconfigured_data_sources = fixed_result["unconfigured_data_sources"]
     data_regression.check(fixed_result, basename="missing_data_source_sqlite")
-    assert len(unconfigured_data_sources) == 2
+    assert len(unconfigured_data_sources) == 1
 
     setup_sqlite_data_source(data_server_cli, tmpdir)
 
     fixed_result = collect_data_source_state()
-    data_regression.check(fixed_result, basename="missing_data_source_prediction")
-    unconfigured_data_sources = fixed_result["unconfigured_data_sources"]
-    assert len(unconfigured_data_sources) == 1
-
-    assert data_server_cli.http_connection
-    prediction_data_sources = [
-        data_source
-        for data_source in unconfigured_data_sources
-        if data_source["engine"].startswith("prediction:")
-    ]
-    assert len(prediction_data_sources) == 1
-    result = setup_data_source(prediction_data_sources[0])
-    assert result[
-        "success"
-    ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
-
-    wait_for_models_to_be_ready(
-        data_server_cli, {"models": ["predict_compute_data_sources_state"]}
-    )
-
-    fixed_result = collect_data_source_state()
     data_regression.check(fixed_result, basename="missing_data_source_none")
+    unconfigured_data_sources = fixed_result["unconfigured_data_sources"]
+    assert len(unconfigured_data_sources) == 0
 
 
 def setup_sqlite_data_source(data_server_cli, tmpdir):
@@ -297,15 +219,12 @@ def test_compute_data_sources_state(
         datadir / "package" / "files" / "customers.csv",
         "customers_in_test_compute_data_sources_state",
     )
+    setup_knowledge_base(data_server_cli)
     fixed_result = collect_data_source_state()
+
     data_regression.check(fixed_result, basename="missing_data_source_sqlite")
 
     setup_sqlite_data_source(data_server_cli, tmpdir)
-
-    fixed_result = collect_data_source_state()
-    data_regression.check(fixed_result, basename="missing_data_source_prediction")
-
-    _create_prediction_model(data_server_cli)
 
     fixed_result = collect_data_source_state()
     data_regression.check(fixed_result, basename="missing_data_source_none")
@@ -342,7 +261,6 @@ def test_drop_data_sources(
     language_server_initialized,
     ws_root_path,
     datadir,
-    data_regression,
     cleanup_data_sources,
     collect_data_source_state,
     tmpdir,
@@ -362,14 +280,13 @@ def test_drop_data_sources(
         datadir / "package" / "files" / "customers.csv",
         "customers_in_test_compute_data_sources_state",
     )
+    setup_knowledge_base(data_server_cli)
 
     params = json.dumps({"db_file": str(create_another_sqlite_sample_db(tmpdir))})
     engine = "sqlite"
     data_server_cli.http_connection.run_sql(
         f"CREATE DATABASE `test_compute_data_sources_state` ENGINE = '{engine}' , PARAMETERS = {params}",
     )
-
-    _create_prediction_model(data_server_cli)
 
     data_sources_state = collect_data_source_state()
 
