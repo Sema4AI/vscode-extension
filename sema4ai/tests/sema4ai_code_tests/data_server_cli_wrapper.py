@@ -98,7 +98,7 @@ class LaunchJsonTypedDict(TypedDict):
 
 
 class DataServerCliWrapper:
-    VERSION = "1.0.2"
+    VERSION = "1.1.9-alpha2"
 
     def __init__(self, tmpdir: Path) -> None:
         from typing import Optional

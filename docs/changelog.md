@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add support for knowledge bases
+- Update data-server-cli to `1.1.9-alpha2`
 - Add support for macOS ARM64 build
 - Update Agent CLI to `v1.1.5`
 - Update Action server to `2.10.0`

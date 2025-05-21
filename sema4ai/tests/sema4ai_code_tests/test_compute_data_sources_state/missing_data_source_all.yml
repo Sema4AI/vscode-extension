@@ -26,40 +26,6 @@ required_data_sources:
   configuration_valid: true
   configured: false
   created_table: null
-  description: Predict something.
-  engine: prediction:lightwood
-  file: null
-  kind: datasource
-  model_name: predict_compute_data_sources_state
-  model_state: null
-  name: models
-  python_variable_name: PredictDataSource
-  range:
-    end:
-      character: 17
-      line: 17
-    start:
-      character: 0
-      line: 17
-  setup_sql: '
-
-    CREATE MODEL models.predict_compute_data_sources_state
-
-    FROM files
-
-    (SELECT * FROM customers_in_test_compute_data_sources_state)
-
-    PREDICT Index
-
-    WINDOW 8
-
-    HORIZON 4;'
-  setup_sql_files: null
-  uri: data_sources.py
-- configuration_errors: null
-  configuration_valid: true
-  configured: false
-  created_table: null
   description: Data source for tests.
   engine: sqlite
   file: null
@@ -71,10 +37,32 @@ required_data_sources:
   range:
     end:
       character: 20
-      line: 34
+      line: 17
     start:
       character: 0
-      line: 34
+      line: 17
+  setup_sql: null
+  setup_sql_files: null
+  uri: data_sources.py
+- configuration_errors: null
+  configuration_valid: true
+  configured: false
+  created_table: null
+  description: Data source for the knowledge base of Wikipedia articles.
+  engine: sema4_knowledge_base
+  file: null
+  kind: datasource
+  model_name: null
+  model_state: null
+  name: wikipedia_kb
+  python_variable_name: WikipediaKnowledgeBaseDataSource
+  range:
+    end:
+      character: 32
+      line: 37
+    start:
+      character: 0
+      line: 37
   setup_sql: null
   setup_sql_files: null
   uri: data_sources.py
@@ -105,40 +93,6 @@ unconfigured_data_sources:
   configuration_valid: true
   configured: false
   created_table: null
-  description: Predict something.
-  engine: prediction:lightwood
-  file: null
-  kind: datasource
-  model_name: predict_compute_data_sources_state
-  model_state: null
-  name: models
-  python_variable_name: PredictDataSource
-  range:
-    end:
-      character: 17
-      line: 17
-    start:
-      character: 0
-      line: 17
-  setup_sql: '
-
-    CREATE MODEL models.predict_compute_data_sources_state
-
-    FROM files
-
-    (SELECT * FROM customers_in_test_compute_data_sources_state)
-
-    PREDICT Index
-
-    WINDOW 8
-
-    HORIZON 4;'
-  setup_sql_files: null
-  uri: data_sources.py
-- configuration_errors: null
-  configuration_valid: true
-  configured: false
-  created_table: null
   description: Data source for tests.
   engine: sqlite
   file: null
@@ -150,10 +104,32 @@ unconfigured_data_sources:
   range:
     end:
       character: 20
-      line: 34
+      line: 17
     start:
       character: 0
-      line: 34
+      line: 17
+  setup_sql: null
+  setup_sql_files: null
+  uri: data_sources.py
+- configuration_errors: null
+  configuration_valid: true
+  configured: false
+  created_table: null
+  description: Data source for the knowledge base of Wikipedia articles.
+  engine: sema4_knowledge_base
+  file: null
+  kind: datasource
+  model_name: null
+  model_state: null
+  name: wikipedia_kb
+  python_variable_name: WikipediaKnowledgeBaseDataSource
+  range:
+    end:
+      character: 32
+      line: 37
+    start:
+      character: 0
+      line: 37
   setup_sql: null
   setup_sql_files: null
   uri: data_sources.py

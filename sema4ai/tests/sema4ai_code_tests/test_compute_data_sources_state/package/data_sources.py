@@ -13,23 +13,6 @@ CustomersDataSource = Annotated[
     ),
 ]
 
-# Generated data source (models:can be configured automatically)
-PredictDataSource = Annotated[
-    DataSource,
-    DataSourceSpec(
-        model_name="predict_compute_data_sources_state",
-        engine="prediction:lightwood",
-        description="Predict something.",
-        setup_sql="""
-CREATE MODEL models.predict_compute_data_sources_state
-FROM files
-(SELECT * FROM customers_in_test_compute_data_sources_state)
-PREDICT Index
-WINDOW 8
-HORIZON 4;""",
-    ),
-]
-
 # External data source (needs to be configured separately)
 TestSqliteDataSource = Annotated[
     DataSource,
@@ -37,5 +20,25 @@ TestSqliteDataSource = Annotated[
         name="test_compute_data_sources_state",
         engine="sqlite",
         description="Data source for tests.",
+    ),
+]
+
+
+# CustomerSupportTicketsDataSource = Annotated[
+#     DataSource,
+#     DataSourceSpec(
+#         created_table="customer_support_tickets",
+#         file="files/customer_support_tickets.csv",
+#         engine="files",
+#         description="Data source for historical Customer support tickets data.",
+#     ),
+# ]
+
+WikipediaKnowledgeBaseDataSource = Annotated[
+    DataSource,
+    DataSourceSpec(
+        name="wikipedia_kb",
+        engine="sema4_knowledge_base",
+        description="Data source for the knowledge base of Wikipedia articles.",
     ),
 ]
