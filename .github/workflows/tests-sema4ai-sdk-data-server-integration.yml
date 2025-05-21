@@ -63,6 +63,7 @@ jobs:
       working-directory: ./sema4ai/tests
       env:
         PYTHONPATH: .
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         CI_CREDENTIALS: ${{ secrets.CI_CREDENTIALS }}
         CI_ENDPOINT: ${{ secrets.CI_ENDPOINT }}
         # Big timeout to create environment in windows.
@@ -71,7 +72,7 @@ jobs:
         PYTEST_CAN_RUN_DATA_SERVER: 1
 
       run: poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -n 1 -otests_output_data_server -vv -m data_server .
-      
+
     - uses: actions/upload-artifact@v4
       if: always()
       with:
