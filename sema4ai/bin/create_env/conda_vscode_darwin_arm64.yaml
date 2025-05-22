@@ -13,7 +13,7 @@ dependencies:
     - pyscreeze==0.1.30 # VSCode Image Inspector dependency
     - python-mss==9.0.1 # VSCode Image Inspector dependency
     - pip:
-          - playwright==1.37.0
+          - playwright==1.52.0
           - tree-sitter==0.24.0
           - tree-sitter-yaml==0.7.0
           - sema4ai-http-helper==2.1.0
