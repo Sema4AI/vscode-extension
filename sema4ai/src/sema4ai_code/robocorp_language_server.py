@@ -93,6 +93,7 @@ if typing.TYPE_CHECKING:
 
 # Track when the last warning message was shown
 _WARNING_MESSAGE_THROTTLE_MS = 5 * 60 * 1000  # 5 minutes in milliseconds
+_RUFF_MESSAGE_THROTTLE_MS = 20 * 1000  # 20 seconds in milliseconds
 
 DataSourceSetupResponse = list[str]
 
@@ -276,6 +277,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             lsp_messages=self._lsp_messages,
         )
         self._last_warning_message_time: float = 0
+        self._last_ruff_message_time: float = 0
 
         InspectorLanguageServer.__init__(self)
 
@@ -511,11 +513,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         PythonLanguageServer.m_text_document__did_save(self, textDocument, **_kwargs)
 
         doc_uri = textDocument["uri"]
-
         fs_path = uris.to_fs_path(doc_uri)
 
+        agent_spec_path = self._find_agent_package_spec_path(Path(fs_path))
         # Handle Sema4.ai folder files changes with warning message
-        if "Sema4.ai" in fs_path and self._find_agent_package_spec_path(Path(fs_path)):
+        if "Sema4.ai" in fs_path and agent_spec_path:
             now = time.time() * 1000  # Convert to milliseconds
             if now - self._last_warning_message_time > _WARNING_MESSAGE_THROTTLE_MS:
                 self._last_warning_message_time = now
@@ -3048,3 +3050,26 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                         datasource["configured"] = True
 
             return ActionResult[DataSourceStateDict].make_success(ret).as_dict()
+
+    def m_check_ruff_errors(self, folder_path: str) -> ActionResultDict:
+        """
+        Check all Python files in the given folder for ruff errors.
+        Returns a tuple of (file_path, line_number, error_message) for the first error found,
+        or None if no errors are found.
+        """
+        from sema4ai_code.robo.lint_ruff import check_folder_for_ruff_errors
+
+        try:
+            result = check_folder_for_ruff_errors(folder_path)
+            return {
+                "success": True,
+                "message": None,
+                "result": result
+            }
+        except Exception as e:
+            log.exception(f"Error checking folder for ruff errors: {e}")
+            return {
+                "success": False,
+                "message": str(e),
+                "result": None
+            }

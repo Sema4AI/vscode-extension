@@ -17,4 +17,4 @@ dependencies:
           - tree-sitter==0.24.0
           - tree-sitter-yaml==0.7.0
           - sema4ai-http-helper==2.1.0
-
+          - ruff==0.11.11

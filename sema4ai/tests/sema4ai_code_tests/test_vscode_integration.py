@@ -3187,3 +3187,45 @@ def test_document_did_save_on_myactions_package_yaml(
     assert (
         updated_version == "0.0.2"
     ), f"Expected version to be updated to 0.0.2, got {updated_version}"
+
+
+def test_document_did_save_on_python_file_in_agent_action(
+    language_server_initialized: IRobocorpLanguageServerClient,
+    cases: CasesFixture,
+    data_regression,
+    tmpdir,
+) -> None:
+    """Test that when a Python file is saved in an agent or action folder, ruff is run to check for errors."""
+    from sema4ai_ls_core import uris
+    from sema4ai_ls_core.unittest_tools.fixtures import TIMEOUT
+
+    # Copy the action package with errors to a temporary directory
+    action_package_path = str(tmpdir.join("action_package_with_errors"))
+    cases.copy_to("action_packages/action_package_with_errors", action_package_path)
+    actions_py_path = os.path.join(action_package_path, "my_action.py")
+
+    # Initialize language server with the workspace
+    language_server = language_server_initialized
+    language_server.change_workspace_folders(
+        added_folders=[action_package_path], removed_folders=[]
+    )
+
+    # Set up diagnostics matcher
+    message_matcher = language_server.obtain_pattern_message_matcher(
+        {"method": "textDocument/publishDiagnostics"}
+    )
+    assert message_matcher
+
+    # Save the file to trigger ruff check
+    file_uri = uris.from_fs_path(actions_py_path)
+    language_server.write(
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": {"textDocument": {"uri": file_uri}},
+        }
+    )
+
+    assert message_matcher.event.wait(TIMEOUT)
+    diag = message_matcher.msg["params"]["diagnostics"]
+    data_regression.check(sort_diagnostics(diag))

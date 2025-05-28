@@ -812,7 +812,16 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         }
 
         await promptForUnsavedChanges();
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
+
+        // Get the directory path - if we received a file path, get its parent directory
+        const directoryPath = path.dirname(actionPackagePath.fsPath);
+
+        // Check for ruff errors
+        if (!await checkRuffErrors(directoryPath)) {
+            return;
+        }
+
+        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(directoryPath);
         const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
         if (opened) {
             vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
@@ -836,6 +845,11 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             agentPackagePath = selected.directory;
         }
         await promptForUnsavedChanges();
+
+        // Check for ruff errors
+        if (!await checkRuffErrors(agentPackagePath)) {
+            return;
+        }
 
         const sema4aiHome = await getRobocorpHome();
         if (!sema4aiHome) {
@@ -1087,4 +1101,23 @@ export async function openDataSourceDefinition(entry?: RobotEntry) {
             datasource.range.start.character
         );
     }
+}
+
+async function checkRuffErrors(folderPath: string): Promise<boolean> {
+    const ruffError: any = await langServer.sendRequest("checkRuffErrors", { folder_path: folderPath });
+    if (!ruffError.success) {
+        vscode.window.showErrorMessage(`Error checking for linting errors: ${ruffError.message}`);
+        return false;
+    }
+    if (ruffError.result) {
+        const [filePath, lineNumber, errorMessage] = ruffError.result;
+        const document = await vscode.workspace.openTextDocument(filePath);
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(lineNumber - 1, 0);
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+        vscode.window.showErrorMessage(`Found linting error: ${errorMessage}`);
+        return false;
+    }
+    return true;
 }
