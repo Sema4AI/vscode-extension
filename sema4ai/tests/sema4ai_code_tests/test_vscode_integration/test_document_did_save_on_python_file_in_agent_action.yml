@@ -8,4 +8,4 @@
       character: 4
       line: 25
   severity: 1
-  source: ruff
+  source: sema4ai-lint

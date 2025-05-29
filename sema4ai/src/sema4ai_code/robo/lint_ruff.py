@@ -11,6 +11,7 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
     Run ruff linter on the given source code and return the results in a format
     compatible with LSP diagnostics.
     """
+    from sema4ai_ls_core.options import DEFAULT_TIMEOUT
 
     try:
         import subprocess
@@ -36,7 +37,7 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
             input=doc.source,
             capture_output=True,
             text=True,
-            timeout=2
+            timeout=DEFAULT_TIMEOUT
         )
 
         if result.returncode == 0:

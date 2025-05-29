@@ -196,13 +196,18 @@ class _CurrLintInfo(BaseLintInfo):
 
             if doc is not None:
                 source = doc.source
+                ruff_future = None
+                if self._find_action_or_agent(doc_uri):
+                    from sema4ai_code.robo.lint_ruff import collect_ruff_errors
+                    from sema4ai.common.run_in_thread import run_in_thread
+                    ruff_future = run_in_thread(lambda: collect_ruff_errors(doc))
+
                 if "@action" in source:
                     from sema4ai_code.robo.lint_action import collect_lint_errors
                     errors = collect_lint_errors(robocorp_language_server.pm, doc)
 
-                if self._find_action_or_agent(doc_uri):
-                    from sema4ai_code.robo.lint_ruff import collect_ruff_errors
-                    errors.extend(collect_ruff_errors(doc))
+                if ruff_future:
+                    errors.extend(ruff_future.result())
 
                 self._lsp_messages.publish_diagnostics(doc_uri, errors)
             return
