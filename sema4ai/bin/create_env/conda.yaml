@@ -11,7 +11,7 @@ dependencies:
     - msgspec=0.19.0
     - pip:
           - robocorp-inspector==0.10.2 # https://github.com/robocorp/inspector/blob/master/CHANGELOG.md
-          - playwright==1.37.0
+          - playwright==1.52.0
           - tree-sitter==0.24.0
           - tree-sitter-yaml==0.7.0
           - sema4ai-http-helper==2.1.0
