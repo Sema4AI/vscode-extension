@@ -817,7 +817,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         const directoryPath = path.dirname(actionPackagePath.fsPath);
 
         // Check for ruff errors
-        if (!await checkRuffErrors(directoryPath)) {
+        if (!(await checkRuffErrors(directoryPath))) {
             return;
         }
 
@@ -847,7 +847,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         await promptForUnsavedChanges();
 
         // Check for ruff errors
-        if (!await checkRuffErrors(agentPackagePath)) {
+        if (!(await checkRuffErrors(agentPackagePath))) {
             return;
         }
 
