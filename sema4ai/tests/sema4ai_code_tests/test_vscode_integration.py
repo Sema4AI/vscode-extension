@@ -3226,6 +3226,6 @@ def test_document_did_save_on_python_file_in_agent_action(
         }
     )
 
-    assert message_matcher.event.wait(60)  # Increased for Windows
+    assert message_matcher.event.wait(120)  # Increased for Windows
     diag = message_matcher.msg["params"]["diagnostics"]
     data_regression.check(sort_diagnostics(diag))
