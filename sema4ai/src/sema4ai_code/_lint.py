@@ -200,10 +200,12 @@ class _CurrLintInfo(BaseLintInfo):
                 if self._find_action_or_agent(doc_uri):
                     from sema4ai_code.robo.lint_ruff import collect_ruff_errors
                     from sema4ai.common.run_in_thread import run_in_thread
+
                     ruff_future = run_in_thread(lambda: collect_ruff_errors(doc))
 
                 if "@action" in source:
                     from sema4ai_code.robo.lint_action import collect_lint_errors
+
                     errors = collect_lint_errors(robocorp_language_server.pm, doc)
 
                 if ruff_future:

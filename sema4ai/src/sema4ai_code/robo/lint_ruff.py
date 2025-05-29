@@ -37,7 +37,7 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
             input=doc.source,
             capture_output=True,
             text=True,
-            timeout=DEFAULT_TIMEOUT
+            timeout=DEFAULT_TIMEOUT,
         )
 
         if result.returncode == 0:
@@ -47,7 +47,9 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
         diagnostics = []
         for diagnostic in json.loads(result.stdout):
             code = diagnostic.get("code")
-            severity = 1 if code is None else _get_severity(code) # No code means SyntaxError
+            severity = (
+                1 if code is None else _get_severity(code)
+            )  # No code means SyntaxError
 
             lsp_diagnostic = {
                 "range": {
@@ -63,7 +65,7 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
                 "severity": severity,
                 "source": "sema4ai-lint",
                 "message": diagnostic["message"],
-                "code": code or "SyntaxError"
+                "code": code or "SyntaxError",
             }
             diagnostics.append(lsp_diagnostic)
 
@@ -94,11 +96,11 @@ def check_folder_for_ruff_errors(folder_path: str) -> Optional[Tuple[str, int, s
                 "--ignore",
                 "F401,F403,F405,F841",
                 "--output-format=json",
-                folder_path
+                folder_path,
             ],
             capture_output=True,
             text=True,
-            timeout=30  # Increased timeout for multiple files
+            timeout=30,  # Increased timeout for multiple files
         )
 
         if result.returncode == 0:

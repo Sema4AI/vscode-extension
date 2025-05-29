@@ -3061,15 +3061,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         try:
             result = check_folder_for_ruff_errors(folder_path)
-            return {
-                "success": True,
-                "message": None,
-                "result": result
-            }
+            return {"success": True, "message": None, "result": result}
         except Exception as e:
             log.exception(f"Error checking folder for ruff errors: {e}")
-            return {
-                "success": False,
-                "message": str(e),
-                "result": None
-            }
+            return {"success": False, "message": str(e), "result": None}
