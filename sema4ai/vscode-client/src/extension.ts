@@ -1104,19 +1104,36 @@ export async function openDataSourceDefinition(entry?: RobotEntry) {
 }
 
 async function checkRuffErrors(folderPath: string): Promise<boolean> {
-    const ruffError: any = await langServer.sendRequest("checkRuffErrors", { folder_path: folderPath });
-    if (!ruffError.success) {
-        vscode.window.showErrorMessage(`Error checking for linting errors: ${ruffError.message}`);
-        return false;
-    }
-    if (ruffError.result) {
-        const [filePath, lineNumber, errorMessage] = ruffError.result;
+    const ruffErrors: any = await langServer.sendRequest("checkRuffErrors", { folder_path: folderPath });
+    if (ruffErrors.result) {
+        const firstError = ruffErrors.result[0];
+        const filePath = firstError.filename;
+        const lineNumber = firstError.location.row;
+
         const document = await vscode.workspace.openTextDocument(filePath);
         const editor = await vscode.window.showTextDocument(document);
         const position = new vscode.Position(lineNumber - 1, 0);
         editor.selection = new vscode.Selection(position, position);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-        vscode.window.showErrorMessage(`Found linting error: ${errorMessage}`);
+
+        // Create a detailed error message
+        const errorDetails = ruffErrors.result
+            .map((error: any) => `${error.filename}:${error.location.row}: ${error.message}`)
+            .join("\n");
+
+        const selection = await vscode.window.showWarningMessage(
+            `Found ${ruffErrors.result.length} linting errors. Would you like to continue?`,
+            { modal: true },
+            "Ignore and Publish",
+            "Show Errors"
+        );
+
+        if (selection === "Ignore and Publish") {
+            return true;
+        }
+        if (selection === "Show Errors") {
+            await vscode.window.showErrorMessage(`Linting errors found:\n\n${errorDetails}`);
+        }
         return false;
     }
     return true;

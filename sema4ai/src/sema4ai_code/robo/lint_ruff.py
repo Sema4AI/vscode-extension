@@ -76,7 +76,7 @@ def collect_ruff_errors(doc: IDocument) -> List[Dict[str, Any]]:
         return []
 
 
-def check_folder_for_ruff_errors(folder_path: str) -> Optional[Tuple[str, int, str]]:
+def check_folder_for_ruff_errors(folder_path: str) -> list[dict] | None:
     """
     Check all Python files in the given folder for ruff errors.
     Returns a tuple of (file_path, line_number, error_message) for the first error found,
@@ -111,13 +111,7 @@ def check_folder_for_ruff_errors(folder_path: str) -> Optional[Tuple[str, int, s
         if not diagnostics:
             return None
 
-        first_error = diagnostics[0]
-        file_path = first_error["filename"]
-        line_number = first_error["location"]["row"]
-        error_message = first_error["message"]
-
-        return (file_path, line_number, error_message)
-
+        return diagnostics
     except Exception as e:
         log.error(f"Error running ruff on folder: {str(e)}")
         return None
