@@ -1116,13 +1116,25 @@ async function checkRuffErrors(folderPath: string): Promise<boolean> {
         editor.selection = new vscode.Selection(position, position);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
 
-        // Create a detailed error message
-        const errorDetails = ruffErrors.result
-            .map((error: any) => `${error.filename}:${error.location.row}: ${error.message}`)
-            .join("\n");
+        OUTPUT_CHANNEL.appendLine(`Found ${ruffErrors.result.length} linting errors:`);
+        ruffErrors.result.forEach((error: any) => {
+            const fileUri = vscode.Uri.file(error.filename);
+            const line = error.location.row;
+            const column = error.location.column;
+            const errorLocation = `${fileUri.fsPath}:${line}:${column}`;
+            const link = `[${errorLocation}](${fileUri.toString()}#${line},${column})`;
+            OUTPUT_CHANNEL.appendLine(`${link}: ${error.message}`);
+        });
+
+        let initialMessage: string;
+        if (ruffErrors.result.length === 1) {
+            initialMessage = `Found linting error: ${firstError.message}. How would you like to proceed?`;
+        } else {
+            initialMessage = `Found ${ruffErrors.result.length} linting errors. First error: ${firstError.message}. How would you like to proceed?`;
+        }
 
         const selection = await vscode.window.showWarningMessage(
-            `Found ${ruffErrors.result.length} linting errors. Would you like to continue?`,
+            initialMessage,
             { modal: true },
             "Ignore and Publish",
             "Show Errors"
@@ -1132,7 +1144,7 @@ async function checkRuffErrors(folderPath: string): Promise<boolean> {
             return true;
         }
         if (selection === "Show Errors") {
-            await vscode.window.showErrorMessage(`Linting errors found:\n\n${errorDetails}`);
+            OUTPUT_CHANNEL.show();
         }
         return false;
     }
