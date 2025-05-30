@@ -812,7 +812,16 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         }
 
         await promptForUnsavedChanges();
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
+
+        // Get the directory path - if we received a file path, get its parent directory
+        const directoryPath = path.dirname(actionPackagePath.fsPath);
+
+        // Check for ruff errors
+        if (!(await checkRuffErrors(directoryPath))) {
+            return;
+        }
+
+        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(directoryPath);
         const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
         if (opened) {
             vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
@@ -836,6 +845,11 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             agentPackagePath = selected.directory;
         }
         await promptForUnsavedChanges();
+
+        // Check for ruff errors
+        if (!(await checkRuffErrors(agentPackagePath))) {
+            return;
+        }
 
         const sema4aiHome = await getRobocorpHome();
         if (!sema4aiHome) {
@@ -1087,4 +1101,52 @@ export async function openDataSourceDefinition(entry?: RobotEntry) {
             datasource.range.start.character
         );
     }
+}
+
+async function checkRuffErrors(folderPath: string): Promise<boolean> {
+    const ruffErrors: any = await langServer.sendRequest("checkRuffErrors", { folder_path: folderPath });
+    if (ruffErrors.result) {
+        const firstError = ruffErrors.result[0];
+        const filePath = firstError.filename;
+        const lineNumber = firstError.location.row;
+
+        const document = await vscode.workspace.openTextDocument(filePath);
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(lineNumber - 1, 0);
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+
+        OUTPUT_CHANNEL.appendLine(`Found ${ruffErrors.result.length} linting errors:`);
+        ruffErrors.result.forEach((error: any) => {
+            const fileUri = vscode.Uri.file(error.filename);
+            const line = error.location.row;
+            const column = error.location.column;
+            const errorLocation = `${fileUri.fsPath}:${line}:${column}`;
+            const link = `[${errorLocation}](${fileUri.toString()}#${line},${column})`;
+            OUTPUT_CHANNEL.appendLine(`${link}: ${error.message}`);
+        });
+
+        let initialMessage: string;
+        if (ruffErrors.result.length === 1) {
+            initialMessage = `Found linting error: ${firstError.message}. How would you like to proceed?`;
+        } else {
+            initialMessage = `Found ${ruffErrors.result.length} linting errors. First error: ${firstError.message}. How would you like to proceed?`;
+        }
+
+        const selection = await vscode.window.showWarningMessage(
+            initialMessage,
+            { modal: true },
+            "Ignore and Publish",
+            "Show Errors"
+        );
+
+        if (selection === "Ignore and Publish") {
+            return true;
+        }
+        if (selection === "Show Errors") {
+            OUTPUT_CHANNEL.show();
+        }
+        return false;
+    }
+    return true;
 }

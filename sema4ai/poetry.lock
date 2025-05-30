@@ -1393,6 +1393,24 @@ robocorp-truststore = ">=0.8.0"
 sema4ai-http-helper = ">=2.0.1,<3.0.0"
 
 [[package]]
+name = "sema4ai-common"
+version = "0.1.0"
+description = "Sema4AI Common"
+optional = false
+python-versions = "<4.0,>=3.11"
+groups = ["main"]
+files = [
+    {file = "sema4ai_common-0.1.0-py3-none-any.whl", hash = "sha256:46c8e07d1420bf507300a51624e27e0dad1ecc3036604f57513d91d29926a917"},
+    {file = "sema4ai_common-0.1.0.tar.gz", hash = "sha256:0185f2e39fca7578a52558d6bf08d347c161f19757c3c779ad5345103660e16f"},
+]
+
+[package.dependencies]
+msgspec = ">=0.18"
+psutil = ">=5.0,<7.0"
+pyyaml = ">=6.0,<7.0"
+sema4ai-http-helper = ">=2.0.0,<3.0.0"
+
+[[package]]
 name = "sema4ai-data"
 version = "1.0.0"
 description = "Sema4AI Data"
@@ -1696,4 +1714,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12"
-content-hash = "dc5acdd73b389bf1c3b0f804167ec7d3396b2bee341e83a168d4c35c5f1e2380"
+content-hash = "b2cbc3b462fe39db86427d9c6635862bff1a1834dcd4830fadf595c2702cf1ed"

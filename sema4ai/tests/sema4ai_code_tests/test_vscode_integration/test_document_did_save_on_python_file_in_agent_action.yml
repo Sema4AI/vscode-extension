@@ -1,0 +1,11 @@
+- code: F821
+  message: Undefined name `inexistent_function_call`
+  range:
+    end:
+      character: 28
+      line: 25
+    start:
+      character: 4
+      line: 25
+  severity: 1
+  source: sema4ai-lint

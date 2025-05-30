@@ -282,8 +282,8 @@ class BaseLintInfo:
             except JsonRpcRequestCancelled:
                 log.debug("Cancelled linting: %s.", self.doc_uri)
 
-            except Exception:
-                log.exception("Error linting: %s.", self.doc_uri)
+            except Exception as e:
+                log.exception("Error linting: %s. %s", self.doc_uri, e)
 
         finally:
             self._on_finish()

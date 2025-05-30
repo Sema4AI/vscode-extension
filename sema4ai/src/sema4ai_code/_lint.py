@@ -151,6 +151,28 @@ class _CurrLintInfo(BaseLintInfo):
         self._weak_robocorp_language_server = weak_robocorp_language_server
         BaseLintInfo.__init__(self, lsp_messages, doc_uri, is_saved, weak_lint_manager)
 
+    @staticmethod
+    def _find_action_or_agent(uri: str) -> bool:
+        """Checks if the given path is inside an action or agent package."""
+        from pathlib import Path
+        from sema4ai_ls_core import uris
+
+        fs_path = uris.to_fs_path(uri)
+        check_dir = Path(fs_path).parent
+
+        for _ in range(6):
+            package_yaml_path = check_dir / "package.yaml"
+            agent_spec_yaml_path = check_dir / "agent-spec.yaml"
+
+            if package_yaml_path.exists() or agent_spec_yaml_path.exists():
+                return True
+
+            if not check_dir.parent or check_dir.parent == check_dir:
+                return False
+            check_dir = check_dir.parent
+
+        return False
+
     @overrides(BaseLintInfo._do_lint)
     def _do_lint(self) -> None:
         from concurrent import futures
@@ -166,15 +188,29 @@ class _CurrLintInfo(BaseLintInfo):
 
         if doc_uri.endswith(".py"):
             ws: IWorkspace | None = robocorp_language_server.workspace
-            if ws is not None:
-                doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
-                errors = []
-                if doc is not None:
-                    source = doc.source
-                    if "@action" in source:
-                        from sema4ai_code.robo.lint_action import collect_lint_errors
+            if not ws:
+                return
 
-                        errors = collect_lint_errors(robocorp_language_server.pm, doc)
+            doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
+            errors = []
+
+            if doc is not None:
+                source = doc.source
+                ruff_future = None
+                if self._find_action_or_agent(doc_uri):
+                    from sema4ai_code.robo.lint_ruff import collect_ruff_errors
+                    from sema4ai.common.run_in_thread import run_in_thread
+
+                    ruff_future = run_in_thread(lambda: collect_ruff_errors(doc))
+
+                if "@action" in source:
+                    from sema4ai_code.robo.lint_action import collect_lint_errors
+
+                    errors = collect_lint_errors(robocorp_language_server.pm, doc)
+
+                if ruff_future:
+                    errors.extend(ruff_future.result())
+
                 self._lsp_messages.publish_diagnostics(doc_uri, errors)
             return
 

@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Check linting errors with ruff when we work with a python file inside an agent or action.
 - Add support for knowledge bases
 - Update data-server-cli to `1.1.9-alpha2`
 - Add support for macOS ARM64 build
