@@ -88,7 +88,7 @@ profile = "black"
 [tool.black]
 exclude = "vendored"
 
-[tool.ruff]
+[tool.ruff.lint]
 ignore = [
     "E501", # Line-len.
     "F541", # f-string without placeholders.

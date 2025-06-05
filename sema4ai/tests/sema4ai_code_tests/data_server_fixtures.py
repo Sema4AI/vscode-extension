@@ -160,9 +160,9 @@ def _is_current_db_data_valid(
     expected = default_data
     current_db_data_valid = rows == expected
     if make_assert:
-        assert (
-            current_db_data_valid
-        ), f"Current data is not valid. Found: {rows}. Expected: {expected}"
+        assert current_db_data_valid, (
+            f"Current data is not valid. Found: {rows}. Expected: {expected}"
+        )
     return current_db_data_valid
 
 

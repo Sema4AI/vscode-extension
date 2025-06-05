@@ -310,7 +310,7 @@ class WebInspector:
                 elif "title" in props and props["title"]:
                     frameQuery = f'title="{props["title"]}"'
                 elif "class" in props and props["class"]:
-                    frameQuery = f'{props["class"]}'
+                    frameQuery = f"{props['class']}"
         if frameQuery == "":
             return None
 

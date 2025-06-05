@@ -504,9 +504,9 @@ class ActionServer:
 
     def get_sema4ai_oauth2_config_str(self) -> str:
         self.get_sema4ai_oauth2_config()
-        assert (
-            self._cached_sema4ai_oauth2_config_str
-        ), "Expected sema4ai oauth2 config to be set at this point."
+        assert self._cached_sema4ai_oauth2_config_str, (
+            "Expected sema4ai oauth2 config to be set at this point."
+        )
         return self._cached_sema4ai_oauth2_config_str
 
     def get_sema4ai_oauth2_config(self) -> dict:
@@ -534,9 +534,9 @@ class ActionServer:
             self._cached_sema4ai_oauth2_config = oauth2_config
             self._cached_sema4ai_oauth2_config_str = action_result.result
 
-        assert (
-            self._cached_sema4ai_oauth2_config
-        ), "Expected sema4ai oauth2 config to be set at this point."
+        assert self._cached_sema4ai_oauth2_config, (
+            "Expected sema4ai oauth2 config to be set at this point."
+        )
         return self._cached_sema4ai_oauth2_config
 
     def _run_action_server_command(

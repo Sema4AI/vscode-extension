@@ -233,7 +233,7 @@ def _get_actions_version(
     error_msg = f"""Unable to get {libname} version.
 
     This usually means that `{libname}` is not installed in the python
-    environment (make sure that `{libname.replace('.', '-')}`
+    environment (make sure that `{libname.replace(".", "-")}`
     is defined in your `package.yaml`).
     """
 

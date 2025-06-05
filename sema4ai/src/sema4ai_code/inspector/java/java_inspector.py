@@ -156,23 +156,23 @@ def to_element_history_filtered(hierarchy: list):
 def to_unique_locator(elem: LocatorNodeInfoTypedDict):
     locator = f"role:{elem['role']}"
     if elem["name"]:
-        locator += f' and name:{elem["name"]}'
+        locator += f" and name:{elem['name']}"
     if elem["description"]:
-        locator += f' and description:{elem["description"]}'
+        locator += f" and description:{elem['description']}"
     if elem["indexInParent"]:
-        locator += f' and indexInParent:{elem["indexInParent"]}'
+        locator += f" and indexInParent:{elem['indexInParent']}"
     if elem["childrenCount"]:
-        locator += f' and childrenCount:{elem["childrenCount"]}'
+        locator += f" and childrenCount:{elem['childrenCount']}"
     if elem["states"]:
-        locator += f' and states:{elem["states"]}'
+        locator += f" and states:{elem['states']}"
     if elem["x"]:
-        locator += f' and x:{elem["x"]}'
+        locator += f" and x:{elem['x']}"
     if elem["y"]:
-        locator += f' and y:{elem["y"]}'
+        locator += f" and y:{elem['y']}"
     if elem["width"]:
-        locator += f' and width:{elem["width"]}'
+        locator += f" and width:{elem['width']}"
     if elem["height"]:
-        locator += f' and height:{elem["height"]}'
+        locator += f" and height:{elem['height']}"
     return locator
 
 

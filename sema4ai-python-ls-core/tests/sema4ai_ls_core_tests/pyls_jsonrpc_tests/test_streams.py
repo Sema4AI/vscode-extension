@@ -69,7 +69,7 @@ def test_reader_bad_message(rfile, reader):
 
 
 def test_reader_bad_json(rfile, reader):
-    rfile.write(b"Content-Length: 8\r\n" b"\r\n" b"{hello}}")
+    rfile.write(b"Content-Length: 8\r\n\r\n{hello}}")
     rfile.seek(0)
 
     # Ensure the listener doesn't throw
@@ -87,11 +87,7 @@ def test_writer(wfile, writer):
             b"\r\n"
             b'{"id": "hello", "method": "method", "params": {}}'
         ),
-        (
-            b"Content-Length: 44\r\n"
-            b"\r\n"
-            b'{"id":"hello","method":"method","params":{}}'
-        ),
+        (b'Content-Length: 44\r\n\r\n{"id":"hello","method":"method","params":{}}'),
     )
 
 
@@ -104,4 +100,4 @@ def test_writer_bad_message(wfile, writer):
         datetime.datetime(year=2019, month=1, day=1, hour=1, minute=1, second=1)
     )
 
-    assert wfile.getvalue() in (b"", (b"Content-Length: 10\r\n" b"\r\n" b"1546304461"))
+    assert wfile.getvalue() in (b"", (b"Content-Length: 10\r\n\r\n1546304461"))

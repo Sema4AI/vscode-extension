@@ -207,9 +207,9 @@ def test_list_local_robots(
         ],
     )
 
-    assert os.path.exists(
-        f"{ws_root_path}/agent1/actions/MyActions"
-    ), "actions/MyActions not created when creating agent."
+    assert os.path.exists(f"{ws_root_path}/agent1/actions/MyActions"), (
+        "actions/MyActions not created when creating agent."
+    )
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
         [
@@ -540,9 +540,9 @@ def test_cloud_list_workspaces_sorting(
     rcc_patch.apply()
 
     result = client.cloud_list_workspaces()
-    assert result[
-        "success"
-    ], f'Expected the cloud to list workspaces. Error: {result["message"]}'
+    assert result["success"], (
+        f"Expected the cloud to list workspaces. Error: {result['message']}"
+    )
     ws_info = result["result"]
     assert ws_info
 
@@ -698,14 +698,14 @@ def test_upload_to_cloud(
     result_workspaces: list[WorkspaceInfoDict] = result["result"]
     assert result_workspaces, "Expected to have the available workspaces and packages."
     found = [x for x in result_workspaces if x["workspaceName"] == "CI workspace"]
-    assert (
-        len(found) == 1
-    ), f'Expected to find "CI workspace". Found: {result_workspaces}'
+    assert len(found) == 1, (
+        f'Expected to find "CI workspace". Found: {result_workspaces}'
+    )
 
     found_packages = [x for x in found[0]["packages"] if x["name"] == "CI activity"]
-    assert (
-        len(found_packages) == 1
-    ), f'Expected to find "CI activity". Found: {result_workspaces}'
+    assert len(found_packages) == 1, (
+        f'Expected to find "CI activity". Found: {result_workspaces}'
+    )
 
     found_package: PackageInfoDict = found_packages[0]
     result = client.execute_command(
@@ -2862,13 +2862,13 @@ def test_import_action_packages(language_server_initialized, tmpdir, datadir) ->
     )
 
     msg_result = result.get("result")
-    assert (
-        msg_result
-    ), f'No result response from "listGalleryActionPackages". Response: {result}'
+    assert msg_result, (
+        f'No result response from "listGalleryActionPackages". Response: {result}'
+    )
 
-    assert msg_result.get(
-        "success"
-    ), f'No success response from "listGalleryActionPackages". Response: {result}'
+    assert msg_result.get("success"), (
+        f'No success response from "listGalleryActionPackages". Response: {result}'
+    )
 
     list_result = msg_result.get("result")
     for k, _ in list_result.items():
@@ -2893,13 +2893,13 @@ def test_import_action_packages(language_server_initialized, tmpdir, datadir) ->
     )
 
     msg_result = result.get("result")
-    assert (
-        msg_result
-    ), f'No result response from "importGalleryActionPackage". Response: {result}'
+    assert msg_result, (
+        f'No result response from "importGalleryActionPackage". Response: {result}'
+    )
 
-    assert msg_result.get(
-        "success"
-    ), f'No success response from "importGalleryActionPackage". Response: {result}'
+    assert msg_result.get("success"), (
+        f'No success response from "importGalleryActionPackage". Response: {result}'
+    )
 
     created_dir = msg_result["result"]
     assert os.listdir(Path(created_dir))
@@ -2920,13 +2920,13 @@ def test_import_action_packages(language_server_initialized, tmpdir, datadir) ->
         }
     )
     msg_result = result.get("result")
-    assert (
-        msg_result
-    ), f'No result response from "importZipAsActionPackage". Response: {result}'
+    assert msg_result, (
+        f'No result response from "importZipAsActionPackage". Response: {result}'
+    )
 
-    assert msg_result.get(
-        "success"
-    ), f'No success response from "importZipAsActionPackage". Response: {result}'
+    assert msg_result.get("success"), (
+        f'No success response from "importZipAsActionPackage". Response: {result}'
+    )
     created_dir = msg_result["result"]
     assert os.listdir(Path(created_dir))
 
@@ -3182,9 +3182,9 @@ def test_document_did_save_on_myactions_package_yaml(
             "action-packages"
         ][0]["version"]
 
-    assert (
-        updated_version == "0.0.2"
-    ), f"Expected version to be updated to 0.0.2, got {updated_version}"
+    assert updated_version == "0.0.2", (
+        f"Expected version to be updated to 0.0.2, got {updated_version}"
+    )
 
 
 def test_document_did_save_on_python_file_in_agent_action(

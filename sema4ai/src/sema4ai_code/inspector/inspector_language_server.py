@@ -63,7 +63,7 @@ class InspectorLanguageServer:
             # the current version is not correct.
             ret = {
                 "success": False,
-                "message": f'The locator was not saved because there was an issue loading the existing locators: {loaded_locators_action_result["message"]}',
+                "message": f"The locator was not saved because there was an issue loading the existing locators: {loaded_locators_action_result['message']}",
                 "result": None,
             }
             return ret
@@ -114,7 +114,7 @@ class InspectorLanguageServer:
         if not loaded_locators_action_result["success"]:
             ret = {
                 "success": False,
-                "message": f'The locators were not deleted because there was an issue loading the existing locators: {loaded_locators_action_result["message"]}',
+                "message": f"The locators were not deleted because there was an issue loading the existing locators: {loaded_locators_action_result['message']}",
                 "result": None,
             }
             return ret

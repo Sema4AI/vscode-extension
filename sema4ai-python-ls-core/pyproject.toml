@@ -66,7 +66,7 @@ mypy_path = "src:tests:src/sema4ai_ls_core/libs/watchdog_lib:src/sema4ai_ls_core
 [tool.isort]
 profile = "black"
 
-[tool.ruff]
+[tool.ruff.lint]
 ignore = [
     "E501", # Line-len.
     "F541", # f-string without placeholders. 

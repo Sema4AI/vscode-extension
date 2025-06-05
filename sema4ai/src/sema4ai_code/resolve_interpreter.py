@@ -270,7 +270,9 @@ Full error message
     ) -> _CachedInterpreterMTime:
         assert (
             robot_yaml_file_info is not None or conda_or_package_file_info is not None
-        ), "Either the robot.yaml or conda.yaml/package.yaml must not be None at this point"
+        ), (
+            "Either the robot.yaml or conda.yaml/package.yaml must not be None at this point"
+        )
         return (
             robot_yaml_file_info.mtime_info if robot_yaml_file_info else None,
             conda_or_package_file_info.mtime_info

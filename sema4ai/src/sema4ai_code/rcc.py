@@ -569,7 +569,7 @@ class Rcc:
                     else:
                         email = str(details.get("email", "<Email: Unknown>"))
                         fullname = (
-                            f'{details.get("first_name")} {details.get("last_name")}'
+                            f"{details.get('first_name')} {details.get('last_name')}"
                         )
 
                     account = self._last_verified_account_info = AccountInfo(
@@ -1011,7 +1011,7 @@ class Rcc:
             if not proceed_to_create_env:
                 return ActionResult(
                     False,
-                    f"Environment for space_info: {space_info.space_name} not ready after waiting for {timeout/60} minutes.",
+                    f"Environment for space_info: {space_info.space_name} not ready after waiting for {timeout / 60} minutes.",
                     None,
                 )
 

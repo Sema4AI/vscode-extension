@@ -332,9 +332,9 @@ class RccPatch:
             conda_prefix.mkdir()
 
             space_name = args[3]
-            assert space_name.startswith(
-                "vscode-"
-            ), f"Expected space name to start with vscode-. Found: {space_name}. Args: {args}"
+            assert space_name.startswith("vscode-"), (
+                f"Expected space name to start with vscode-. Found: {space_name}. Args: {args}"
+            )
 
             conda_yaml = args[4]
             assert conda_yaml.endswith("conda.yaml") or conda_yaml.endswith(
