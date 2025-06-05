@@ -105,7 +105,7 @@ class _LogConfig:
         if trim:
             msg_len = len(message)
             if msg_len > MAX_LOG_MSG_SIZE:
-                message = f"{message[:MAX_LOG_MSG_SIZE-200]} ... <trimmed {msg_len} to {MAX_LOG_MSG_SIZE}> ... {message[-200:]}"
+                message = f"{message[: MAX_LOG_MSG_SIZE - 200]} ... <trimmed {msg_len} to {MAX_LOG_MSG_SIZE}> ... {message[-200:]}"
 
         log_format = (
             self.prefix

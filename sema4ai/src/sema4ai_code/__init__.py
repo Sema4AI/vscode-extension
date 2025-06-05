@@ -88,9 +88,9 @@ def import_robocorp_ls_core() -> None:
                 vendored_folder = os.path.join(src_folder, "sema4ai_code", "vendored")
                 log_contents.append(f"Using vendored mode. Found: {vendored_folder}")
                 use_folder = vendored_folder
-                assert os.path.isdir(
-                    use_folder
-                ), f"Expected: {use_folder} to exist and be a directory."
+                assert os.path.isdir(use_folder), (
+                    f"Expected: {use_folder} to exist and be a directory."
+                )
 
             sys.path.append(use_folder)
             import sema4ai_ls_core

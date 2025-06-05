@@ -1236,7 +1236,7 @@ class ControlElement:
             if send_enter:
                 control.SendKeys(text="{Enter}", interval=interval, waitTime=wait_time)
         else:
-            raise ActionNotPossible("Element does not have " "SendKeys' attribute")
+            raise ActionNotPossible("Element does not have SendKeys' attribute")
 
     def get_text(
         self,

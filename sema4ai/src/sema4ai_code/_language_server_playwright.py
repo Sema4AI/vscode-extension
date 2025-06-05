@@ -153,7 +153,7 @@ class _Playwright:
             except Exception as e:
                 log.error("Error reading stream:", e)
 
-        log.info(f'Running: {" ".join(str(x) for x in cmd)}')
+        log.info(f"Running: {' '.join(str(x) for x in cmd)}")
         process = subprocess.Popen(cmd, **kwargs)
 
         # Not sure why, but (just when running in VSCode) something as:

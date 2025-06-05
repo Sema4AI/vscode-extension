@@ -253,9 +253,9 @@ class RemoteFSObserver:
         call_args=(),
         extensions: Sequence[str] | None = None,
     ) -> IFSWatch:
-        assert (
-            self._initialized_event.is_set()
-        ), "Initialization not completed. Unable to notify on changes."
+        assert self._initialized_event.is_set(), (
+            "Initialization not completed. Unable to notify on changes."
+        )
 
         writer = self.writer
         if writer is None:

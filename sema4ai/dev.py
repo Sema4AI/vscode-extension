@@ -99,9 +99,9 @@ class Dev:
                 contents = stream.read()
 
             new_contents = _fix_rcc_contents_version(contents, version)
-            assert (
-                contents != new_contents
-            ), f"Nothing changed after applying new version (file: {filepath})"
+            assert contents != new_contents, (
+                f"Nothing changed after applying new version (file: {filepath})"
+            )
             with open(filepath, "w") as stream:
                 stream.write(new_contents)
 

@@ -33,7 +33,7 @@ def print_ast(node, stream=None, depth=0):
         stream = sys.stderr
 
     stream.write(
-        f"{'  ' * depth}Node type: \"{node.type}\", start: {node.start_point}, end: {node.end_point}\n"
+        f'{"  " * depth}Node type: "{node.type}", start: {node.start_point}, end: {node.end_point}\n'
     )
 
     for child_node in node.children:

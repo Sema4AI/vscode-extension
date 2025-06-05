@@ -204,7 +204,7 @@ def main():
             args.append("--print-result")
 
     print(
-        f'Running with sema4ai.actions version: {".".join(str(x) for x in actions.version_info)}'
+        f"Running with sema4ai.actions version: {'.'.join(str(x) for x in actions.version_info)}"
     )
     kwargs = {}
     if actions.version_info >= [0, 9, 0]:

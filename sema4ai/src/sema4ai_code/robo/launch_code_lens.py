@@ -255,9 +255,9 @@ def _collect_python_code_lenses_in_thread(
                     and isinstance(decorator, ast.Name)
                     and decorator.id == "action"
                 ):
-                    assert (
-                        package_yaml_path is not None
-                    ), "Expected package_yaml_path to be defined at this point."
+                    assert package_yaml_path is not None, (
+                        "Expected package_yaml_path to be defined at this point."
+                    )
                     function_name = node.name
                     start_line = decorator.lineno - 1  # AST line numbers are 1-based
                     robot_entry = {
@@ -291,9 +291,9 @@ def _collect_python_code_lenses_in_thread(
                     and isinstance(decorator, ast.Name)
                     and decorator.id == "query"
                 ):
-                    assert (
-                        package_yaml_path is not None
-                    ), "Expected package_yaml_path to be defined at this point."
+                    assert package_yaml_path is not None, (
+                        "Expected package_yaml_path to be defined at this point."
+                    )
                     function_name = node.name
                     start_line = decorator.lineno - 1  # AST line numbers are 1-based
                     robot_entry = {
@@ -327,9 +327,9 @@ def _collect_python_code_lenses_in_thread(
                     and isinstance(decorator, ast.Name)
                     and decorator.id == "predict"
                 ):
-                    assert (
-                        package_yaml_path is not None
-                    ), "Expected package_yaml_path to be defined at this point."
+                    assert package_yaml_path is not None, (
+                        "Expected package_yaml_path to be defined at this point."
+                    )
                     function_name = node.name
                     start_line = decorator.lineno - 1  # AST line numbers are 1-based
                     robot_entry = {

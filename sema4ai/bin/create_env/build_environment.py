@@ -39,9 +39,9 @@ def run_rcc_command(
         shell=shell,
         cwd=str(get_working_dir()),
     )
-    assert (
-        result.returncode == 0
-    ), f"Could not run rcc command with args: {args}! Reason: {result.stderr}"
+    assert result.returncode == 0, (
+        f"Could not run rcc command with args: {args}! Reason: {result.stderr}"
+    )
 
     return result
 

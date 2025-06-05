@@ -94,9 +94,9 @@ def collect_data_source_state(
                 },
             }
         )["result"]
-        assert result[
-            "success"
-        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        assert result["success"], (
+            f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        )
         ret = result["result"]
         fixed_result = fix_data_sources_state_result(ret)
         return fixed_result
@@ -164,12 +164,12 @@ def test_setup_datasource(
     result = setup_data_source(files_data_sources[0])
     setup_knowledge_base(data_server_cli)
 
-    assert result[
-        "success"
-    ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
-    assert (
-        "Uploaded file" in str(result["result"])
-    ), "Expected 'Uploaded file' in the result. Full result: {json.dumps(result, indent=2)}"
+    assert result["success"], (
+        f"Expected success. Full result: {json.dumps(result, indent=2)}"
+    )
+    assert "Uploaded file" in str(result["result"]), (
+        "Expected 'Uploaded file' in the result. Full result: {json.dumps(result, indent=2)}"
+    )
 
     fixed_result = collect_data_source_state()
     unconfigured_data_sources = fixed_result["unconfigured_data_sources"]
@@ -302,9 +302,9 @@ def test_drop_data_sources(
                 },
             }
         )["result"]
-        assert result[
-            "success"
-        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        assert result["success"], (
+            f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        )
         assert result["message"] == "Data Source dropped successfully."
 
     # DROP again, should return success but with no action message
@@ -320,7 +320,7 @@ def test_drop_data_sources(
                 },
             }
         )["result"]
-        assert result[
-            "success"
-        ], f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        assert result["success"], (
+            f"Expected success. Full result: {json.dumps(result, indent=2)}"
+        )
         assert result["message"] == "Data source does not exist, no action needed."

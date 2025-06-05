@@ -72,14 +72,14 @@ class _ExpectedType:
 
     def __post_init__(self) -> None:
         if self.expected_type == "file":
-            assert (
-                self.relative_to is not None
-            ), "relative_to must be provided for file type."
+            assert self.relative_to is not None, (
+                "relative_to must be provided for file type."
+            )
 
         if self.expected_type == "enum":
-            assert (
-                self.enum_values is not None
-            ), "enum_values must be provided for enum type."
+            assert self.enum_values is not None, (
+                "enum_values must be provided for enum type."
+            )
 
 
 @dataclass
@@ -110,9 +110,9 @@ def load_spec(json_spec: dict[str, Any]) -> dict[str, Entry]:
     for path, value in json_spec.items():
         try:
             expected_type = "<unknown>"
-            assert isinstance(
-                value, dict
-            ), f"Invalid spec: {path}. Expected a dictionary. Found {type(value)}"
+            assert isinstance(value, dict), (
+                f"Invalid spec: {path}. Expected a dictionary. Found {type(value)}"
+            )
 
             value = value.copy()
             deprecated = value.pop("deprecated", False)
@@ -569,9 +569,9 @@ class Validator:
                 )
             return
 
-        assert (
-            spec_node.data is not None
-        ), f"Expected data to be loaded. Name: {spec_node.name}. Parent: {spec_node.parent}"
+        assert spec_node.data is not None, (
+            f"Expected data to be loaded. Name: {spec_node.name}. Parent: {spec_node.parent}"
+        )
 
         if spec_node.data.required:
             if yaml_node is None:
@@ -773,9 +773,9 @@ class Validator:
                     )
                 else:
                     relative_to: str | None = spec_node.data.expected_type.relative_to
-                    assert (
-                        relative_to
-                    ), f"Expected relative_to to be set in {spec_node.data.path}"
+                    assert relative_to, (
+                        f"Expected relative_to to be set in {spec_node.data.path}"
+                    )
 
                     error_or_path = self._get_node_value_points_to_path(
                         spec_node.data.path, yaml_node, relative_to

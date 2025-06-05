@@ -138,9 +138,9 @@ class GalleryActionPackages:
         assert isinstance(packages, dict), "Metadata 'packages' is not a dictionary"
 
         for key, entry in packages.items():
-            assert isinstance(
-                entry, dict
-            ), f"Metadata 'packages' entry {key} is not a dictionary"
+            assert isinstance(entry, dict), (
+                f"Metadata 'packages' entry {key} is not a dictionary"
+            )
 
             if "versions" not in entry:
                 raise ValueError(
@@ -152,9 +152,9 @@ class GalleryActionPackages:
 
             versions = entry["versions"]
             for version in versions:
-                assert isinstance(
-                    version, dict
-                ), f"Metadata 'versions' entry {key} is not a dictionary. Found: {version}"
+                assert isinstance(version, dict), (
+                    f"Metadata 'versions' entry {key} is not a dictionary. Found: {version}"
+                )
 
                 if "zip" not in version:
                     raise ValueError(
@@ -181,9 +181,9 @@ class GalleryActionPackages:
         """
         if self._metadata:
             # Ok, we have loaded it before
-            assert isinstance(
-                self._metadata, dict
-            ), f"Expected metadata to be a dict. Found: {self._metadata}"
+            assert isinstance(self._metadata, dict), (
+                f"Expected metadata to be a dict. Found: {self._metadata}"
+            )
             return ActionResult.make_success(self._metadata)
 
         from sema4ai_ls_core import http

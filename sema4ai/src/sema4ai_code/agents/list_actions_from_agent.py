@@ -23,13 +23,13 @@ class ActionPackageInFilesystem:
 
     def __post_init__(self) -> None:
         if self.zip_path is None:
-            assert (
-                self.package_yaml_path is not None
-            ), "When the zip path is not provided, package_yaml_path is expected to be provided."
+            assert self.package_yaml_path is not None, (
+                "When the zip path is not provided, package_yaml_path is expected to be provided."
+            )
         else:
-            assert (
-                self.package_yaml_path is None
-            ), "When zip path is provided, package_yaml_path is not expected."
+            assert self.package_yaml_path is None, (
+                "When zip path is provided, package_yaml_path is not expected."
+            )
 
     def is_zip(self) -> bool:
         return self.zip_path is not None
