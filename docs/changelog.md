@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.13.0 (2025-06-10)
+
 - Check linting errors with ruff when we work with a python file inside an agent or action.
 - Add support for knowledge bases
 - Update data-server-cli to `1.1.9-alpha2`
@@ -9,6 +11,7 @@
 - Add better linting when an action is modified inside an agent.
 - Add error message when an action from an agent inside Sema4ai folder is modified.
 - Add `kill-lock-holder` flag to action server to kill the lock holder when starting action server for doing OAuth2 flows.
+- Fixed issue with Publishing Action Package to Studio
 
 ## New in 2.12.0 (2025-05-07)
 

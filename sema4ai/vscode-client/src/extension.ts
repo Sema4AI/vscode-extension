@@ -821,7 +821,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             return;
         }
 
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(directoryPath);
+        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
         const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
         if (opened) {
             vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
