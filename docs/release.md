@@ -2,10 +2,12 @@
 
 To release a new **pre-release** version:
 
-1. Run the [Pre-release - Sema4.ai Extension](https://github.com/Sema4AI/vscode-extension/actions/workflows/pre-release-robocorp-code.yml) workflow with the bugfix version bumped.
+1. Go to [VSCode Extensions Marketplace - Sema4.ai SDK](https://marketplace.visualstudio.com/items?itemName=sema4ai.sema4ai)
+2. Copy the latest version from there & increment only the patch version.
+3. Run the [Pre-release - Sema4.ai Extension](https://github.com/Sema4AI/vscode-extension/actions/workflows/pre-release-robocorp-code.yml) workflow with the bugfix version bumped.
    **Note:** It is important not to bump the major nor minor version.
    **Note:** Make sure all changes in the pre-release are under the _Unreleased_ section of the `/docs/changelog.md`
-2. No other actions required. The GitHub action will take all the necessary actions to create and publish the pre-release
+4. No other actions required.
 
 ## Release
 
