@@ -5,7 +5,8 @@
 Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to get the different Node versions easily
 
 - `nvm install 20.12.2` installs correct Node version
-- Enable yarn (v1.22.22): `corepack enable`
+- `nvm use 20.12.2` to make sure you've switched to the correct version
+- If you're using `yarn` enable (v1.22.22): `corepack enable`
 - Verify sure that `node`, `npm` and `yarn` are working
 
   - `node --version`
@@ -21,12 +22,16 @@ Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-up
 
 🏗️ If you need to develop the extension backend you need the setup below.
 
+> **Recommendation:** Create a Python Virtual Environment with whatever tool you like.
+> Once you've created the env, activate it & then continue with the development installation.
+> For information regarding which Python Version you should use, please consult the [pyproject.toml](/sema4ai/pyproject.toml) file.
+
 For local development, `poetry` should be used to install the libraries needed,
 so, head on to `/sema4ai` and do `poetry install` to get your python
 environment setup.
 
 If everything went well, just pointing your IDE to use the python executable
-at .venv/Scripts/python should suffice.
+at `.venv/Scripts/python` should suffice.
 
 -- in VSCode that'd be using the `Python: Select Interpreter` command.
 

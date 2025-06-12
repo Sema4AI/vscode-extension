@@ -24,5 +24,6 @@ To release a **STABLE** new version:
   - Move all items from the _Unreleased_ section to the new section
 - Commit your changes using the following message: `Release Sema4.ai VSCode extension 2.12.0`
 - Create PR
-- After PR is merged to master, update local repo and create a tag using `git tag sema4ai-2.12.0`
-- Push the tag to origin running `git push origin tag sema4ai-2.12.0`
+- After PR is merged to `master`, create a New Release from [Github Releases](https://github.com/Sema4AI/vscode-extension/releases)
+- **Make sure you follow the same tagging pattern that was used beforehand - tags should be of value: `sema4ai-2.12.0`**
+<img src="./releases-help.png" alt="Sema4.ai SDK Releases Example">
