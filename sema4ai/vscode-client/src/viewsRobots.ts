@@ -106,6 +106,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             const dataSourceStateResult = (await langServer.sendRequest("computeDataSourceState", {
                 "action_package_yaml_directory_uri": actionPackage.directory,
                 "data_server_info": dataServerStatus["data"],
+                "show_progress": false,
             })) as ActionResult<DataSourceState>;
 
             if (dataSourceStateResult.success) {
