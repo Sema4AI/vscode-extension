@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Disable notifications for computing datasource status in background.
+
 ## New in 2.13.0 (2025-06-10)
 
 - Check linting errors with ruff when we work with a python file inside an agent or action.
