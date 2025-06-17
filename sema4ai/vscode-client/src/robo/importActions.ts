@@ -49,11 +49,10 @@ export const importActionPackage = async (agentPath?: string) => {
         }
 
         const packages = result["result"];
-
         if (!packages) {
             throw new Error("No packages found in metadata");
         }
-        const options: QuickPickItemWithAction[] = [];
+
         const entries = Object.entries(packages);
 
         // Sort entries by the name and version
@@ -89,6 +88,7 @@ export const importActionPackage = async (agentPath?: string) => {
             return nameA.localeCompare(nameB);
         });
 
+        const options: QuickPickItemWithAction[] = [];
         for (const [key, value] of entries) {
             options.push({
                 "label": key,
