@@ -1,6 +1,8 @@
 ## Unreleased
 
 - Disable notifications for computing datasource status in background.
+- Update Agent CLI to `v1.3.4`
+- Enabled new organizations to be part of the Agent spec & the Actions folder in the Agent Package
 
 ## New in 2.13.0 (2025-06-10)
 
