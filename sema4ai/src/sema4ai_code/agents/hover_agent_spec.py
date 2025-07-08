@@ -1,5 +1,4 @@
 import typing
-from typing import Optional
 
 from sema4ai_ls_core.lsp import HoverTypedDict
 from sema4ai_ls_core.protocols import IDocument, IMonitor
@@ -63,6 +62,15 @@ def hover_on_agent_spec_yaml(
             from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
 
             info = AGENT_SPEC_V2
+            entry = info.get(full_path, None)
+            if not entry:
+                return None
+            return entry.description
+        elif version == "v3":
+            # Hover currently only available for v3
+            from sema4ai_code.agents.agent_spec import AGENT_SPEC_V3
+
+            info = AGENT_SPEC_V3
             entry = info.get(full_path, None)
             if not entry:
                 return None

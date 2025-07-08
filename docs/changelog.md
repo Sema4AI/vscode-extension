@@ -3,6 +3,8 @@
 - Disable notifications for computing datasource status in background.
 - Update Agent CLI to `v1.3.4`
 - Enabled new organizations to be part of the Agent spec & the Actions folder in the Agent Package
+- Support for the `v3` of the Agent spec.
+  - Adds support for defining `mcp-servers` in the `agent-spec.yaml`.
 
 ## New in 2.13.0 (2025-06-10)
 

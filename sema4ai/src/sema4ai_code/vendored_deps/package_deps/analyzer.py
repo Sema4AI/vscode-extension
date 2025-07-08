@@ -519,6 +519,8 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         if not data:
             return
 
+        diagnostic: _DiagnosticsTypedDict
+
         version = data.get("version")
         if not version:
             diagnostic = {
@@ -529,7 +531,16 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             }
             self._additional_load_errors.append(diagnostic)
 
-        if version and not is_valid_semver_version(version):
+        if version and not isinstance(version, str):
+            diagnostic = {
+                "range": extract_range(version),
+                "severity": _DiagnosticSeverity.Error,
+                "source": "sema4ai",
+                "message": "Error: 'version' entry must be a string",
+            }
+            self._additional_load_errors.append(diagnostic)
+
+        elif version and not is_valid_semver_version(version):
             diagnostic = {
                 "range": extract_range(version),
                 "severity": _DiagnosticSeverity.Error,
@@ -538,7 +549,6 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             }
             self._additional_load_errors.append(diagnostic)
 
-        diagnostic: _DiagnosticsTypedDict
         dependencies_key_entry: str_with_location_capture = str_with_location_capture(
             "dependencies"
         )
