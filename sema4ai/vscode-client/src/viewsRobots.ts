@@ -400,6 +400,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Creates an Action Package inside the Agent Package",
                     },
                     {
+                        "label": "Add MCP Server",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "add",
+                        "type": RobotEntryType.AddMCPServer,
+                        "parent": element,
+                        "tooltip": "Adds a MCP Server to the Agent Package",
+                    },
+                    {
                         "label": "Update Agent Version",
                         "uri": element.uri,
                         "robot": element.robot,
@@ -859,6 +868,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "title": "Create Action Package",
                 "command": roboCommands.SEMA4AI_CREATE_ACTION_PACKAGE,
                 "arguments": [element.robot],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.AddMCPServer) {
+            treeItem.command = {
+                "title": "Add MCP Server",
+                "command": roboCommands.SEMA4AI_ADD_MCP_SERVER,
+                "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.UpdateAgentVersion) {

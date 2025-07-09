@@ -34,9 +34,9 @@ class Command:
         self.enablement = enablement
 
         if hide_from_command_palette:
-            assert not when_clause, (
-                "hide_from_command_palette and when_clause may not be both specified."
-            )
+            assert (
+                not when_clause
+            ), "hide_from_command_palette and when_clause may not be both specified."
             when_clause = "false"
 
         self.when_clause = when_clause
@@ -1059,6 +1059,12 @@ COMMANDS = [
     Command(
         "sema4ai.fixWrongAgentImport",
         "Fix wrong agent import",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
+    Command(
+        "sema4ai.addMCPServer",
+        "Add MCP Server",
         server_handled=False,
         hide_from_command_palette=False,
     ),

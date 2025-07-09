@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Add MCP Server</title>
+        <style>
+            body {
+                font-family: var(--vscode-editor-font-family);
+                font-weight: var(--vscode-editor-font-weight);
+                font-size: var(--vscode-editor-font-size);
+                color: var(--vscode-editor-foreground);
+                background-color: var(--vscode-editor-background);
+                margin: 0;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .header {
+                margin-bottom: 30px;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                padding-bottom: 15px;
+            }
+
+            .header h1 {
+                margin: 0;
+                color: var(--vscode-editor-foreground);
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            .header p {
+                margin: 10px 0 0 0;
+                color: var(--vscode-descriptionForeground);
+                font-size: 14px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--vscode-editor-foreground);
+            }
+
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid var(--vscode-input-border);
+                border-radius: 4px;
+                background-color: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+
+            .form-group input:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: var(--vscode-focusBorder);
+            }
+
+            .form-group input::placeholder {
+                color: var(--vscode-input-placeholderForeground);
+            }
+
+            .form-group .help-text {
+                margin-top: 5px;
+                font-size: 12px;
+                color: var(--vscode-descriptionForeground);
+            }
+
+            .arguments-section {
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 4px;
+                padding: 15px;
+                margin-top: 10px;
+                background-color: var(--vscode-editor-background);
+            }
+
+            .argument-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                gap: 10px;
+            }
+
+            .argument-item input {
+                flex: 1;
+            }
+
+            .argument-item button {
+                padding: 8px 12px;
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: 1px solid var(--vscode-button-secondaryBorder);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            .argument-item button:hover {
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+
+            .add-argument-btn {
+                padding: 8px 16px;
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: 1px solid var(--vscode-button-secondaryBorder);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                margin-top: 10px;
+            }
+
+            .add-argument-btn:hover {
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+
+            .transport-dependent {
+                display: none;
+            }
+
+            .transport-dependent.show {
+                display: block;
+            }
+
+            .buttons {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid var(--vscode-panel-border);
+            }
+
+            .btn {
+                padding: 10px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                border: none;
+                min-width: 80px;
+            }
+
+            .btn-primary {
+                background-color: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+            }
+
+            .btn-primary:hover {
+                background-color: var(--vscode-button-hoverBackground);
+            }
+
+            .btn-secondary {
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: 1px solid var(--vscode-button-secondaryBorder);
+            }
+
+            .btn-secondary:hover {
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+
+            .error {
+                color: var(--vscode-errorForeground);
+                background-color: var(--vscode-inputValidation-errorBackground);
+                border: 1px solid var(--vscode-inputValidation-errorBorder);
+                padding: 10px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                display: none;
+            }
+
+            .success {
+                color: var(--vscode-notificationsInfoIcon-foreground);
+                background-color: var(--vscode-notificationsInfoBackground);
+                border: 1px solid var(--vscode-notificationsInfoBorder);
+                padding: 10px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Add MCP Server</h1>
+            </div>
+
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+
+            <form id="mcpForm">
+                <div class="form-group">
+                    <label for="serverName">MCP Server Name *</label>
+                    <input
+                        type="text"
+                        id="serverName"
+                        placeholder="My MCPServer"
+                        required
+                    />
+                    <div class="help-text">A unique name to identify this MCP server</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input
+                        type="text"
+                        id="description"
+                        placeholder="Optional description of this MCP server"
+                    />
+                    <div class="help-text">An optional description to help identify this server</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="transport">Transport *</label>
+                    <select id="transport" required>
+                        <option value="">Select transport type</option>
+                        <option value="auto" selected>Auto (Default)</option>
+                        <option value="streamable-http">Streamable HTTP</option>
+                        <option value="sse">Server-Sent Events (SSE)</option>
+                        <option value="stdio">Standard I/O (STDIO)</option>
+                    </select>
+                    <div class="help-text">The transport protocol to use for communication</div>
+                </div>
+
+                <!-- URL section for non-STDIO transports -->
+                <div id="urlSection" class="form-group transport-dependent">
+                    <label for="serverUrl">Server URL *</label>
+                    <input
+                        type="url"
+                        id="serverUrl"
+                        placeholder="http://localhost:8000"
+                    />
+                    <div class="help-text">The URL where the MCP server is running</div>
+                </div>
+
+                <!-- STDIO section -->
+                <div id="stdioSection" class="transport-dependent">
+                    <div class="form-group">
+                        <label for="command">Command *</label>
+                        <input
+                            type="text"
+                            id="command"
+                            placeholder="python -m my_mcp_server"
+                        />
+                        <div class="help-text">The tool that would be effectively called</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Arguments</label>
+                        <div class="arguments-section">
+                            <div id="argumentsList">
+                                <!-- Arguments will be added here dynamically -->
+                            </div>
+                            <button type="button" class="add-argument-btn" onclick="addArgument()">
+                                + Add Argument
+                            </button>
+                        </div>
+                        <div class="help-text">Each value will be passed independently to the command</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cwd">Working Directory *</label>
+                        <input
+                            type="text"
+                            id="cwd"
+                            placeholder="/path/to/working/directory"
+                        />
+                        <div class="help-text">The directory where the command will be executed</div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button type="button" class="btn btn-secondary" onclick="cancel()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Server</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            let vscode;
+            try {
+                vscode = acquireVsCodeApi();
+            } catch (err) {
+                // ignore
+            }
+
+            function showError(message) {
+                const errorEl = document.getElementById('error');
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                document.getElementById('success').style.display = 'none';
+            }
+
+            function showSuccess(message) {
+                const successEl = document.getElementById('success');
+                successEl.textContent = message;
+                successEl.style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+            }
+
+            function hideMessages() {
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('success').style.display = 'none';
+            }
+
+            function updateTransportDependentFields() {
+                const transport = document.getElementById('transport').value;
+                const urlSection = document.getElementById('urlSection');
+                const stdioSection = document.getElementById('stdioSection');
+
+                // Hide all transport-dependent sections
+                urlSection.classList.remove('show');
+                stdioSection.classList.remove('show');
+
+                // Show relevant section based on transport
+                if (transport === 'stdio') {
+                    stdioSection.classList.add('show');
+                } else if (transport && transport !== 'auto') {
+                    urlSection.classList.add('show');
+                } else if (transport === 'auto') {
+                    // Show URL section for auto transport
+                    urlSection.classList.add('show');
+                }
+            }
+
+            function addArgument() {
+                const argumentsList = document.getElementById('argumentsList');
+                const argumentDiv = document.createElement('div');
+                argumentDiv.className = 'argument-item';
+                argumentDiv.innerHTML = `
+                    <input type="text" placeholder="--config config.json" class="argument-input">
+                    <button type="button" onclick="removeArgument(this)">Remove</button>
+                `;
+                argumentsList.appendChild(argumentDiv);
+            }
+
+            function removeArgument(button) {
+                button.parentElement.remove();
+            }
+
+            function getArguments() {
+                const inputs = document.querySelectorAll('.argument-input');
+                const arguments = [];
+                inputs.forEach(input => {
+                    if (input.value.trim()) {
+                        arguments.push(input.value.trim());
+                    }
+                });
+                return arguments;
+            }
+
+            function validateForm() {
+                const serverName = document.getElementById('serverName').value.trim();
+                const transport = document.getElementById('transport').value;
+
+                if (!serverName) {
+                    showError('Server name is required');
+                    return false;
+                }
+
+                if (!transport) {
+                    showError('Transport type is required');
+                    return false;
+                }
+
+                if (transport === 'stdio') {
+                    const command = document.getElementById('command').value.trim();
+                    const cwd = document.getElementById('cwd').value.trim();
+
+                    if (!command) {
+                        showError('Command is required for STDIO transport');
+                        return false;
+                    }
+
+                    if (!cwd) {
+                        showError('Workspace directory is required for STDIO transport');
+                        return false;
+                    }
+                } else if (transport !== 'auto') {
+                    const url = document.getElementById('serverUrl').value.trim();
+                    if (!url) {
+                        showError('Server URL is required');
+                        return false;
+                    }
+
+                    try {
+                        new URL(url);
+                    } catch {
+                        showError('Please enter a valid URL');
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            function cancel() {
+                if (vscode) {
+                    vscode.postMessage({
+                        command: 'cancel'
+                    });
+                } else {
+                    console.log('Cancel clicked');
+                }
+            }
+
+            function submitForm() {
+                hideMessages();
+
+                if (!validateForm()) {
+                    return;
+                }
+
+                const serverName = document.getElementById('serverName').value.trim();
+                const description = document.getElementById('description').value.trim();
+                const transport = document.getElementById('transport').value;
+
+                const config = {
+                    name: serverName,
+                    transport: transport
+                };
+
+                if (description) {
+                    config.description = description;
+                }
+
+                if (transport === 'stdio') {
+                    config.command = document.getElementById('command').value.trim();
+                    config.arguments = getArguments();
+                    config.cwd = document.getElementById('cwd').value.trim();
+                } else if (transport !== 'auto') {
+                    config.url = document.getElementById('serverUrl').value.trim();
+                }
+
+                if (vscode) {
+                    vscode.postMessage({
+                        command: 'submit',
+                        config: config
+                    });
+                } else {
+                    console.log('Form submitted:', config);
+                }
+            }
+
+            // Event listeners
+            document.getElementById('transport').addEventListener('change', updateTransportDependentFields);
+            document.getElementById('mcpForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitForm();
+            });
+
+            // Initialize transport-dependent fields on page load
+            updateTransportDependentFields();
+
+            // Initialize workspace directory with current workspace if available
+            if (vscode) {
+                vscode.postMessage({
+                    command: 'getWorkspacePath'
+                });
+            }
+
+            // Listen for messages from extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'setWorkspacePath':
+                        if (message.path) {
+                            document.getElementById('workspaceDir').value = message.path;
+                        }
+                        break;
+                    case 'showSuccess':
+                        showSuccess(message.message);
+                        break;
+                    case 'showError':
+                        showError(message.message);
+                        break;
+                }
+            });
+        </script>
+    </body>
+</html>

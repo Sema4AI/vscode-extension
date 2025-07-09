@@ -950,9 +950,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 return result.as_dict()
 
             lst = result.result
-            assert lst is not None, (
-                "When collecting actions, the result should not be None in the success case"
-            )
+            assert (
+                lst is not None
+            ), "When collecting actions, the result should not be None in the success case"
             actions_info = extract_info(lst, action_package_yaml_directory)
         except Exception as e:
             log.exception("Error collecting actions.")
@@ -2395,6 +2395,95 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_fix_wrong_agent_import(self, agent_dir) -> ActionResultDict:
         return require_monitor(partial(self._fix_wrong_agent_import, agent_dir))
 
+    def m_add_mcp_server(
+        self, agent_dir: str, mcp_server_config: dict
+    ) -> ActionResultDict:
+        return require_monitor(
+            partial(self._add_mcp_server, agent_dir, mcp_server_config)
+        )
+
+    def _add_mcp_server(
+        self, agent_dir, mcp_server_config: dict, monitor: IMonitor
+    ) -> ActionResultDict:
+        from pathlib import Path
+
+        from ruamel.yaml import YAML
+
+        try:
+            agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
+            if not agent_spec_path.exists():
+                return ActionResult.make_failure(
+                    f"agent-spec.yaml not found in: {agent_dir}"
+                ).as_dict()
+
+            yaml = YAML()
+            yaml.preserve_quotes = True
+            yaml.default_flow_style = None
+            yaml.sequence_dash_offset = 0
+
+            try:
+                with agent_spec_path.open("r", encoding="utf-8") as file:
+                    content = yaml.load(file)
+            except Exception as e:
+                return ActionResult.make_failure(
+                    f"Failed to parse agent-spec.yaml: {e}"
+                ).as_dict()
+
+            try:
+                agent = content["agent-package"]["agents"][0]
+                if not isinstance(agent, dict):
+                    raise
+            except Exception:
+                return ActionResult.make_failure(
+                    "Invalid agent configuration in agent-spec.yaml"
+                ).as_dict()
+
+            mcp_server_entry = {
+                "name": mcp_server_config["name"],
+                "transport": mcp_server_config["transport"],
+                "description": mcp_server_config.get("description"),
+                "force-serial-tool-calls": False,
+            }
+
+            if mcp_server_config["transport"] == "stdio":
+                command_line = [mcp_server_config["command"]]
+                if mcp_server_config.get("arguments"):
+                    command_line.extend(mcp_server_config["arguments"])
+
+                mcp_server_entry["command-line"] = command_line
+                mcp_server_entry["cwd"] = mcp_server_config["cwd"]
+
+            elif mcp_server_config["transport"] in ["streamable-http", "sse"]:
+                mcp_server_entry["url"] = mcp_server_config["url"]
+
+            if "mcp-servers" not in agent:
+                agent["mcp-servers"] = []
+
+            existing_servers = agent["mcp-servers"]
+            for existing_server in existing_servers:
+                if existing_server.get("name") == mcp_server_config["name"]:
+                    return ActionResult.make_failure(
+                        f"MCP server with name '{mcp_server_config['name']}' already exists"
+                    ).as_dict()
+
+            agent["mcp-servers"].append(mcp_server_entry)
+            if content["agent-package"].get("spec-version", "") != "v3":
+                content["agent-package"]["spec-version"] = "v3"
+
+            try:
+                with agent_spec_path.open("w", encoding="utf-8") as file:
+                    yaml.dump(content, file)
+            except Exception as e:
+                return ActionResult.make_failure(
+                    f"Failed to write updated agent-spec.yaml: {e}"
+                ).as_dict()
+
+            return ActionResult(success=True, message=None).as_dict()
+
+        except Exception as e:
+            log.exception("Error adding MCP server")
+            return ActionResult.make_failure(f"Error adding MCP server: {e}").as_dict()
+
     def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
         from sema4ai_ls_core.progress_report import progress_context
 
@@ -2702,12 +2791,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     relative_path = datasource["file"]
 
                     # These asserts should've been caught by the validation.
-                    assert datasource_helper.is_table_datasource, (
-                        "Expected a table datasource for the files engine."
-                    )
-                    assert created_table, (
-                        "Expected a created_table for the files engine."
-                    )
+                    assert (
+                        datasource_helper.is_table_datasource
+                    ), "Expected a table datasource for the files engine."
+                    assert (
+                        created_table
+                    ), "Expected a created_table for the files engine."
                     assert relative_path, "Expected a file for the files engine."
 
                     full_path = Path(root_path) / relative_path
@@ -2737,9 +2826,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"] == "custom":
                     # These asserts should've been caught by the validation.
-                    assert datasource_helper.custom_sql, (
-                        "Expected the sql to be defined for the custom engine."
-                    )
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the sql to be defined for the custom engine."
 
                     for sql in datasource_helper.custom_sql:
                         try:
@@ -2760,12 +2849,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"].startswith("prediction:"):
                     model_name = datasource["model_name"]
-                    assert model_name, (
-                        "Expected a model_name for the prediction engine."
-                    )
-                    assert datasource_helper.custom_sql, (
-                        "Expected the setup sql to be defined for the prediction engine."
-                    )
+                    assert (
+                        model_name
+                    ), "Expected a model_name for the prediction engine."
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the setup sql to be defined for the prediction engine."
 
                     for sql in datasource_helper.custom_sql:
                         try:
