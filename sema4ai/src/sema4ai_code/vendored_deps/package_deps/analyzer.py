@@ -505,6 +505,8 @@ class PackageYamlAnalyzer(BaseAnalyzer):
             pass
 
     def _load_yaml_info(self) -> None:
+        from typing import Any
+
         if self._loaded_yaml:
             return
 
@@ -552,8 +554,13 @@ class PackageYamlAnalyzer(BaseAnalyzer):
         dependencies_key_entry: str_with_location_capture = str_with_location_capture(
             "dependencies"
         )
+        dev_dependencies_key_entry: str_with_location_capture = (
+            str_with_location_capture("dev-dependencies")
+        )
 
         dependencies = data.get(dependencies_key_entry)
+        dev_dependencies = data.get(dev_dependencies_key_entry)
+
         if dependencies is None:
             diagnostic = {
                 "range": create_range_from_location(0, 0),
@@ -581,8 +588,26 @@ class PackageYamlAnalyzer(BaseAnalyzer):
                 "message": f"Error: expected 'dependencies' entry to be a dict (with 'conda-forge' and 'pypi' entries). Found: '{type_repr(dependencies)}'",
             }
             self._additional_load_errors.append(diagnostic)
-        else:
-            for dep_name, dep in dependencies.items():
+
+        if not isinstance(dev_dependencies, dict):
+            diagnostic = {
+                "range": create_range_from_location(0, 0),
+                "severity": _DiagnosticSeverity.Error,
+                "source": "sema4ai",
+                "message": f"Error: expected 'dev-dependencies' entry to be a dict (with 'conda-forge' and 'pypi' entries). Found: '{type_repr(dev_dependencies)}'",
+            }
+
+        if dependencies or dev_dependencies:
+
+            def iter_name_and_dep() -> Iterator[
+                tuple[str_with_location, list[str_with_location | Any]]
+            ]:
+                if isinstance(dependencies, dict):
+                    yield from dependencies.items()
+                if isinstance(dev_dependencies, dict):
+                    yield from dev_dependencies.items()
+
+            for dep_name, dep in iter_name_and_dep():
                 if isinstance(dep_name, str_with_location):
                     if dep_name == "pypi":
                         if not isinstance(dep, list):

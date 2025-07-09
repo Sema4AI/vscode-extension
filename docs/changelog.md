@@ -5,6 +5,7 @@
 - Enabled new organizations to be part of the Agent spec & the Actions folder in the Agent Package
 - Support for the `v3` of the Agent spec.
   - Adds support for defining `mcp-servers` in the `agent-spec.yaml`.
+- Properly handle `dev-dependencies` (lint and hover) in `package.yaml`.
 
 ## New in 2.13.0 (2025-06-10)
 

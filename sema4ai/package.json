@@ -1622,7 +1622,15 @@
     "prettier": {
         "tabWidth": 4,
         "printWidth": 120,
-        "quoteProps": "preserve"
+        "quoteProps": "preserve",
+        "overrides": [
+            {
+                "files": "*.yaml",
+                "options": {
+                    "tabWidth": 2
+                }
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",

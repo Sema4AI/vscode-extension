@@ -72,7 +72,7 @@ def test_hover_package_yaml_conda_package(
     doc = get_package_yaml_doc(datadir, "check_python_version")
 
     analyzer = PackageYamlAnalyzer(doc.source, doc.path, cached_conda_cloud)
-    conda_dep = analyzer.find_conda_dep_at(13, 7)
+    conda_dep = analyzer.find_conda_dep_at(13, 12)
     assert conda_dep is not None
     assert conda_dep.name == "python"
 
@@ -89,3 +89,29 @@ def test_hover_package_yaml_rpaframework(
     data_regression.check(
         hover_on_package_yaml(doc, 16, 17, pypi_cloud, cached_conda_cloud)
     )
+
+
+def test_hover_package_yaml_dev_dependencies_numpy(
+    datadir, patch_pypi_cloud, cached_conda_cloud
+):
+    from sema4ai_code.vendored_deps.package_deps.analyzer import PackageYamlAnalyzer
+
+    doc = get_package_yaml_doc(datadir, "check_python_version")
+
+    analyzer = PackageYamlAnalyzer(doc.source, doc.path, cached_conda_cloud)
+    conda_dep = analyzer.find_conda_dep_at(20, 12)
+    assert conda_dep is not None
+    assert conda_dep.name == "numpy"
+
+
+def test_hover_package_yaml_dev_dependencies_mu_repo(
+    datadir, patch_pypi_cloud, cached_conda_cloud
+):
+    from sema4ai_code.vendored_deps.package_deps.analyzer import PackageYamlAnalyzer
+
+    doc = get_package_yaml_doc(datadir, "check_python_version")
+
+    analyzer = PackageYamlAnalyzer(doc.source, doc.path, cached_conda_cloud)
+    pip_dep = analyzer.find_pip_dep_at(22, 12)
+    assert pip_dep is not None
+    assert pip_dep.name == "mu_repo"
