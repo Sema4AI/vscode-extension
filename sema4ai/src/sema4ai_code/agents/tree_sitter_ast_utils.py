@@ -1,8 +1,8 @@
 import logging
 import sys
 import typing
-from typing import Generic, Optional, TypeVar
 from collections.abc import Iterator
+from typing import Generic, TypeVar
 
 log = logging.getLogger(__name__)
 

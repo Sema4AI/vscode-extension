@@ -1,4 +1,4 @@
-- message: Expected spec-version to be a string (something as `v1`, `v2`, ...).
+- message: Expected spec-version to be a string (`v1`, `v2` or `v3`).
   range:
     end:
       character: 18

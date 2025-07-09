@@ -95,6 +95,17 @@ def v2_bad_action_package_name(agent_path):
     )
 
 
+def v2_bad_mcp_transport(agent_path):
+    package_yaml = agent_path / "agent-spec.yaml"
+
+    update(
+        package_yaml,
+        lambda txt: txt.replace(
+            "transport: streamable-http", "transport: bad-transport"
+        ),
+    )
+
+
 def v2_unreferenced_action_package(agent_path):
     import shutil
 
@@ -179,3 +190,11 @@ def test_agent_spec_analysis_v2(datadir, scenario, data_regression) -> None:
 )
 def test_agent_spec_analysis_v2_agent3(datadir, scenario, data_regression) -> None:
     check("agent3", datadir, scenario, data_regression)
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [ok, v2_bad_mcp_transport],
+)
+def test_agent_spec_analysis_v3_agent4(datadir, scenario, data_regression) -> None:
+    check("agent4", datadir, scenario, data_regression)

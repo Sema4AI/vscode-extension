@@ -1,0 +1,60 @@
+agent-package:
+    spec-version: v3
+    agents:
+        - name: Test Agent
+          description: Test Agent for tooling. Multiple actions, custom and Sema4.ai, multiple knowledge files, reasoning enabled
+          model:
+              provider: Azure
+              name: ""
+          version: 0.0.1
+          architecture: agent
+          reasoning: enabled
+          runbook: runbook.md
+          action-packages: []
+          mcp-servers:
+              - name: file-system-server
+                transport: stdio
+                description: MCP server for file system operations and file management
+                command-line: ["uv", "run", "python", "-m", "mcp_file_system"]
+                env:
+                    FILE_SYSTEM_ROOT:
+                        type: string
+                        description: The root directory of the file system
+                        default: /data
+                    MCP_API_KEY:
+                        type: secret
+                        description: Your API key for authentication
+                cwd: ./mcp-servers/file-system
+                force-serial-tool-calls: false
+              - name: database-server
+                transport: streamable-http
+                description: MCP server for database operations and queries
+                url: http://localhost:8080/mcp
+                headers:
+                    Authorization:
+                        type: oauth2-secret
+                        description: Your OAuth2 API key for authentication
+                        provider: Microsoft
+                        scopes:
+                            - user.read
+                            - user.write
+                    X-API-Version:
+                        type: string
+                        description: API version header
+                        default: "1.0.0"
+                force-serial-tool-calls: true
+              - name: realtime-server
+                transport: sse
+                description: MCP server for real-time data streaming and notifications
+                url: http://localhost:9000/sse
+                headers:
+                    Authorization:
+                        type: oauth2-secret
+                        description: Your OAuth2 API key for authentication
+                        provider: Microsoft
+                        scopes:
+                            - user.read
+                            - user.write
+                force-serial-tool-calls: false
+          metadata:
+              mode: conversational

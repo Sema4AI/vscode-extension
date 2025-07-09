@@ -1,8 +1,8 @@
 import pathlib
 import typing
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Optional, Union
-from collections.abc import Iterator
 
 from sema4ai_ls_core.lsp import DiagnosticSeverity, DiagnosticsTypedDict
 from sema4ai_ls_core.protocols import IDocument, IMonitor, IWorkspace, Sentinel
@@ -158,7 +158,7 @@ class _Analyzer:
         yield from validate(
             version_value,
             spec_version,
-            "Expected spec-version to be a string (something as `v1`, `v2`, ...).",
+            "Expected spec-version to be a string (`v1`, `v2` or `v3`).",
             required=True,
         )
 
@@ -171,10 +171,11 @@ class _Analyzer:
 
         is_v1 = version_value == "v1"
         is_v2 = version_value == "v2"
+        is_v3 = version_value == "v3"
         yield from validate(
-            is_v1 or is_v2,
+            is_v1 or is_v2 or is_v3,
             spec_version,
-            "Unexpected spec-version (only `v1` and `v2` are currently supported).",
+            "Unexpected spec-version (only `v1`, `v2` and `v3` are currently supported).",
             required=True,
         )
 
@@ -209,7 +210,7 @@ class _Analyzer:
         assert isinstance(agents_node.value, list)
         for agent in agents_node.value:
             yield from validate_agent(
-                self.doc, agent, _Version(is_v1=is_v1, is_v2=is_v2)
+                self.doc, agent, _Version(is_v1=is_v1, is_v2=is_v2, is_v3=is_v3)
             )
 
 
@@ -217,13 +218,16 @@ class _Analyzer:
 class _Version:
     is_v1: bool
     is_v2: bool
+    is_v3: bool
 
 
 def validate_agent(
     doc: IDocument, agent_node: _EntryNode, version: _Version
 ) -> Iterator[DiagnosticsTypedDict]:
-    from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
+    from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2, AGENT_SPEC_V3
     from sema4ai_code.agents.agent_spec_handler import Error, validate_from_spec
+
+    error: Error
 
     if version.is_v1:
         yield from validate_sections_v1(
@@ -236,9 +240,17 @@ def validate_agent(
             },
         )
     elif version.is_v2:
-        error: Error
         for error in validate_from_spec(
             AGENT_SPEC_V2,
+            doc.source,
+            pathlib.Path(doc.path).parent,
+            raise_on_error=False,
+        ):
+            yield typing.cast(DiagnosticsTypedDict, error.as_diagostic(agent_node))
+
+    elif version.is_v3:
+        for error in validate_from_spec(
+            AGENT_SPEC_V3,
             doc.source,
             pathlib.Path(doc.path).parent,
             raise_on_error=False,

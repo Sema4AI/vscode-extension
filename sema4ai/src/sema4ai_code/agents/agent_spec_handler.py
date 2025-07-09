@@ -9,8 +9,6 @@ from typing import Any, Generic, Optional, TypeVar
 
 from sema4ai_ls_core.core_log import get_logger
 
-from sema4ai_code.tools import is_valid_semver_version
-
 if typing.TYPE_CHECKING:
     from tree_sitter import Node, Tree
 
@@ -18,6 +16,16 @@ if typing.TYPE_CHECKING:
 
 
 log = get_logger(__name__)
+
+
+def is_valid_semver_version(version: str) -> bool:
+    import re
+
+    SEMVER_REGEX = re.compile(
+        r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$"
+    )
+
+    return SEMVER_REGEX.match(version) is not None
 
 
 class _ExpectedTypeEnum(Enum):
@@ -34,6 +42,12 @@ class _ExpectedTypeEnum(Enum):
     action_package_name_link = "action_package_name_link"
     zip_or_folder_based_on_path = "zip_or_folder_based_on_path"
     agent_semver_version = "agent_semver_version"
+    mcp_server_url = "mcp_server_url"
+    mcp_server_transport = "mcp_server_transport"
+    mcp_server_command_line = "mcp_server_command_line"
+    mcp_server_env = "mcp_server_env"
+    mcp_server_headers = "mcp_server_headers"
+    mcp_server_cwd = "mcp_server_cwd"
 
 
 class _YamlNodeKind(Enum):
@@ -109,7 +123,7 @@ def load_spec(json_spec: dict[str, Any]) -> dict[str, Entry]:
 
     for path, value in json_spec.items():
         try:
-            expected_type = "<unknown>"
+            expected_type: dict | None | str = "<unknown>"
             assert isinstance(value, dict), (
                 f"Invalid spec: {path}. Expected a dictionary. Found {type(value)}"
             )
@@ -119,6 +133,7 @@ def load_spec(json_spec: dict[str, Any]) -> dict[str, Entry]:
             required = value.pop("required", False)
             expected_type = value.pop("expected-type", None)
             description = value.pop("description", None)
+            value.pop("note", None)  # Used to add comments.
             if not description:
                 raise Exception(f"Invalid spec: {path}. Expected a description.")
 
@@ -440,36 +455,6 @@ class Validator:
             Path, "ActionPackageInFilesystem"
         ] = {}
 
-    def _validate_key_pair(
-        self, key_node: "Node", value_node: Optional["Node"]
-    ) -> Iterator[Error]:
-        entry = self._spec_entries.get(self._current_stack_as_str)
-        if not entry or not value_node:
-            parent_as_str = "<unknown>"
-            curr = "<unknown>"
-
-            if self._stack:
-                parent, curr = self._stack[:-1], self._stack[-1]
-                if parent:
-                    parent_as_str = "/".join(parent)
-                else:
-                    parent_as_str = "root"
-
-            if not entry:
-                yield Error(
-                    message=f"Unexpected entry: {curr} (in {parent_as_str}).",
-                    node=key_node,
-                )
-            else:
-                yield Error(
-                    message=f"Expected value for {self._current_stack_as_str}.",
-                    node=key_node,
-                )
-
-            return
-
-        # Ok, it's an expected key.
-
     def _is_scalar_node(self, node: Optional["Node"]) -> bool:
         if node is None:
             return False
@@ -534,7 +519,6 @@ class Validator:
                     key_name, YamlNodeData(node, kind=_YamlNodeKind.unhandled)
                 )
 
-                yield from self._validate_key_pair(key, value)
                 added_to_stack = True
                 default_visit_children = False
 
@@ -634,11 +618,249 @@ class Validator:
                     )
                 else:
                     version = self._get_value_text(yaml_node)
+                    if version:
+                        # We're dealing with tree sitter, so, we may need to remove the quotes.
+                        if version.startswith('"') and version.endswith('"'):
+                            version = version[1:-1]
+                        if version.startswith("'") and version.endswith("'"):
+                            version = version[1:-1]
                     if version and not is_valid_semver_version(version):
                         yield Error(
                             message=f"Expected {spec_node.data.path} to be a valid semantic version (found {version!r}).",
                             node=yaml_node.data.node,
                         )
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_transport
+            ):
+                # Must check that:
+                # - It's a string
+                # - It must be either 'streamable-http', 'sse' or 'stdio'
+                # - If it's 'streamable-http' or 'sse', the 'url' field must be defined.
+                # - If it's 'stdio', the 'command-line' field must be defined.
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    transport = self._get_value_text(yaml_node)
+                    if transport not in ["streamable-http", "sse", "stdio"]:
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be one of ['streamable-http', 'sse', 'stdio'] (found {transport!r}).",
+                            node=yaml_node.data.node,
+                        )
+                    else:
+                        if transport in ("streamable-http", "sse"):
+                            if (
+                                not yaml_node.parent
+                                or "url" not in yaml_node.parent.children
+                            ):
+                                yield Error(
+                                    message=f"{spec_node.data.path}: When the transport is 'streamable-http' or 'sse', the url must be defined.",
+                                    node=yaml_node.data.node,
+                                )
+                        elif transport == "stdio":
+                            if (
+                                not yaml_node.parent
+                                or "command-line" not in yaml_node.parent.children
+                            ):
+                                yield Error(
+                                    message=f"{spec_node.data.path}: When the transport is 'stdio', the command-line must be defined.",
+                                    node=yaml_node.data.node,
+                                )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_url
+            ):
+                # Must check that:
+                # - It must be a string
+                # - The 'command-line' field is not defined (it's either 'command-line' or 'url').
+                # - If the `transport` field is defined, it must be one of the following: 'streamable-http' or 'sse'.
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that 'command-line' field is not defined (mutual exclusivity)
+                    if yaml_node.parent and "command-line" in yaml_node.parent.children:
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be mutually exclusive with 'command-line' field.",
+                            node=yaml_node.data.node,
+                        )
+
+                    # Check transport field if it exists
+                    if yaml_node.parent and "transport" in yaml_node.parent.children:
+                        transport_node = yaml_node.parent.children["transport"]
+                        transport_value = self._get_value_text(transport_node)
+                        if transport_value not in ["streamable-http", "sse"]:
+                            yield Error(
+                                message=f"Expected transport field to be one of ['streamable-http', 'sse'] when using 'url' field (found {transport_value!r}).",
+                                node=transport_node.data.node,
+                            )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_headers
+            ):
+                # Must check that:
+                # - It must be an object
+                # - The 'url' field is also defined.
+                if yaml_node.data.kind != _YamlNodeKind.unhandled:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be an object (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that 'url' field is also defined
+                    if not yaml_node.parent or "url" not in yaml_node.parent.children:
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be used together with 'url' field.",
+                            node=yaml_node.data.node,
+                        )
+
+                    # Validate that all values are strings or objects (with the according type).
+                    for value in yaml_node.children.values():
+                        if value.data.kind == _YamlNodeKind.string:
+                            pass  # Ok, it's a string, no need of further validation
+
+                        elif value.data.kind != _YamlNodeKind.unhandled:
+                            yield Error(
+                                message=f"Expected all items in {spec_node.data.path} to be strings or objects (with a type). Found {value.data.kind.value}.",
+                                node=value.data.node,
+                            )
+                        else:
+                            for spec_child in spec_node.children.values():
+                                child_node = value.children.get(spec_child.name)
+                                if child_node:
+                                    yield from self._verify_yaml_matches_spec(
+                                        spec_child, child_node, yaml_node
+                                    )
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_command_line
+            ):
+                # Must check that:
+                # - It must be a list of strings
+                # - The 'url' field is not defined (it's either 'command-line' or 'url').
+                # - If the `transport` field is defined, it must be 'stdio'.
+                if yaml_node.data.kind != _YamlNodeKind.list:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a list (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that 'url' field is not defined (mutual exclusivity)
+                    if yaml_node.parent and "url" in yaml_node.parent.children:
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be mutually exclusive with 'url' field.",
+                            node=yaml_node.data.node,
+                        )
+
+                    # Check transport field if it exists
+                    if yaml_node.parent and "transport" in yaml_node.parent.children:
+                        transport_node = yaml_node.parent.children["transport"]
+                        transport_value = self._get_value_text(transport_node)
+                        if transport_value != "stdio":
+                            yield Error(
+                                message=f"Expected transport field to be 'stdio' when using 'command-line' field (found {transport_value!r}).",
+                                node=transport_node.data.node,
+                            )
+
+                    # Validate that all list items are strings
+                    for list_item_node in yaml_node.children.values():
+                        if list_item_node.data.kind != _YamlNodeKind.string:
+                            yield Error(
+                                message=f"Expected all items in {spec_node.data.path} to be strings.",
+                                node=list_item_node.data.node,
+                            )
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_env
+            ):
+                # Must check that:
+                # - It must be an object
+                # - The 'command-line' field is defined
+                if yaml_node.data.kind != _YamlNodeKind.unhandled:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be an object (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that 'command-line' field is defined
+                    if (
+                        not yaml_node.parent
+                        or "command-line" not in yaml_node.parent.children
+                    ):
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be used together with 'command-line' field.",
+                            node=yaml_node.data.node,
+                        )
+
+                    # Validate that all values are strings or objects (with the according type).
+                    for value in yaml_node.children.values():
+                        if value.data.kind == _YamlNodeKind.string:
+                            pass  # Ok, it's a string, no need of further validation
+
+                        elif value.data.kind != _YamlNodeKind.unhandled:
+                            yield Error(
+                                message=f"Expected all items in {spec_node.data.path} to be strings or objects (with a type). Found {value.data.kind.value}.",
+                                node=value.data.node,
+                            )
+                        else:
+                            for spec_child in spec_node.children.values():
+                                child_node = value.children.get(spec_child.name)
+                                if child_node:
+                                    yield from self._verify_yaml_matches_spec(
+                                        spec_child, child_node, yaml_node
+                                    )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_cwd
+            ):
+                # Must check that:
+                # - It must be a string
+                # - The 'command-line' field is defined
+                # - The path it points to exists (either relative to the agent root or absolute)
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that 'command-line' field is defined
+                    if (
+                        not yaml_node.parent
+                        or "command-line" not in yaml_node.parent.children
+                    ):
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be used together with 'command-line' field.",
+                            node=yaml_node.data.node,
+                        )
+
+                    # Check that the path exists
+                    cwd_value = self._get_value_text(yaml_node)
+                    if cwd_value:
+                        # Try as absolute path first
+                        cwd_path = Path(cwd_value)
+                        if not cwd_path.is_absolute():
+                            # Try as relative to agent root
+                            cwd_path = self._agent_root_dir / cwd_value
+
+                        if not cwd_path.exists():
+                            yield Error(
+                                message=f"Expected {spec_node.data.path} to point to an existing directory (found {cwd_value!r}).",
+                                node=yaml_node.data.node,
+                            )
+                        elif not cwd_path.is_dir():
+                            yield Error(
+                                message=f"Expected {spec_node.data.path} to point to a directory, not a file (found {cwd_value!r}).",
+                                node=yaml_node.data.node,
+                            )
+
             elif spec_node.data.expected_type.expected_type in (
                 _ExpectedTypeEnum.action_package_version_link,
                 _ExpectedTypeEnum.action_package_name_link,
