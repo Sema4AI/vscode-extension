@@ -960,9 +960,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 return result.as_dict()
 
             lst = result.result
-            assert (
-                lst is not None
-            ), "When collecting actions, the result should not be None in the success case"
+            assert lst is not None, (
+                "When collecting actions, the result should not be None in the success case"
+            )
             actions_info = extract_info(lst, action_package_yaml_directory)
         except Exception as e:
             log.exception("Error collecting actions.")
@@ -2811,12 +2811,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     relative_path = datasource["file"]
 
                     # These asserts should've been caught by the validation.
-                    assert (
-                        datasource_helper.is_table_datasource
-                    ), "Expected a table datasource for the files engine."
-                    assert (
-                        created_table
-                    ), "Expected a created_table for the files engine."
+                    assert datasource_helper.is_table_datasource, (
+                        "Expected a table datasource for the files engine."
+                    )
+                    assert created_table, (
+                        "Expected a created_table for the files engine."
+                    )
                     assert relative_path, "Expected a file for the files engine."
 
                     full_path = Path(root_path) / relative_path
@@ -2846,9 +2846,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"] == "custom":
                     # These asserts should've been caught by the validation.
-                    assert (
-                        datasource_helper.custom_sql
-                    ), "Expected the sql to be defined for the custom engine."
+                    assert datasource_helper.custom_sql, (
+                        "Expected the sql to be defined for the custom engine."
+                    )
 
                     for sql in datasource_helper.custom_sql:
                         try:
@@ -2869,12 +2869,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"].startswith("prediction:"):
                     model_name = datasource["model_name"]
-                    assert (
-                        model_name
-                    ), "Expected a model_name for the prediction engine."
-                    assert (
-                        datasource_helper.custom_sql
-                    ), "Expected the setup sql to be defined for the prediction engine."
+                    assert model_name, (
+                        "Expected a model_name for the prediction engine."
+                    )
+                    assert datasource_helper.custom_sql, (
+                        "Expected the setup sql to be defined for the prediction engine."
+                    )
 
                     for sql in datasource_helper.custom_sql:
                         try:
