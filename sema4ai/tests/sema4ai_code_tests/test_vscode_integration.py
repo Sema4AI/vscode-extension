@@ -3099,7 +3099,7 @@ def test_fix_wrong_agent_import(
 
 
 def test_document_did_save_on_sema4ai_folder(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     cases: CasesFixture,
 ) -> None:
     from sema4ai_ls_core import uris
@@ -3148,7 +3148,7 @@ def test_document_did_save_on_sema4ai_folder(
 
 
 def test_document_did_save_on_myactions_package_yaml(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     create_agent_and_action: str,
 ) -> None:
     import yaml
@@ -3190,7 +3190,7 @@ def test_document_did_save_on_myactions_package_yaml(
 
 
 def test_add_mcp_server_stdio_transport(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     tmpdir,
 ) -> None:
     os.environ["CI_ENDPOINT"] = "/"
@@ -3246,6 +3246,7 @@ def test_add_mcp_server_stdio_transport(
 
     result_data = result.get("result")
 
+    assert result_data is not None
     assert result_data["success"]
     assert result_data["message"] is None
 
@@ -3271,7 +3272,7 @@ def test_add_mcp_server_stdio_transport(
 
 
 def test_add_mcp_server_error_cases(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     tmpdir,
 ) -> None:
     """Test error cases for adding MCP servers."""
@@ -3320,7 +3321,7 @@ def test_add_mcp_server_error_cases(
     )
 
     result_data = result.get("result")
-
+    assert result_data is not None
     assert not result_data["success"]
     assert "agent-spec.yaml not found" in result_data["message"]
 
@@ -3346,8 +3347,9 @@ def test_add_mcp_server_error_cases(
     )
 
     result_data = result.get("result")
-
+    assert result_data is not None
     assert result_data["success"]
+    assert result_data["message"] is None
 
     # Try to add server with same name
     result = language_server.request(
@@ -3363,7 +3365,7 @@ def test_add_mcp_server_error_cases(
     )
 
     result_data = result.get("result")
-
+    assert result_data is not None
     assert not result_data["success"]
     assert "already exists" in result_data["message"]
 
@@ -3389,7 +3391,7 @@ def test_add_mcp_server_error_cases(
     )
 
     result_data = result.get("result")
-
+    assert result_data is not None
     assert not result_data["success"]
     assert "Invalid agent configuration" in result_data["message"]
 
@@ -3415,13 +3417,13 @@ def test_add_mcp_server_error_cases(
     )
 
     result_data = result.get("result")
-
+    assert result_data is not None
     assert not result_data["success"]
     assert "Failed to parse agent-spec.yaml" in result_data["message"]
 
 
 def test_document_did_save_on_python_file_in_agent_action(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     cases: CasesFixture,
     data_regression,
     tmpdir,
