@@ -277,7 +277,7 @@
                         <input
                             type="text"
                             id="cwd"
-                            placeholder="/path/to/working/directory"
+                            placeholder="./path/to/working/directory"
                         />
                         <div class="help-text">The directory where the command will be executed</div>
                     </div>
@@ -456,32 +456,17 @@
                 }
             }
 
-            // Event listeners
             document.getElementById('transport').addEventListener('change', updateTransportDependentFields);
             document.getElementById('mcpForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 submitForm();
             });
 
-            // Initialize transport-dependent fields on page load
             updateTransportDependentFields();
 
-            // Initialize workspace directory with current workspace if available
-            if (vscode) {
-                vscode.postMessage({
-                    command: 'getWorkspacePath'
-                });
-            }
-
-            // Listen for messages from extension
             window.addEventListener('message', event => {
                 const message = event.data;
                 switch (message.command) {
-                    case 'setWorkspacePath':
-                        if (message.path) {
-                            document.getElementById('workspaceDir').value = message.path;
-                        }
-                        break;
                     case 'showSuccess':
                         showSuccess(message.message);
                         break;

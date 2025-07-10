@@ -34,9 +34,9 @@ class Command:
         self.enablement = enablement
 
         if hide_from_command_palette:
-            assert (
-                not when_clause
-            ), "hide_from_command_palette and when_clause may not be both specified."
+            assert not when_clause, (
+                "hide_from_command_palette and when_clause may not be both specified."
+            )
             when_clause = "false"
 
         self.when_clause = when_clause

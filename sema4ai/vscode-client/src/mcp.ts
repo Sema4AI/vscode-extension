@@ -28,83 +28,68 @@ export const addMCPServer = async (agentDir?: string) => {
         }
     }
 
-    const panel = vscode.window.createWebviewPanel(
-        "mcpServerForm",
-        "Add MCP Server",
-        vscode.ViewColumn.One,
-        {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-        }
-    );
+    const panel = vscode.window.createWebviewPanel("mcpServerForm", "Add MCP Server", vscode.ViewColumn.One, {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+    });
 
     panel.webview.html = getWebviewContent();
 
-    panel.webview.onDidReceiveMessage(
-        async (message) => {
-            switch (message.command) {
-                case "getWorkspacePath":
-                    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-                    panel.webview.postMessage({
-                        command: "setWorkspacePath",
-                        path: workspacePath
-                    });
-                    return;
+    panel.webview.onDidReceiveMessage(async (message) => {
+        switch (message.command) {
+            case "submit":
+                const config: MCPServerConfig = message.config;
 
-                case "submit":
-                    const config: MCPServerConfig = message.config;
+                try {
+                    // Call the language server function to add the MCP server
+                    const result = (await langServer.sendRequest("addMCPServer", {
+                        agent_dir: agentDir,
+                        mcp_server_config: config,
+                    })) as ActionResult;
 
-                    try {
-                        // Call the language server function to add the MCP server
-                        const result = await langServer.sendRequest("addMCPServer", {
-                            agent_dir: agentDir,
-                            mcp_server_config: config
-                        }) as ActionResult;
+                    if (result.success) {
+                        // Show success message in the webview
+                        panel.webview.postMessage({
+                            command: "showSuccess",
+                            message: result.message || "MCP Server configuration saved successfully!",
+                        });
 
-                        if (result.success) {
-                            // Show success message in the webview
-                            panel.webview.postMessage({
-                                command: "showSuccess",
-                                message: result.message || "MCP Server configuration saved successfully!"
-                            });
+                        // Also show a notification
+                        vscode.window.showInformationMessage(result.message || "MCP Server configuration saved!");
 
-                            // Also show a notification
-                            vscode.window.showInformationMessage(result.message || "MCP Server configuration saved!");
-
-                            // Close the webview after 1 second
-                            setTimeout(() => {
-                                panel.dispose();
-                            }, 1000);
-                        } else {
-                            // Show error message in the webview
-                            panel.webview.postMessage({
-                                command: "showError",
-                                message: result.message || "Failed to save MCP Server configuration"
-                            });
-
-                            // Also show an error notification
-                            vscode.window.showErrorMessage(result.message || "Failed to save MCP Server configuration");
-                        }
-                    } catch (error) {
-                        console.error("Error adding MCP server:", error);
-
+                        // Close the webview after 1 second
+                        setTimeout(() => {
+                            panel.dispose();
+                        }, 1000);
+                    } else {
                         // Show error message in the webview
                         panel.webview.postMessage({
                             command: "showError",
-                            message: `Error adding MCP server: ${error}`
+                            message: result.message || "Failed to save MCP Server configuration",
                         });
 
                         // Also show an error notification
-                        vscode.window.showErrorMessage(`Error adding MCP server: ${error}`);
+                        vscode.window.showErrorMessage(result.message || "Failed to save MCP Server configuration");
                     }
-                    return;
+                } catch (error) {
+                    console.error("Error adding MCP server:", error);
 
-                case "cancel":
-                    panel.dispose();
-                    return;
-            }
+                    // Show error message in the webview
+                    panel.webview.postMessage({
+                        command: "showError",
+                        message: `Error adding MCP server: ${error}`,
+                    });
+
+                    // Also show an error notification
+                    vscode.window.showErrorMessage(`Error adding MCP server: ${error}`);
+                }
+                return;
+
+            case "cancel":
+                panel.dispose();
+                return;
         }
-    );
+    });
 };
 
 function getWebviewContent(): string {
