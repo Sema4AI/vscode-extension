@@ -78,54 +78,6 @@
                 color: var(--vscode-descriptionForeground);
             }
 
-            .arguments-section {
-                border: 1px solid var(--vscode-panel-border);
-                border-radius: 4px;
-                padding: 15px;
-                margin-top: 10px;
-                background-color: var(--vscode-editor-background);
-            }
-
-            .argument-item {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-                gap: 10px;
-            }
-
-            .argument-item input {
-                flex: 1;
-            }
-
-            .argument-item button {
-                padding: 8px 12px;
-                background-color: var(--vscode-button-secondaryBackground);
-                color: var(--vscode-button-secondaryForeground);
-                border: 1px solid var(--vscode-button-secondaryBorder);
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 12px;
-            }
-
-            .argument-item button:hover {
-                background-color: var(--vscode-button-secondaryHoverBackground);
-            }
-
-            .add-argument-btn {
-                padding: 8px 16px;
-                background-color: var(--vscode-button-secondaryBackground);
-                color: var(--vscode-button-secondaryForeground);
-                border: 1px solid var(--vscode-button-secondaryBorder);
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                margin-top: 10px;
-            }
-
-            .add-argument-btn:hover {
-                background-color: var(--vscode-button-secondaryHoverBackground);
-            }
-
             .transport-dependent {
                 display: none;
             }
@@ -250,26 +202,13 @@
                 <!-- STDIO section -->
                 <div id="stdioSection" class="transport-dependent">
                     <div class="form-group">
-                        <label for="command">Command *</label>
+                        <label for="command">Command Line *</label>
                         <input
                             type="text"
                             id="command"
-                            placeholder="python -m my_mcp_server"
+                            placeholder="python -m my_mcp_server --config config.json"
                         />
-                        <div class="help-text">The tool that would be effectively called</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Arguments</label>
-                        <div class="arguments-section">
-                            <div id="argumentsList">
-                                <!-- Arguments will be added here dynamically -->
-                            </div>
-                            <button type="button" class="add-argument-btn" onclick="addArgument()">
-                                + Add Argument
-                            </button>
-                        </div>
-                        <div class="help-text">Each value will be passed independently to the command</div>
+                        <div class="help-text">The full command line including arguments (e.g., "python -m my_mcp_server --config config.json")</div>
                     </div>
 
                     <div class="form-group">
@@ -337,30 +276,25 @@
                 }
             }
 
-            function addArgument() {
-                const argumentsList = document.getElementById('argumentsList');
-                const argumentDiv = document.createElement('div');
-                argumentDiv.className = 'argument-item';
-                argumentDiv.innerHTML = `
-                    <input type="text" placeholder="--config config.json" class="argument-input">
-                    <button type="button" onclick="removeArgument(this)">Remove</button>
-                `;
-                argumentsList.appendChild(argumentDiv);
-            }
+            function getCommandAndArguments() {
+                const commandInput = document.getElementById('command');
+                const commandLine = commandInput.value.trim();
+                const cwd = document.getElementById('cwd').value.trim();
 
-            function removeArgument(button) {
-                button.parentElement.remove();
-            }
+                if (!commandLine) {
+                    showError('Command line is required for STDIO transport');
+                    return null;
+                }
 
-            function getArguments() {
-                const inputs = document.querySelectorAll('.argument-input');
-                const arguments = [];
-                inputs.forEach(input => {
-                    if (input.value.trim()) {
-                        arguments.push(input.value.trim());
-                    }
-                });
-                return arguments;
+                if (!cwd) {
+                    showError('Workspace directory is required for STDIO transport');
+                    return null;
+                }
+
+                return {
+                    commandLine: commandLine,
+                    cwd: cwd
+                };
             }
 
             function validateForm() {
@@ -378,16 +312,8 @@
                 }
 
                 if (transport === 'stdio') {
-                    const command = document.getElementById('command').value.trim();
-                    const cwd = document.getElementById('cwd').value.trim();
-
-                    if (!command) {
-                        showError('Command is required for STDIO transport');
-                        return false;
-                    }
-
-                    if (!cwd) {
-                        showError('Workspace directory is required for STDIO transport');
+                    const commandInfo = getCommandAndArguments();
+                    if (!commandInfo) {
                         return false;
                     }
                 } else if (transport !== 'auto') {
@@ -439,9 +365,11 @@
                 }
 
                 if (transport === 'stdio') {
-                    config.command = document.getElementById('command').value.trim();
-                    config.arguments = getArguments();
-                    config.cwd = document.getElementById('cwd').value.trim();
+                    const commandInfo = getCommandAndArguments();
+                    if (commandInfo) {
+                        config.commandLine = commandInfo.commandLine;
+                        config.cwd = commandInfo.cwd;
+                    }
                 } else if (transport !== 'auto') {
                     config.url = document.getElementById('serverUrl').value.trim();
                 }

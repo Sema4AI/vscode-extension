@@ -9,8 +9,7 @@ interface MCPServerConfig {
     description?: string;
     transport: string;
     url?: string;
-    command?: string;
-    arguments?: string[];
+    commandLine?: string;
     cwd?: string;
 }
 

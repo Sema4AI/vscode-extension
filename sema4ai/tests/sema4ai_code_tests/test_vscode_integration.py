@@ -3226,8 +3226,7 @@ def test_add_mcp_server_stdio_transport(
     mcp_server_config = {
         "name": "test-mcp-server",
         "transport": "stdio",
-        "command": "/usr/bin/python",
-        "arguments": ["-m", "mcp_server"],
+        "commandLine": "/usr/bin/python -m mcp_server",
         "cwd": "/tmp",
         "description": "Test MCP server for stdio transport",
     }
@@ -3313,7 +3312,7 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": {
                     "name": "test-server",
                     "transport": "stdio",
-                    "command": "/usr/bin/python",
+                    "commandLine": "/usr/bin/python",
                     "cwd": "/tmp",
                 },
             },
@@ -3329,7 +3328,7 @@ def test_add_mcp_server_error_cases(
     mcp_server_config = {
         "name": "duplicate-server",
         "transport": "stdio",
-        "command": "/usr/bin/python",
+        "commandLine": "/usr/bin/python",
         "cwd": "/tmp",
     }
 
@@ -3383,7 +3382,7 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": {
                     "name": "test-server",
                     "transport": "stdio",
-                    "command": "/usr/bin/python",
+                    "commandLine": "/usr/bin/python",
                     "cwd": "/tmp",
                 },
             },
@@ -3409,7 +3408,7 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": {
                     "name": "test-server",
                     "transport": "stdio",
-                    "command": "/usr/bin/python",
+                    "commandLine": "/usr/bin/python",
                     "cwd": "/tmp",
                 },
             },

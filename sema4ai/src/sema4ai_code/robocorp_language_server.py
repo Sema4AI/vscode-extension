@@ -97,6 +97,16 @@ _RUFF_MESSAGE_THROTTLE_MS = 20 * 1000  # 20 seconds in milliseconds
 
 DataSourceSetupResponse = list[str]
 
+
+class MCP_SERVER_CONFIG(TypedDict):
+    name: str
+    description: str | None
+    transport: str
+    url: str | None
+    commandLine: str | None
+    cwd: str | None
+
+
 log = get_logger(__name__)
 
 try:
@@ -950,9 +960,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 return result.as_dict()
 
             lst = result.result
-            assert lst is not None, (
-                "When collecting actions, the result should not be None in the success case"
-            )
+            assert (
+                lst is not None
+            ), "When collecting actions, the result should not be None in the success case"
             actions_info = extract_info(lst, action_package_yaml_directory)
         except Exception as e:
             log.exception("Error collecting actions.")
@@ -2396,15 +2406,16 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(partial(self._fix_wrong_agent_import, agent_dir))
 
     def m_add_mcp_server(
-        self, agent_dir: str, mcp_server_config: dict
+        self, agent_dir: str, mcp_server_config: MCP_SERVER_CONFIG
     ) -> ActionResultDict:
         return require_monitor(
             partial(self._add_mcp_server, agent_dir, mcp_server_config)
         )
 
     def _add_mcp_server(
-        self, agent_dir, mcp_server_config: dict, monitor: IMonitor
+        self, agent_dir, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
     ) -> ActionResultDict:
+        import shlex
         from pathlib import Path
 
         from ruamel.yaml import YAML
@@ -2446,9 +2457,18 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             }
 
             if mcp_server_config["transport"] == "stdio":
-                command_line = [mcp_server_config["command"]]
-                if mcp_server_config.get("arguments"):
-                    command_line.extend(mcp_server_config["arguments"])
+                command_line_str = mcp_server_config.get("commandLine", "")
+                if not command_line_str:
+                    return ActionResult.make_failure(
+                        "Command line is required for STDIO transport"
+                    ).as_dict()
+
+                try:
+                    command_line = shlex.split(command_line_str)
+                except Exception as e:
+                    return ActionResult.make_failure(
+                        f"Failed to parse command line: {e}"
+                    ).as_dict()
 
                 mcp_server_entry["command-line"] = command_line
                 mcp_server_entry["cwd"] = mcp_server_config["cwd"]
@@ -2791,12 +2811,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     relative_path = datasource["file"]
 
                     # These asserts should've been caught by the validation.
-                    assert datasource_helper.is_table_datasource, (
-                        "Expected a table datasource for the files engine."
-                    )
-                    assert created_table, (
-                        "Expected a created_table for the files engine."
-                    )
+                    assert (
+                        datasource_helper.is_table_datasource
+                    ), "Expected a table datasource for the files engine."
+                    assert (
+                        created_table
+                    ), "Expected a created_table for the files engine."
                     assert relative_path, "Expected a file for the files engine."
 
                     full_path = Path(root_path) / relative_path
@@ -2826,9 +2846,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"] == "custom":
                     # These asserts should've been caught by the validation.
-                    assert datasource_helper.custom_sql, (
-                        "Expected the sql to be defined for the custom engine."
-                    )
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the sql to be defined for the custom engine."
 
                     for sql in datasource_helper.custom_sql:
                         try:
@@ -2849,12 +2869,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 if datasource["engine"].startswith("prediction:"):
                     model_name = datasource["model_name"]
-                    assert model_name, (
-                        "Expected a model_name for the prediction engine."
-                    )
-                    assert datasource_helper.custom_sql, (
-                        "Expected the setup sql to be defined for the prediction engine."
-                    )
+                    assert (
+                        model_name
+                    ), "Expected a model_name for the prediction engine."
+                    assert (
+                        datasource_helper.custom_sql
+                    ), "Expected the setup sql to be defined for the prediction engine."
 
                     for sql in datasource_helper.custom_sql:
                         try:
