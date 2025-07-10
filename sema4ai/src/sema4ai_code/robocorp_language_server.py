@@ -2413,7 +2413,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         )
 
     def _add_mcp_server(
-        self, agent_dir, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
+        self, agent_dir: str, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
     ) -> ActionResultDict:
         import shlex
         from pathlib import Path
@@ -2449,7 +2449,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     "Invalid agent configuration in agent-spec.yaml"
                 ).as_dict()
 
-            mcp_server_entry = {
+            mcp_server_entry: dict = {
                 "name": mcp_server_config["name"],
                 "transport": mcp_server_config["transport"],
                 "description": mcp_server_config.get("description"),
