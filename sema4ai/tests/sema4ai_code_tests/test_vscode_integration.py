@@ -3242,10 +3242,12 @@ def test_add_mcp_server_stdio_transport(
                 "mcp_server_config": mcp_server_config,
             },
         }
-    )["result"]
+    )
 
-    assert result["success"]
-    assert result["message"] is None
+    result_data = result.get("result")
+
+    assert result_data["success"]
+    assert result_data["message"] is None
 
     # Verify the agent-spec.yaml was updated correctly
     with open(agent_spec_path) as f:
@@ -3315,10 +3317,12 @@ def test_add_mcp_server_error_cases(
                 },
             },
         }
-    )["result"]
+    )
 
-    assert not result["success"]
-    assert "agent-spec.yaml not found" in result["message"]
+    result_data = result.get("result")
+
+    assert not result_data["success"]
+    assert "agent-spec.yaml not found" in result_data["message"]
 
     # Test 2: Duplicate server name
     mcp_server_config = {
@@ -3339,9 +3343,11 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": mcp_server_config,
             },
         }
-    )["result"]
+    )
 
-    assert result["success"]
+    result_data = result.get("result")
+
+    assert result_data["success"]
 
     # Try to add server with same name
     result = language_server.request(
@@ -3354,10 +3360,12 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": mcp_server_config,
             },
         }
-    )["result"]
+    )
 
-    assert not result["success"]
-    assert "already exists" in result["message"]
+    result_data = result.get("result")
+
+    assert not result_data["success"]
+    assert "already exists" in result_data["message"]
 
     # Test 3: Invalid agent configuration (corrupt the agent-spec.yaml)
     with open(agent_spec_path, "w") as f:
@@ -3378,10 +3386,12 @@ def test_add_mcp_server_error_cases(
                 },
             },
         }
-    )["result"]
+    )
 
-    assert not result["success"]
-    assert "Invalid agent configuration" in result["message"]
+    result_data = result.get("result")
+
+    assert not result_data["success"]
+    assert "Invalid agent configuration" in result_data["message"]
 
     # Test 4: Invalid YAML in agent-spec.yaml
     with open(agent_spec_path, "w") as f:
@@ -3402,10 +3412,12 @@ def test_add_mcp_server_error_cases(
                 },
             },
         }
-    )["result"]
+    )
 
-    assert not result["success"]
-    assert "Failed to parse agent-spec.yaml" in result["message"]
+    result_data = result.get("result")
+
+    assert not result_data["success"]
+    assert "Failed to parse agent-spec.yaml" in result_data["message"]
 
 
 def test_document_did_save_on_python_file_in_agent_action(
