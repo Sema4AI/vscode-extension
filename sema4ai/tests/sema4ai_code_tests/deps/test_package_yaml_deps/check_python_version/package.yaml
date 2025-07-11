@@ -11,8 +11,13 @@ documentation: https://github.com/...
 
 dependencies:
   conda-forge:
-  - python=3.7
-  - pip=22.1.2
+    - python=3.7
+    - pip=22.1.2
   pypi:
-  - rpaframework=22.5.3
+    - rpaframework=22.5.3
 
+dev-dependencies:
+  conda-forge:
+    - numpy=1.24.0
+  pypi:
+    - mu_repo=1.8.0

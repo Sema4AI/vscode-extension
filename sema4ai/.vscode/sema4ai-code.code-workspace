@@ -17,12 +17,7 @@
         }
     ],
     "settings": {
-        "python.pydev.pythonPath": [
-            "src",
-            "tests",
-            "../sema4ai-python-ls-core/src",
-            "../sema4ai-python-ls-core/tests"
-        ],
+        "python.pydev.pythonPath": ["src", "tests", "../sema4ai-python-ls-core/src", "../sema4ai-python-ls-core/tests"],
         "python.pydev.preferredImportLocation": "topOfMethod",
         "python.pydev.formatter": "ruff",
         "python.pydev.lint.ruff.use": true,
@@ -60,6 +55,9 @@
             "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
         "[html]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[yaml]": {
             "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
         "python.terminal.activateEnvironment": false
