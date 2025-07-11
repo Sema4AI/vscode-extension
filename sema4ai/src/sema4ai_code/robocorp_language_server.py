@@ -2419,6 +2419,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from pathlib import Path
 
         from ruamel.yaml import YAML
+        from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
         try:
             agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
@@ -2429,7 +2430,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
             yaml = YAML()
             yaml.preserve_quotes = True
-            yaml.default_flow_style = None
+            yaml.default_flow_style = False
             yaml.sequence_dash_offset = 0
 
             try:
@@ -2470,7 +2471,14 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                         f"Failed to parse command line: {e}"
                     ).as_dict()
 
-                mcp_server_entry["command-line"] = command_line
+                # Set command-line with flow style (inline format)
+                from ruamel.yaml import CommentedSeq
+
+                command_line_seq = CommentedSeq(
+                    [DoubleQuotedScalarString(item) for item in command_line]
+                )
+                command_line_seq.fa.set_flow_style()
+                mcp_server_entry["command-line"] = command_line_seq
                 mcp_server_entry["cwd"] = mcp_server_config["cwd"]
 
             elif mcp_server_config["transport"] in ["streamable-http", "sse"]:

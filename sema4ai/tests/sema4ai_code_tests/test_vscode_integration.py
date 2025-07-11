@@ -3458,3 +3458,83 @@ def test_document_did_save_on_python_file_in_agent_action(
     assert message_matcher.event.wait(120)  # Increased for Windows
     diag = message_matcher.msg["params"]["diagnostics"]
     data_regression.check(sort_diagnostics(diag))
+
+
+def test_add_mcp_server_yaml_formatting(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    """Test that MCP server command-line is written in flow style (inline format)."""
+    os.environ["CI_ENDPOINT"] = "/"
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    # Create an agent package
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    # Verify agent-spec.yaml exists
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    # Test adding MCP server with stdio transport
+    mcp_server_config = {
+        "name": "test-mcp-server",
+        "transport": "stdio",
+        "commandLine": "python -m mcp_server --config.json",
+        "cwd": "./path/to/dir",
+        "description": "Test MCP server for stdio transport",
+    }
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    import yaml
+
+    with open(agent_spec_path) as f:
+        updated_spec = yaml.safe_load(f)
+
+    # Check that spec-version was updated to v3
+    assert updated_spec["agent-package"]["spec-version"] == "v3"
+
+    # Check that mcp-servers section was added
+    agent = updated_spec["agent-package"]["agents"][0]
+    assert "mcp-servers" in agent
+    assert len(agent["mcp-servers"]) == 1
+
+    mcp_server = agent["mcp-servers"][0]
+    assert mcp_server["name"] == "test-mcp-server"
+    assert mcp_server["transport"] == "stdio"
+    assert mcp_server["description"] == "Test MCP server for stdio transport"
+    assert mcp_server["force-serial-tool-calls"] is False
+    assert mcp_server["command-line"] == ["python", "-m", "mcp_server", "--config.json"]
+    assert mcp_server["cwd"] == "./path/to/dir"
