@@ -2452,10 +2452,12 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
             mcp_server_entry: dict = {
                 "name": mcp_server_config["name"],
-                "transport": mcp_server_config["transport"],
                 "description": mcp_server_config.get("description"),
                 "force-serial-tool-calls": False,
             }
+
+            if mcp_server_config.get("transport", "") != "auto":
+                mcp_server_entry["transport"] = mcp_server_config["transport"]
 
             if mcp_server_config["transport"] == "stdio":
                 command_line_str = mcp_server_config.get("commandLine", "")
@@ -2481,7 +2483,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 mcp_server_entry["command-line"] = command_line_seq
                 mcp_server_entry["cwd"] = mcp_server_config["cwd"]
 
-            elif mcp_server_config["transport"] in ["streamable-http", "sse"]:
+            elif mcp_server_config["transport"] in ["streamable-http", "sse", "auto"]:
                 mcp_server_entry["url"] = mcp_server_config["url"]
 
             if "mcp-servers" not in agent:
