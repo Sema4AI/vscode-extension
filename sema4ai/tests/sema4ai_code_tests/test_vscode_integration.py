@@ -8,8 +8,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core import uris
 from sema4ai_ls_core.basic import wait_for_condition
 from sema4ai_ls_core.callbacks import Callback
@@ -33,6 +31,8 @@ from sema4ai_code.protocols import (
     LocalPackageMetadataInfoDict,
     WorkspaceInfoDict,
 )
+from sema4ai_code_tests.fixtures import RCC_TEMPLATE_NAMES, RccPatch
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 log = logging.getLogger(__name__)
 
@@ -1082,9 +1082,10 @@ def test_hover_image_integration(
 ):
     import base64
 
-    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
     from sema4ai_ls_core import uris
     from sema4ai_ls_core.workspace import Document
+
+    from sema4ai_code_tests.fixtures import IMAGE_IN_BASE64
 
     locators_json = tmpdir.join("locators.json")
     locators_json.write_text("", "utf-8")
@@ -1681,10 +1682,11 @@ def test_web_inspector_integrated(
     This test should be a reference spanning all the APIs that are available
     for the inspector webview to use.
     """
+    from sema4ai_ls_core import uris
+
     from sema4ai_code_tests.robocode_language_server_client import (
         RobocorpLanguageServerClient,
     )
-    from sema4ai_ls_core import uris
 
     cases.copy_to("robots", ws_root_path)
     ls_client: RobocorpLanguageServerClient = language_server_initialized
@@ -3097,7 +3099,7 @@ def test_fix_wrong_agent_import(
 
 
 def test_document_did_save_on_sema4ai_folder(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     cases: CasesFixture,
 ) -> None:
     from sema4ai_ls_core import uris
@@ -3146,7 +3148,7 @@ def test_document_did_save_on_sema4ai_folder(
 
 
 def test_document_did_save_on_myactions_package_yaml(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     create_agent_and_action: str,
 ) -> None:
     import yaml
@@ -3187,8 +3189,240 @@ def test_document_did_save_on_myactions_package_yaml(
     )
 
 
+def test_add_mcp_server_stdio_transport(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    os.environ["CI_ENDPOINT"] = "/"
+    """Test adding an MCP server with stdio transport to an agent spec."""
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    # Create an agent package
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    # Verify agent-spec.yaml exists
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    # Test adding MCP server with stdio transport
+    mcp_server_config = {
+        "name": "test-mcp-server",
+        "transport": "stdio",
+        "commandLine": "/usr/bin/python -m mcp_server",
+        "cwd": "/tmp",
+        "description": "Test MCP server for stdio transport",
+    }
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    # Verify the agent-spec.yaml was updated correctly
+    with open(agent_spec_path) as f:
+        updated_spec = yaml.safe_load(f)
+
+    # Check that spec-version was updated to v3
+    assert updated_spec["agent-package"]["spec-version"] == "v3"
+
+    # Check that mcp-servers section was added
+    agent = updated_spec["agent-package"]["agents"][0]
+    assert "mcp-servers" in agent
+    assert len(agent["mcp-servers"]) == 1
+
+    mcp_server = agent["mcp-servers"][0]
+    assert mcp_server["name"] == "test-mcp-server"
+    assert mcp_server["transport"] == "stdio"
+    assert mcp_server["description"] == "Test MCP server for stdio transport"
+    assert mcp_server["force-serial-tool-calls"] is False
+    assert mcp_server["command-line"] == ["/usr/bin/python", "-m", "mcp_server"]
+    assert mcp_server["cwd"] == "/tmp"
+
+
+def test_add_mcp_server_error_cases(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    """Test error cases for adding MCP servers."""
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    # Create an agent package
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    # Test 1: Missing agent-spec.yaml
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": str(tmpdir.join("non_existent")),
+                "mcp_server_config": {
+                    "name": "test-server",
+                    "transport": "stdio",
+                    "commandLine": "/usr/bin/python",
+                    "cwd": "/tmp",
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "agent-spec.yaml not found" in result_data["message"]
+
+    # Test 2: Duplicate server name
+    mcp_server_config = {
+        "name": "duplicate-server",
+        "transport": "stdio",
+        "commandLine": "/usr/bin/python",
+        "cwd": "/tmp",
+    }
+
+    # Add first server
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    # Try to add server with same name
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "already exists" in result_data["message"]
+
+    # Test 3: Invalid agent configuration (corrupt the agent-spec.yaml)
+    with open(agent_spec_path, "w") as f:
+        yaml.dump({"invalid": "structure"}, f)
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-server",
+                    "transport": "stdio",
+                    "commandLine": "/usr/bin/python",
+                    "cwd": "/tmp",
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "Invalid agent configuration" in result_data["message"]
+
+    # Test 4: Invalid YAML in agent-spec.yaml
+    with open(agent_spec_path, "w") as f:
+        f.write("invalid: yaml: content: [\n")
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-server",
+                    "transport": "stdio",
+                    "commandLine": "/usr/bin/python",
+                    "cwd": "/tmp",
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "Failed to parse agent-spec.yaml" in result_data["message"]
+
+
 def test_document_did_save_on_python_file_in_agent_action(
-    language_server_initialized: IRobocorpLanguageServerClient,
+    language_server_initialized,
     cases: CasesFixture,
     data_regression,
     tmpdir,

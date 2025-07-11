@@ -152,3 +152,4 @@ export const SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefini
 export const SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources";  // Remove All Data Sources
 export const SEMA4AI_SETUP_ALL_DATA_SOURCES = "sema4ai.setupAllDataSources";  // Setup All Data Sources
 export const SEMA4AI_FIX_WRONG_AGENT_IMPORT = "sema4ai.fixWrongAgentImport";  // Fix wrong agent import
+export const SEMA4AI_ADD_MCP_SERVER = "sema4ai.addMCPServer";  // Add MCP Server

@@ -153,6 +153,7 @@ SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefinition"  # Open
 SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources"  # Remove All Data Sources
 SEMA4AI_SETUP_ALL_DATA_SOURCES = "sema4ai.setupAllDataSources"  # Setup All Data Sources
 SEMA4AI_FIX_WRONG_AGENT_IMPORT = "sema4ai.fixWrongAgentImport"  # Fix wrong agent import
+SEMA4AI_ADD_MCP_SERVER = "sema4ai.addMCPServer"  # Add MCP Server
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,

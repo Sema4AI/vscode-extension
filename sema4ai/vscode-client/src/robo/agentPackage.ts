@@ -184,7 +184,7 @@ export const validateAgentPackage = async (
     return null;
 };
 
-const selectAgentPackage = async (): Promise<string> => {
+export const selectAgentPackage = async (): Promise<string> => {
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {
         // Operation cancelled.

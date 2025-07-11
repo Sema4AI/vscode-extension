@@ -1062,6 +1062,12 @@ COMMANDS = [
         server_handled=False,
         hide_from_command_palette=False,
     ),
+    Command(
+        "sema4ai.addMCPServer",
+        "Add MCP Server",
+        server_handled=False,
+        hide_from_command_palette=False,
+    ),
 ]
 
 

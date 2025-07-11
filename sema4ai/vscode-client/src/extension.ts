@@ -169,6 +169,7 @@ import {
     SEMA4AI_DROP_ALL_DATA_SOURCES,
     SEMA4AI_SETUP_ALL_DATA_SOURCES,
     SEMA4AI_FIX_WRONG_AGENT_IMPORT,
+    SEMA4AI_ADD_MCP_SERVER,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -217,6 +218,7 @@ import { importActionPackage } from "./robo/importActions";
 import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
 import { dropAllDataSources, dropDataSource, setupAllDataSources, setupDataSource } from "./robo/dataSourceHandling";
 import { promptForUnsavedChanges } from "./common";
+import { addMCPServer } from "./mcp";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -543,6 +545,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     );
     C.register(SEMA4AI_SETUP_ALL_DATA_SOURCES, async (datasource?: RobotEntry) => setupAllDataSources(datasource));
     C.register(SEMA4AI_FIX_WRONG_AGENT_IMPORT, async (agentPath: string) => fixWrongAgentImport(agentPath));
+    C.register(SEMA4AI_ADD_MCP_SERVER, async (agentDir?: string) => addMCPServer(agentDir));
 }
 
 async function clearEnvAndRestart() {
