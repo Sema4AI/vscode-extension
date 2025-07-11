@@ -3193,8 +3193,6 @@ def test_add_mcp_server_stdio_transport(
     language_server_initialized,
     tmpdir,
 ) -> None:
-    os.environ["CI_ENDPOINT"] = "/"
-    """Test adding an MCP server with stdio transport to an agent spec."""
     import yaml
 
     from sema4ai_code import commands
@@ -3274,7 +3272,6 @@ def test_add_mcp_server_error_cases(
     language_server_initialized,
     tmpdir,
 ) -> None:
-    """Test error cases for adding MCP servers."""
     import yaml
 
     from sema4ai_code import commands
@@ -3464,9 +3461,6 @@ def test_add_mcp_server_yaml_formatting(
     language_server_initialized,
     tmpdir,
 ) -> None:
-    """Test that MCP server command-line is written in flow style (inline format)."""
-    os.environ["CI_ENDPOINT"] = "/"
-
     from sema4ai_code import commands
 
     language_server = language_server_initialized
