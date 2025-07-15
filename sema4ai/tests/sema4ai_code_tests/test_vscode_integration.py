@@ -3620,7 +3620,13 @@ def test_add_mcp_server_error_cases(
     assert "Failed to parse agent-spec.yaml" in result_data["message"]
 
     # Test 5: Missing command line for stdio transport
-    # Restore valid agent-spec.yaml first
+    # Restore valid agent-spec.yaml first by recreating the agent package
+    # First, remove the existing directory to avoid conflicts
+    import shutil
+
+    if os.path.exists(target_directory):
+        shutil.rmtree(target_directory)
+
     language_server.execute_command(
         commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
         [
