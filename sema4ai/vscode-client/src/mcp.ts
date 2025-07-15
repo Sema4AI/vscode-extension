@@ -11,6 +11,17 @@ interface MCPServerConfig {
     url?: string;
     commandLine?: string;
     cwd?: string;
+    headers?: Record<string, string | MCPVariableConfig>;
+    env?: Record<string, string | MCPVariableConfig>;
+}
+
+interface MCPVariableConfig {
+    type: "string" | "secret" | "oauth2-secret" | "data-server-info";
+    description?: string;
+    default?: string;
+    provider?: string;
+    scopes?: string[];
+    value?: string;
 }
 
 interface ActionResult<T = any> {
