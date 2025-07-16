@@ -48,6 +48,7 @@ class _ExpectedTypeEnum(Enum):
     mcp_server_env = "mcp_server_env"
     mcp_server_headers = "mcp_server_headers"
     mcp_server_cwd = "mcp_server_cwd"
+    mcp_server_var_type = "mcp_server_var_type"
 
 
 class _YamlNodeKind(Enum):
@@ -455,6 +456,56 @@ class Validator:
             Path, "ActionPackageInFilesystem"
         ] = {}
 
+    def _validate_key_pair(
+        self, key_node: "Node", value_node: Optional["Node"]
+    ) -> Iterator[Error]:
+        entry = self._spec_entries.get(self._current_stack_as_str)
+        # We have a special case for:
+        # agent-package/agents/mcp-servers/headers
+        # agent-package/agents/mcp-servers/env
+        # In this case we actually have something as
+        # agent-package/agents/mcp-servers/headers/<object>/<required-field-name> or
+        # agent-package/agents/mcp-servers/env/<object>/<required-field-name>
+        # so, we do some special handling for this to "remove" the <object> part
+        # and validate the path without that part.
+        if not entry:
+            if self._current_stack_as_str.startswith(
+                "agent-package/agents/mcp-servers"
+            ):
+                current_stack_as_str = self._current_stack_as_str.split("/")
+                if len(current_stack_as_str) > 3:
+                    if current_stack_as_str[3] in ("headers", "env"):
+                        current_stack_as_str = (
+                            current_stack_as_str[:4] + current_stack_as_str[5:]
+                        )
+                        entry = self._spec_entries.get("/".join(current_stack_as_str))
+
+        if not entry or not value_node:
+            parent_as_str = "<unknown>"
+            curr = "<unknown>"
+
+            if self._stack:
+                parent, curr = self._stack[:-1], self._stack[-1]
+                if parent:
+                    parent_as_str = "/".join(parent)
+                else:
+                    parent_as_str = "root"
+
+            if not entry:
+                yield Error(
+                    message=f"Unexpected entry: {curr} (in {parent_as_str}).",
+                    node=key_node,
+                    severity=Severity.warning,
+                )
+            else:
+                yield Error(
+                    message=f"Expected value for {self._current_stack_as_str}.",
+                    node=key_node,
+                    severity=Severity.warning,
+                )
+
+            return
+
     def _is_scalar_node(self, node: Optional["Node"]) -> bool:
         if node is None:
             return False
@@ -519,6 +570,7 @@ class Validator:
                     key_name, YamlNodeData(node, kind=_YamlNodeKind.unhandled)
                 )
 
+                yield from self._validate_key_pair(key, value)
                 added_to_stack = True
                 default_visit_children = False
 
@@ -545,6 +597,8 @@ class Validator:
         yaml_node: _YamlTreeNode | None,
         parent_node: _YamlTreeNode | None,
     ) -> Iterator[Error]:
+        from typing import Literal
+
         if spec_node.parent is None:
             assert yaml_node is not None, "Expected yaml node to be provided for root."
             for child in spec_node.children.values():
@@ -815,6 +869,95 @@ class Validator:
                                 if child_node:
                                     yield from self._verify_yaml_matches_spec(
                                         spec_child, child_node, yaml_node
+                                    )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_var_type
+            ):
+                # Var type must be one of the following:
+                # - secret
+                # - oauth2-secret
+                # - string
+                # - data-server-info
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    # Check that the value is one of the allowed types
+                    var_type = self._get_value_text(yaml_node)
+                    if var_type not in [
+                        "secret",
+                        "oauth2-secret",
+                        "string",
+                        "data-server-info",
+                    ]:
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be one of ['secret', 'oauth2-secret', 'string', 'data-server-info'] (found {var_type!r}).",
+                            node=yaml_node.data.node,
+                        )
+                    else:
+                        ValidVarType = Literal[
+                            "secret", "oauth2-secret", "string", "data-server-info"
+                        ]
+                        # the other fields are the following:
+                        # - type
+                        # - provider
+                        # - scopes
+                        # - default
+                        # - description
+                        # but not all combinations are allowed, so, we do additional checks for what should be allowed.
+                        found_type: ValidVarType = typing.cast(
+                            ValidVarType,
+                            var_type,
+                        )
+
+                        constraints_for_var_type: dict[
+                            ValidVarType,
+                            dict[str, Literal["required", "not-allowed", "optional"]],
+                        ] = {
+                            "secret": {
+                                "provider": "not-allowed",
+                                "scopes": "not-allowed",
+                                "default": "optional",
+                            },
+                            "oauth2-secret": {
+                                "provider": "required",
+                                "scopes": "required",
+                                "default": "not-allowed",
+                            },
+                            "string": {
+                                "provider": "not-allowed",
+                                "scopes": "not-allowed",
+                                "default": "optional",
+                            },
+                            "data-server-info": {
+                                "provider": "not-allowed",
+                                "scopes": "not-allowed",
+                                "default": "not-allowed",
+                            },
+                        }
+
+                        # now, get the contraints based on the var_type
+                        constraints = constraints_for_var_type[found_type]
+                        assert yaml_node.parent is not None, (
+                            "Expected parent to be defined at this point."
+                        )
+                        for contraint_attr, contraint_value in constraints.items():
+                            if contraint_value == "required":
+                                if contraint_attr not in yaml_node.parent.children:
+                                    yield Error(
+                                        message=f"type: {found_type} requires {contraint_attr} to be defined.",
+                                        node=yaml_node.data.node,
+                                    )
+                            elif contraint_value == "not-allowed":
+                                if contraint_attr in yaml_node.parent.children:
+                                    yield Error(
+                                        message=f"type: {found_type} does not expect {contraint_attr} to be defined.",
+                                        node=yaml_node.data.node,
+                                        severity=Severity.warning,
                                     )
 
             elif (
