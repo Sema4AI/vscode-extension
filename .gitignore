@@ -121,6 +121,7 @@ node_modules
 .vscode-dev
 *.vsix
 .vscode-test
+.vscode
 
 **/log.html
 **/output.xml

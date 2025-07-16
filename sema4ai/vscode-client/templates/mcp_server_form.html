@@ -6,7 +6,6 @@
         <title>Add MCP Server</title>
         <style>
             body {
-                font-family: var(--vscode-editor-font-family);
                 font-weight: var(--vscode-editor-font-weight);
                 font-size: var(--vscode-editor-font-size);
                 color: var(--vscode-editor-foreground);
@@ -18,10 +17,15 @@
             .container {
                 max-width: 800px;
                 margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
             }
 
             .header {
-                margin-bottom: 30px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
                 border-bottom: 1px solid var(--vscode-panel-border);
                 padding-bottom: 15px;
             }
@@ -34,24 +38,25 @@
             }
 
             .header p {
-                margin: 10px 0 0 0;
+                margin: 0;
                 color: var(--vscode-descriptionForeground);
                 font-size: 14px;
             }
 
             .form-group {
-                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
             }
 
             .form-group label {
-                display: block;
-                margin-bottom: 8px;
                 font-weight: 500;
                 color: var(--vscode-editor-foreground);
             }
 
             .form-group input,
-            .form-group select {
+            .form-group select,
+            .form-group textarea {
                 width: 100%;
                 padding: 10px 12px;
                 border: 1px solid var(--vscode-input-border);
@@ -63,7 +68,8 @@
             }
 
             .form-group input:focus,
-            .form-group select:focus {
+            .form-group select:focus,
+            .form-group textarea:focus {
                 outline: none;
                 border-color: var(--vscode-focusBorder);
             }
@@ -73,7 +79,6 @@
             }
 
             .form-group .help-text {
-                margin-top: 5px;
                 font-size: 12px;
                 color: var(--vscode-descriptionForeground);
             }
@@ -83,14 +88,99 @@
             }
 
             .transport-dependent.show {
-                display: block;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .headers-section,
+            .env-section {
+                display: none;
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 4px;
+                background-color: var(--vscode-editor-background);
+            }
+
+            .headers-section.show,
+            .env-section.show {
+                display: flex;
+            }
+
+            .section-header {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--vscode-editor-foreground);
+            }
+
+            .variable-item {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 4px;
+                background-color: var(--vscode-editor-background);
+            }
+
+            .variable-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .variable-name {
+                font-weight: 600;
+                color: var(--vscode-editor-foreground);
+            }
+
+            .remove-btn {
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: 1px solid var(--vscode-button-secondaryBorder);
+                padding: 5px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+
+            .remove-btn:hover {
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+
+            .add-btn {
+                background-color: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                align-self: flex-start;
+            }
+
+            .add-btn:hover {
+                background-color: var(--vscode-button-hoverBackground);
+            }
+
+            .type-dependent {
+                display: none;
+            }
+
+            .type-dependent.show {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
             }
 
             .buttons {
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
-                margin-top: 30px;
                 padding-top: 20px;
                 border-top: 1px solid var(--vscode-panel-border);
             }
@@ -130,7 +220,6 @@
                 border: 1px solid var(--vscode-inputValidation-errorBorder);
                 padding: 10px;
                 border-radius: 4px;
-                margin-bottom: 15px;
                 display: none;
             }
 
@@ -140,8 +229,57 @@
                 border: 1px solid var(--vscode-notificationsInfoBorder);
                 padding: 10px;
                 border-radius: 4px;
-                margin-bottom: 15px;
                 display: none;
+            }
+
+            .scopes-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .scope-item {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .scope-item input {
+                flex: 1;
+            }
+
+            .remove-scope-btn {
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: 1px solid var(--vscode-button-secondaryBorder);
+                padding: 5px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+
+            .add-scope-btn {
+                background-color: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+                padding: 5px 10px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                align-self: flex-start;
+            }
+
+            #mcpForm {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .messages-container {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
             }
         </style>
     </head>
@@ -152,8 +290,10 @@
                 <h1>Add MCP Server</h1>
             </div>
 
-            <div id="error" class="error"></div>
-            <div id="success" class="success"></div>
+            <div class="messages-container">
+                <div id="error" class="error"></div>
+                <div id="success" class="success"></div>
+            </div>
 
             <form id="mcpForm">
                 <div class="form-group">
@@ -222,6 +362,20 @@
                     </div>
                 </div>
 
+                <!-- Headers Section -->
+                <div id="headersSection" class="headers-section transport-dependent">
+                    <div class="section-header">Headers</div>
+                    <div id="headersContainer"></div>
+                    <button type="button" class="add-btn" onclick="addHeader()">Add Header</button>
+                </div>
+
+                <!-- Environment Variables Section (for STDIO) -->
+                <div id="envSection" class="env-section transport-dependent">
+                    <div class="section-header">Environment Variables</div>
+                    <div id="envContainer"></div>
+                    <button type="button" class="add-btn" onclick="addEnvVar()">Add Environment Variable</button>
+                </div>
+
                 <div class="buttons">
                     <button type="button" class="btn btn-secondary" onclick="cancel()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add Server</button>
@@ -236,6 +390,14 @@
             } catch (err) {
                 // ignore
             }
+
+            const OAUTH2_PROVIDERS = [
+                "hubspot", "google", "github", "slack",
+                "zendesk", "microsoft", "salesforce"
+            ];
+
+            let headerCounter = 0;
+            let envCounter = 0;
 
             function showError(message) {
                 const errorEl = document.getElementById('error');
@@ -260,20 +422,169 @@
                 const transport = document.getElementById('transport').value;
                 const urlSection = document.getElementById('urlSection');
                 const stdioSection = document.getElementById('stdioSection');
+                const headersSection = document.getElementById('headersSection');
+                const envSection = document.getElementById('envSection');
 
                 // Hide all transport-dependent sections
                 urlSection.classList.remove('show');
                 stdioSection.classList.remove('show');
+                headersSection.classList.remove('show');
+                envSection.classList.remove('show');
 
                 // Show relevant section based on transport
                 if (transport === 'stdio') {
                     stdioSection.classList.add('show');
+                    envSection.classList.add('show');
                 } else if (transport && transport !== 'auto') {
                     urlSection.classList.add('show');
+                    headersSection.classList.add('show');
                 } else if (transport === 'auto') {
                     // Show URL section for auto transport
                     urlSection.classList.add('show');
+                    headersSection.classList.add('show');
                 }
+            }
+
+            function createVariableItemHTML(itemId, label, placeholder, helpText) {
+                return `
+                    <div class="variable-header">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label>${label} *</label>
+                            <input type="text" placeholder="${placeholder}" class="var-name" required>
+                            <div class="help-text">${helpText}</div>
+                        </div>
+                        <button type="button" class="remove-btn" style="margin-left: 10px;" onclick="removeVariable('${itemId}')">Remove</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Type *</label>
+                        <select class="var-type" onchange="updateTypeFields('${itemId}')">
+                            <option value="plain-text">Plain Text</option>
+                            <option value="string">String Object</option>
+                            <option value="secret">Secret</option>
+                            <option value="oauth2-secret">OAuth2 Secret</option>
+                            <option value="data-server-info">Data Server Info</option>
+                        </select>
+                    </div>
+                    <!-- Plain Text Fields -->
+                    <div class="type-dependent plain-text-fields" data-type="plain-text">
+                        <div class="form-group">
+                            <label>Value *</label>
+                            <input type="text" class="var-value" placeholder="Enter the value">
+                        </div>
+                    </div>
+                    <!-- String Object Fields -->
+                    <div class="type-dependent string-fields" data-type="string">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" class="var-description" placeholder="Optional description">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Value</label>
+                            <input type="text" class="var-default" placeholder="The default value of the string object">
+                        </div>
+                    </div>
+                    <!-- Secret Fields -->
+                    <div class="type-dependent secret-fields" data-type="secret">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" class="var-description" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <!-- OAuth2 Secret Fields -->
+                    <div class="type-dependent oauth2-secret-fields" data-type="oauth2-secret">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" class="var-description" placeholder="Optional description">
+                        </div>
+                        <div class="form-group">
+                            <label>Provider *</label>
+                            <select class="var-provider">
+                                ${OAUTH2_PROVIDERS.map(provider => `<option value="${provider}">${provider}</option>`).join('')}
+                            </select>
+                            <div class="help-text">OAuth2 provider for this secret</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Scopes *</label>
+                            <div class="scopes-container">
+                                <div class="scope-item">
+                                    <input type="text" class="var-scope" placeholder="e.g., user.read">
+                                    <button type="button" class="remove-scope-btn" onclick="removeScope(this)">Remove</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-scope-btn" onclick="addScope('${itemId}')">Add Scope</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function createVariableItem(containerId, counter, isHeader = true) {
+                const container = document.getElementById(containerId);
+                const itemId = `${isHeader ? 'header' : 'env'}_${counter}`;
+                const label = isHeader ? 'Header Name' : 'Variable Name';
+                const placeholder = isHeader ? 'Enter header name' : 'Enter variable name';
+                const helpText = isHeader ? 'Name of the header (e.g., Authorization, X-API-Key)' : 'Name of the environment variable (e.g., API_KEY, DEBUG_MODE)';
+
+                const item = document.createElement('div');
+                item.className = 'variable-item';
+                item.id = itemId;
+
+                item.innerHTML = createVariableItemHTML(itemId, label, placeholder, helpText);
+
+                container.appendChild(item);
+                updateTypeFields(itemId);
+                return itemId;
+            }
+
+            function addHeader() {
+                headerCounter++;
+                createVariableItem('headersContainer', headerCounter, true);
+            }
+
+            function addEnvVar() {
+                envCounter++;
+                createVariableItem('envContainer', envCounter, false);
+            }
+
+            function removeVariable(itemId) {
+                const item = document.getElementById(itemId);
+                if (item) {
+                    item.remove();
+                }
+            }
+
+            function updateTypeFields(itemId) {
+                const item = document.getElementById(itemId);
+                const typeSelect = item.querySelector('.var-type');
+                const selectedType = typeSelect.value;
+
+                const typeFields = item.querySelectorAll('.type-dependent');
+                typeFields.forEach(field => {
+                    field.classList.remove('show');
+                });
+
+                const selectedFields = item.querySelector(`[data-type="${selectedType}"]`);
+                if (selectedFields) {
+                    selectedFields.classList.add('show');
+                }
+            }
+
+            function addScope(itemId) {
+                const item = document.getElementById(itemId);
+                const scopesContainer = item.querySelector('.scopes-container');
+
+                const scopeItem = document.createElement('div');
+                scopeItem.className = 'scope-item';
+                scopeItem.innerHTML = `
+                    <input type="text" class="var-scope" placeholder="e.g., user.read">
+                    <button type="button" class="remove-scope-btn" onclick="removeScope(this)">Remove</button>
+                `;
+
+                scopesContainer.appendChild(scopeItem);
+            }
+
+            function removeScope(button) {
+                const scopeItem = button.parentElement;
+                scopeItem.remove();
             }
 
             function getCommandAndArguments() {
@@ -295,6 +606,82 @@
                     commandLine: commandLine,
                     cwd: cwd
                 };
+            }
+
+            function collectVariables(containerId) {
+                const container = document.getElementById(containerId);
+                const variables = {};
+
+                container.querySelectorAll('.variable-item').forEach(item => {
+                    const nameInput = item.querySelector('.var-name');
+                    const typeSelect = item.querySelector('.var-type');
+                    const name = nameInput.value.trim();
+                    const type = typeSelect.value;
+
+                    if (!name) return; // Skip if no name
+
+                    const variableConfig = { type: type };
+
+                    switch (type) {
+                        case 'plain-text':
+                            const value = item.querySelector('.var-value').value.trim();
+                            if (value) {
+                                variables[name] = value; // Direct string value
+                            }
+                            break;
+
+                        case 'string':
+                            const description = item.querySelector('.var-description').value.trim();
+                            const defaultValue = item.querySelector('.var-default').value.trim();
+                            if (description) variableConfig.description = description;
+                            if (defaultValue) variableConfig.default = defaultValue;
+                            variables[name] = variableConfig;
+                            break;
+
+                        case 'secret':
+                            const secretDescription = item.querySelector('.var-description').value.trim();
+                            if (secretDescription) variableConfig.description = secretDescription;
+                            variables[name] = variableConfig;
+                            break;
+
+                        case 'oauth2-secret':
+                            const oauthDescription = item.querySelector('.var-description').value.trim();
+                            const provider = item.querySelector('.var-provider').value;
+                            const scopes = Array.from(item.querySelectorAll('.var-scope'))
+                                .map(input => input.value.trim())
+                                .filter(scope => scope);
+
+                            if (oauthDescription) variableConfig.description = oauthDescription;
+                            variableConfig.provider = provider;
+                            variableConfig.scopes = scopes;
+                            variables[name] = variableConfig;
+                            break;
+
+                        case 'data-server-info':
+                            const dataValue = item.querySelector('.var-value').value.trim();
+                            if (dataValue) variableConfig.value = dataValue;
+                            variables[name] = variableConfig;
+                            break;
+                    }
+                });
+
+                return variables;
+            }
+
+            function validateOAuth2Secrets(variables) {
+                for (const [name, config] of Object.entries(variables)) {
+                    if (config.type === 'oauth2-secret') {
+                        if (!config.provider) {
+                            showError(`Provider is required for OAuth2 secret: ${name}`);
+                            return false;
+                        }
+                        if (!config.scopes || config.scopes.length === 0) {
+                            showError(`At least one scope is required for OAuth2 secret: ${name}`);
+                            return false;
+                        }
+                    }
+                }
+                return true;
             }
 
             function validateForm() {
@@ -331,7 +718,12 @@
                     }
                 }
 
-                return true;
+                // Validate variables based on transport type
+                const variables = transport === 'stdio'
+                    ? collectVariables('envContainer')
+                    : collectVariables('headersContainer');
+
+                return validateOAuth2Secrets(variables);
             }
 
             function cancel() {
@@ -370,8 +762,18 @@
                         config.commandLine = commandInfo.commandLine;
                         config.cwd = commandInfo.cwd;
                     }
+
+                    const envVars = collectVariables('envContainer');
+                    if (Object.keys(envVars).length > 0) {
+                        config.env = envVars;
+                    }
                 } else {
                     config.url = document.getElementById('serverUrl').value.trim();
+
+                    const headers = collectVariables('headersContainer');
+                    if (Object.keys(headers).length > 0) {
+                        config.headers = headers;
+                    }
                 }
 
                 if (vscode) {

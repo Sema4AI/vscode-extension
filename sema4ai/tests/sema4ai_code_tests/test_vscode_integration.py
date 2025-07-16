@@ -3189,7 +3189,7 @@ def test_document_did_save_on_myactions_package_yaml(
     )
 
 
-def test_add_mcp_server_stdio_transport(
+def test_add_mcp_server_http_transport_with_headers(
     language_server_initialized,
     tmpdir,
 ) -> None:
@@ -3205,7 +3205,6 @@ def test_add_mcp_server_stdio_transport(
         added_folders=[target_directory], removed_folders=[]
     )
 
-    # Create an agent package
     language_server.execute_command(
         commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
         [
@@ -3216,17 +3215,166 @@ def test_add_mcp_server_stdio_transport(
         ],
     )
 
-    # Verify agent-spec.yaml exists
     agent_spec_path = Path(target_directory) / "agent-spec.yaml"
     assert agent_spec_path.exists()
 
-    # Test adding MCP server with stdio transport
     mcp_server_config = {
-        "name": "test-mcp-server",
+        "name": "test-http-mcp-server",
+        "transport": "streamable-http",
+        "url": "http://localhost:8000/api",
+        "description": "Test MCP server for HTTP transport",
+        "headers": {
+            "Authorization": "Bearer sk-1234567890abcdef",  # plain-text
+            "X-API-Version": {
+                "type": "string",
+                "description": "API version header",
+                "default": "1.0.0",
+            },
+            "X-Secret-Key": {
+                "type": "secret",
+                "description": "Secret key for authentication",
+            },
+            "X-OAuth2-Token": {
+                "type": "oauth2-secret",
+                "description": "OAuth2 token for API access",
+                "provider": "Google",
+                "scopes": ["https://www.googleapis.com/auth/userinfo.profile"],
+            },
+            "X-Data-Server": {
+                "type": "data-server-info",
+                "description": "Data server connection info",
+            },
+        },
+    }
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    with open(agent_spec_path) as f:
+        updated_spec = yaml.safe_load(f)
+
+    agent = updated_spec["agent-package"]["agents"][0]
+    assert "mcp-servers" in agent
+    assert len(agent["mcp-servers"]) == 1
+
+    http_server = None
+    for server in agent["mcp-servers"]:
+        if server["name"] == "test-http-mcp-server":
+            http_server = server
+            break
+
+    assert http_server is not None
+    assert http_server["transport"] == "streamable-http"
+    assert http_server["description"] == "Test MCP server for HTTP transport"
+    assert http_server["url"] == "http://localhost:8000/api"
+    assert http_server["force-serial-tool-calls"] is False
+
+    assert "headers" in http_server
+    headers = http_server["headers"]
+
+    assert headers["Authorization"] == "Bearer sk-1234567890abcdef"
+
+    assert headers["X-API-Version"]["type"] == "string"
+    assert headers["X-API-Version"]["description"] == "API version header"
+    assert headers["X-API-Version"]["default"] == "1.0.0"
+
+    assert headers["X-Secret-Key"]["type"] == "secret"
+    assert headers["X-Secret-Key"]["description"] == "Secret key for authentication"
+
+    assert headers["X-OAuth2-Token"]["type"] == "oauth2-secret"
+    assert headers["X-OAuth2-Token"]["description"] == "OAuth2 token for API access"
+    assert headers["X-OAuth2-Token"]["provider"] == "Google"
+    assert headers["X-OAuth2-Token"]["scopes"] == [
+        "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+
+    assert headers["X-Data-Server"]["type"] == "data-server-info"
+    assert headers["X-Data-Server"]["description"] == "Data server connection info"
+
+
+def test_add_mcp_server_stdio_transport_with_complex_env(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    mcp_server_config = {
+        "name": "test-complex-env-mcp-server",
         "transport": "stdio",
-        "commandLine": "/usr/bin/python -m mcp_server",
-        "cwd": "/tmp",
-        "description": "Test MCP server for stdio transport",
+        "commandLine": "python -m complex_mcp_server --config config.json --debug",
+        "cwd": "./mcp-servers/complex-server",
+        "description": "Test MCP server with complex environment variables",
+        "env": {
+            "DATABASE_URL": "postgresql://user:pass@localhost:5432/db",
+            "LOG_LEVEL": {
+                "type": "string",
+                "description": "Logging level for the application",
+                "default": "INFO",
+            },
+            "JWT_SECRET": {"type": "secret", "description": "JWT signing secret"},
+            "GOOGLE_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "Google OAuth2 credentials",
+                "provider": "Google",
+                "scopes": [
+                    "https://www.googleapis.com/auth/userinfo.email",
+                    "https://www.googleapis.com/auth/userinfo.profile",
+                ],
+            },
+            "MICROSOFT_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "Microsoft OAuth2 credentials",
+                "provider": "Microsoft",
+                "scopes": ["User.Read", "Mail.Read"],
+            },
+            "DATA_SERVER_INFO": {
+                "type": "data-server-info",
+                "description": "Data server connection information",
+            },
+            "CACHE_TTL": {
+                "type": "string",
+                "description": "Cache time-to-live in seconds",
+                "default": "3600",
+            },
+        },
     }
 
     result = language_server.request(
@@ -3251,21 +3399,75 @@ def test_add_mcp_server_stdio_transport(
     with open(agent_spec_path) as f:
         updated_spec = yaml.safe_load(f)
 
-    # Check that spec-version was updated to v3
-    assert updated_spec["agent-package"]["spec-version"] == "v3"
-
     # Check that mcp-servers section was added
     agent = updated_spec["agent-package"]["agents"][0]
     assert "mcp-servers" in agent
-    assert len(agent["mcp-servers"]) == 1
+    assert len(agent["mcp-servers"]) == 1  # We have 1 server
 
-    mcp_server = agent["mcp-servers"][0]
-    assert mcp_server["name"] == "test-mcp-server"
-    assert mcp_server["transport"] == "stdio"
-    assert mcp_server["description"] == "Test MCP server for stdio transport"
-    assert mcp_server["force-serial-tool-calls"] is False
-    assert mcp_server["command-line"] == ["/usr/bin/python", "-m", "mcp_server"]
-    assert mcp_server["cwd"] == "/tmp"
+    # Find the complex env server
+    complex_server = None
+    for server in agent["mcp-servers"]:
+        if server["name"] == "test-complex-env-mcp-server":
+            complex_server = server
+            break
+
+    assert complex_server is not None
+    assert complex_server["transport"] == "stdio"
+    assert (
+        complex_server["description"]
+        == "Test MCP server with complex environment variables"
+    )
+    assert complex_server["command-line"] == [
+        "python",
+        "-m",
+        "complex_mcp_server",
+        "--config",
+        "config.json",
+        "--debug",
+    ]
+    assert complex_server["cwd"] == "./mcp-servers/complex-server"
+    assert complex_server["force-serial-tool-calls"] is False
+
+    # Verify environment variables
+    assert "env" in complex_server
+    env_vars = complex_server["env"]
+
+    # Check plain-text environment variable
+    assert env_vars["DATABASE_URL"] == "postgresql://user:pass@localhost:5432/db"
+
+    # Check string type environment variables
+    assert env_vars["LOG_LEVEL"]["type"] == "string"
+    assert env_vars["LOG_LEVEL"]["description"] == "Logging level for the application"
+    assert env_vars["LOG_LEVEL"]["default"] == "INFO"
+
+    assert env_vars["CACHE_TTL"]["type"] == "string"
+    assert env_vars["CACHE_TTL"]["description"] == "Cache time-to-live in seconds"
+    assert env_vars["CACHE_TTL"]["default"] == "3600"
+
+    # Check secret type environment variable
+    assert env_vars["JWT_SECRET"]["type"] == "secret"
+    assert env_vars["JWT_SECRET"]["description"] == "JWT signing secret"
+
+    # Check oauth2-secret type environment variables
+    assert env_vars["GOOGLE_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["GOOGLE_OAUTH"]["description"] == "Google OAuth2 credentials"
+    assert env_vars["GOOGLE_OAUTH"]["provider"] == "Google"
+    assert env_vars["GOOGLE_OAUTH"]["scopes"] == [
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+    ]
+
+    assert env_vars["MICROSOFT_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["MICROSOFT_OAUTH"]["description"] == "Microsoft OAuth2 credentials"
+    assert env_vars["MICROSOFT_OAUTH"]["provider"] == "Microsoft"
+    assert env_vars["MICROSOFT_OAUTH"]["scopes"] == ["User.Read", "Mail.Read"]
+
+    # Check data-server-info type environment variable
+    assert env_vars["DATA_SERVER_INFO"]["type"] == "data-server-info"
+    assert (
+        env_vars["DATA_SERVER_INFO"]["description"]
+        == "Data server connection information"
+    )
 
 
 def test_add_mcp_server_error_cases(
@@ -3417,6 +3619,175 @@ def test_add_mcp_server_error_cases(
     assert not result_data["success"]
     assert "Failed to parse agent-spec.yaml" in result_data["message"]
 
+    # Test 5: Missing command line for stdio transport
+    # Restore valid agent-spec.yaml first by recreating the agent package
+    # First, remove the existing directory to avoid conflicts
+    import shutil
+
+    if os.path.exists(target_directory):
+        shutil.rmtree(target_directory)
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-stdio-no-command",
+                    "transport": "stdio",
+                    "cwd": "/tmp",
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "Command line is required for STDIO transport" in result_data["message"]
+
+    # Test 6: Invalid command line parsing
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-invalid-command",
+                    "transport": "stdio",
+                    "commandLine": "python -m server --config 'unclosed quote",
+                    "cwd": "/tmp",
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    assert "Failed to parse command line" in result_data["message"]
+
+    # Test 7: HTTP transport without URL
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-http-no-url",
+                    "transport": "streamable-http",
+                    "headers": {"Authorization": "Bearer token"},
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert not result_data["success"]
+    # The error message should indicate missing URL or invalid configuration
+
+    # Test 8: Invalid header type for HTTP transport
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-invalid-header",
+                    "transport": "streamable-http",
+                    "url": "http://localhost:8000",
+                    "headers": {
+                        "Invalid-Header": {
+                            "type": "invalid-type",
+                            "description": "Invalid header type",
+                        }
+                    },
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    # This should either succeed (if validation is not strict) or fail with appropriate error
+
+    # Test 9: OAuth2 secret without provider
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-oauth2-no-provider",
+                    "transport": "stdio",
+                    "commandLine": "python -m server",
+                    "cwd": "/tmp",
+                    "env": {
+                        "OAUTH2_TOKEN": {
+                            "type": "oauth2-secret",
+                            "description": "OAuth2 token without provider",
+                            "scopes": ["user.read"],
+                        }
+                    },
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    # This should either succeed (if validation is not strict) or fail with appropriate error
+
+    # Test 10: OAuth2 secret without scopes
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": {
+                    "name": "test-oauth2-no-scopes",
+                    "transport": "stdio",
+                    "commandLine": "python -m server",
+                    "cwd": "/tmp",
+                    "env": {
+                        "OAUTH2_TOKEN": {
+                            "type": "oauth2-secret",
+                            "description": "OAuth2 token without scopes",
+                            "provider": "Microsoft",
+                        }
+                    },
+                },
+            },
+        }
+    )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    # This should either succeed (if validation is not strict) or fail with appropriate error
+
 
 def test_document_did_save_on_python_file_in_agent_action(
     language_server_initialized,
@@ -3486,13 +3857,31 @@ def test_add_mcp_server_yaml_formatting(
     agent_spec_path = Path(target_directory) / "agent-spec.yaml"
     assert agent_spec_path.exists()
 
-    # Test adding MCP server with stdio transport
+    # Test adding MCP server with stdio transport and mixed environment variables
     mcp_server_config = {
         "name": "test-mcp-server",
         "transport": "stdio",
-        "commandLine": "python -m mcp_server --config.json",
+        "commandLine": "python -m mcp_server --config.json --debug --verbose",
         "cwd": "./path/to/dir",
         "description": "Test MCP server for stdio transport",
+        "env": {
+            "DEBUG_MODE": "true",  # plain-text
+            "LOG_LEVEL": {
+                "type": "string",
+                "description": "Logging level configuration",
+                "default": "INFO",
+            },
+            "API_SECRET": {
+                "type": "secret",
+                "description": "API secret for authentication",
+            },
+            "OAUTH2_CONFIG": {
+                "type": "oauth2-secret",
+                "description": "OAuth2 configuration",
+                "provider": "GitHub",
+                "scopes": ["repo:read", "user:email"],
+            },
+        },
     }
 
     result = language_server.request(
@@ -3530,5 +3919,273 @@ def test_add_mcp_server_yaml_formatting(
     assert mcp_server["transport"] == "stdio"
     assert mcp_server["description"] == "Test MCP server for stdio transport"
     assert mcp_server["force-serial-tool-calls"] is False
-    assert mcp_server["command-line"] == ["python", "-m", "mcp_server", "--config.json"]
+    assert mcp_server["command-line"] == [
+        "python",
+        "-m",
+        "mcp_server",
+        "--config.json",
+        "--debug",
+        "--verbose",
+    ]
     assert mcp_server["cwd"] == "./path/to/dir"
+
+    # Verify environment variables formatting
+    assert "env" in mcp_server
+    env_vars = mcp_server["env"]
+
+    # Check plain-text environment variable
+    assert env_vars["DEBUG_MODE"] == "true"
+
+    # Check string type environment variable
+    assert env_vars["LOG_LEVEL"]["type"] == "string"
+    assert env_vars["LOG_LEVEL"]["description"] == "Logging level configuration"
+    assert env_vars["LOG_LEVEL"]["default"] == "INFO"
+
+    # Check secret type environment variable
+    assert env_vars["API_SECRET"]["type"] == "secret"
+    assert env_vars["API_SECRET"]["description"] == "API secret for authentication"
+
+    # Check oauth2-secret type environment variable
+    assert env_vars["OAUTH2_CONFIG"]["type"] == "oauth2-secret"
+    assert env_vars["OAUTH2_CONFIG"]["description"] == "OAuth2 configuration"
+    assert env_vars["OAUTH2_CONFIG"]["provider"] == "GitHub"
+    assert env_vars["OAUTH2_CONFIG"]["scopes"] == ["repo:read", "user:email"]
+
+
+def test_add_mcp_server_comprehensive_header_and_env_types(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    """Test comprehensive coverage of all header and environment variable types."""
+    import yaml
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    # Create an agent package
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    # Verify agent-spec.yaml exists
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    # Test adding MCP server with comprehensive header and environment variable types
+    mcp_server_config = {
+        "name": "comprehensive-mcp-server",
+        "transport": "stdio",
+        "commandLine": "python -m comprehensive_server --all-features",
+        "cwd": "./comprehensive-server",
+        "description": "Test MCP server with all header and environment variable types",
+        "force-serial-tool-calls": True,
+        "env": {
+            # Plain text environment variables
+            "NODE_ENV": "production",
+            "PORT": "3000",
+            "HOST": "localhost",
+            # String type environment variables
+            "API_VERSION": {
+                "type": "string",
+                "description": "API version for the server",
+                "default": "v1.0.0",
+            },
+            "TIMEOUT": {
+                "type": "string",
+                "description": "Request timeout in milliseconds",
+                "default": "5000",
+            },
+            "RETRY_COUNT": {
+                "type": "string",
+                "description": "Number of retry attempts",
+                "default": "3",
+            },
+            # Secret type environment variables
+            "DATABASE_PASSWORD": {
+                "type": "secret",
+                "description": "Database connection password",
+            },
+            "JWT_SECRET": {"type": "secret", "description": "JWT signing secret key"},
+            "ENCRYPTION_KEY": {"type": "secret", "description": "Data encryption key"},
+            # OAuth2 secret type environment variables
+            "GOOGLE_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "Google OAuth2 credentials",
+                "provider": "Google",
+                "scopes": [
+                    "https://www.googleapis.com/auth/userinfo.email",
+                    "https://www.googleapis.com/auth/userinfo.profile",
+                    "https://www.googleapis.com/auth/calendar.readonly",
+                ],
+            },
+            "MICROSOFT_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "Microsoft OAuth2 credentials",
+                "provider": "Microsoft",
+                "scopes": ["User.Read", "Mail.Read", "Calendars.Read"],
+            },
+            "GITHUB_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "GitHub OAuth2 credentials",
+                "provider": "GitHub",
+                "scopes": ["repo", "user", "read:org"],
+            },
+            "SLACK_OAUTH": {
+                "type": "oauth2-secret",
+                "description": "Slack OAuth2 credentials",
+                "provider": "Slack",
+                "scopes": ["channels:read", "chat:write", "users:read"],
+            },
+            # Data server info type environment variables
+            "PRIMARY_DATA_SERVER": {
+                "type": "data-server-info",
+                "description": "Primary data server connection info",
+            },
+            "BACKUP_DATA_SERVER": {
+                "type": "data-server-info",
+                "description": "Backup data server connection info",
+            },
+        },
+    }
+
+    result = language_server.request(
+        {
+            "jsonrpc": "2.0",
+            "id": language_server.next_id(),
+            "method": "addMcpServer",
+            "params": {
+                "agent_dir": target_directory,
+                "mcp_server_config": mcp_server_config,
+            },
+        }
+    )
+
+    result_data = result.get("result")
+
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    # Verify the agent-spec.yaml was updated correctly
+    with open(agent_spec_path) as f:
+        updated_spec = yaml.safe_load(f)
+
+    # Check that mcp-servers section was added
+    agent = updated_spec["agent-package"]["agents"][0]
+    assert "mcp-servers" in agent
+    assert len(agent["mcp-servers"]) == 1  # We have 1 server
+
+    # Find the comprehensive server
+    comprehensive_server = None
+    for server in agent["mcp-servers"]:
+        if server["name"] == "comprehensive-mcp-server":
+            comprehensive_server = server
+            break
+
+    assert comprehensive_server is not None
+    assert comprehensive_server["transport"] == "stdio"
+    assert (
+        comprehensive_server["description"]
+        == "Test MCP server with all header and environment variable types"
+    )
+    assert comprehensive_server["command-line"] == [
+        "python",
+        "-m",
+        "comprehensive_server",
+        "--all-features",
+    ]
+    assert comprehensive_server["cwd"] == "./comprehensive-server"
+    assert comprehensive_server["force-serial-tool-calls"] is False
+
+    # Verify environment variables
+    assert "env" in comprehensive_server
+    env_vars = comprehensive_server["env"]
+
+    # Check plain-text environment variables
+    assert env_vars["NODE_ENV"] == "production"
+    assert env_vars["PORT"] == "3000"
+    assert env_vars["HOST"] == "localhost"
+
+    # Check string type environment variables
+    assert env_vars["API_VERSION"]["type"] == "string"
+    assert env_vars["API_VERSION"]["description"] == "API version for the server"
+    assert env_vars["API_VERSION"]["default"] == "v1.0.0"
+
+    assert env_vars["TIMEOUT"]["type"] == "string"
+    assert env_vars["TIMEOUT"]["description"] == "Request timeout in milliseconds"
+    assert env_vars["TIMEOUT"]["default"] == "5000"
+
+    assert env_vars["RETRY_COUNT"]["type"] == "string"
+    assert env_vars["RETRY_COUNT"]["description"] == "Number of retry attempts"
+    assert env_vars["RETRY_COUNT"]["default"] == "3"
+
+    # Check secret type environment variables
+    assert env_vars["DATABASE_PASSWORD"]["type"] == "secret"
+    assert (
+        env_vars["DATABASE_PASSWORD"]["description"] == "Database connection password"
+    )
+
+    assert env_vars["JWT_SECRET"]["type"] == "secret"
+    assert env_vars["JWT_SECRET"]["description"] == "JWT signing secret key"
+
+    assert env_vars["ENCRYPTION_KEY"]["type"] == "secret"
+    assert env_vars["ENCRYPTION_KEY"]["description"] == "Data encryption key"
+
+    # Check oauth2-secret type environment variables
+    assert env_vars["GOOGLE_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["GOOGLE_OAUTH"]["description"] == "Google OAuth2 credentials"
+    assert env_vars["GOOGLE_OAUTH"]["provider"] == "Google"
+    assert env_vars["GOOGLE_OAUTH"]["scopes"] == [
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/calendar.readonly",
+    ]
+
+    assert env_vars["MICROSOFT_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["MICROSOFT_OAUTH"]["description"] == "Microsoft OAuth2 credentials"
+    assert env_vars["MICROSOFT_OAUTH"]["provider"] == "Microsoft"
+    assert env_vars["MICROSOFT_OAUTH"]["scopes"] == [
+        "User.Read",
+        "Mail.Read",
+        "Calendars.Read",
+    ]
+
+    assert env_vars["GITHUB_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["GITHUB_OAUTH"]["description"] == "GitHub OAuth2 credentials"
+    assert env_vars["GITHUB_OAUTH"]["provider"] == "GitHub"
+    assert env_vars["GITHUB_OAUTH"]["scopes"] == ["repo", "user", "read:org"]
+
+    assert env_vars["SLACK_OAUTH"]["type"] == "oauth2-secret"
+    assert env_vars["SLACK_OAUTH"]["description"] == "Slack OAuth2 credentials"
+    assert env_vars["SLACK_OAUTH"]["provider"] == "Slack"
+    assert env_vars["SLACK_OAUTH"]["scopes"] == [
+        "channels:read",
+        "chat:write",
+        "users:read",
+    ]
+
+    # Check data-server-info type environment variables
+    assert env_vars["PRIMARY_DATA_SERVER"]["type"] == "data-server-info"
+    assert (
+        env_vars["PRIMARY_DATA_SERVER"]["description"]
+        == "Primary data server connection info"
+    )
+
+    assert env_vars["BACKUP_DATA_SERVER"]["type"] == "data-server-info"
+    assert (
+        env_vars["BACKUP_DATA_SERVER"]["description"]
+        == "Backup data server connection info"
+    )

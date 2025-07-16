@@ -105,6 +105,8 @@ class MCP_SERVER_CONFIG(TypedDict):
     url: str | None
     commandLine: str | None
     cwd: str | None
+    headers: dict[str, str | dict] | None
+    env: dict[str, str | dict] | None
 
 
 log = get_logger(__name__)
@@ -2418,7 +2420,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         import shlex
         from pathlib import Path
 
-        from ruamel.yaml import YAML
+        from ruamel.yaml import YAML, CommentedSeq
         from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
         try:
@@ -2474,17 +2476,27 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     ).as_dict()
 
                 # Set command-line with flow style (inline format)
-                from ruamel.yaml import CommentedSeq
-
                 command_line_seq = CommentedSeq(
                     [DoubleQuotedScalarString(item) for item in command_line]
                 )
+
                 command_line_seq.fa.set_flow_style()
                 mcp_server_entry["command-line"] = command_line_seq
                 mcp_server_entry["cwd"] = mcp_server_config["cwd"]
 
             elif mcp_server_config["transport"] in ["streamable-http", "sse", "auto"]:
                 mcp_server_entry["url"] = mcp_server_config["url"]
+
+                # Add headers if provided
+                if mcp_server_config.get("headers"):
+                    mcp_server_entry["headers"] = mcp_server_config["headers"]
+
+            # Add environment variables for STDIO transport
+            if mcp_server_config["transport"] == "stdio" and mcp_server_config.get(
+                "env"
+            ):
+                if mcp_server_config.get("env"):
+                    mcp_server_entry["env"] = mcp_server_config["env"]
 
             if "mcp-servers" not in agent:
                 agent["mcp-servers"] = []
