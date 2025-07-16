@@ -27,7 +27,7 @@ from sema4ai_code.protocols import (
 log = get_logger(__name__)
 
 ONE_MINUTE_S = 60
-ACTION_SERVER_VERSION = "2.10.0"
+ACTION_SERVER_VERSION = "2.13.1"
 
 if typing.TYPE_CHECKING:
     from sema4ai_code.vendored_deps.url_callback_server import LastRequestInfoTypedDict
@@ -652,7 +652,7 @@ class ActionServer:
                 message="Action Server version is too old. Please update.",
             )
         else:
-            args = ["new", f"--name={directory}", f"--template={template}"]
+            args = ["new", f"--name={directory}", f"--template={template}", "--force"]
 
         # FOR SUPPORT: action-server new
         command_result = self._run_action_server_command(args)
