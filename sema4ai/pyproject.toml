@@ -46,6 +46,7 @@ tree-sitter-yaml = "^0.7.0"
 ruamel-yaml = "^0.18.10"
 sema4ai-http-helper = "^2.1.0"
 sema4ai-common = "^0.1.0"
+fastmcp = "^2.10.5"
 
 [tool.poetry.group.dev.dependencies]
 sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }

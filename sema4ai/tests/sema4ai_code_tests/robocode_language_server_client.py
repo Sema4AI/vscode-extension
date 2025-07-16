@@ -1,4 +1,3 @@
-from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 from sema4ai_ls_core.basic import implements
 from sema4ai_ls_core.unittest_tools.language_server_client import LanguageServerClient
 
@@ -8,6 +7,7 @@ from sema4ai_code.protocols import (
     UploadNewRobotParamsDict,
     UploadRobotParamsDict,
 )
+from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 
 
 class RobocorpLanguageServerClient(LanguageServerClient):

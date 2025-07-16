@@ -378,6 +378,7 @@
 
                 <div class="buttons">
                     <button type="button" class="btn btn-secondary" onclick="cancel()">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="submitOrTest(true)">Test Server</button>
                     <button type="submit" class="btn btn-primary">Add Server</button>
                 </div>
             </form>
@@ -726,17 +727,7 @@
                 return validateOAuth2Secrets(variables);
             }
 
-            function cancel() {
-                if (vscode) {
-                    vscode.postMessage({
-                        command: 'cancel'
-                    });
-                } else {
-                    console.log('Cancel clicked');
-                }
-            }
-
-            function submitForm() {
+            function submitOrTest(isTest = false) {
                 hideMessages();
 
                 if (!validateForm()) {
@@ -776,20 +767,32 @@
                     }
                 }
 
+                const command = isTest ? 'testServer' : 'submit';
+
                 if (vscode) {
                     vscode.postMessage({
-                        command: 'submit',
+                        command: command,
                         config: config
                     });
                 } else {
-                    console.log('Form submitted:', config);
+                    console.log(isTest ? 'Test server:' : 'Form submitted:', config);
+                }
+            }
+
+            function cancel() {
+                if (vscode) {
+                    vscode.postMessage({
+                        command: 'cancel'
+                    });
+                } else {
+                    console.log('Cancel clicked');
                 }
             }
 
             document.getElementById('transport').addEventListener('change', updateTransportDependentFields);
             document.getElementById('mcpForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                submitForm();
+                submitOrTest();
             });
 
             updateTransportDependentFields();

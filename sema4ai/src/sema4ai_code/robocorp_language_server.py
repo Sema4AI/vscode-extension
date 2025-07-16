@@ -2407,6 +2407,145 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
     def m_fix_wrong_agent_import(self, agent_dir) -> ActionResultDict:
         return require_monitor(partial(self._fix_wrong_agent_import, agent_dir))
 
+    def _validate_mcp_server_config(
+        self, mcp_server_config: MCP_SERVER_CONFIG
+    ) -> ActionResultDict:
+        """
+        Validates the MCP server configuration based on transport type.
+        """
+        transport = mcp_server_config.get("transport", "")
+        if not transport:
+            return ActionResult.make_failure("Transport type is required").as_dict()
+
+        if transport == "stdio":
+            command_line = mcp_server_config.get("commandLine")
+            if not command_line:
+                return ActionResult.make_failure(
+                    "Command line is required for STDIO transport"
+                ).as_dict()
+
+            # Validate cwd if provided
+            cwd = mcp_server_config.get("cwd")
+            if not cwd:
+                return ActionResult.make_failure(
+                    "Working directory is required for STDIO transport"
+                ).as_dict()
+
+            if not Path(cwd).exists():
+                return ActionResult.make_failure(
+                    f"Working directory does not exist: {cwd}"
+                ).as_dict()
+
+        elif transport in ["streamable-http", "sse", "auto"]:
+            url = mcp_server_config.get("url")
+            if not url:
+                return ActionResult.make_failure(
+                    "Server URL is required for HTTP-based transports"
+                ).as_dict()
+
+            # Basic URL validation
+            if not url.startswith(("http://", "https://")):
+                return ActionResult.make_failure(
+                    "URL must start with http:// or https://"
+                ).as_dict()
+        else:
+            return ActionResult.make_failure(
+                f"Unsupported transport type: {transport}"
+            ).as_dict()
+
+        return ActionResult(success=True, message=None).as_dict()
+
+    def m_test_mcp_server(
+        self, mcp_server_config: MCP_SERVER_CONFIG
+    ) -> ActionResultDict:
+        return require_monitor(partial(self._test_mcp_server, mcp_server_config))
+
+    def _test_mcp_server(
+        self, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
+    ) -> ActionResultDict:
+        import asyncio
+        import shlex
+
+        # Validate configuration first
+        validation_result = self._validate_mcp_server_config(mcp_server_config)
+        if not validation_result["success"]:
+            return validation_result
+
+        def _process_dynamic_vars(vars: dict) -> dict:
+            processed_env = {}
+            for key, value in vars.items():
+                if isinstance(value, str):
+                    # Plain text value
+                    processed_env[key] = value
+                elif isinstance(value, dict):
+                    if value.get("type") == "string" and value.get("default"):
+                        processed_env[key] = value["default"]
+
+            return processed_env
+
+        try:
+            server_config = {}
+            if mcp_server_config["transport"] == "stdio":
+                command_line_str = mcp_server_config.get("commandLine", "")
+                try:
+                    command_line = shlex.split(command_line_str)
+                except Exception as e:
+                    return ActionResult.make_failure(
+                        f"Failed to parse command line: {e}"
+                    ).as_dict()
+
+                server_config["command"] = command_line
+                server_config["cwd"] = mcp_server_config["cwd"]
+                env_vars = mcp_server_config.get("env")
+                if env_vars:
+                    server_config["env"] = _process_dynamic_vars(env_vars)
+
+            elif mcp_server_config["transport"] in ["streamable-http", "sse", "auto"]:
+                server_config["url"] = mcp_server_config["url"]
+                headers = mcp_server_config.get("headers", {})
+                if headers:
+                    server_config["headers"] = _process_dynamic_vars(headers)
+
+            # Validate the MCP server using fastmcp
+            async def validate_server():
+                try:
+                    from fastmcp import Client
+
+                    # Try to connect and list tools
+                    async with Client(**server_config) as client:
+                        tools = await client.list_tools()
+                        return {
+                            "success": True,
+                            "message": f"Successfully connected to MCP server. Found {len(tools)} tools.",
+                        }
+                except Exception as e:
+                    return {
+                        "success": False,
+                        "message": f"Failed to validate MCP server: {str(e)}",
+                    }
+
+            # Run the async validation
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(validate_server())
+            finally:
+                loop.close()
+
+            if result["success"]:
+                return ActionResult(
+                    success=True,
+                    message=result["message"],
+                ).as_dict()
+            else:
+                return ActionResult.make_failure(result["message"]).as_dict()
+
+        except Exception as e:
+            log.exception("Error validating MCP server")
+            return ActionResult.make_failure(
+                f"Error validating MCP server: {e}"
+            ).as_dict()
+
     def m_add_mcp_server(
         self, agent_dir: str, mcp_server_config: MCP_SERVER_CONFIG
     ) -> ActionResultDict:
@@ -2422,6 +2561,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         from ruamel.yaml import YAML, CommentedSeq
         from ruamel.yaml.scalarstring import DoubleQuotedScalarString
+
+        # Validate configuration first
+        validation_result = self._validate_mcp_server_config(mcp_server_config)
+        if not validation_result["success"]:
+            return validation_result
 
         try:
             agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
@@ -2462,12 +2606,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 mcp_server_entry["transport"] = mcp_server_config["transport"]
 
             if mcp_server_config["transport"] == "stdio":
-                command_line_str = mcp_server_config.get("commandLine", "")
-                if not command_line_str:
-                    return ActionResult.make_failure(
-                        "Command line is required for STDIO transport"
-                    ).as_dict()
-
+                command_line_str = mcp_server_config["commandLine"]
                 try:
                     command_line = shlex.split(command_line_str)
                 except Exception as e:
