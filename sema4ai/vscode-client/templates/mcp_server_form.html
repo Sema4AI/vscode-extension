@@ -6,7 +6,6 @@
         <title>Add MCP Server</title>
         <style>
             body {
-                font-family: var(--vscode-editor-font-family);
                 font-weight: var(--vscode-editor-font-weight);
                 font-size: var(--vscode-editor-font-size);
                 color: var(--vscode-editor-foreground);
@@ -18,10 +17,15 @@
             .container {
                 max-width: 800px;
                 margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
             }
 
             .header {
-                margin-bottom: 30px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
                 border-bottom: 1px solid var(--vscode-panel-border);
                 padding-bottom: 15px;
             }
@@ -34,18 +38,18 @@
             }
 
             .header p {
-                margin: 10px 0 0 0;
+                margin: 0;
                 color: var(--vscode-descriptionForeground);
                 font-size: 14px;
             }
 
             .form-group {
-                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
             }
 
             .form-group label {
-                display: block;
-                margin-bottom: 8px;
                 font-weight: 500;
                 color: var(--vscode-editor-foreground);
             }
@@ -75,7 +79,6 @@
             }
 
             .form-group .help-text {
-                margin-top: 5px;
                 font-size: 12px;
                 color: var(--vscode-descriptionForeground);
             }
@@ -85,27 +88,37 @@
             }
 
             .transport-dependent.show {
-                display: block;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
             }
 
             .headers-section,
             .env-section {
-                margin-top: 30px;
+                display: none;
+                flex-direction: column;
+                gap: 20px;
                 padding: 20px;
                 border: 1px solid var(--vscode-panel-border);
                 border-radius: 4px;
                 background-color: var(--vscode-editor-background);
             }
 
+            .headers-section.show,
+            .env-section.show {
+                display: flex;
+            }
+
             .section-header {
-                margin-bottom: 20px;
                 font-size: 18px;
                 font-weight: 600;
                 color: var(--vscode-editor-foreground);
             }
 
             .variable-item {
-                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
                 padding: 15px;
                 border: 1px solid var(--vscode-panel-border);
                 border-radius: 4px;
@@ -115,8 +128,8 @@
             .variable-header {
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
+                align-items: flex-start;
+                gap: 10px;
             }
 
             .variable-name {
@@ -132,6 +145,7 @@
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 12px;
+                flex-shrink: 0;
             }
 
             .remove-btn:hover {
@@ -146,7 +160,7 @@
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 14px;
-                margin-top: 10px;
+                align-self: flex-start;
             }
 
             .add-btn:hover {
@@ -158,14 +172,15 @@
             }
 
             .type-dependent.show {
-                display: block;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
             }
 
             .buttons {
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
-                margin-top: 30px;
                 padding-top: 20px;
                 border-top: 1px solid var(--vscode-panel-border);
             }
@@ -205,7 +220,6 @@
                 border: 1px solid var(--vscode-inputValidation-errorBorder);
                 padding: 10px;
                 border-radius: 4px;
-                margin-bottom: 15px;
                 display: none;
             }
 
@@ -215,18 +229,18 @@
                 border: 1px solid var(--vscode-notificationsInfoBorder);
                 padding: 10px;
                 border-radius: 4px;
-                margin-bottom: 15px;
                 display: none;
             }
 
             .scopes-container {
-                margin-top: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
             }
 
             .scope-item {
                 display: flex;
                 gap: 10px;
-                margin-bottom: 10px;
                 align-items: center;
             }
 
@@ -242,6 +256,7 @@
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 12px;
+                flex-shrink: 0;
             }
 
             .add-scope-btn {
@@ -252,7 +267,19 @@
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 12px;
-                margin-top: 5px;
+                align-self: flex-start;
+            }
+
+            #mcpForm {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .messages-container {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
             }
         </style>
     </head>
@@ -263,8 +290,10 @@
                 <h1>Add MCP Server</h1>
             </div>
 
-            <div id="error" class="error"></div>
-            <div id="success" class="success"></div>
+            <div class="messages-container">
+                <div id="error" class="error"></div>
+                <div id="success" class="success"></div>
+            </div>
 
             <form id="mcpForm">
                 <div class="form-group">
@@ -362,15 +391,9 @@
                 // ignore
             }
 
-            // OAuth2 providers from the codebase
             const OAUTH2_PROVIDERS = [
-                "hubspot",
-                "google",
-                "github",
-                "slack",
-                "zendesk",
-                "microsoft",
-                "salesforce"
+                "hubspot", "google", "github", "slack",
+                "zendesk", "microsoft", "salesforce"
             ];
 
             let headerCounter = 0;
@@ -422,20 +445,13 @@
                 }
             }
 
-            function createVariableItem(containerId, counter, isHeader = true) {
-                const container = document.getElementById(containerId);
-                const itemId = `${isHeader ? 'header' : 'env'}_${counter}`;
-
-                const item = document.createElement('div');
-                item.className = 'variable-item';
-                item.id = itemId;
-
-                item.innerHTML = `
+            function createVariableItemHTML(itemId, label, placeholder, helpText) {
+                return `
                     <div class="variable-header">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label>${isHeader ? 'Header Name' : 'Variable Name'} *</label>
-                            <input type="text" placeholder="${isHeader ? 'Enter header name' : 'Enter variable name'}" class="var-name" required>
-                            <div class="help-text">${isHeader ? 'Name of the header (e.g., Authorization, X-API-Key)' : 'Name of the environment variable (e.g., API_KEY, DEBUG_MODE)'}</div>
+                            <label>${label} *</label>
+                            <input type="text" placeholder="${placeholder}" class="var-name" required>
+                            <div class="help-text">${helpText}</div>
                         </div>
                         <button type="button" class="remove-btn" style="margin-left: 10px;" onclick="removeVariable('${itemId}')">Remove</button>
                     </div>
@@ -499,6 +515,20 @@
                         </div>
                     </div>
                 `;
+            }
+
+            function createVariableItem(containerId, counter, isHeader = true) {
+                const container = document.getElementById(containerId);
+                const itemId = `${isHeader ? 'header' : 'env'}_${counter}`;
+                const label = isHeader ? 'Header Name' : 'Variable Name';
+                const placeholder = isHeader ? 'Enter header name' : 'Enter variable name';
+                const helpText = isHeader ? 'Name of the header (e.g., Authorization, X-API-Key)' : 'Name of the environment variable (e.g., API_KEY, DEBUG_MODE)';
+
+                const item = document.createElement('div');
+                item.className = 'variable-item';
+                item.id = itemId;
+
+                item.innerHTML = createVariableItemHTML(itemId, label, placeholder, helpText);
 
                 container.appendChild(item);
                 updateTypeFields(itemId);
@@ -527,13 +557,11 @@
                 const typeSelect = item.querySelector('.var-type');
                 const selectedType = typeSelect.value;
 
-                // Hide all type-dependent fields
                 const typeFields = item.querySelectorAll('.type-dependent');
                 typeFields.forEach(field => {
                     field.classList.remove('show');
                 });
 
-                // Show the selected type fields
                 const selectedFields = item.querySelector(`[data-type="${selectedType}"]`);
                 if (selectedFields) {
                     selectedFields.classList.add('show');
@@ -592,7 +620,7 @@
 
                     if (!name) return; // Skip if no name
 
-                    let variableConfig = { type: type };
+                    const variableConfig = { type: type };
 
                     switch (type) {
                         case 'plain-text':
@@ -640,6 +668,22 @@
                 return variables;
             }
 
+            function validateOAuth2Secrets(variables) {
+                for (const [name, config] of Object.entries(variables)) {
+                    if (config.type === 'oauth2-secret') {
+                        if (!config.provider) {
+                            showError(`Provider is required for OAuth2 secret: ${name}`);
+                            return false;
+                        }
+                        if (!config.scopes || config.scopes.length === 0) {
+                            showError(`At least one scope is required for OAuth2 secret: ${name}`);
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
             function validateForm() {
                 const serverName = document.getElementById('serverName').value.trim();
                 const transport = document.getElementById('transport').value;
@@ -674,41 +718,12 @@
                     }
                 }
 
-                // Validate variables
-                const currentTransport = document.getElementById('transport').value;
-                if (currentTransport === 'stdio') {
-                    const envVars = collectVariables('envContainer');
-                    // Validate OAuth2 secrets have provider and scopes
-                    for (const [name, config] of Object.entries(envVars)) {
-                        if (config.type === 'oauth2-secret') {
-                            if (!config.provider) {
-                                showError(`Provider is required for OAuth2 secret: ${name}`);
-                                return false;
-                            }
-                            if (!config.scopes || config.scopes.length === 0) {
-                                showError(`At least one scope is required for OAuth2 secret: ${name}`);
-                                return false;
-                            }
-                        }
-                    }
-                } else {
-                    const headers = collectVariables('headersContainer');
-                    // Validate OAuth2 secrets have provider and scopes
-                    for (const [name, config] of Object.entries(headers)) {
-                        if (config.type === 'oauth2-secret') {
-                            if (!config.provider) {
-                                showError(`Provider is required for OAuth2 secret: ${name}`);
-                                return false;
-                            }
-                            if (!config.scopes || config.scopes.length === 0) {
-                                showError(`At least one scope is required for OAuth2 secret: ${name}`);
-                                return false;
-                            }
-                        }
-                    }
-                }
+                // Validate variables based on transport type
+                const variables = transport === 'stdio'
+                    ? collectVariables('envContainer')
+                    : collectVariables('headersContainer');
 
-                return true;
+                return validateOAuth2Secrets(variables);
             }
 
             function cancel() {
