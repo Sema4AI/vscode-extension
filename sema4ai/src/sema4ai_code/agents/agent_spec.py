@@ -422,10 +422,7 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
   "agent-package/agents/mcp-servers/headers/type": {
     "description": "The type of the header. Accepted values: \"secret\", \"oauth2-secret\", \"string\", \"data-server-info\"",
     "required": true,
-    "expected-type": {
-      "type": "enum",
-      "values": ["secret", "oauth2-secret", "string", "data-server-info"]
-    }
+    "expected-type": "mcp_server_var_type"
   },
   "agent-package/agents/mcp-servers/headers/description": {
     "description": "Optional: human-readable description of the header.",
@@ -460,10 +457,7 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
   "agent-package/agents/mcp-servers/env/type": {
     "description": "The type of the environment variable. Accepted values: \"secret\", \"oauth2-secret\", \"string\", \"data-server-info\"",
     "required": true,
-    "expected-type": {
-      "type": "enum",
-      "values": ["secret", "oauth2-secret", "string", "data-server-info"]
-    }
+    "expected-type": "mcp_server_var_type"
   },
   "agent-package/agents/mcp-servers/env/description": {
     "description": "Optional: human-readable description of the environment variable.",
