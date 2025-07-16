@@ -21,7 +21,6 @@ interface MCPVariableConfig {
     default?: string;
     provider?: string;
     scopes?: string[];
-    value?: string;
 }
 
 interface ActionResult<T = any> {
