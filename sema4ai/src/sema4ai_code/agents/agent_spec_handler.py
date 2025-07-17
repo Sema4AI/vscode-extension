@@ -417,7 +417,7 @@ def validate_from_spec(
     if errors and raise_on_error:
         msg = "\n".join(e.message for e in errors)
         raise InvalidSpec(msg)
-    return errors
+    return tuple(sorted(errors, key=lambda e: e.message))
 
 
 def tree_sitter_parse_yaml(yaml_spec_contents: str) -> "Tree":
@@ -699,7 +699,7 @@ class Validator:
                     )
                 else:
                     transport = self._get_value_text(yaml_node)
-                    if transport not in ["streamable-http", "sse", "stdio"]:
+                    if transport not in ["streamable-http", "sse", "stdio", "auto"]:
                         yield Error(
                             message=f"Expected {spec_node.data.path} to be one of ['streamable-http', 'sse', 'stdio'] (found {transport!r}).",
                             node=yaml_node.data.node,
@@ -721,6 +721,16 @@ class Validator:
                             ):
                                 yield Error(
                                     message=f"{spec_node.data.path}: When the transport is 'stdio', the command-line must be defined.",
+                                    node=yaml_node.data.node,
+                                )
+                        elif transport == "auto":
+                            # Check that either the url or command-line field is defined.
+                            if not yaml_node.parent or (
+                                "url" not in yaml_node.parent.children
+                                and "command-line" not in yaml_node.parent.children
+                            ):
+                                yield Error(
+                                    message=f"{spec_node.data.path}: When the transport is 'auto', either the url or command-line field must be defined.",
                                     node=yaml_node.data.node,
                                 )
 
@@ -749,9 +759,9 @@ class Validator:
                     if yaml_node.parent and "transport" in yaml_node.parent.children:
                         transport_node = yaml_node.parent.children["transport"]
                         transport_value = self._get_value_text(transport_node)
-                        if transport_value not in ["streamable-http", "sse"]:
+                        if transport_value not in ["streamable-http", "sse", "auto"]:
                             yield Error(
-                                message=f"Expected transport field to be one of ['streamable-http', 'sse'] when using 'url' field (found {transport_value!r}).",
+                                message=f"Expected transport field to be one of ['streamable-http', 'sse', 'auto'] when using 'url' field (found {transport_value!r}).",
                                 node=transport_node.data.node,
                             )
 
@@ -817,9 +827,9 @@ class Validator:
                     if yaml_node.parent and "transport" in yaml_node.parent.children:
                         transport_node = yaml_node.parent.children["transport"]
                         transport_value = self._get_value_text(transport_node)
-                        if transport_value != "stdio":
+                        if transport_value != "stdio" and transport_value != "auto":
                             yield Error(
-                                message=f"Expected transport field to be 'stdio' when using 'command-line' field (found {transport_value!r}).",
+                                message=f"Expected transport field to be 'stdio' or 'auto' when using 'command-line' field (found {transport_value!r}).",
                                 node=transport_node.data.node,
                             )
 
