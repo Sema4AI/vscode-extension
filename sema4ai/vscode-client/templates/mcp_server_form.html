@@ -215,21 +215,27 @@
             }
 
             .error {
-                color: var(--vscode-errorForeground);
-                background-color: var(--vscode-inputValidation-errorBackground);
-                border: 1px solid var(--vscode-inputValidation-errorBorder);
+                color: var(--vscode-errorForeground, #ff6b6b);
+                background-color: var(--vscode-inputValidation-errorBackground, #ffe6e6);
+                border: 1px solid var(--vscode-inputValidation-errorBorder, #ff6b6b);
                 padding: 10px;
                 border-radius: 4px;
                 display: none;
+                min-height: 20px;
+                margin-bottom: 15px;
+                font-weight: 500;
             }
 
             .success {
-                color: var(--vscode-notificationsInfoIcon-foreground);
-                background-color: var(--vscode-notificationsInfoBackground);
-                border: 1px solid var(--vscode-notificationsInfoBorder);
+                color: var(--vscode-button-foreground, #ffffff);
+                background-color: var(--vscode-terminal-ansiGreen, #28a745);
+                border: 1px solid var(--vscode-terminal-ansiGreen, #28a745);
                 padding: 10px;
                 border-radius: 4px;
                 display: none;
+                min-height: 20px;
+                margin-bottom: 15px;
+                font-weight: 500;
             }
 
             .scopes-container {
@@ -280,6 +286,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
+                margin-top: 20px;
             }
         </style>
     </head>
@@ -288,11 +295,6 @@
         <div class="container">
             <div class="header">
                 <h1>Add MCP Server</h1>
-            </div>
-
-            <div class="messages-container">
-                <div id="error" class="error"></div>
-                <div id="success" class="success"></div>
             </div>
 
             <form id="mcpForm">
@@ -374,6 +376,11 @@
                     <div class="section-header">Environment Variables</div>
                     <div id="envContainer"></div>
                     <button type="button" class="add-btn" onclick="addEnvVar()">Add Environment Variable</button>
+                </div>
+
+                <div class="messages-container">
+                    <div id="error" class="error"></div>
+                    <div id="success" class="success"></div>
                 </div>
 
                 <div class="buttons">

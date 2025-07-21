@@ -2484,35 +2484,64 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
             return processed_env
 
         try:
-            server_config = {}
-            if mcp_server_config["transport"] == "stdio":
-                command_line_str = mcp_server_config.get("commandLine", "")
-                try:
-                    command_line = shlex.split(command_line_str)
-                except Exception as e:
-                    return ActionResult.make_failure(
-                        f"Failed to parse command line: {e}"
-                    ).as_dict()
+            from fastmcp import Client
 
-                server_config["command"] = command_line
-                server_config["cwd"] = mcp_server_config["cwd"]
-                env_vars = mcp_server_config.get("env")
-                if env_vars:
-                    server_config["env"] = _process_dynamic_vars(env_vars)
-
-            elif mcp_server_config["transport"] in ["streamable-http", "sse", "auto"]:
-                server_config["url"] = mcp_server_config["url"]
-                headers = mcp_server_config.get("headers", {})
-                if headers:
-                    server_config["headers"] = _process_dynamic_vars(headers)
-
-            # Validate the MCP server using fastmcp
             async def validate_server():
                 try:
-                    from fastmcp import Client
+                    if mcp_server_config["transport"] == "stdio":
+                        command_line_str = mcp_server_config.get("commandLine", "")
+                        try:
+                            command_line = shlex.split(command_line_str)
+                        except Exception as e:
+                            return {
+                                "success": False,
+                                "message": f"Failed to parse command line: {e}",
+                            }
+
+                        server_config = {
+                            "transport": "stdio",
+                            "command": command_line[0],
+                            "args": command_line[1:] if len(command_line) > 1 else [],
+                            "cwd": mcp_server_config["cwd"],
+                        }
+
+                        env_vars = mcp_server_config.get("env")
+                        if env_vars:
+                            server_config["env"] = _process_dynamic_vars(env_vars)
+
+                        client = Client({mcp_server_config["name"]: server_config})
+
+                    elif mcp_server_config["transport"] in [
+                        "streamable-http",
+                        "sse",
+                        "auto",
+                    ]:
+                        # For HTTP-based transports
+                        url = mcp_server_config["url"]
+                        headers = mcp_server_config.get("headers")
+
+                        if headers:
+                            # Create MCP config with headers
+                            server_config = {
+                                "transport": "http"
+                                if mcp_server_config["transport"] == "streamable-http"
+                                else mcp_server_config["transport"],
+                                "url": url,
+                                "headers": _process_dynamic_vars(headers),
+                            }
+                            client = Client({mcp_server_config["name"]: server_config})
+                        else:
+                            # Simple URL case - can pass URL directly
+                            client = Client(url)
+
+                    else:
+                        return {
+                            "success": False,
+                            "message": f"Unsupported transport type: {mcp_server_config['transport']}",
+                        }
 
                     # Try to connect and list tools
-                    async with Client(**server_config) as client:
+                    async with client:
                         tools = await client.list_tools()
                         return {
                             "success": True,
