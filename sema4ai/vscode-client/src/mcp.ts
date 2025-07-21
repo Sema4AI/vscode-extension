@@ -123,7 +123,7 @@ export const addMCPServer = async (agentDir?: string) => {
                 try {
                     // Call the language server function to validate the MCP server
                     const result = (await langServer.sendRequest("testMCPServer", {
-                        mcp_server_config: testConfig
+                        mcp_server_config: testConfig,
                     })) as ActionResult;
 
                     await handleServerResponse(
