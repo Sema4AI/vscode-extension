@@ -9,8 +9,8 @@
       line: 29
   severity: 1
   source: sema4ai
-- message: Expected transport field to be one of ['streamable-http', 'sse'] when using
-    'url' field (found 'bad-transport').
+- message: Expected transport field to be one of ['streamable-http', 'sse', 'auto']
+    when using 'url' field (found 'bad-transport').
   range:
     end:
       character: 40

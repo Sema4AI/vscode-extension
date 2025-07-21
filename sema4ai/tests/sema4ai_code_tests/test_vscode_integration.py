@@ -1900,16 +1900,14 @@ def test_create_action_package(
         content = f.read()
     assert "My first action" in content
 
-    # When creating a package in a directory that is not empty,
-    # we expect an error to be returned.
+    # Changed: we always create a package (the UI is responsible for asking
+    # the user if they want to overwrite an existing package).
     result = language_server.execute_command(
         commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
         [{"directory": target, "template": "minimal", "name": "My second action"}],
     )["result"]
 
-    assert not result["success"]
-    assert "Error creating Action package" in result["message"]
-    assert "not empty" in result["message"]
+    assert result["success"]
 
 
 def test_create_action_package_without_templates_handling(

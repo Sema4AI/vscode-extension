@@ -6,6 +6,8 @@
 - Support for the `v3` of the Agent spec.
   - Adds support for defining `mcp-servers` in the `agent-spec.yaml`.
 - Properly handle `dev-dependencies` (lint and hover) in `package.yaml`.
+- Fixed where the choice of forcing the creation of an action package from a template in a non-empty dir was not respected.
+- Updated Action Server to `2.13.1`.
 
 ## New in 2.13.0 (2025-06-10)
 
