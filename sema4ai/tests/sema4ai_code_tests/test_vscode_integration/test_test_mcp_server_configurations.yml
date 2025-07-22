@@ -4,7 +4,7 @@
       - -m
       - my_server
       command: python
-      cwd: /tmp
+      cwd: <TARGET_DIR>
       env:
         API_KEY: test-key-123
         SERVER_MODE: development

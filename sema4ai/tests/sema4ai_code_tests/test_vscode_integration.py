@@ -3510,7 +3510,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3526,7 +3526,7 @@ def test_add_mcp_server_error_cases(
         "name": "duplicate-server",
         "transport": "stdio",
         "commandLine": "/usr/bin/python",
-        "cwd": "/tmp",
+        "cwd": target_directory,
     }
 
     # Add first server
@@ -3580,7 +3580,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3606,7 +3606,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3645,7 +3645,7 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": {
                     "name": "test-stdio-no-command",
                     "transport": "stdio",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3668,7 +3668,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-invalid-command",
                     "transport": "stdio",
                     "commandLine": "python -m server --config 'unclosed quote",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3740,7 +3740,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-oauth2-no-provider",
                     "transport": "stdio",
                     "commandLine": "python -m server",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                     "env": {
                         "OAUTH2_TOKEN": {
                             "type": "oauth2-secret",
@@ -3769,7 +3769,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-oauth2-no-scopes",
                     "transport": "stdio",
                     "commandLine": "python -m server",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                     "env": {
                         "OAUTH2_TOKEN": {
                             "type": "oauth2-secret",
@@ -4195,7 +4195,7 @@ def test_test_mcp_server_configurations(
     data_regression,
 ) -> None:
     from typing import Any
-    from unittest.mock import AsyncMock, MagicMock, patch
+    from unittest.mock import MagicMock, patch
 
     from sema4ai_code import commands
 
@@ -4225,10 +4225,10 @@ def test_test_mcp_server_configurations(
 
         mock_client = MagicMock()
 
-        async def async_enter():
+        async def async_enter(self):
             return mock_client
 
-        async def async_exit(exc_type, exc_val, exc_tb):
+        async def async_exit(self, exc_type, exc_val, exc_tb):
             return None
 
         mock_client.__aenter__ = async_enter
@@ -4246,7 +4246,7 @@ def test_test_mcp_server_configurations(
             "name": "stdio-server",
             "transport": "stdio",
             "commandLine": "python -m my_server",
-            "cwd": "/tmp",
+            "cwd": target_directory,
             "description": "STDIO MCP server",
             "env": {
                 "API_KEY": "test-key-123",
@@ -4305,10 +4305,21 @@ def test_test_mcp_server_configurations(
                 }
             )
 
+            # Normalize paths for consistent regression testing
+            normalized_config = captured_configs[0] if captured_configs else None
+            if (
+                normalized_config
+                and isinstance(normalized_config, dict)
+                and config["name"] in normalized_config
+            ):
+                server_config = normalized_config[config["name"]]
+                if "cwd" in server_config:
+                    server_config["cwd"] = "<TARGET_DIR>"
+
             results.append(
                 {
                     "server_name": config["name"],
-                    "config": captured_configs[0] if captured_configs else None,
+                    "config": normalized_config,
                 }
             )
 
