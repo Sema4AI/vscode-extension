@@ -2458,8 +2458,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 "force-serial-tool-calls": False,
             }
 
-            if mcp_server_config.get("transport", "") != "auto":
-                mcp_server_entry["transport"] = mcp_server_config["transport"]
+            mcp_server_entry["transport"] = mcp_server_config["transport"]
 
             if mcp_server_config["transport"] == "stdio":
                 command_line_str = mcp_server_config.get("commandLine", "")
