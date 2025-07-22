@@ -4194,6 +4194,7 @@ def test_test_mcp_server_configurations(
     tmpdir,
     data_regression,
 ) -> None:
+    from typing import Any
     from unittest.mock import AsyncMock, MagicMock, patch
 
     from sema4ai_code import commands
@@ -4240,7 +4241,7 @@ def test_test_mcp_server_configurations(
 
         return mock_client
 
-    test_configs = [
+    test_configs: list[dict[str, Any]] = [
         {
             "name": "stdio-server",
             "transport": "stdio",
