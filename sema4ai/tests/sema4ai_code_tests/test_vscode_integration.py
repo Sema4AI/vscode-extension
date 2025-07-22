@@ -4187,3 +4187,128 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         env_vars["BACKUP_DATA_SERVER"]["description"]
         == "Backup data server connection info"
     )
+
+
+def test_test_mcp_server_configurations(
+    language_server_initialized,
+    tmpdir,
+    data_regression,
+) -> None:
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    # Create agent package first
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    captured_configs = []
+
+    def mock_client_factory(config):
+        captured_configs.append(config)
+
+        mock_client = MagicMock()
+
+        async def async_enter():
+            return mock_client
+
+        async def async_exit(exc_type, exc_val, exc_tb):
+            return None
+
+        mock_client.__aenter__ = async_enter
+        mock_client.__aexit__ = async_exit
+
+        async def async_list_tools():
+            return []
+
+        mock_client.list_tools = async_list_tools
+
+        return mock_client
+
+    test_configs = [
+        {
+            "name": "stdio-server",
+            "transport": "stdio",
+            "commandLine": "python -m my_server",
+            "cwd": "/tmp",
+            "description": "STDIO MCP server",
+            "env": {
+                "API_KEY": "test-key-123",
+                "SERVER_MODE": {"type": "string", "default": "development"},
+                "SECRET_TOKEN": {
+                    "type": "secret",
+                    "description": "Secret token for auth",
+                },
+            },
+        },
+        {
+            "name": "http-server",
+            "transport": "streamable-http",
+            "url": "http://localhost:8000/mcp",
+            "description": "HTTP MCP server",
+            "headers": {
+                "Authorization": "Bearer token123",
+                "X-Custom-Header": {"type": "string", "default": "custom-value"},
+            },
+        },
+        {
+            "name": "sse-server",
+            "transport": "sse",
+            "url": "http://localhost:8001/sse",
+            "description": "SSE MCP server",
+        },
+        {
+            "name": "auto-server-with-url",
+            "transport": "auto",
+            "url": "http://localhost:8002/auto",
+            "description": "Auto MCP server with URL",
+        },
+        {
+            "name": "simple-url-server",
+            "transport": "streamable-http",
+            "url": "http://localhost:8003/simple",
+            "description": "Simple URL server without headers",
+        },
+    ]
+
+    with patch("fastmcp.Client", mock_client_factory):
+        results = []
+
+        for config in test_configs:
+            captured_configs.clear()
+
+            language_server.request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": language_server.next_id(),
+                    "method": "testMcpServer",
+                    "params": {
+                        "mcp_server_config": config,
+                        "agent_dir": target_directory,
+                    },
+                }
+            )
+
+            results.append(
+                {
+                    "server_name": config["name"],
+                    "config": captured_configs[0] if captured_configs else None,
+                }
+            )
+
+        data_regression.check(results)

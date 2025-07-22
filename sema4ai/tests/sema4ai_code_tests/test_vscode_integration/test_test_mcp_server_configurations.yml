@@ -1,0 +1,26 @@
+- config:
+    stdio-server:
+      args:
+      - -m
+      - my_server
+      command: python
+      cwd: /tmp
+      env:
+        API_KEY: test-key-123
+        SERVER_MODE: development
+      transport: stdio
+  server_name: stdio-server
+- config:
+    http-server:
+      headers:
+        Authorization: Bearer token123
+        X-Custom-Header: custom-value
+      transport: http
+      url: http://localhost:8000/mcp
+  server_name: http-server
+- config: http://localhost:8001/sse
+  server_name: sse-server
+- config: http://localhost:8002/auto
+  server_name: auto-server-with-url
+- config: http://localhost:8003/simple
+  server_name: simple-url-server
