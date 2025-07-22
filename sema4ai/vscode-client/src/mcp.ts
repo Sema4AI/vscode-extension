@@ -38,29 +38,18 @@ const handleServerResponse = async (
     shouldCloseOnSuccess: boolean = false
 ) => {
     if (result.success) {
-        // Show success message in the webview
-        panel.webview.postMessage({
-            command: "showSuccess",
-            message: result.message || successMessage,
-        });
-
-        // Also show a notification
-        vscode.window.showInformationMessage(result.message || successMessage);
-
-        // Close the webview if specified
         if (shouldCloseOnSuccess) {
-            setTimeout(() => {
-                panel.dispose();
-            }, 1000);
+            panel.dispose();
+            return;
         }
+
+        vscode.window.showInformationMessage(result.message || successMessage);
     } else {
-        // Show error message in the webview
         panel.webview.postMessage({
             command: "showError",
             message: result.message || errorMessage,
         });
 
-        // Also show an error notification
         vscode.window.showErrorMessage(result.message || errorMessage);
     }
 };
@@ -68,13 +57,11 @@ const handleServerResponse = async (
 const handleServerError = (panel: vscode.WebviewPanel, error: any, operation: string) => {
     console.error(`Error ${operation} MCP server:`, error);
 
-    // Show error message in the webview
     panel.webview.postMessage({
         command: "showError",
         message: `Error ${operation} MCP server: ${error}`,
     });
 
-    // Also show an error notification
     vscode.window.showErrorMessage(`Error ${operation} MCP server: ${error}`);
 };
 
