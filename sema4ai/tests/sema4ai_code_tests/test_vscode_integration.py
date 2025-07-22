@@ -3338,7 +3338,7 @@ def test_add_mcp_server_stdio_transport_with_complex_env(
         "name": "test-complex-env-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m complex_mcp_server --config config.json --debug",
-        "cwd": "./mcp-servers/complex-server",
+        "cwd": target_directory,
         "description": "Test MCP server with complex environment variables",
         "env": {
             "DATABASE_URL": "postgresql://user:pass@localhost:5432/db",
@@ -3423,7 +3423,7 @@ def test_add_mcp_server_stdio_transport_with_complex_env(
         "config.json",
         "--debug",
     ]
-    assert complex_server["cwd"] == "./mcp-servers/complex-server"
+    assert complex_server["cwd"] == target_directory
     assert complex_server["force-serial-tool-calls"] is False
 
     # Verify environment variables
@@ -3860,7 +3860,7 @@ def test_add_mcp_server_yaml_formatting(
         "name": "test-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m mcp_server --config.json --debug --verbose",
-        "cwd": "./path/to/dir",
+        "cwd": target_directory,
         "description": "Test MCP server for stdio transport",
         "env": {
             "DEBUG_MODE": "true",  # plain-text
@@ -3925,7 +3925,7 @@ def test_add_mcp_server_yaml_formatting(
         "--debug",
         "--verbose",
     ]
-    assert mcp_server["cwd"] == "./path/to/dir"
+    assert mcp_server["cwd"] == target_directory
 
     # Verify environment variables formatting
     assert "env" in mcp_server
@@ -3987,7 +3987,7 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         "name": "comprehensive-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m comprehensive_server --all-features",
-        "cwd": "./comprehensive-server",
+        "cwd": target_directory,
         "description": "Test MCP server with all header and environment variable types",
         "force-serial-tool-calls": True,
         "env": {
@@ -4105,7 +4105,7 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         "comprehensive_server",
         "--all-features",
     ]
-    assert comprehensive_server["cwd"] == "./comprehensive-server"
+    assert comprehensive_server["cwd"] == target_directory
     assert comprehensive_server["force-serial-tool-calls"] is False
 
     # Verify environment variables

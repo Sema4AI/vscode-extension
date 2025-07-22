@@ -2408,7 +2408,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return require_monitor(partial(self._fix_wrong_agent_import, agent_dir))
 
     def _validate_mcp_server_config(
-        self, mcp_server_config: MCP_SERVER_CONFIG
+        self, mcp_server_config: MCP_SERVER_CONFIG, agent_dir: str
     ) -> ActionResultDict:
         """
         Validates the MCP server configuration based on transport type.
@@ -2431,7 +2431,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                     "Working directory is required for STDIO transport"
                 ).as_dict()
 
-            if not Path(cwd).exists():
+            cwd_path = Path(cwd)
+            if not cwd_path.is_absolute():
+                cwd_path = Path(agent_dir) / cwd
+
+            if not cwd_path.exists():
                 return ActionResult.make_failure(
                     f"Working directory does not exist: {cwd}"
                 ).as_dict()
@@ -2456,18 +2460,22 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         return ActionResult(success=True, message=None).as_dict()
 
     def m_test_mcp_server(
-        self, mcp_server_config: MCP_SERVER_CONFIG
+        self, mcp_server_config: MCP_SERVER_CONFIG, agent_dir: str
     ) -> ActionResultDict:
-        return require_monitor(partial(self._test_mcp_server, mcp_server_config))
+        return require_monitor(
+            partial(self._test_mcp_server, mcp_server_config, agent_dir)
+        )
 
     def _test_mcp_server(
-        self, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
+        self, mcp_server_config: MCP_SERVER_CONFIG, agent_dir: str, monitor: IMonitor
     ) -> ActionResultDict:
         import asyncio
         import shlex
 
         # Validate configuration first
-        validation_result = self._validate_mcp_server_config(mcp_server_config)
+        validation_result = self._validate_mcp_server_config(
+            mcp_server_config, agent_dir
+        )
         if not validation_result["success"]:
             return validation_result
 
@@ -2498,11 +2506,18 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                                 "message": f"Failed to parse command line: {e}",
                             }
 
+                        cwd = mcp_server_config["cwd"]
+                        if cwd:
+                            cwd_path = Path(cwd)
+                            if not cwd_path.is_absolute():
+                                cwd_path = Path(agent_dir) / cwd
+                                cwd = str(cwd_path)
+
                         server_config = {
                             "transport": "stdio",
                             "command": command_line[0],
                             "args": command_line[1:] if len(command_line) > 1 else [],
-                            "cwd": mcp_server_config["cwd"],
+                            "cwd": cwd,
                         }
 
                         env_vars = mcp_server_config.get("env")
@@ -2592,7 +2607,9 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
         # Validate configuration first
-        validation_result = self._validate_mcp_server_config(mcp_server_config)
+        validation_result = self._validate_mcp_server_config(
+            mcp_server_config, agent_dir
+        )
         if not validation_result["success"]:
             return validation_result
 

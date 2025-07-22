@@ -101,8 +101,8 @@ export const addMCPServer = async (agentDir?: string) => {
                 try {
                     // Call the language server function to add the MCP server
                     const result = (await langServer.sendRequest("addMCPServer", {
-                        agent_dir: agentDir,
                         mcp_server_config: config,
+                        agent_dir: agentDir,
                     })) as ActionResult;
 
                     await handleServerResponse(
@@ -124,6 +124,7 @@ export const addMCPServer = async (agentDir?: string) => {
                     // Call the language server function to validate the MCP server
                     const result = (await langServer.sendRequest("testMCPServer", {
                         mcp_server_config: testConfig,
+                        agent_dir: agentDir,
                     })) as ActionResult;
 
                     await handleServerResponse(
