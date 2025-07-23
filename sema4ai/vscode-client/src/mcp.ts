@@ -35,11 +35,28 @@ const handleServerResponse = async (
     result: ActionResult,
     successMessage: string,
     errorMessage: string,
-    shouldCloseOnSuccess: boolean = false
+    shouldCloseOnSuccess: boolean = false,
+    agentDir?: string
 ) => {
     if (result.success) {
+        panel.webview.postMessage({
+            command: "showSuccess",
+            message: result.message || successMessage,
+        });
+
         if (shouldCloseOnSuccess) {
             panel.dispose();
+
+            // Open agent-spec.yaml file if agentDir is provided
+            if (agentDir) {
+                try {
+                    const agentSpecPath = vscode.Uri.file(`${agentDir}/agent-spec.yaml`);
+                    const document = await vscode.workspace.openTextDocument(agentSpecPath);
+                    await vscode.window.showTextDocument(document);
+                } catch (error) {
+                    console.warn("Could not open agent-spec.yaml:", error);
+                }
+            }
             return;
         }
 
@@ -49,8 +66,6 @@ const handleServerResponse = async (
             command: "showError",
             message: result.message || errorMessage,
         });
-
-        vscode.window.showErrorMessage(result.message || errorMessage);
     }
 };
 
@@ -61,8 +76,6 @@ const handleServerError = (panel: vscode.WebviewPanel, error: any, operation: st
         command: "showError",
         message: `Error ${operation} MCP server: ${error}`,
     });
-
-    vscode.window.showErrorMessage(`Error ${operation} MCP server: ${error}`);
 };
 
 export const addMCPServer = async (agentDir?: string) => {
@@ -86,7 +99,6 @@ export const addMCPServer = async (agentDir?: string) => {
                 const config: MCPServerConfig = message.config;
 
                 try {
-                    // Call the language server function to add the MCP server
                     const result = (await langServer.sendRequest("addMCPServer", {
                         mcp_server_config: config,
                         agent_dir: agentDir,
@@ -97,7 +109,8 @@ export const addMCPServer = async (agentDir?: string) => {
                         result,
                         "MCP Server configuration saved successfully!",
                         "Failed to save MCP Server configuration",
-                        true // Close panel on success
+                        true, // Close panel on success
+                        agentDir
                     );
                 } catch (error) {
                     handleServerError(panel, error, "adding");
@@ -108,7 +121,6 @@ export const addMCPServer = async (agentDir?: string) => {
                 const testConfig: MCPServerConfig = message.config;
 
                 try {
-                    // Call the language server function to validate the MCP server
                     const result = (await langServer.sendRequest("testMCPServer", {
                         mcp_server_config: testConfig,
                         agent_dir: agentDir,

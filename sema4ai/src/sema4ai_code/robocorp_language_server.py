@@ -2472,6 +2472,11 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         import asyncio
         import shlex
 
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.sse import sse_client
+        from mcp.client.stdio import stdio_client
+        from mcp.client.streamable_http import streamablehttp_client
+
         # Validate configuration first
         validation_result = self._validate_mcp_server_config(
             mcp_server_config, agent_dir
@@ -2491,84 +2496,114 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
             return processed_env
 
-        try:
-            from fastmcp import Client
+        def _extract_root_exception(exc: Exception) -> str:
+            """Extract the root cause from ExceptionGroup or return the original exception message."""
+            if hasattr(exc, "exceptions"):  # ExceptionGroup
+                # Get the first exception from the group and recurse
+                for sub_exc in exc.exceptions:
+                    return _extract_root_exception(sub_exc)
+            return str(exc)
 
-            async def validate_server():
-                try:
-                    if mcp_server_config["transport"] == "stdio":
-                        command_line_str = mcp_server_config.get("commandLine", "")
-                        try:
-                            command_line = shlex.split(command_line_str)
-                        except Exception as e:
-                            return {
-                                "success": False,
-                                "message": f"Failed to parse command line: {e}",
-                            }
+        async def _handle_client_session(read, write) -> int:
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                tools_result = await session.list_tools()
 
-                        cwd = mcp_server_config["cwd"]
-                        if cwd:
-                            cwd_path = Path(cwd)
-                            if not cwd_path.is_absolute():
-                                cwd_path = Path(agent_dir) / cwd
-                                cwd = str(cwd_path)
+            return len(tools_result.tools) if tools_result.tools else 0
 
-                        server_config = {
-                            "transport": "stdio",
-                            "command": command_line[0],
-                            "args": command_line[1:] if len(command_line) > 1 else [],
-                            "cwd": cwd,
-                        }
+        async def _list_server_tools(mcp_server_config: dict, transport: str) -> dict:
+            try:
+                if transport == "sse":
+                    async with sse_client(**mcp_server_config) as (read, write):
+                        tools_count = await _handle_client_session(read, write)
 
-                        env_vars = mcp_server_config.get("env")
-                        if env_vars:
-                            server_config["env"] = _process_dynamic_vars(env_vars)
+                elif transport == "stdio":
+                    async with stdio_client(
+                        StdioServerParameters(**mcp_server_config)
+                    ) as (
+                        read,
+                        write,
+                    ):
+                        tools_count = await _handle_client_session(read, write)
 
-                        client = Client({mcp_server_config["name"]: server_config})
+                else:
+                    async with streamablehttp_client(**mcp_server_config) as (
+                        read,
+                        write,
+                        _,
+                    ):
+                        tools_count = await _handle_client_session(read, write)
+            except Exception as e:
+                return {
+                    "success": False,
+                    "message": f"Failed to validate {transport} transport: {_extract_root_exception(e)}, Config: {mcp_server_config}",
+                }
+            return {
+                "success": True,
+                "message": f"Successfully connected to MCP server via {transport}. Found {tools_count} tools.",
+            }
 
-                    elif mcp_server_config["transport"] in [
-                        "streamable-http",
-                        "sse",
-                        "auto",
-                    ]:
-                        # For HTTP-based transports
-                        url = mcp_server_config["url"]
-                        headers = mcp_server_config.get("headers")
-
-                        if headers:
-                            # Create MCP config with headers
-                            server_config = {
-                                "transport": "http"
-                                if mcp_server_config["transport"] == "streamable-http"
-                                else mcp_server_config["transport"],
-                                "url": url,
-                                "headers": _process_dynamic_vars(headers),
-                            }
-                            client = Client({mcp_server_config["name"]: server_config})
-                        else:
-                            # Simple URL case - can pass URL directly
-                            client = Client(url)
-
-                    else:
+        async def validate_server():
+            transport = (
+                mcp_server_config["transport"]
+                if mcp_server_config["transport"] != "auto"
+                else "streamable-http"
+            )
+            try:
+                if transport == "stdio":
+                    command_line_str = mcp_server_config.get("commandLine", "")
+                    try:
+                        command_line = shlex.split(command_line_str)
+                    except Exception as e:
                         return {
                             "success": False,
-                            "message": f"Unsupported transport type: {mcp_server_config['transport']}",
+                            "message": f"Failed to parse command line: {e}",
                         }
 
-                    # Try to connect and list tools
-                    async with client:
-                        tools = await client.list_tools()
-                        return {
-                            "success": True,
-                            "message": f"Successfully connected to MCP server. Found {len(tools)} tools.",
-                        }
-                except Exception as e:
+                    cwd = mcp_server_config["cwd"]
+                    if cwd:
+                        cwd_path = Path(cwd)
+                        if not cwd_path.is_absolute():
+                            cwd_path = Path(agent_dir) / cwd
+                            cwd = str(cwd_path)
+
+                    env_vars = mcp_server_config.get("env")
+                    processed_env = (
+                        _process_dynamic_vars(env_vars) if env_vars else None
+                    )
+
+                    server_config = {
+                        "command": command_line[0],
+                        "args": command_line[1:] if len(command_line) > 1 else [],
+                        "cwd": cwd,
+                        "env": processed_env,
+                    }
+                    return await _list_server_tools(server_config, transport)
+
+                elif transport in ["sse", "streamable-http"]:
+                    headers = mcp_server_config.get("headers", {})
+                    processed_headers = (
+                        _process_dynamic_vars(headers) if headers else {}
+                    )
+
+                    server_config = {
+                        "url": mcp_server_config.get("url"),
+                        "headers": processed_headers,
+                    }
+                    return await _list_server_tools(server_config, transport)
+
+                else:
                     return {
                         "success": False,
-                        "message": f"Failed to validate MCP server: {str(e)}",
+                        "message": f"Unsupported transport type: {mcp_server_config['transport']}",
                     }
+            except Exception as e:
+                return {
+                    "success": False,
+                    "message": f"Failed to validate MCP server: {_extract_root_exception(e)}",
+                }
 
-            # Run the async validation
+        try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
@@ -2583,7 +2618,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 ).as_dict()
             else:
                 return ActionResult.make_failure(result["message"]).as_dict()
-
         except Exception as e:
             log.exception("Error validating MCP server")
             return ActionResult.make_failure(

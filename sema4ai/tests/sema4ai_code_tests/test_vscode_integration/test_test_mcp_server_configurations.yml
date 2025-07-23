@@ -1,26 +1,30 @@
 - config:
-    stdio-server:
-      args:
-      - -m
-      - my_server
-      command: python
-      cwd: <TARGET_DIR>
-      env:
-        API_KEY: test-key-123
-        SERVER_MODE: development
-      transport: stdio
+    args:
+    - -m
+    - my_server
+    command: python
+    cwd: <TARGET_DIR>
+    encoding: utf-8
+    encoding_error_handler: strict
+    env:
+      API_KEY: test-key-123
+      SERVER_MODE: development
   server_name: stdio-server
 - config:
-    http-server:
-      headers:
-        Authorization: Bearer token123
-        X-Custom-Header: custom-value
-      transport: http
-      url: http://localhost:8000/mcp
+    headers:
+      Authorization: Bearer token123
+      X-Custom-Header: custom-value
+    url: http://localhost:8000/mcp
   server_name: http-server
-- config: http://localhost:8001/sse
+- config:
+    headers: {}
+    url: http://localhost:8001/sse
   server_name: sse-server
-- config: http://localhost:8002/auto
+- config:
+    headers: {}
+    url: http://localhost:8002/auto
   server_name: auto-server-with-url
-- config: http://localhost:8003/simple
+- config:
+    headers: {}
+    url: http://localhost:8003/simple
   server_name: simple-url-server

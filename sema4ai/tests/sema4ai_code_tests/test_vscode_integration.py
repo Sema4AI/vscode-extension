@@ -4220,26 +4220,37 @@ def test_test_mcp_server_configurations(
 
     captured_configs = []
 
-    def mock_client_factory(config):
-        captured_configs.append(config)
+    def create_mock_context_manager(return_values):
+        class MockContextManager:
+            async def __aenter__(self):
+                return (
+                    return_values
+                    if isinstance(return_values, tuple)
+                    else (return_values,)
+                )
 
-        mock_client = MagicMock()
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
 
-        async def async_enter(self):
-            return mock_client
+        return MockContextManager()
 
-        async def async_exit(self, exc_type, exc_val, exc_tb):
-            return None
+    def mock_stdio_client(params):
+        captured_configs.append(params.model_dump(exclude_none=True))
+        return create_mock_context_manager((MagicMock(), MagicMock()))
 
-        mock_client.__aenter__ = async_enter
-        mock_client.__aexit__ = async_exit
+    def mock_http_client(**kwargs):
+        captured_configs.append(kwargs)
+        return create_mock_context_manager((MagicMock(), MagicMock(), MagicMock()))
 
-        async def async_list_tools():
-            return []
+    def mock_client_session(read, write):
+        mock_session = MagicMock()
+        mock_session.initialize = MagicMock(return_value=None)
 
-        mock_client.list_tools = async_list_tools
+        mock_result = MagicMock()
+        mock_result.tools = []
+        mock_session.list_tools = MagicMock(return_value=mock_result)
 
-        return mock_client
+        return create_mock_context_manager(mock_session)
 
     test_configs: list[dict[str, Any]] = [
         {
@@ -4287,7 +4298,12 @@ def test_test_mcp_server_configurations(
         },
     ]
 
-    with patch("fastmcp.Client", mock_client_factory):
+    with (
+        patch("mcp.client.sse.sse_client", mock_http_client),
+        patch("mcp.client.stdio.stdio_client", mock_stdio_client),
+        patch("mcp.client.streamable_http.streamablehttp_client", mock_http_client),
+        patch("mcp.ClientSession", mock_client_session),
+    ):
         results = []
 
         for config in test_configs:
@@ -4305,16 +4321,10 @@ def test_test_mcp_server_configurations(
                 }
             )
 
-            # Normalize paths for consistent regression testing
             normalized_config = captured_configs[0] if captured_configs else None
-            if (
-                normalized_config
-                and isinstance(normalized_config, dict)
-                and config["name"] in normalized_config
-            ):
-                server_config = normalized_config[config["name"]]
-                if "cwd" in server_config:
-                    server_config["cwd"] = "<TARGET_DIR>"
+            if normalized_config and isinstance(normalized_config, dict):
+                if config["transport"] == "stdio" and "cwd" in normalized_config:
+                    normalized_config["cwd"] = "<TARGET_DIR>"
 
             results.append(
                 {
