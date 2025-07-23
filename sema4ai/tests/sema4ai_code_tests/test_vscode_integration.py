@@ -3338,7 +3338,7 @@ def test_add_mcp_server_stdio_transport_with_complex_env(
         "name": "test-complex-env-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m complex_mcp_server --config config.json --debug",
-        "cwd": "./mcp-servers/complex-server",
+        "cwd": target_directory,
         "description": "Test MCP server with complex environment variables",
         "env": {
             "DATABASE_URL": "postgresql://user:pass@localhost:5432/db",
@@ -3423,7 +3423,7 @@ def test_add_mcp_server_stdio_transport_with_complex_env(
         "config.json",
         "--debug",
     ]
-    assert complex_server["cwd"] == "./mcp-servers/complex-server"
+    assert complex_server["cwd"] == target_directory
     assert complex_server["force-serial-tool-calls"] is False
 
     # Verify environment variables
@@ -3510,7 +3510,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3526,7 +3526,7 @@ def test_add_mcp_server_error_cases(
         "name": "duplicate-server",
         "transport": "stdio",
         "commandLine": "/usr/bin/python",
-        "cwd": "/tmp",
+        "cwd": target_directory,
     }
 
     # Add first server
@@ -3580,7 +3580,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3606,7 +3606,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-server",
                     "transport": "stdio",
                     "commandLine": "/usr/bin/python",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3645,7 +3645,7 @@ def test_add_mcp_server_error_cases(
                 "mcp_server_config": {
                     "name": "test-stdio-no-command",
                     "transport": "stdio",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3668,7 +3668,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-invalid-command",
                     "transport": "stdio",
                     "commandLine": "python -m server --config 'unclosed quote",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                 },
             },
         }
@@ -3740,7 +3740,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-oauth2-no-provider",
                     "transport": "stdio",
                     "commandLine": "python -m server",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                     "env": {
                         "OAUTH2_TOKEN": {
                             "type": "oauth2-secret",
@@ -3769,7 +3769,7 @@ def test_add_mcp_server_error_cases(
                     "name": "test-oauth2-no-scopes",
                     "transport": "stdio",
                     "commandLine": "python -m server",
-                    "cwd": "/tmp",
+                    "cwd": target_directory,
                     "env": {
                         "OAUTH2_TOKEN": {
                             "type": "oauth2-secret",
@@ -3860,7 +3860,7 @@ def test_add_mcp_server_yaml_formatting(
         "name": "test-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m mcp_server --config.json --debug --verbose",
-        "cwd": "./path/to/dir",
+        "cwd": target_directory,
         "description": "Test MCP server for stdio transport",
         "env": {
             "DEBUG_MODE": "true",  # plain-text
@@ -3925,7 +3925,7 @@ def test_add_mcp_server_yaml_formatting(
         "--debug",
         "--verbose",
     ]
-    assert mcp_server["cwd"] == "./path/to/dir"
+    assert mcp_server["cwd"] == target_directory
 
     # Verify environment variables formatting
     assert "env" in mcp_server
@@ -3987,7 +3987,7 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         "name": "comprehensive-mcp-server",
         "transport": "stdio",
         "commandLine": "python -m comprehensive_server --all-features",
-        "cwd": "./comprehensive-server",
+        "cwd": target_directory,
         "description": "Test MCP server with all header and environment variable types",
         "force-serial-tool-calls": True,
         "env": {
@@ -4105,7 +4105,7 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         "comprehensive_server",
         "--all-features",
     ]
-    assert comprehensive_server["cwd"] == "./comprehensive-server"
+    assert comprehensive_server["cwd"] == target_directory
     assert comprehensive_server["force-serial-tool-calls"] is False
 
     # Verify environment variables
@@ -4187,3 +4187,150 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         env_vars["BACKUP_DATA_SERVER"]["description"]
         == "Backup data server connection info"
     )
+
+
+def test_test_mcp_server_configurations(
+    language_server_initialized,
+    tmpdir,
+    data_regression,
+) -> None:
+    from typing import Any
+    from unittest.mock import MagicMock, patch
+
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    package_name = "test_agent"
+    target_directory = str(tmpdir.join(package_name))
+
+    # Create agent package first
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": "Test Agent",
+            }
+        ],
+    )
+
+    captured_configs = []
+
+    def create_mock_context_manager(return_values):
+        class MockContextManager:
+            async def __aenter__(self):
+                return (
+                    return_values
+                    if isinstance(return_values, tuple)
+                    else (return_values,)
+                )
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+        return MockContextManager()
+
+    def mock_stdio_client(params):
+        captured_configs.append(params.model_dump(exclude_none=True))
+        return create_mock_context_manager((MagicMock(), MagicMock()))
+
+    def mock_http_client(**kwargs):
+        captured_configs.append(kwargs)
+        return create_mock_context_manager((MagicMock(), MagicMock(), MagicMock()))
+
+    def mock_client_session(read, write):
+        mock_session = MagicMock()
+        mock_session.initialize = MagicMock(return_value=None)
+
+        mock_result = MagicMock()
+        mock_result.tools = []
+        mock_session.list_tools = MagicMock(return_value=mock_result)
+
+        return create_mock_context_manager(mock_session)
+
+    test_configs: list[dict[str, Any]] = [
+        {
+            "name": "stdio-server",
+            "transport": "stdio",
+            "commandLine": "python -m my_server",
+            "cwd": target_directory,
+            "description": "STDIO MCP server",
+            "env": {
+                "API_KEY": "test-key-123",
+                "SERVER_MODE": {"type": "string", "default": "development"},
+                "SECRET_TOKEN": {
+                    "type": "secret",
+                    "description": "Secret token for auth",
+                },
+            },
+        },
+        {
+            "name": "http-server",
+            "transport": "streamable-http",
+            "url": "http://localhost:8000/mcp",
+            "description": "HTTP MCP server",
+            "headers": {
+                "Authorization": "Bearer token123",
+                "X-Custom-Header": {"type": "string", "default": "custom-value"},
+            },
+        },
+        {
+            "name": "sse-server",
+            "transport": "sse",
+            "url": "http://localhost:8001/sse",
+            "description": "SSE MCP server",
+        },
+        {
+            "name": "auto-server-with-url",
+            "transport": "auto",
+            "url": "http://localhost:8002/auto",
+            "description": "Auto MCP server with URL",
+        },
+        {
+            "name": "simple-url-server",
+            "transport": "streamable-http",
+            "url": "http://localhost:8003/simple",
+            "description": "Simple URL server without headers",
+        },
+    ]
+
+    with (
+        patch("mcp.client.sse.sse_client", mock_http_client),
+        patch("mcp.client.stdio.stdio_client", mock_stdio_client),
+        patch("mcp.client.streamable_http.streamablehttp_client", mock_http_client),
+        patch("mcp.ClientSession", mock_client_session),
+    ):
+        results = []
+
+        for config in test_configs:
+            captured_configs.clear()
+
+            language_server.request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": language_server.next_id(),
+                    "method": "testMcpServer",
+                    "params": {
+                        "mcp_server_config": config,
+                        "agent_dir": target_directory,
+                    },
+                }
+            )
+
+            normalized_config = captured_configs[0] if captured_configs else None
+            if normalized_config and isinstance(normalized_config, dict):
+                if config["transport"] == "stdio" and "cwd" in normalized_config:
+                    normalized_config["cwd"] = "<TARGET_DIR>"
+
+            results.append(
+                {
+                    "server_name": config["name"],
+                    "config": normalized_config,
+                }
+            )
+
+        data_regression.check(results)

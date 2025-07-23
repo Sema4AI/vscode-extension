@@ -19,3 +19,4 @@ dependencies:
           - sema4ai-http-helper==2.1.0
           - sema4ai-common==0.1.0
           - ruff==0.11.11
+          - mcp==1.12.0

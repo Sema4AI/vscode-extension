@@ -11,59 +11,70 @@
                 color: var(--vscode-editor-foreground);
                 background-color: var(--vscode-editor-background);
                 margin: 0;
-                padding: 20px;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
             }
 
             .container {
-                max-width: 800px;
-                margin: 0 auto;
+                height: 100vh;
                 display: flex;
                 flex-direction: column;
-                gap: 30px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .content-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 15px;
+                padding-bottom: 0;
             }
 
             .header {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
                 border-bottom: 1px solid var(--vscode-panel-border);
-                padding-bottom: 15px;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
             }
 
             .header h1 {
                 margin: 0;
                 color: var(--vscode-editor-foreground);
-                font-size: 24px;
+                font-size: 22px;
                 font-weight: 600;
             }
 
             .header p {
                 margin: 0;
                 color: var(--vscode-descriptionForeground);
-                font-size: 14px;
+                font-size: 13px;
             }
 
             .form-group {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 7px;
             }
 
             .form-group label {
                 font-weight: 500;
                 color: var(--vscode-editor-foreground);
+                font-size: 14px;
             }
 
             .form-group input,
             .form-group select,
             .form-group textarea {
                 width: 100%;
-                padding: 10px 12px;
+                padding: 9px 11px;
                 border: 1px solid var(--vscode-input-border);
-                border-radius: 4px;
+                border-radius: 3px;
                 background-color: var(--vscode-input-background);
                 color: var(--vscode-input-foreground);
-                font-size: 14px;
+                font-size: 13px;
                 box-sizing: border-box;
             }
 
@@ -90,17 +101,17 @@
             .transport-dependent.show {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
             }
 
             .headers-section,
             .env-section {
                 display: none;
                 flex-direction: column;
-                gap: 20px;
-                padding: 20px;
+                gap: 15px;
+                padding: 15px;
                 border: 1px solid var(--vscode-panel-border);
-                border-radius: 4px;
+                border-radius: 3px;
                 background-color: var(--vscode-editor-background);
             }
 
@@ -110,7 +121,7 @@
             }
 
             .section-header {
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 600;
                 color: var(--vscode-editor-foreground);
             }
@@ -118,10 +129,10 @@
             .variable-item {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
-                padding: 15px;
+                gap: 10px;
+                padding: 12px;
                 border: 1px solid var(--vscode-panel-border);
-                border-radius: 4px;
+                border-radius: 3px;
                 background-color: var(--vscode-editor-background);
             }
 
@@ -141,8 +152,8 @@
                 background-color: var(--vscode-button-secondaryBackground);
                 color: var(--vscode-button-secondaryForeground);
                 border: 1px solid var(--vscode-button-secondaryBorder);
-                padding: 5px 10px;
-                border-radius: 4px;
+                padding: 5px 9px;
+                border-radius: 3px;
                 cursor: pointer;
                 font-size: 12px;
                 flex-shrink: 0;
@@ -155,11 +166,11 @@
             .add-btn {
                 background-color: var(--vscode-button-background);
                 color: var(--vscode-button-foreground);
-                padding: 8px 16px;
+                padding: 7px 14px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 3px;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 13px;
                 align-self: flex-start;
             }
 
@@ -174,25 +185,27 @@
             .type-dependent.show {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
             }
 
             .buttons {
                 display: flex;
-                gap: 10px;
+                gap: 8px;
                 justify-content: flex-end;
-                padding-top: 20px;
+                padding: 15px;
                 border-top: 1px solid var(--vscode-panel-border);
+                background-color: var(--vscode-editor-background);
+                flex-shrink: 0;
             }
 
             .btn {
-                padding: 10px 20px;
-                border-radius: 4px;
+                padding: 9px 18px;
+                border-radius: 3px;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 500;
                 border: none;
-                min-width: 80px;
+                min-width: 75px;
             }
 
             .btn-primary {
@@ -215,32 +228,40 @@
             }
 
             .error {
-                color: var(--vscode-errorForeground);
-                background-color: var(--vscode-inputValidation-errorBackground);
-                border: 1px solid var(--vscode-inputValidation-errorBorder);
-                padding: 10px;
-                border-radius: 4px;
+                color: var(--vscode-errorForeground, #ff6b6b);
+                background-color: var(--vscode-inputValidation-errorBackground, #ffe6e6);
+                border: 1px solid var(--vscode-inputValidation-errorBorder, #ff6b6b);
+                padding: 9px;
+                border-radius: 3px;
                 display: none;
+                min-height: 18px;
+                margin-bottom: 12px;
+                font-weight: 500;
+                font-size: 13px;
             }
 
             .success {
-                color: var(--vscode-notificationsInfoIcon-foreground);
-                background-color: var(--vscode-notificationsInfoBackground);
-                border: 1px solid var(--vscode-notificationsInfoBorder);
-                padding: 10px;
-                border-radius: 4px;
+                color: var(--vscode-button-foreground, #ffffff);
+                background-color: var(--vscode-terminal-ansiGreen, #28a745);
+                border: 1px solid var(--vscode-terminal-ansiGreen, #28a745);
+                padding: 9px;
+                border-radius: 3px;
                 display: none;
+                min-height: 18px;
+                margin-bottom: 12px;
+                font-weight: 500;
+                font-size: 13px;
             }
 
             .scopes-container {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
             }
 
             .scope-item {
                 display: flex;
-                gap: 10px;
+                gap: 8px;
                 align-items: center;
             }
 
@@ -252,8 +273,8 @@
                 background-color: var(--vscode-button-secondaryBackground);
                 color: var(--vscode-button-secondaryForeground);
                 border: 1px solid var(--vscode-button-secondaryBorder);
-                padding: 5px 10px;
-                border-radius: 4px;
+                padding: 5px 9px;
+                border-radius: 3px;
                 cursor: pointer;
                 font-size: 12px;
                 flex-shrink: 0;
@@ -262,9 +283,9 @@
             .add-scope-btn {
                 background-color: var(--vscode-button-background);
                 color: var(--vscode-button-foreground);
-                padding: 5px 10px;
+                padding: 5px 9px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 3px;
                 cursor: pointer;
                 font-size: 12px;
                 align-self: flex-start;
@@ -273,114 +294,118 @@
             #mcpForm {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
             }
 
             .messages-container {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
+                margin-top: 15px;
             }
         </style>
     </head>
 
     <body>
         <div class="container">
-            <div class="header">
-                <h1>Add MCP Server</h1>
-            </div>
-
-            <div class="messages-container">
-                <div id="error" class="error"></div>
-                <div id="success" class="success"></div>
-            </div>
-
-            <form id="mcpForm">
-                <div class="form-group">
-                    <label for="serverName">MCP Server Name *</label>
-                    <input
-                        type="text"
-                        id="serverName"
-                        placeholder="My MCPServer"
-                        required
-                    />
-                    <div class="help-text">A unique name to identify this MCP server</div>
+            <div class="content-area">
+                <div class="header">
+                    <h1>Add MCP Server</h1>
                 </div>
 
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <input
-                        type="text"
-                        id="description"
-                        placeholder="Optional description of this MCP server"
-                    />
-                    <div class="help-text">An optional description to help identify this server</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="transport">Transport *</label>
-                    <select id="transport" required>
-                        <option value="auto" selected>Auto (Default)</option>
-                        <option value="streamable-http">Streamable HTTP</option>
-                        <option value="sse">Server-Sent Events (SSE)</option>
-                        <option value="stdio">Standard I/O (STDIO)</option>
-                    </select>
-                    <div class="help-text">The transport protocol to use for communication</div>
-                </div>
-
-                <!-- URL section for non-STDIO transports -->
-                <div id="urlSection" class="form-group transport-dependent">
-                    <label for="serverUrl">Server URL *</label>
-                    <input
-                        type="url"
-                        id="serverUrl"
-                        placeholder="http://localhost:8000"
-                    />
-                    <div class="help-text">The URL where the MCP server is running</div>
-                </div>
-
-                <!-- STDIO section -->
-                <div id="stdioSection" class="transport-dependent">
+                <form id="mcpForm">
                     <div class="form-group">
-                        <label for="command">Command Line *</label>
+                        <label for="serverName">MCP Server Name *</label>
                         <input
                             type="text"
-                            id="command"
-                            placeholder="python -m my_mcp_server --config config.json"
+                            id="serverName"
+                            placeholder="My MCPServer"
+                            required
                         />
-                        <div class="help-text">The full command line including arguments (e.g., "python -m my_mcp_server --config config.json")</div>
+                        <div class="help-text">A unique name to identify this MCP server</div>
                     </div>
 
                     <div class="form-group">
-                        <label for="cwd">Working Directory *</label>
+                        <label for="description">Description</label>
                         <input
                             type="text"
-                            id="cwd"
-                            placeholder="./path/to/working/directory"
+                            id="description"
+                            placeholder="Optional description of this MCP server"
                         />
-                        <div class="help-text">The directory where the command will be executed</div>
+                        <div class="help-text">An optional description to help identify this server</div>
                     </div>
-                </div>
 
-                <!-- Headers Section -->
-                <div id="headersSection" class="headers-section transport-dependent">
-                    <div class="section-header">Headers</div>
-                    <div id="headersContainer"></div>
-                    <button type="button" class="add-btn" onclick="addHeader()">Add Header</button>
-                </div>
+                    <div class="form-group">
+                        <label for="transport">Transport *</label>
+                        <select id="transport" required>
+                            <option value="auto" selected>Auto (Default)</option>
+                            <option value="streamable-http">Streamable HTTP</option>
+                            <option value="sse">Server-Sent Events (SSE)</option>
+                            <option value="stdio">Standard I/O (STDIO)</option>
+                        </select>
+                        <div class="help-text">The transport protocol to use for communication</div>
+                    </div>
 
-                <!-- Environment Variables Section (for STDIO) -->
-                <div id="envSection" class="env-section transport-dependent">
-                    <div class="section-header">Environment Variables</div>
-                    <div id="envContainer"></div>
-                    <button type="button" class="add-btn" onclick="addEnvVar()">Add Environment Variable</button>
-                </div>
+                    <!-- URL section for non-STDIO transports -->
+                    <div id="urlSection" class="form-group transport-dependent">
+                        <label for="serverUrl">Server URL *</label>
+                        <input
+                            type="url"
+                            id="serverUrl"
+                            placeholder="http://localhost:8000"
+                        />
+                        <div class="help-text">The URL where the MCP server is running</div>
+                    </div>
 
-                <div class="buttons">
-                    <button type="button" class="btn btn-secondary" onclick="cancel()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Server</button>
-                </div>
-            </form>
+                    <!-- STDIO section -->
+                    <div id="stdioSection" class="transport-dependent">
+                        <div class="form-group">
+                            <label for="command">Command Line *</label>
+                            <input
+                                type="text"
+                                id="command"
+                                placeholder="python -m my_mcp_server --config config.json"
+                            />
+                            <div class="help-text">The full command line including arguments (e.g., "python -m my_mcp_server --config config.json")</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cwd">Working Directory *</label>
+                            <input
+                                type="text"
+                                id="cwd"
+                                placeholder="./path/to/working/directory"
+                            />
+                            <div class="help-text">The directory where the command will be executed</div>
+                        </div>
+                    </div>
+
+                    <!-- Headers Section -->
+                    <div id="headersSection" class="headers-section transport-dependent">
+                        <div class="section-header">Headers</div>
+                        <div id="headersContainer"></div>
+                        <button type="button" class="add-btn" onclick="addHeader()">Add Header</button>
+                    </div>
+
+                    <!-- Environment Variables Section (for STDIO) -->
+                    <div id="envSection" class="env-section transport-dependent">
+                        <div class="section-header">Environment Variables</div>
+                        <div id="envContainer"></div>
+                        <button type="button" class="add-btn" onclick="addEnvVar()">Add Environment Variable</button>
+                    </div>
+
+                    <div class="messages-container">
+                        <div id="error" class="error"></div>
+                        <div id="success" class="success"></div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="buttons">
+                <button type="button" class="btn btn-secondary" onclick="cancel()">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="submitOrTest(true)">Test Server</button>
+                <button type="button" class="btn btn-primary" onclick="submitOrTest()">Add Server</button>
+            </div>
         </div>
 
         <script>
@@ -726,17 +751,7 @@
                 return validateOAuth2Secrets(variables);
             }
 
-            function cancel() {
-                if (vscode) {
-                    vscode.postMessage({
-                        command: 'cancel'
-                    });
-                } else {
-                    console.log('Cancel clicked');
-                }
-            }
-
-            function submitForm() {
+            function submitOrTest(isTest = false) {
                 hideMessages();
 
                 if (!validateForm()) {
@@ -776,20 +791,32 @@
                     }
                 }
 
+                const command = isTest ? 'testServer' : 'submit';
+
                 if (vscode) {
                     vscode.postMessage({
-                        command: 'submit',
+                        command: command,
                         config: config
                     });
                 } else {
-                    console.log('Form submitted:', config);
+                    console.log(isTest ? 'Test server:' : 'Form submitted:', config);
+                }
+            }
+
+            function cancel() {
+                if (vscode) {
+                    vscode.postMessage({
+                        command: 'cancel'
+                    });
+                } else {
+                    console.log('Cancel clicked');
                 }
             }
 
             document.getElementById('transport').addEventListener('change', updateTransportDependentFields);
             document.getElementById('mcpForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                submitForm();
+                submitOrTest();
             });
 
             updateTransportDependentFields();

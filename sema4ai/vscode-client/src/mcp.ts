@@ -29,6 +29,55 @@ interface ActionResult<T = any> {
     result?: T;
 }
 
+// Helper function to handle common response logic
+const handleServerResponse = async (
+    panel: vscode.WebviewPanel,
+    result: ActionResult,
+    successMessage: string,
+    errorMessage: string,
+    shouldCloseOnSuccess: boolean = false,
+    agentDir?: string
+) => {
+    if (result.success) {
+        panel.webview.postMessage({
+            command: "showSuccess",
+            message: result.message || successMessage,
+        });
+
+        if (shouldCloseOnSuccess) {
+            panel.dispose();
+
+            // Open agent-spec.yaml file if agentDir is provided
+            if (agentDir) {
+                try {
+                    const agentSpecPath = vscode.Uri.file(`${agentDir}/agent-spec.yaml`);
+                    const document = await vscode.workspace.openTextDocument(agentSpecPath);
+                    await vscode.window.showTextDocument(document);
+                } catch (error) {
+                    console.warn("Could not open agent-spec.yaml:", error);
+                }
+            }
+            return;
+        }
+
+        vscode.window.showInformationMessage(result.message || successMessage);
+    } else {
+        panel.webview.postMessage({
+            command: "showError",
+            message: result.message || errorMessage,
+        });
+    }
+};
+
+const handleServerError = (panel: vscode.WebviewPanel, error: any, operation: string) => {
+    console.error(`Error ${operation} MCP server:`, error);
+
+    panel.webview.postMessage({
+        command: "showError",
+        message: `Error ${operation} MCP server: ${error}`,
+    });
+};
+
 export const addMCPServer = async (agentDir?: string) => {
     if (!agentDir) {
         agentDir = await selectAgentPackage();
@@ -50,47 +99,42 @@ export const addMCPServer = async (agentDir?: string) => {
                 const config: MCPServerConfig = message.config;
 
                 try {
-                    // Call the language server function to add the MCP server
                     const result = (await langServer.sendRequest("addMCPServer", {
-                        agent_dir: agentDir,
                         mcp_server_config: config,
+                        agent_dir: agentDir,
                     })) as ActionResult;
 
-                    if (result.success) {
-                        // Show success message in the webview
-                        panel.webview.postMessage({
-                            command: "showSuccess",
-                            message: result.message || "MCP Server configuration saved successfully!",
-                        });
-
-                        // Also show a notification
-                        vscode.window.showInformationMessage(result.message || "MCP Server configuration saved!");
-
-                        // Close the webview after 1 second
-                        setTimeout(() => {
-                            panel.dispose();
-                        }, 1000);
-                    } else {
-                        // Show error message in the webview
-                        panel.webview.postMessage({
-                            command: "showError",
-                            message: result.message || "Failed to save MCP Server configuration",
-                        });
-
-                        // Also show an error notification
-                        vscode.window.showErrorMessage(result.message || "Failed to save MCP Server configuration");
-                    }
+                    await handleServerResponse(
+                        panel,
+                        result,
+                        "MCP Server configuration saved successfully!",
+                        "Failed to save MCP Server configuration",
+                        true, // Close panel on success
+                        agentDir
+                    );
                 } catch (error) {
-                    console.error("Error adding MCP server:", error);
+                    handleServerError(panel, error, "adding");
+                }
+                return;
 
-                    // Show error message in the webview
-                    panel.webview.postMessage({
-                        command: "showError",
-                        message: `Error adding MCP server: ${error}`,
-                    });
+            case "testServer":
+                const testConfig: MCPServerConfig = message.config;
 
-                    // Also show an error notification
-                    vscode.window.showErrorMessage(`Error adding MCP server: ${error}`);
+                try {
+                    const result = (await langServer.sendRequest("testMCPServer", {
+                        mcp_server_config: testConfig,
+                        agent_dir: agentDir,
+                    })) as ActionResult;
+
+                    await handleServerResponse(
+                        panel,
+                        result,
+                        "MCP Server test successful!",
+                        "Failed to validate MCP Server",
+                        false // Don't close panel on success
+                    );
+                } catch (error) {
+                    handleServerError(panel, error, "testing");
                 }
                 return;
 

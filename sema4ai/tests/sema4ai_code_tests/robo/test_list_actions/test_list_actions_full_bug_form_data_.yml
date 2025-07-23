@@ -52,6 +52,7 @@ send_chat_message_with_options:
       messages:
         default: []
         items:
+          additionalProperties: true
           type: object
         title: Messages
         type: array
@@ -73,6 +74,7 @@ send_chat_message_with_options:
             items:
               properties:
                 filter:
+                  additionalProperties: true
                   description: A filter object to apply to the search results.
                   title: Filter
                   type: object

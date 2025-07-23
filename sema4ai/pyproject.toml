@@ -33,7 +33,7 @@ msgspec = "^0.19"
 pyyaml = "^6"
 playwright = "<2"
 pillow = "^10.2.0"
-pywin32 = { version = ">=300,<304", platform = "win32", python = "!=3.8.1" }
+pywin32 = { version = ">=300,<307", platform = "win32", python = "!=3.8.1" }
 psutil = "^5.9.0"
 comtypes = "^1.2"
 pyscreeze = "^0.1.30"
@@ -46,6 +46,7 @@ tree-sitter-yaml = "^0.7.0"
 ruamel-yaml = "^0.18.10"
 sema4ai-http-helper = "^2.1.0"
 sema4ai-common = "^0.1.0"
+mcp = "~1.10.1"
 
 [tool.poetry.group.dev.dependencies]
 sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
