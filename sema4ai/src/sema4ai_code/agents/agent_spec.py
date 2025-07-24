@@ -255,8 +255,8 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
     "expected-type": "list",
     "note": "Variables are in the spec are NOT meant to be used currently!"
   },
-  "agent-package/variables/default": {
-    "description": "Default value for the variable (only for string type).",
+  "agent-package/variables/value": {
+    "description": "Default value for the variable (only for string or secret type).",
     "required": false,
     "expected-type": "string",
     "note": "Variables are in the spec are NOT meant to be used currently!"
@@ -418,7 +418,7 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
   "agent-package/agents/mcp-servers/headers": {
     "description": "Required headers for the MCP server connection (only for streamable-http and sse kinds).",
     "required": false,
-    "expected-type": "mcp_server_headers"
+    "expected-type": "map[string,object]#mcp_server_headers"
   },
   "agent-package/agents/mcp-servers/headers/type": {
     "description": "The type of the header. Accepted values: \"secret\", \"oauth2-secret\", \"string\", \"data-server-info\"",
@@ -440,8 +440,8 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
     "required": false,
     "expected-type": "list"
   },
-  "agent-package/agents/mcp-servers/headers/default": {
-    "description": "Default value for the variable (only for string type).",
+  "agent-package/agents/mcp-servers/headers/value": {
+    "description": "Default value for the variable (only for string or secret type).",
     "required": false,
     "expected-type": "string"
   },
@@ -453,7 +453,7 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
   "agent-package/agents/mcp-servers/env": {
     "description": "Environment variables for the MCP server (only for stdio kind).",
     "required": false,
-    "expected-type": "mcp_server_env"
+    "expected-type": "map[string,object]#mcp_server_env"
   },
   "agent-package/agents/mcp-servers/env/type": {
     "description": "The type of the environment variable. Accepted values: \"secret\", \"oauth2-secret\", \"string\", \"data-server-info\"",
@@ -475,8 +475,8 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
     "required": false,
     "expected-type": "list"
   },
-  "agent-package/agents/mcp-servers/env/default": {
-    "description": "Default value for the variable (only for string type).",
+  "agent-package/agents/mcp-servers/env/value": {
+    "description": "Default value for the variable (only for string or secret type).",
     "required": false,
     "expected-type": "string"
   },
@@ -492,6 +492,29 @@ AGENT_SPEC_V3: dict[str, Entry] = load_spec(
     "description": "If true, tool calls are serialized (default is false).",
     "required": false,
     "expected-type": "bool"
+  },
+  "agent-package/agents/docker-mcp-gateway": {
+    "description": "Section to define the Docker MCP Gateway configuration for the agent. Docker MCP Gateway is a tool that allows you to run MCP servers in a Docker containers.",
+    "required": false,
+    "expected-type": "object"
+  },
+  "agent-package/agents/docker-mcp-gateway/catalog": {
+    "description": "Optional custom catalog file path. If not specified, the default catalog from Docker MCP Gateway is used. Example: \"./custom-catalog.yml\"",
+    "required": false,
+    "expected-type": {
+      "type": "file",
+      "relative-to": "./"
+    }
+  },
+  "agent-package/agents/docker-mcp-gateway/servers": {
+    "description": "Configuration for MCP servers in the Docker MCP Gateway.",
+    "required": true,
+    "expected-type": "map[string,object]"
+  },
+  "agent-package/agents/docker-mcp-gateway/servers/tools": {
+    "description": "Tools configuration for a server. Can be a list of tool names. If empty or not specified, all tools are allowed. Example: [\"tool1\", \"tool2\"]",
+    "required": false,
+    "expected-type": "mcp_server_tools"
   },
   "agent-package/agents/conversation-guide": {
     "description": "Conversation guide for the agent. Example: \"conversation-guide.yaml\"",

@@ -45,10 +45,12 @@ class _ExpectedTypeEnum(Enum):
     mcp_server_url = "mcp_server_url"
     mcp_server_transport = "mcp_server_transport"
     mcp_server_command_line = "mcp_server_command_line"
-    mcp_server_env = "mcp_server_env"
-    mcp_server_headers = "mcp_server_headers"
+    mcp_server_env = "map[string,object]#mcp_server_env"
+    mcp_server_headers = "map[string,object]#mcp_server_headers"
     mcp_server_cwd = "mcp_server_cwd"
     mcp_server_var_type = "mcp_server_var_type"
+    mcp_server_tools = "mcp_server_tools"
+    map_string_object = "map[string,object]"
 
 
 class _YamlNodeKind(Enum):
@@ -460,27 +462,37 @@ class Validator:
         self, key_node: "Node", value_node: Optional["Node"]
     ) -> Iterator[Error]:
         entry = self._spec_entries.get(self._current_stack_as_str)
-        # We have a special case for:
-        # agent-package/agents/mcp-servers/headers
-        # agent-package/agents/mcp-servers/env
-        # In this case we actually have something as
-        # agent-package/agents/mcp-servers/headers/<object>/<required-field-name> or
-        # agent-package/agents/mcp-servers/env/<object>/<required-field-name>
-        # so, we do some special handling for this to "remove" the <object> part
-        # and validate the path without that part.
         if not entry:
-            if self._current_stack_as_str.startswith(
-                "agent-package/agents/mcp-servers"
-            ):
-                current_stack_as_str = self._current_stack_as_str.split("/")
-                if len(current_stack_as_str) > 3:
-                    if current_stack_as_str[3] in ("headers", "env"):
-                        current_stack_as_str = (
-                            current_stack_as_str[:4] + current_stack_as_str[5:]
-                        )
-                        entry = self._spec_entries.get("/".join(current_stack_as_str))
+            # Ok, we haven't been able to find the entry in the spec as is. This may be due to
+            # map[string,object]#<type> or map[string,object] fields.
+            # We have to check the curren stack to see if there is a path which is a map[string,object]#<type>
+            # or map[string,object] field.
+            # If so, we have to remove the the related part and re-validate the path without that part.
+            # For example, if the current stack is:
+            # agent-package/agents/mcp-servers/headers/my-object/my-field
+            # we have to remove the my-object part and validate the path without that part.
+            # So, the new path will be:
+            # agent-package/agents/mcp-servers/headers/my-field
 
-        if not entry or not value_node:
+            current_stack_as_str = []
+            skip_next = False
+            for part in self._current_stack_as_str.split("/"):
+                if skip_next:
+                    skip_next = False
+                    continue
+                current_stack_as_str.append(part)
+                parent_entry = self._spec_entries.get("/".join(current_stack_as_str))
+                if (
+                    parent_entry
+                    and parent_entry.expected_type.expected_type.value.startswith(
+                        "map[string,object]"
+                    )
+                ):
+                    skip_next = True
+
+            entry = self._spec_entries.get("/".join(current_stack_as_str))
+
+        if not entry:
             parent_as_str = "<unknown>"
             curr = "<unknown>"
 
@@ -497,14 +509,8 @@ class Validator:
                     node=key_node,
                     severity=Severity.warning,
                 )
-            else:
-                yield Error(
-                    message=f"Expected value for {self._current_stack_as_str}.",
-                    node=key_node,
-                    severity=Severity.warning,
-                )
 
-            return
+        # Note: not having a value is ok (i.e.: empty object).
 
     def _is_scalar_node(self, node: Optional["Node"]) -> bool:
         if node is None:
@@ -765,34 +771,71 @@ class Validator:
                                 node=transport_node.data.node,
                             )
 
-            elif (
-                spec_node.data.expected_type.expected_type
-                == _ExpectedTypeEnum.mcp_server_headers
+            elif spec_node.data.expected_type.expected_type in (
+                _ExpectedTypeEnum.mcp_server_headers,
+                _ExpectedTypeEnum.mcp_server_env,
+                _ExpectedTypeEnum.map_string_object,
             ):
-                # Must check that:
-                # - It must be an object
-                # - The 'url' field is also defined.
+                accept_direct_string = False
+                if (
+                    spec_node.data.expected_type.expected_type
+                    == _ExpectedTypeEnum.mcp_server_headers
+                ):
+                    accept_direct_string = True
+                    # Must check that:
+                    # - It must be an object
+                    # - The 'url' field is also defined.
+                    if yaml_node.data.kind == _YamlNodeKind.unhandled:
+                        # Check that 'url' field is also defined
+                        if (
+                            not yaml_node.parent
+                            or "url" not in yaml_node.parent.children
+                        ):
+                            yield Error(
+                                message=f"Expected {spec_node.data.path} to be used together with 'url' field.",
+                                node=yaml_node.data.node,
+                            )
+                elif (
+                    spec_node.data.expected_type.expected_type
+                    == _ExpectedTypeEnum.mcp_server_env
+                ):
+                    accept_direct_string = True
+                    # Must check that:
+                    # - It must be an object
+                    # - The 'command-line' field is defined
+                    if yaml_node.data.kind == _YamlNodeKind.unhandled:
+                        # Check that 'command-line' field is defined
+                        if (
+                            not yaml_node.parent
+                            or "command-line" not in yaml_node.parent.children
+                        ):
+                            yield Error(
+                                message=f"Expected {spec_node.data.path} to be used together with 'command-line' field.",
+                                node=yaml_node.data.node,
+                            )
+
                 if yaml_node.data.kind != _YamlNodeKind.unhandled:
                     yield Error(
                         message=f"Expected {spec_node.data.path} to be an object (found {yaml_node.data.kind.value}).",
                         node=yaml_node.data.node,
                     )
                 else:
-                    # Check that 'url' field is also defined
-                    if not yaml_node.parent or "url" not in yaml_node.parent.children:
-                        yield Error(
-                            message=f"Expected {spec_node.data.path} to be used together with 'url' field.",
-                            node=yaml_node.data.node,
-                        )
-
+                    # For all (map[string,object] or map[string,object]#<type>)
                     # Validate that all values are strings or objects (with the according type).
                     for value in yaml_node.children.values():
-                        if value.data.kind == _YamlNodeKind.string:
+                        if (
+                            accept_direct_string
+                            and value.data.kind == _YamlNodeKind.string
+                        ):
                             pass  # Ok, it's a string, no need of further validation
 
                         elif value.data.kind != _YamlNodeKind.unhandled:
+                            if accept_direct_string:
+                                msg = f"Expected all items in {spec_node.data.path} to be strings or objects. Found {value.data.kind.value}."
+                            else:
+                                msg = f"Expected all items in {spec_node.data.path} to be objects. Found {value.data.kind.value}."
                             yield Error(
-                                message=f"Expected all items in {spec_node.data.path} to be strings or objects (with a type). Found {value.data.kind.value}.",
+                                message=msg,
                                 node=value.data.node,
                             )
                         else:
@@ -802,6 +845,33 @@ class Validator:
                                     yield from self._verify_yaml_matches_spec(
                                         spec_child, child_node, yaml_node
                                     )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.mcp_server_tools
+            ):
+                # - It must be a list of strings
+                if yaml_node.data.kind == _YamlNodeKind.list:
+                    for list_item_node in yaml_node.children.values():
+                        if list_item_node.data.kind != _YamlNodeKind.list_item:
+                            yield Error(
+                                message=f"Expected all items in {spec_node.data.path} to be list items.",
+                                node=list_item_node.data.node,
+                            )
+                        else:
+                            for item_node in list_item_node.children.values():
+                                if item_node.data.kind != _YamlNodeKind.string:
+                                    yield Error(
+                                        message=f"Expected all items in {spec_node.data.path} to be strings. Found: {item_node.data.kind.value}",
+                                        node=item_node.data.node,
+                                    )
+
+                else:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a list of strings (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+
             elif (
                 spec_node.data.expected_type.expected_type
                 == _ExpectedTypeEnum.mcp_server_command_line
@@ -840,46 +910,6 @@ class Validator:
                                 message=f"Expected all items in {spec_node.data.path} to be strings.",
                                 node=list_item_node.data.node,
                             )
-            elif (
-                spec_node.data.expected_type.expected_type
-                == _ExpectedTypeEnum.mcp_server_env
-            ):
-                # Must check that:
-                # - It must be an object
-                # - The 'command-line' field is defined
-                if yaml_node.data.kind != _YamlNodeKind.unhandled:
-                    yield Error(
-                        message=f"Expected {spec_node.data.path} to be an object (found {yaml_node.data.kind.value}).",
-                        node=yaml_node.data.node,
-                    )
-                else:
-                    # Check that 'command-line' field is defined
-                    if (
-                        not yaml_node.parent
-                        or "command-line" not in yaml_node.parent.children
-                    ):
-                        yield Error(
-                            message=f"Expected {spec_node.data.path} to be used together with 'command-line' field.",
-                            node=yaml_node.data.node,
-                        )
-
-                    # Validate that all values are strings or objects (with the according type).
-                    for value in yaml_node.children.values():
-                        if value.data.kind == _YamlNodeKind.string:
-                            pass  # Ok, it's a string, no need of further validation
-
-                        elif value.data.kind != _YamlNodeKind.unhandled:
-                            yield Error(
-                                message=f"Expected all items in {spec_node.data.path} to be strings or objects (with a type). Found {value.data.kind.value}.",
-                                node=value.data.node,
-                            )
-                        else:
-                            for spec_child in spec_node.children.values():
-                                child_node = value.children.get(spec_child.name)
-                                if child_node:
-                                    yield from self._verify_yaml_matches_spec(
-                                        spec_child, child_node, yaml_node
-                                    )
 
             elif (
                 spec_node.data.expected_type.expected_type
@@ -931,22 +961,22 @@ class Validator:
                             "secret": {
                                 "provider": "not-allowed",
                                 "scopes": "not-allowed",
-                                "default": "optional",
+                                "value": "optional",
                             },
                             "oauth2-secret": {
                                 "provider": "required",
                                 "scopes": "required",
-                                "default": "not-allowed",
+                                "value": "not-allowed",
                             },
                             "string": {
                                 "provider": "not-allowed",
                                 "scopes": "not-allowed",
-                                "default": "optional",
+                                "value": "optional",
                             },
                             "data-server-info": {
                                 "provider": "not-allowed",
                                 "scopes": "not-allowed",
-                                "default": "not-allowed",
+                                "value": "not-allowed",
                             },
                         }
 

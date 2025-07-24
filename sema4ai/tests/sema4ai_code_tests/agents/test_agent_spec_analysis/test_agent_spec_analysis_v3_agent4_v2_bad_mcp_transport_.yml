@@ -2,10 +2,10 @@
     'sse', 'stdio'] (found 'bad-transport').
   range:
     end:
-      character: 40
+      character: 34
       line: 29
     start:
-      character: 16
+      character: 10
       line: 29
   severity: 1
   source: sema4ai
@@ -13,10 +13,10 @@
     when using 'url' field (found 'bad-transport').
   range:
     end:
-      character: 40
+      character: 34
       line: 29
     start:
-      character: 16
+      character: 10
       line: 29
   severity: 1
   source: sema4ai
