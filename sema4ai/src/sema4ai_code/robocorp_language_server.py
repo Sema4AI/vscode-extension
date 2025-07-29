@@ -1,3 +1,4 @@
+import contextlib
 import os
 import sys
 import time
@@ -2283,6 +2284,52 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         return f"{major}.{minor}.{patch}"
 
+    @contextlib.contextmanager
+    def _agent_spec_yaml_context(self, agent_spec_path: Path, write: bool = True):
+        """
+        Context manager for reading, validating, and writing agent-spec.yaml files.
+
+        Args:
+            agent_spec_path: Path to the agent-spec.yaml file
+        Yields:
+            tuple: (content, agent) where content is the full YAML dict and agent is content["agent-package"]["agents"][0]
+
+        Raises:
+            Various exceptions that should be caught by the caller and converted to ActionResult
+        """
+        from ruamel.yaml import YAML
+
+        if not agent_spec_path.exists():
+            raise FileNotFoundError(f"agent-spec.yaml not found at: {agent_spec_path}")
+
+        yaml = YAML()
+        yaml.preserve_quotes = True
+        yaml.default_flow_style = False
+        yaml.sequence_dash_offset = 0
+
+        try:
+            with agent_spec_path.open("r", encoding="utf-8") as file:
+                content = yaml.load(file)
+        except Exception as e:
+            raise ValueError(f"Failed to parse agent-spec.yaml: {e}")
+
+        try:
+            agent = content["agent-package"]["agents"][0]
+            if not isinstance(agent, dict):
+                raise
+        except (KeyError, IndexError, TypeError):
+            raise ValueError("Invalid agent configuration in agent-spec.yaml")
+
+        try:
+            yield content, agent
+
+            if write:
+                with agent_spec_path.open("w", encoding="utf-8") as file:
+                    yaml.dump(content, file)
+
+        except Exception:
+            raise
+
     @command_dispatcher(commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL)
     def _update_agent_version(
         self, params: UpdateAgentVersionParamsDict
@@ -2290,31 +2337,19 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         agent_spec_path = Path(params["agent_path"]) / "agent-spec.yaml"
         version_type = params["version_type"]
 
-        from ruamel.yaml import YAML
-
-        yaml = YAML()
-        yaml.preserve_quotes = True
-
         try:
-            with agent_spec_path.open("r") as file:
-                agent_spec = yaml.load(file.read())
+            with self._agent_spec_yaml_context(agent_spec_path) as (_, agent):
+                try:
+                    current_version = agent.get("version")
+                except Exception:
+                    raise ValueError("Version entry was not found in the agent spec.")
 
-            try:
-                current_version = agent_spec["agent-package"]["agents"][0].get(
-                    "version"
+                bumped_version = (
+                    "0.0.1"
+                    if not current_version
+                    else self._bump_version(current_version, version_type)
                 )
-            except Exception:
-                raise ValueError("Version entry was not found in the agent spec.")
-
-            bumped_version = (
-                "0.0.1"
-                if not current_version
-                else self._bump_version(current_version, version_type)
-            )
-            agent_spec["agent-package"]["agents"][0]["version"] = bumped_version
-
-            with agent_spec_path.open("w") as file:
-                yaml.dump(agent_spec, file)
+                agent["version"] = bumped_version
 
         except Exception as e:
             return ActionResult(success=False, message=str(e)).as_dict()
@@ -2418,113 +2453,162 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         self, agent_dir: str, mcp_server_config: MCP_SERVER_CONFIG, monitor: IMonitor
     ) -> ActionResultDict:
         import shlex
-        from pathlib import Path
 
-        from ruamel.yaml import YAML, CommentedSeq
+        from ruamel.yaml import CommentedSeq
         from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
         try:
             agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
-            if not agent_spec_path.exists():
-                return ActionResult.make_failure(
-                    f"agent-spec.yaml not found in: {agent_dir}"
-                ).as_dict()
 
-            yaml = YAML()
-            yaml.preserve_quotes = True
-            yaml.default_flow_style = False
-            yaml.sequence_dash_offset = 0
-
-            try:
-                with agent_spec_path.open("r", encoding="utf-8") as file:
-                    content = yaml.load(file)
-            except Exception as e:
-                return ActionResult.make_failure(
-                    f"Failed to parse agent-spec.yaml: {e}"
-                ).as_dict()
-
-            try:
-                agent = content["agent-package"]["agents"][0]
-                if not isinstance(agent, dict):
-                    raise
-            except Exception:
-                return ActionResult.make_failure(
-                    "Invalid agent configuration in agent-spec.yaml"
-                ).as_dict()
-
-            mcp_server_entry: dict = {
-                "name": mcp_server_config["name"],
-                "description": mcp_server_config.get("description"),
-                "force-serial-tool-calls": False,
-            }
-
-            if mcp_server_config.get("transport", "") != "auto":
-                mcp_server_entry["transport"] = mcp_server_config["transport"]
-
-            if mcp_server_config["transport"] == "stdio":
-                command_line_str = mcp_server_config.get("commandLine", "")
-                if not command_line_str:
-                    return ActionResult.make_failure(
-                        "Command line is required for STDIO transport"
-                    ).as_dict()
-
-                try:
-                    command_line = shlex.split(command_line_str)
-                except Exception as e:
-                    return ActionResult.make_failure(
-                        f"Failed to parse command line: {e}"
-                    ).as_dict()
-
-                # Set command-line with flow style (inline format)
-                command_line_seq = CommentedSeq(
-                    [DoubleQuotedScalarString(item) for item in command_line]
-                )
-
-                command_line_seq.fa.set_flow_style()
-                mcp_server_entry["command-line"] = command_line_seq
-                mcp_server_entry["cwd"] = mcp_server_config["cwd"]
-
-            elif mcp_server_config["transport"] in ["streamable-http", "sse", "auto"]:
-                mcp_server_entry["url"] = mcp_server_config["url"]
-
-                # Add headers if provided
-                if mcp_server_config.get("headers"):
-                    mcp_server_entry["headers"] = mcp_server_config["headers"]
-
-            # Add environment variables for STDIO transport
-            if mcp_server_config["transport"] == "stdio" and mcp_server_config.get(
-                "env"
+            with self._agent_spec_yaml_context(agent_spec_path) as (
+                content,
+                agent,
             ):
-                if mcp_server_config.get("env"):
-                    mcp_server_entry["env"] = mcp_server_config["env"]
+                mcp_server_entry: dict = {
+                    "name": mcp_server_config["name"],
+                    "description": mcp_server_config.get("description"),
+                    "force-serial-tool-calls": False,
+                }
 
-            if "mcp-servers" not in agent:
-                agent["mcp-servers"] = []
+                if mcp_server_config.get("transport", "") != "auto":
+                    mcp_server_entry["transport"] = mcp_server_config["transport"]
 
-            existing_servers = agent["mcp-servers"]
-            for existing_server in existing_servers:
-                if existing_server.get("name") == mcp_server_config["name"]:
-                    return ActionResult.make_failure(
-                        f"MCP server with name '{mcp_server_config['name']}' already exists"
-                    ).as_dict()
+                if mcp_server_config["transport"] == "stdio":
+                    command_line_str = mcp_server_config.get("commandLine", "")
+                    if not command_line_str:
+                        return ActionResult.make_failure(
+                            "Command line is required for STDIO transport"
+                        ).as_dict()
 
-            agent["mcp-servers"].append(mcp_server_entry)
-            if content["agent-package"].get("spec-version", "") != "v3":
-                content["agent-package"]["spec-version"] = "v3"
+                    try:
+                        command_line = shlex.split(command_line_str)
+                    except Exception as e:
+                        return ActionResult.make_failure(
+                            f"Failed to parse command line: {e}"
+                        ).as_dict()
 
-            try:
-                with agent_spec_path.open("w", encoding="utf-8") as file:
-                    yaml.dump(content, file)
-            except Exception as e:
-                return ActionResult.make_failure(
-                    f"Failed to write updated agent-spec.yaml: {e}"
-                ).as_dict()
+                    # Set command-line with flow style (inline format)
+                    command_line_seq = CommentedSeq(
+                        [DoubleQuotedScalarString(item) for item in command_line]
+                    )
+
+                    command_line_seq.fa.set_flow_style()
+                    mcp_server_entry["command-line"] = command_line_seq
+                    mcp_server_entry["cwd"] = mcp_server_config["cwd"]
+
+                elif mcp_server_config["transport"] in [
+                    "streamable-http",
+                    "sse",
+                    "auto",
+                ]:
+                    mcp_server_entry["url"] = mcp_server_config["url"]
+
+                    # Add headers if provided
+                    if mcp_server_config.get("headers"):
+                        mcp_server_entry["headers"] = mcp_server_config["headers"]
+
+                # Add environment variables for STDIO transport
+                if mcp_server_config["transport"] == "stdio" and mcp_server_config.get(
+                    "env"
+                ):
+                    if mcp_server_config.get("env"):
+                        mcp_server_entry["env"] = mcp_server_config["env"]
+
+                if "mcp-servers" not in agent:
+                    agent["mcp-servers"] = []
+
+                existing_servers = agent["mcp-servers"]
+                for existing_server in existing_servers:
+                    if existing_server.get("name") == mcp_server_config["name"]:
+                        return ActionResult.make_failure(
+                            f"MCP server with name '{mcp_server_config['name']}' already exists"
+                        ).as_dict()
+
+                agent["mcp-servers"].append(mcp_server_entry)
+                if content["agent-package"].get("spec-version", "") != "v3":
+                    content["agent-package"]["spec-version"] = "v3"
 
             return ActionResult(success=True, message=None).as_dict()
 
         except Exception as e:
             log.exception("Error adding MCP server")
             return ActionResult.make_failure(f"Error adding MCP server: {e}").as_dict()
+
+    def m_check_docker_mcp_gateway_exists(self, agent_dir: str) -> ActionResultDict:
+        return require_monitor(
+            partial(self._check_docker_mcp_gateway_exists, agent_dir)
+        )
+
+    def _check_docker_mcp_gateway_exists(
+        self, agent_dir: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        try:
+            agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
+
+            if not agent_spec_path.exists():
+                return ActionResult.make_failure(
+                    f"agent-spec.yaml not found at: {agent_spec_path}"
+                ).as_dict()
+
+            with self._agent_spec_yaml_context(agent_spec_path, write=False) as (
+                _,
+                agent,
+            ):
+                # Check if docker-mcp-gateway exists
+                exists = "docker-mcp-gateway" in agent
+                return ActionResult(
+                    success=True, result={"exists": exists}, message=None
+                ).as_dict()
+
+        except Exception as e:
+            log.exception("Error checking Docker MCP Gateway existence")
+            return ActionResult.make_failure(
+                f"Error checking Docker MCP Gateway: {e}"
+            ).as_dict()
+
+    def m_add_docker_mcp_gateway(self, agent_dir: str) -> ActionResultDict:
+        return require_monitor(partial(self._add_docker_mcp_gateway, agent_dir))
+
+    def _add_docker_mcp_gateway(
+        self, agent_dir: str, monitor: IMonitor
+    ) -> ActionResultDict:
+        try:
+            agent_spec_path = Path(agent_dir) / "agent-spec.yaml"
+
+            registry_response = self._agent_cli.get_docker_registries(agent_dir)
+            if not registry_response["success"]:
+                return registry_response
+
+            import json
+
+            servers_data = json.loads(registry_response["result"]).get("servers")
+            if not servers_data:
+                return ActionResult(
+                    success=True,
+                    message=f"No Docker MCP Gateway configuration found",
+                ).as_dict()
+
+            with self._agent_spec_yaml_context(agent_spec_path) as (
+                content,
+                agent,
+            ):
+                docker_mcp_gateway = {"servers": {}}
+
+                for server_name in servers_data.keys():
+                    docker_mcp_gateway["servers"][server_name] = None
+
+                agent["docker-mcp-gateway"] = docker_mcp_gateway
+
+                if content["agent-package"].get("spec-version", "") != "v3":
+                    content["agent-package"]["spec-version"] = "v3"
+
+            return ActionResult(success=True, message=None).as_dict()
+
+        except Exception as e:
+            log.exception("Error adding Docker MCP Gateway")
+            return ActionResult.make_failure(
+                f"Error adding Docker MCP Gateway: {e}"
+            ).as_dict()
 
     def _pack_agent_package_threaded(self, directory, ws, monitor: IMonitor):
         from sema4ai_ls_core.progress_report import progress_context

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { readFileSync } from "fs";
+import * as path from "path";
 import { getExtensionRelativeFile } from "./files";
 import { langServer } from "./extension";
 import { selectAgentPackage } from "./robo/agentPackage";
@@ -106,3 +107,65 @@ function getWebviewContent(): string {
     const data = readFileSync(templateFile, "utf8");
     return data;
 }
+
+export const addDockerMCPGateway = async (agentDir?: string) => {
+    if (!agentDir) {
+        agentDir = await selectAgentPackage();
+        if (!agentDir) {
+            return;
+        }
+    }
+
+    try {
+        // First check if docker-mcp-gateway already exists
+        const checkResult = (await langServer.sendRequest("checkDockerMCPGatewayExists", {
+            agent_dir: agentDir,
+        })) as ActionResult<{ exists: boolean }>;
+
+        if (!checkResult.success) {
+            vscode.window.showErrorMessage(checkResult.message || "Failed to check Docker MCP Gateway configuration");
+            return;
+        }
+
+        // If it exists, show warning dialog
+        if (checkResult.result?.exists) {
+            const OVERRIDE = "Override";
+            const CANCEL = "Cancel";
+
+            const userChoice = await vscode.window.showWarningMessage(
+                "A Docker MCP Gateway configuration already exists in agent-spec.yaml. This action will override the existing configuration.",
+                { modal: true },
+                OVERRIDE,
+                CANCEL
+            );
+
+            if (userChoice !== OVERRIDE) {
+                // User cancelled or closed the dialog
+                return;
+            }
+        }
+
+        // Proceed with adding/overriding the docker-mcp-gateway
+        const result = (await langServer.sendRequest("addDockerMCPGateway", {
+            agent_dir: agentDir,
+        })) as ActionResult;
+
+        if (result.success) {
+            vscode.window.showInformationMessage(result.message || "Docker MCP Gateway configuration saved!");
+
+            const agentSpecPath = path.join(agentDir, "agent-spec.yaml");
+            try {
+                const document = await vscode.workspace.openTextDocument(agentSpecPath);
+                await vscode.window.showTextDocument(document);
+            } catch (error) {
+                console.error("Error opening agent-spec.yaml:", error);
+            }
+        } else {
+            vscode.window.showErrorMessage(result.message || "Failed to save Docker MCP Gateway configuration");
+        }
+    } catch (error) {
+        console.error("Error adding Docker MCP Gateway:", error);
+        vscode.window.showErrorMessage(`Error adding Docker MCP Gateway: ${error}`);
+    }
+};
+
