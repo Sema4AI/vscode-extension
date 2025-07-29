@@ -1,10 +1,12 @@
 ## Unreleased
 
+- Add `sema4ai.addDockerMCPGateway` and `sema4ai.addMCPServer` commands.
 - Disable notifications for computing datasource status in background.
 - Update Agent CLI to `v1.3.4`
 - Enabled new organizations to be part of the Agent spec & the Actions folder in the Agent Package
 - Support for the `v3` of the Agent spec.
   - Adds support for defining `mcp-servers` in the `agent-spec.yaml`.
+  - Adds support for defining `docker-mcp-gateway` in the `agent-spec.yaml`
 - Properly handle `dev-dependencies` (lint and hover) in `package.yaml`.
 - Fixed where the choice of forcing the creation of an action package from a template in a non-empty dir was not respected.
 - Updated Action Server to `2.13.1`.
