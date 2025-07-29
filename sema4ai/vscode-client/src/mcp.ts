@@ -168,4 +168,3 @@ export const addDockerMCPGateway = async (agentDir?: string) => {
         vscode.window.showErrorMessage(`Error adding Docker MCP Gateway: ${error}`);
     }
 };
-

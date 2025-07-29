@@ -2581,7 +2581,13 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
             import json
 
-            servers_data = json.loads(registry_response["result"]).get("servers")
+            result = registry_response["result"]
+            if not result:
+                return ActionResult.make_failure(
+                    "No result from Docker registries command"
+                ).as_dict()
+
+            servers_data = json.loads(result).get("servers")
             if not servers_data:
                 return ActionResult(
                     success=True,
@@ -2592,7 +2598,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                 content,
                 agent,
             ):
-                docker_mcp_gateway = {"servers": {}}
+                docker_mcp_gateway: dict[str, Any] = {"servers": {}}
 
                 for server_name in servers_data.keys():
                     docker_mcp_gateway["servers"][server_name] = None
