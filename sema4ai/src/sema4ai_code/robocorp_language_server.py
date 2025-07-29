@@ -2316,19 +2316,17 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         try:
             agent = content["agent-package"]["agents"][0]
             if not isinstance(agent, dict):
-                raise
+                raise ValueError(
+                    "Agent configuration must be a YAML mapping (key-value pairs)."
+                )
         except (KeyError, IndexError, TypeError):
             raise ValueError("Invalid agent configuration in agent-spec.yaml")
 
-        try:
-            yield content, agent
+        yield content, agent
 
-            if write:
-                with agent_spec_path.open("w", encoding="utf-8") as file:
-                    yaml.dump(content, file)
-
-        except Exception:
-            raise
+        if write:
+            with agent_spec_path.open("w", encoding="utf-8") as file:
+                yaml.dump(content, file)
 
     @command_dispatcher(commands.SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL)
     def _update_agent_version(
@@ -2339,11 +2337,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
         try:
             with self._agent_spec_yaml_context(agent_spec_path) as (_, agent):
-                try:
-                    current_version = agent.get("version")
-                except Exception:
-                    raise ValueError("Version entry was not found in the agent spec.")
-
+                current_version = agent.get("version")
                 bumped_version = (
                     "0.0.1"
                     if not current_version
