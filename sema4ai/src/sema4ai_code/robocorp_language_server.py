@@ -2519,8 +2519,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
                         ).as_dict()
 
                 agent["mcp-servers"].append(mcp_server_entry)
-                if content["agent-package"].get("spec-version", "") != "v3":
-                    content["agent-package"]["spec-version"] = "v3"
 
             return ActionResult(success=True, message=None).as_dict()
 

@@ -1,6 +1,6 @@
 contents:
   kind: plaintext
-  value: 'agent-package/agents/description (more info unavailable for version: v1)'
+  value: 'Description for the agent. Example: "My smart agent that does what I want"'
 range:
   end:
     character: 34

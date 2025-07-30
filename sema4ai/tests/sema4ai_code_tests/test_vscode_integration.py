@@ -3831,8 +3831,8 @@ def test_add_mcp_server_yaml_formatting(
     with open(agent_spec_path) as f:
         updated_spec = yaml.safe_load(f)
 
-    # Check that spec-version was updated to v3
-    assert updated_spec["agent-package"]["spec-version"] == "v3"
+    # spec-version must be kept as v2
+    assert updated_spec["agent-package"]["spec-version"] == "v2"
 
     # Check that mcp-servers section was added
     agent = updated_spec["agent-package"]["agents"][0]
