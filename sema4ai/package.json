@@ -181,6 +181,7 @@
         "onCommand:sema4ai.setupAllDataSources",
         "onCommand:sema4ai.fixWrongAgentImport",
         "onCommand:sema4ai.addMCPServer",
+        "onCommand:sema4ai.addDockerMCPGateway",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -1054,6 +1055,11 @@
             {
                 "command": "sema4ai.addMCPServer",
                 "title": "Add MCP Server",
+                "category": "Sema4.ai"
+            },
+            {
+                "command": "sema4ai.addDockerMCPGateway",
+                "title": "Add Docker MCP Gateway",
                 "category": "Sema4.ai"
             }
         ],

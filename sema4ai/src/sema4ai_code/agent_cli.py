@@ -319,3 +319,26 @@ class AgentCli:
             message=None,
             result=str(Path(directory) / "agent-package.zip"),
         ).as_dict()
+
+    def get_docker_registries(self, directory: str) -> ActionResultDict:
+        """
+        Get the agent Docker registries for the given agent package directory.
+        """
+        args = [
+            "externals",
+            "docker",
+            "get-registry",
+            directory,
+        ]
+        command_result = self._run_agent_cli_command(args)
+        if not command_result.success:
+            return ActionResult(
+                success=False,
+                message=f"Error getting Docker registries.\n{command_result.message}",
+            ).as_dict()
+
+        return ActionResult(
+            success=True,
+            message=None,
+            result=command_result.result,
+        ).as_dict()

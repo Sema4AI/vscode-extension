@@ -409,6 +409,15 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "tooltip": "Adds a MCP Server to the Agent Package",
                     },
                     {
+                        "label": "Add Docker MCP Gateway",
+                        "uri": element.uri,
+                        "robot": element.robot,
+                        "iconPath": "add",
+                        "type": RobotEntryType.AddDockerMCPGateway,
+                        "parent": element,
+                        "tooltip": "Adds Docker MCP Gateway to the Agent Package",
+                    },
+                    {
                         "label": "Update Agent Version",
                         "uri": element.uri,
                         "robot": element.robot,
@@ -874,6 +883,13 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.command = {
                 "title": "Add MCP Server",
                 "command": roboCommands.SEMA4AI_ADD_MCP_SERVER,
+                "arguments": [element.robot.directory],
+            };
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        } else if (element.type === RobotEntryType.AddDockerMCPGateway) {
+            treeItem.command = {
+                "title": "Add Docker MCP Gateway",
+                "command": roboCommands.SEMA4AI_ADD_DOCKER_MCP_GATEWAY,
                 "arguments": [element.robot.directory],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;

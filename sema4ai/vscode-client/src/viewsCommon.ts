@@ -57,6 +57,7 @@ export enum RobotEntryType {
     DataSourcesInActionPackage = "DataSourcesInActionPackage",
     DataSource = "DataSource",
     AddMCPServer = "AddMCPServer",
+    AddDockerMCPGateway = "AddDockerMCPGateway",
 }
 
 export interface CloudEntry {

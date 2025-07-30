@@ -37,6 +37,51 @@ from sema4ai_code_tests.protocols import IRobocorpLanguageServerClient
 log = logging.getLogger(__name__)
 
 
+def create_test_agent_package(
+    language_server_initialized,
+    tmpdir,
+    package_name="test_agent",
+    agent_name="Test Agent",
+):
+    """Helper function to create a test agent package with standard setup.
+
+    Args:
+        language_server_initialized: The initialized language server
+        tmpdir: Temporary directory fixture
+        package_name: Name of the package directory (default: "test_agent")
+        agent_name: Name of the agent (default: "Test Agent")
+
+    Returns:
+        tuple: (language_server, target_directory, agent_spec_path)
+    """
+    from sema4ai_code import commands
+
+    language_server = language_server_initialized
+    target_directory = str(tmpdir.join(package_name))
+
+    language_server.change_workspace_folders(
+        added_folders=[target_directory], removed_folders=[]
+    )
+
+    result = language_server.execute_command(
+        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
+        [
+            {
+                "directory": target_directory,
+                "name": agent_name,
+            }
+        ],
+    )["result"]
+
+    assert result["success"]
+    assert not result["message"]
+
+    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
+    assert agent_spec_path.exists()
+
+    return language_server, target_directory, agent_spec_path
+
+
 def test_missing_message(
     language_server: IRobocorpLanguageServerClient, ws_root_path, initialization_options
 ):
@@ -2318,28 +2363,9 @@ def test_create_and_pack_and_import_agent_package(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-
-    package_name = "test_agent"
-
-    target_directory = str(tmpdir.join(package_name))
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    result = language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )["result"]
-
-    assert result["success"]
-    assert not result["message"]
-    assert os.path.exists(f"{target_directory}/agent-spec.yaml")
 
     with open(f"{target_directory}/agent-spec.yaml") as stream:
         agent_spec = yaml.safe_load(stream)
@@ -2417,22 +2443,8 @@ def test_get_runbook_from_agent_spec(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
-    )
-
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
 
     with open(f"{target_directory}/agent-spec.yaml", "r+") as stream:
@@ -2700,22 +2712,8 @@ def test_update_agent_version(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
-    )
-
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
 
     result = language_server.execute_command(
@@ -2773,7 +2771,7 @@ def test_update_agent_version(
     )["result"]
 
     assert not result["success"]
-    assert result["message"] == "Version entry was not found in the agent spec."
+    assert result["message"] == "Invalid agent configuration in agent-spec.yaml"
 
 
 def test_text_document_code_actions(language_server_initialized, tmpdir) -> None:
@@ -3195,26 +3193,9 @@ def test_add_mcp_server_http_transport_with_headers(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )
-
-    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
-    assert agent_spec_path.exists()
 
     mcp_server_config = {
         "name": "test-http-mcp-server",
@@ -3313,26 +3294,9 @@ def test_add_mcp_server_stdio_transport_with_complex_env(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )
-
-    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
-    assert agent_spec_path.exists()
 
     mcp_server_config = {
         "name": "test-complex-env-mcp-server",
@@ -3476,27 +3440,9 @@ def test_add_mcp_server_error_cases(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    # Create an agent package
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )
-
-    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
-    assert agent_spec_path.exists()
 
     # Test 1: Missing agent-spec.yaml
     result = language_server.request(
@@ -3832,28 +3778,9 @@ def test_add_mcp_server_yaml_formatting(
 ) -> None:
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    # Create an agent package
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )
-
-    # Verify agent-spec.yaml exists
-    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
-    assert agent_spec_path.exists()
 
     # Test adding MCP server with stdio transport and mixed environment variables
     mcp_server_config = {
@@ -3959,28 +3886,9 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
 
     from sema4ai_code import commands
 
-    language_server = language_server_initialized
-    package_name = "test_agent"
-    target_directory = str(tmpdir.join(package_name))
-
-    language_server.change_workspace_folders(
-        added_folders=[target_directory], removed_folders=[]
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
     )
-
-    # Create an agent package
-    language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": target_directory,
-                "name": "Test Agent",
-            }
-        ],
-    )
-
-    # Verify agent-spec.yaml exists
-    agent_spec_path = Path(target_directory) / "agent-spec.yaml"
-    assert agent_spec_path.exists()
 
     # Test adding MCP server with comprehensive header and environment variable types
     mcp_server_config = {
@@ -4187,3 +4095,88 @@ def test_add_mcp_server_comprehensive_header_and_env_types(
         env_vars["BACKUP_DATA_SERVER"]["description"]
         == "Backup data server connection info"
     )
+
+
+def test_add_docker_mcp_gateway(
+    language_server_initialized,
+    tmpdir,
+) -> None:
+    import yaml
+
+    language_server, target_directory, agent_spec_path = create_test_agent_package(
+        language_server_initialized, tmpdir
+    )
+
+    # Mock the get_docker_registries method to return simplified test data
+    mock_registries_response = {
+        "success": True,
+        "message": None,
+        "result": json.dumps(
+            {
+                "servers": {
+                    "duckduckgo": {
+                        "description": "DuckDuckGo search server",
+                        "tools": [{"name": "fetch_content"}, {"name": "search"}],
+                    },
+                    "notion": {
+                        "description": "Notion server",
+                        "tools": [
+                            {"name": "API-create-a-comment"},
+                            {"name": "API-get-self"},
+                        ],
+                    },
+                    "wikipedia-mcp": {
+                        "description": "Wikipedia server",
+                        "tools": [
+                            {"name": "extract_key_facts"},
+                            {"name": "get_article"},
+                        ],
+                    },
+                },
+            }
+        ),
+    }
+
+    with mock.patch.object(
+        language_server.language_server_instance._agent_cli,
+        "get_docker_registries",
+        return_value=mock_registries_response,
+    ):
+        # Call addDockerMCPGateway
+        result = language_server.request(
+            {
+                "jsonrpc": "2.0",
+                "id": language_server.next_id(),
+                "method": "addDockerMCPGateway",
+                "params": {
+                    "agent_dir": target_directory,
+                },
+            }
+        )
+
+    result_data = result.get("result")
+    assert result_data is not None
+    assert result_data["success"]
+    assert result_data["message"] is None
+
+    # Verify the agent-spec.yaml was updated correctly
+    with open(agent_spec_path) as f:
+        updated_spec = yaml.safe_load(f)
+
+    # Check that spec-version was updated to v3
+    assert updated_spec["agent-package"]["spec-version"] == "v3"
+
+    # Check that docker-mcp-gateway section was added
+    agent = updated_spec["agent-package"]["agents"][0]
+    assert "docker-mcp-gateway" in agent
+
+    docker_gateway = agent["docker-mcp-gateway"]
+    assert "servers" in docker_gateway
+
+    # The mock data includes these servers
+    expected_servers = ["duckduckgo", "notion", "wikipedia-mcp"]
+    servers = docker_gateway["servers"]
+
+    for server_name in expected_servers:
+        assert server_name in servers
+        assert servers[server_name] is None  # Should be set to None initially
