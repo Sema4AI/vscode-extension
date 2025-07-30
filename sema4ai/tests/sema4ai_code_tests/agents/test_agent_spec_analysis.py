@@ -196,5 +196,5 @@ def test_agent_spec_analysis_v2_agent3(datadir, scenario, data_regression) -> No
     "scenario",
     [ok, v2_bad_mcp_transport],
 )
-def test_agent_spec_analysis_v3_agent4(datadir, scenario, data_regression) -> None:
+def test_agent_spec_analysis_21_agent4(datadir, scenario, data_regression) -> None:
     check("agent4", datadir, scenario, data_regression)
