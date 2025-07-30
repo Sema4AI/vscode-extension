@@ -57,27 +57,23 @@ def hover_on_agent_spec_yaml(
         return "/".join(path)
 
     def get_description(full_path) -> str | None:
+        from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
+
         if version == "v2":
             # Hover currently only available for v2
-            from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
 
             info = AGENT_SPEC_V2
             entry = info.get(full_path, None)
             if not entry:
                 return None
             return entry.description
-        elif version == "v3":
-            # Hover currently only available for v3
-            from sema4ai_code.agents.agent_spec import AGENT_SPEC_V3
-
-            info = AGENT_SPEC_V3
+        else:
+            # Hover currently only available for the latest version (right now v2)
+            info = AGENT_SPEC_V2
             entry = info.get(full_path, None)
             if not entry:
                 return None
             return entry.description
-        else:
-            show_version = version if version else "<unknown>"
-            return f"{full_path} (more info unavailable for version: {show_version})"
 
     full_path = get_full_path(descendant)
     description = get_description(full_path)

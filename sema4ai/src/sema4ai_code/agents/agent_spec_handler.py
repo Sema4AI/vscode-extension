@@ -51,6 +51,7 @@ class _ExpectedTypeEnum(Enum):
     mcp_server_var_type = "mcp_server_var_type"
     mcp_server_tools = "mcp_server_tools"
     map_string_object = "map[string,object]"
+    version_v2 = "version_v2"
 
 
 class _YamlNodeKind(Enum):
@@ -648,6 +649,25 @@ class Validator:
                     yield from self._verify_yaml_matches_spec(
                         child, yaml_node.children.get(child.name), yaml_node
                     )
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.version_v2
+            ):
+                if yaml_node.data.kind != _YamlNodeKind.string:
+                    yield Error(
+                        message=f"Expected {spec_node.data.path} to be a string (found {yaml_node.data.kind.value}).",
+                        node=yaml_node.data.node,
+                    )
+                else:
+                    version = self._get_value_text(yaml_node)
+                    if version and version != "v2":
+                        yield Error(
+                            message=f"Expected {spec_node.data.path} to be 'v2' (validation will proceed considering v2 spec, unexpected nodes will be reported as warnings and the related functionality will be disabled). Found: {version}",
+                            node=yaml_node.data.node,
+                            severity=Severity.warning,
+                        )
+
             elif spec_node.data.expected_type.expected_type == _ExpectedTypeEnum.list:
                 if yaml_node.data.kind != _YamlNodeKind.list:
                     yield Error(

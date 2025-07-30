@@ -158,7 +158,7 @@ class _Analyzer:
         yield from validate(
             version_value,
             spec_version,
-            "Expected spec-version to be a string (`v1`, `v2` or `v3`).",
+            "Expected spec-version to be a string (`v1` or `v2`).",
             required=True,
         )
 
@@ -171,12 +171,12 @@ class _Analyzer:
 
         is_v1 = version_value == "v1"
         is_v2 = version_value == "v2"
-        is_v3 = version_value == "v3"
         yield from validate(
-            is_v1 or is_v2 or is_v3,
+            is_v1 or is_v2,
             spec_version,
-            "Unexpected spec-version (only `v1`, `v2` and `v3` are currently supported).",
+            "Unexpected spec-version (only `v1` and `v2` are currently supported).",
             required=True,
+            severity=DiagnosticSeverity.Warning,
         )
 
         # For now no need to check version for further checks, but in the future
@@ -210,7 +210,7 @@ class _Analyzer:
         assert isinstance(agents_node.value, list)
         for agent in agents_node.value:
             yield from validate_agent(
-                self.doc, agent, _Version(is_v1=is_v1, is_v2=is_v2, is_v3=is_v3)
+                self.doc, agent, _Version(is_v1=is_v1, is_v2=is_v2)
             )
 
 
@@ -218,13 +218,12 @@ class _Analyzer:
 class _Version:
     is_v1: bool
     is_v2: bool
-    is_v3: bool
 
 
 def validate_agent(
     doc: IDocument, agent_node: _EntryNode, version: _Version
 ) -> Iterator[DiagnosticsTypedDict]:
-    from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2, AGENT_SPEC_V3
+    from sema4ai_code.agents.agent_spec import AGENT_SPEC_V2
     from sema4ai_code.agents.agent_spec_handler import Error, validate_from_spec
 
     error: Error
@@ -239,7 +238,7 @@ def validate_agent(
                 "reasoningLevel": (0, 1, 2, 3),
             },
         )
-    elif version.is_v2:
+    else:  # v2 or unrecognized version
         for error in validate_from_spec(
             AGENT_SPEC_V2,
             doc.source,
@@ -247,18 +246,6 @@ def validate_agent(
             raise_on_error=False,
         ):
             yield typing.cast(DiagnosticsTypedDict, error.as_diagostic(agent_node))
-
-    elif version.is_v3:
-        for error in validate_from_spec(
-            AGENT_SPEC_V3,
-            doc.source,
-            pathlib.Path(doc.path).parent,
-            raise_on_error=False,
-        ):
-            yield typing.cast(DiagnosticsTypedDict, error.as_diagostic(agent_node))
-
-    else:
-        raise AssertionError(f"Unexpected version: {version}")
 
 
 def validate_sections_v1(
