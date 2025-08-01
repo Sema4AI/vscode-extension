@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Fix `sema4ai.addDockerMCPGateway` to keep the agent-spec version to `v2`
+
 ## New in 2.14.0 (2025-08-01)
 
 - Add `sema4ai.addDockerMCPGateway` and `sema4ai.addMCPServer` commands.
