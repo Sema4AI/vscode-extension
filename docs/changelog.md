@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.14.0 (2025-08-01)
+
 - Add `sema4ai.addDockerMCPGateway` and `sema4ai.addMCPServer` commands.
 - Disable notifications for computing datasource status in background.
 - Update Agent CLI to `v2.0.5`
