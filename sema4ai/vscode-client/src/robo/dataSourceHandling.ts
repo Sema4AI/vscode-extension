@@ -210,7 +210,7 @@ async function dropSingleDataSource(dataSource: DatasourceInfo, dataServerInfo: 
     return true;
 }
 
-async function fetchDataServerStatus(): Promise<any | null> {
+export async function fetchDataServerStatus(): Promise<any | null> {
     return window.withProgress(
         { location: ProgressLocation.Notification, title: "Getting data server status...", cancellable: false },
         async () => {
