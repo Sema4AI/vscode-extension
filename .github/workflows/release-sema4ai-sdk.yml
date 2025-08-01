@@ -48,7 +48,7 @@ jobs:
         run: python -m dev check-tag-version
 
       - name: Copy changelog to root for vsce
-        run: cp docs/changelog.md CHANGELOG.md
+        run: cp ../docs/changelog.md CHANGELOG.md
 
       # Deal with Windows --------------
       - name: Download rcc for windows
