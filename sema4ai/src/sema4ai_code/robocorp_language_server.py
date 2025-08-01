@@ -2597,9 +2597,6 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
 
                 agent["docker-mcp-gateway"] = docker_mcp_gateway
 
-                if content["agent-package"].get("spec-version", "") != "v3":
-                    content["agent-package"]["spec-version"] = "v3"
-
             return ActionResult(success=True, message=None).as_dict()
 
         except Exception as e:
