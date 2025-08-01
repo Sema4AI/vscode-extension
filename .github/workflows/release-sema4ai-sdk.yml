@@ -47,11 +47,14 @@ jobs:
       - name: Check tag version
         run: python -m dev check-tag-version
 
+      - name: Copy changelog to root for vsce
+        run: cp docs/changelog.md CHANGELOG.md
+
       # Deal with Windows --------------
       - name: Download rcc for windows
         run: python -m dev download-rcc win32
 
-      - run: vsce package --target win32-x64 -o sema4ai-win32-x64.vsix --changelog-path ./docs/changelog.md
+      - run: vsce package --target win32-x64 -o sema4ai-win32-x64.vsix
 
       - uses: actions/upload-artifact@v4
         with:
@@ -72,7 +75,7 @@ jobs:
       - name: Download rcc for linux
         run: python -m dev download-rcc linux
 
-      - run: vsce package --target linux-x64 -o sema4ai-linux-x64.vsix --changelog-path ./docs/changelog.md
+      - run: vsce package --target linux-x64 -o sema4ai-linux-x64.vsix
 
       - uses: actions/upload-artifact@v4
         with:
@@ -93,7 +96,7 @@ jobs:
       - name: Download rcc for darwin
         run: python -m dev download-rcc darwin
 
-      - run: vsce package --target darwin-x64 -o sema4ai-darwin-x64.vsix --changelog-path ./docs/changelog.md
+      - run: vsce package --target darwin-x64 -o sema4ai-darwin-x64.vsix
 
       - uses: actions/upload-artifact@v4
         with:
@@ -114,7 +117,7 @@ jobs:
       - name: Download rcc for darwin arm64
         run: python -m dev download-rcc darwin-arm64
 
-      - run: vsce package --target darwin-arm64 -o sema4ai-darwin-arm64.vsix --changelog-path ./docs/changelog.md
+      - run: vsce package --target darwin-arm64 -o sema4ai-darwin-arm64.vsix
 
       - uses: actions/upload-artifact@v4
         with:
