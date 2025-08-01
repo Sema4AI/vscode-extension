@@ -9,6 +9,8 @@ import { listAndAskRobotSelection } from "./activities";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
 import { Tool, getToolVersion, downloadTool } from "./tools";
 import { langServer } from "./extension";
+import { fetchDataServerStatus } from "./robo/dataSourceHandling";
+import { convertDataServerInfoToEnvVar } from "./robo/actionPackage";
 
 const ACTION_SERVER_DEFAULT_PORT = 8082;
 const ACTION_SERVER_TERMINAL_NAME = "Sema4.ai: Action Server";
@@ -128,6 +130,12 @@ const startActionServerInternal = async (directory: Uri) => {
     const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
     if (externalApiUrl) {
         env["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
+    }
+
+    const dataServerStatus = await fetchDataServerStatus();
+    if (dataServerStatus && dataServerStatus["data"]) {
+        const dataServerInfo = convertDataServerInfoToEnvVar(dataServerStatus["data"]);
+        env["SEMA4AI_DATA_SERVER_INFO"] = dataServerInfo;
     }
 
     actionServerTerminal = window.createTerminal({

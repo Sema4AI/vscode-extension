@@ -362,7 +362,7 @@ export interface DataServerConfig {
     pid_file_path: string;
 }
 
-function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string {
+export function convertDataServerInfoToEnvVar(dataServerInfo: DataServerConfig): string {
     // We have something like this:
     // We have something as:
     //       api: {

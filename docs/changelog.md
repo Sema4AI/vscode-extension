@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Update `Action Server` to `2.14.0`
+- Set `SEMA4AI_DATA_SERVER_INFO` in the terminal where the `Action Server` is started if the `Data Server` is running.
+
 ## New in 2.14.2 (2025-08-01)
 
 - Fix `sema4ai.addDockerMCPGateway` to keep the agent-spec version to `v2`
