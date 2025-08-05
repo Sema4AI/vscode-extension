@@ -17,6 +17,8 @@ log = get_logger(__name__)
 
 
 def _collect_py_files(root_path: Path) -> Iterator[Path]:
+    # TODO: Improve this to use the same heuristics from sema4ai.actions
+    # https://github.com/Sema4AI/actions/blob/master/actions/src/sema4ai/actions/_collect_actions.py
     for item in root_path.iterdir():
         if item.is_dir():
             yield from _collect_py_files(item)
