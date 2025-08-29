@@ -1,6 +1,8 @@
 ## Unreleased
 
+- Update `Agent CLI` to `2.2.0`
 - Update `Action Server` to `2.14.0`
+- Add validation for document-intelligence in agent-spec
 - Set `SEMA4AI_DATA_SERVER_INFO` in the terminal where the `Action Server` is started if the `Data Server` is running.
 
 ## New in 2.14.2 (2025-08-01)

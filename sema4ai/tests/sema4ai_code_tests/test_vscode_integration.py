@@ -740,7 +740,7 @@ def test_upload_to_cloud(
 
     result = client.cloud_list_workspaces()
     assert result["success"]
-    result_workspaces: list[WorkspaceInfoDict] = result["result"]
+    result_workspaces: list[WorkspaceInfoDict] | None = result["result"]
     assert result_workspaces, "Expected to have the available workspaces and packages."
     found = [x for x in result_workspaces if x["workspaceName"] == "CI workspace"]
     assert len(found) == 1, (
