@@ -288,8 +288,7 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "description": "Working directory for the command line (defaults to agent-spec directory if not specified). Can be relative or absolute path.",
     "required": false,
     "expected-type": {
-      "type": "file",
-      "relative-to": "./"
+      "type": "file"
     }
   },
   "agent-package/agents/mcp-servers/force-serial-tool-calls": {
@@ -332,6 +331,14 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "description": "Initial message to start a conversation with the agent. Example: \"Hello, what can you do?\"",
     "required": false,
     "expected-type": "string"
+  },
+  "agent-package/agents/document-intelligence": {
+    "description": "Document intelligence version to use. Example: \"v2\"",
+    "required": false,
+    "expected-type": {
+      "type": "enum",
+      "values": ["v2"]
+    }
   },
   "agent-package/agents/welcome-message": {
     "description": "Welcome message displayed to users when they first interact with the agent. Example: \"What tools do you have?\"",
@@ -381,6 +388,11 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   "agent-package/agents/runbooks": {
     "description": "Please use 'runbook' instead",
     "deprecated": true
+  },
+  "agent-package/agents/agent-settings": {
+    "description": "Section to describe the agent settings (this field is currently open-ended and can contain anything)",
+    "required": false,
+    "expected-type": "dynamic_object"
   }
 }
 """
