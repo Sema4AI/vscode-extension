@@ -52,6 +52,7 @@ class _ExpectedTypeEnum(Enum):
     mcp_server_tools = "mcp_server_tools"
     map_string_object = "map[string,object]"
     version_v2 = "version_v2"
+    dynamic_object = "dynamic_object"
 
 
 class _YamlNodeKind(Enum):
@@ -483,13 +484,18 @@ class Validator:
                     continue
                 current_stack_as_str.append(part)
                 parent_entry = self._spec_entries.get("/".join(current_stack_as_str))
-                if (
-                    parent_entry
-                    and parent_entry.expected_type.expected_type.value.startswith(
+                if parent_entry:
+                    if parent_entry.expected_type.expected_type.value.startswith(
                         "map[string,object]"
-                    )
-                ):
-                    skip_next = True
+                    ):
+                        skip_next = True
+                    elif (
+                        parent_entry.expected_type.expected_type.value
+                        == "dynamic_object"
+                    ):
+                        # i.e.: we have a dynamic_object and we are validating a field inside it.
+                        # In this case, we can ignore the fact that the field is not defined.
+                        return
 
             entry = self._spec_entries.get("/".join(current_stack_as_str))
 
@@ -1197,16 +1203,21 @@ class Validator:
                         node=yaml_node.data.node,
                     )
                 else:
-                    relative_to: str | None = spec_node.data.expected_type.relative_to
-                    assert relative_to, (
-                        f"Expected relative_to to be set in {spec_node.data.path}"
-                    )
-
+                    relative_to: str = spec_node.data.expected_type.relative_to or ""
                     error_or_path = self._get_node_value_points_to_path(
                         spec_node.data.path, yaml_node, relative_to
                     )
                     if isinstance(error_or_path, Error):
                         yield error_or_path
+
+            elif (
+                spec_node.data.expected_type.expected_type
+                == _ExpectedTypeEnum.dynamic_object
+            ):
+                # i.e.: we have a dynamic_object and we are validating a field inside it.
+                # In this case, we don't need any validation and we don't need to recurse into
+                # the children (as anything can be defined inside a dynamic_object).
+                return
 
             else:
                 raise Exception(
@@ -1260,10 +1271,25 @@ class Validator:
                     node=yaml_node.data.node,
                 )
             else:
-                if not relative_to.startswith("."):
-                    relative_to = "./" + relative_to
+                # Check if path is a Windows path or a Unix path
+                value_text_is_absolute_path = value_text.startswith(
+                    "/"
+                ) or value_text.startswith("\\")
+                value_text_is_windows_absolute_path = (
+                    len(value_text) > 1 and value_text[1] == ":"
+                )
 
-                p = (self._agent_root_dir / relative_to / value_text).absolute()
+                # Look into the relative to guide
+                if relative_to == "" and (
+                    value_text_is_absolute_path or value_text_is_windows_absolute_path
+                ):
+                    # Treat this as an absolute path
+                    p = Path(value_text).absolute()
+                else:
+                    # Treat this as a relative path to the agent root dir
+                    if not relative_to.startswith("."):
+                        relative_to = "./" + relative_to
+                    p = (self._agent_root_dir / relative_to / value_text).absolute()
 
                 path_exists: bool = p.exists()
 
