@@ -11,6 +11,8 @@ agent-package:
       reasoning: enabled
       runbook: runbook.md
       action-packages: []
+      agent-settings:
+        ignore-anything: true
       mcp-servers:
         - name: file-system-server
           transport: stdio

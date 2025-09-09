@@ -388,6 +388,11 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   "agent-package/agents/runbooks": {
     "description": "Please use 'runbook' instead",
     "deprecated": true
+  },
+  "agent-package/agents/agent-settings": {
+    "description": "Section to describe the agent settings (this field is currently open-ended and can contain anything)",
+    "required": false,
+    "expected-type": "dynamic_object"
   }
 }
 """
