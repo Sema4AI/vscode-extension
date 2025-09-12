@@ -1,5 +1,8 @@
 ## Unreleased
 
+
+## New in 2.14.5 (2025-09-12)
+
 - Update `Agent CLI` to `2.2.0`
 - Update `Action Server` to `2.14.0`
 - Add validation for document-intelligence in agent-spec
