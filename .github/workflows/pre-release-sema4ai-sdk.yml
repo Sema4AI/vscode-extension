@@ -79,7 +79,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
-        run: npx ovsx publish sema4ai-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        run: npx ovsx publish sema4ai-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
@@ -100,7 +100,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
-        run: npx ovsx publish sema4ai-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        run: npx ovsx publish sema4ai-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
@@ -121,7 +121,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
-        run: npx ovsx publish sema4ai-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        run: npx ovsx publish sema4ai-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
@@ -142,6 +142,6 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
-        run: npx ovsx publish sema4ai-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN
+        run: npx ovsx publish sema4ai-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
