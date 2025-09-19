@@ -64,7 +64,7 @@ import {
     updateActionInputsMetadata,
 } from "./actionInputs";
 import { langServer } from "../extension";
-import { startDataServerAndGetInfo, verifyDataExtensionIsInstalled } from "../dataExtension";
+import { fetchDataServerStatus, verifyDataExtensionIsInstalled } from "../dataExtension";
 
 export interface QuickPickItemAction extends QuickPickItem {
     actionPackageUri: vscode.Uri;
@@ -663,7 +663,12 @@ advised to regenerate it as it may not work with future versions of the extensio
                         progress.report({
                             message: "Waiting for data server info... ",
                         });
-                        const dataServerInfo = await startDataServerAndGetInfo();
+
+                        const dataServerStatus = await fetchDataServerStatus();
+                        if (!dataServerStatus) {
+                            return false;
+                        }
+                        const dataServerInfo = dataServerStatus["data"];
                         if (!dataServerInfo) {
                             window.showErrorMessage(
                                 "Unable to run (error getting local data server connection info):\n" +
