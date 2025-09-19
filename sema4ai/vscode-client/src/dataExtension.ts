@@ -90,7 +90,9 @@ export async function fetchDataServerStatus(): Promise<any | null> {
         async () => {
             const status = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
             if (!status["success"]) {
-                window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
+                window.showErrorMessage(
+                    "Unable to get the data server status. Please start the data server and try again."
+                );
                 return null;
             }
             if (!status["data"]["is_running"]) {
