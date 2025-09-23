@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Improve the error messages when data server is not running
+
 ## New in 2.15.0 (2025-09-12)
 
 - Update `Agent CLI` to `2.2.0`

@@ -9,7 +9,7 @@ import { listAndAskRobotSelection } from "./activities";
 import { ActionResult, ActionServerVerifyLoginOutput, ActionServerListOrganizationsOutput } from "./protocols";
 import { Tool, getToolVersion, downloadTool } from "./tools";
 import { langServer } from "./extension";
-import { fetchDataServerStatus } from "./robo/dataSourceHandling";
+import { fetchDataServerStatus } from "./dataExtension";
 import { convertDataServerInfoToEnvVar } from "./robo/actionPackage";
 
 const ACTION_SERVER_DEFAULT_PORT = 8082;

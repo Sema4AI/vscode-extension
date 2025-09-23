@@ -3,12 +3,7 @@ import { logError, OUTPUT_CHANNEL } from "../channel";
 import { RobotEntry, treeViewIdToTreeDataProvider } from "../viewsCommon";
 import { DatasourceInfo, DataSourceState } from "../protocols";
 import { langServer } from "../extension";
-import {
-    DATA_SERVER_STATUS_COMMAND_ID,
-    DATABASE_ADD_COMMAND_ID,
-    startDataServerAndGetInfo,
-    verifyDataExtensionIsInstalled,
-} from "../dataExtension";
+import { DATABASE_ADD_COMMAND_ID, verifyDataExtensionIsInstalled, fetchDataServerStatus } from "../dataExtension";
 import { computeDataSourceState, DataServerConfig, getDataSourceCaption } from "./actionPackage";
 import { sleep } from "../time";
 import { findActionPackagePath } from "../actionServer";
@@ -210,16 +205,6 @@ async function dropSingleDataSource(dataSource: DatasourceInfo, dataServerInfo: 
     return true;
 }
 
-export async function fetchDataServerStatus(): Promise<any | null> {
-    return window.withProgress(
-        { location: ProgressLocation.Notification, title: "Getting data server status...", cancellable: false },
-        async () => {
-            const status = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
-            return status["success"] ? status : null;
-        }
-    );
-}
-
 async function resolveActionPackageUri(entry?: RobotEntry): Promise<Uri | undefined> {
     if (entry) return entry.uri;
 
@@ -232,14 +217,15 @@ export const setupDataSource = async (entry?: RobotEntry) => {
         return;
     }
 
-    const dataServerInfo = await startDataServerAndGetInfo();
-    if (!dataServerInfo) {
-        window.showErrorMessage(
-            "Unable to run (error getting local data server connection info):\n" +
-                JSON.stringify(dataServerInfo, null, 4)
-        );
-        return false;
+    if (!(await verifyDataExtensionIsInstalled())) {
+        return;
     }
+    const dataServerStatus = await fetchDataServerStatus();
+    if (!dataServerStatus) {
+        return;
+    }
+
+    const dataServerInfo = dataServerStatus["data"];
 
     const datasource: DatasourceInfo = entry.extraData.datasource;
     OUTPUT_CHANNEL.appendLine("setupDataSource: " + JSON.stringify(datasource, null, 4));
@@ -269,7 +255,6 @@ export async function dropDataSource(entry?: RobotEntry) {
     }
     const dataServerStatus = await fetchDataServerStatus();
     if (!dataServerStatus) {
-        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
 
@@ -356,7 +341,6 @@ export async function dropAllDataSources(entry?: RobotEntry) {
 
     const dataServerStatus = await fetchDataServerStatus();
     if (!dataServerStatus) {
-        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
 
@@ -457,7 +441,6 @@ export async function setupAllDataSources(entry?: RobotEntry) {
 
     const dataServerStatus = await fetchDataServerStatus();
     if (!dataServerStatus) {
-        window.showErrorMessage("Unable to get the data server status. Please start the data server and try again.");
         return;
     }
 
