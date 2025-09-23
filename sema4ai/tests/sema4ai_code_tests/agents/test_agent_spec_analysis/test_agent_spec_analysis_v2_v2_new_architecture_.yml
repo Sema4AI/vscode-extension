@@ -2,7 +2,7 @@
     (found 'new_enum_value').
   range:
     end:
-      character: 40
+      character: 38
       line: 11
     start:
       character: 10

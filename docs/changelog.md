@@ -1,6 +1,7 @@
 ## Unreleased
 
 - Improve the error messages when data server is not running
+- Agent Spec validation on enums relaxed to warnings.
 
 ## New in 2.15.0 (2025-09-12)
 

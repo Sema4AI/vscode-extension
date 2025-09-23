@@ -1162,6 +1162,7 @@ class Validator:
                         yield Error(
                             message=f"Expected {spec_node.data.path} to be one of {enum_values} (found {yaml_node_text!r}).",
                             node=yaml_node.data.node,
+                            severity=Severity.warning,
                         )
 
                     elif (
