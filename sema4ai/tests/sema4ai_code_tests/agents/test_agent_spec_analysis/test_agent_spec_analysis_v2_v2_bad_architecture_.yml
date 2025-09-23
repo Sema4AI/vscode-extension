@@ -1,5 +1,5 @@
 - message: Expected agent-package/agents/architecture to be one of ['agent', 'plan_execute']
-    (found 'bad-architecture').
+    (found 'new_enum_value').
   range:
     end:
       character: 40
@@ -7,5 +7,5 @@
     start:
       character: 10
       line: 11
-  severity: 1
+  severity: 2
   source: sema4ai

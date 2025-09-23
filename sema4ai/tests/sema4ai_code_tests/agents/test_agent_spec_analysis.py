@@ -26,11 +26,11 @@ def bad_spec_version(agent_path):
     agent_spec.write_text(txt.replace("spec-version: v1", "spec-version: 22"))
 
 
-def v2_bad_architecture(agent_path):
+def v2_new_architecture(agent_path):
     agent_spec = agent_path / "agent-spec.yaml"
     txt = agent_spec.read_text()
     agent_spec.write_text(
-        txt.replace("architecture: plan_execute", "architecture: bad-architecture")
+        txt.replace("architecture: plan_execute", "architecture: new_enum_value")
     )
 
 
@@ -175,7 +175,7 @@ def test_agent_spec_analysis(datadir, scenario, data_regression) -> None:
     "scenario",
     [
         ok,
-        v2_bad_architecture,
+        v2_new_architecture,
         v2_bad_action_package_version,
         v2_bad_action_package_name,
     ],
