@@ -1,0 +1,11 @@
+- message: Expected agent-package/agents/architecture to be one of ['agent', 'plan_execute']
+    (found 'new_enum_value').
+  range:
+    end:
+      character: 38
+      line: 11
+    start:
+      character: 10
+      line: 11
+  severity: 2
+  source: sema4ai
