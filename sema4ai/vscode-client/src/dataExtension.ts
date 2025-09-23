@@ -91,12 +91,16 @@ export async function fetchDataServerStatus(): Promise<any | null> {
             const status = await commands.executeCommand(DATA_SERVER_STATUS_COMMAND_ID);
             if (!status["success"]) {
                 window.showErrorMessage(
-                    "Unable to get the data server status. Please start the data server and try again."
+                    "Unable to get the data server status. Got error: " +
+                        status["error"]["message"] +
+                        ". Please start the data server from Sema4.ai Studio and try again."
                 );
                 return null;
             }
             if (!status["data"]["is_running"]) {
-                window.showErrorMessage("The data server is not running. Please start the data server and try again.");
+                window.showErrorMessage(
+                    "The data server is not running. Please start the data server from Sema4.ai Studio and try again."
+                );
                 return null;
             }
             return status;
