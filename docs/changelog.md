@@ -2,6 +2,7 @@
 
 - Improve the error messages when data server is not running
 - Agent Spec validation on enums relaxed to warnings.
+- Update RCC to v20.3.1, embeds signed `uv` 0.8.17 that is used when building environments
 
 ## New in 2.15.0 (2025-09-12)
 
