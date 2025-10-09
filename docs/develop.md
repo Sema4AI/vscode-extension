@@ -35,10 +35,13 @@ at `.venv/Scripts/python` should suffice.
 
 -- in VSCode that'd be using the `Python: Select Interpreter` command.
 
+If everything is setup correctly
+`python -m dev`
+..lists the available commands to build etc.
+
 ## Building a VSIX locally
 
-To build a VSIX, follow the steps in https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-(if everything is setup, `vsce package` from the `sema4ai` -directory should do it).
+`python -m dev local_install`
 
 ## Adding a new command
 

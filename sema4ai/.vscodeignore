@@ -15,3 +15,6 @@ vscode-client/src
 src/build/**
 src/dist/**
 src/sema4ai_code.egg-info/**
+output/**
+node_modules/http-proxy-agent/test/**
+node_modules/agent-base/test/**
