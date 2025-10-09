@@ -1,61 +1,52 @@
 #!/bin/bash -e
 
-# Navigate to the script's directory
-cd "$(dirname "$0")"
+# Store the script directory path
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_PATH"
 
-# Define the virtual environment directory name
-venvDir=venv  # Naming it differently from Poetry's ".venv" to avoid conflicts
+PROJECT_NAME="sdk"
+RCC_PATH="$SCRIPT_PATH/rcc"
+CONDA_YAML="$SCRIPT_PATH/develop.yaml"
+ACTIVATE_PATH="$SCRIPT_PATH/activate.sh"
 
-# Check if the script is being sourced or executed
-if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    echo "Activating an already existing virtual environment."
-    source "../$venvDir/bin/activate"
-    return  # Stop the rest of the script without exiting the shell
+echo
+
+# Get RCC binary based on platform
+RCC_URL="https://cdn.sema4.ai/rcc/releases/v20.3.1"
+if [[ "$(uname)" == "Darwin" ]]; then
+    RCC_URL="$RCC_URL/macos-arm64/rcc"
+else
+    RCC_URL="$RCC_URL/linux64/rcc"
 fi
 
-# Download RCC binary if it does not exist
-if [ ! -f rcc ]; then
-    system=$(uname -s)
-    case ${system} in
-        Linux*)     url=https://downloads.robocorp.com/rcc/releases/v18.5.0/linux64/rcc;;
-        Darwin*)    url=https://downloads.robocorp.com/rcc/releases/v18.5.0/macos64/rcc;;
-        *)          echo "Invalid platform '$system' detected!"; exit 1;;
-    esac
-    curl -o rcc $url
-    chmod +x rcc
+# Download RCC if it doesn't exist
+if [ ! -f "$RCC_PATH" ]; then
+    curl -o "$RCC_PATH" "$RCC_URL" --fail || {
+        echo -e "\nDevelopment environment setup failed!"
+        exit 1
+    }
+    chmod +x "$RCC_PATH"
 fi
 
-# Check if the virtual environment directory exists
-if [ -d "$venvDir" ]; then
+# Check if environment exists and ask for clean environment
+if [ -f "$ACTIVATE_PATH" ]; then
     echo "Detected existing development environment."
-    read -r -p "Do you want to create a clean environment? [Y/N] " response
+    read -p "Do you want to create a clean environment? [y/N] " response
     if [[ "$response" =~ ^[Yy]$ ]]; then
-        echo "Replacing existing environment with a clean one..."
-        ./rcc venv development-environment.yaml --space robocorp-development --force --sema4ai
-    else
-        echo "Using existing development environment."
+        echo "Creating a clean environment..."
+        "$RCC_PATH" ht vars "$CONDA_YAML" --space "$PROJECT_NAME" --sema4ai > "$ACTIVATE_PATH"
     fi
 else
-    echo "Creating a new environment..."
-    ./rcc venv development-environment.yaml --space robocorp-development --force --sema4ai
+    echo "Creating a clean environment..."
+    "$RCC_PATH" ht vars "$CONDA_YAML" --space "$PROJECT_NAME" --sema4ai > "$ACTIVATE_PATH"
 fi
 
 # Activate the virtual environment
-source "./$venvDir/bin/activate"
+echo "Calling: source $ACTIVATE_PATH"
+chmod +x "$ACTIVATE_PATH"
+source "$ACTIVATE_PATH"
 
-# Install dependencies
-python -m pip install poetry==1.8.3
+echo -e "\nDeveloper env. ready!"
 
-# Move up one directory to the project root
-cd ..
-yarn install
-poetry install
-
-# Open the workspace in VS Code
-code ./.vscode/sema4ai-code.code-workspace || {
-    echo "Running VSCode failed!"
-    exit 1
-}
-
-echo "Setup completed successfully."
-echo "To activate the environment, source this script: source $(basename "$0")"
+# Clean up variables
+unset RCC_PATH CONDA_YAML ACTIVATE_PATH SCRIPT_PATH PROJECT_NAME

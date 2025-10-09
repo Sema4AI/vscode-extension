@@ -1,3 +1,2 @@
-/rcc*
-/action-server*
-/agent-cli*
+rcc*
+activate.*

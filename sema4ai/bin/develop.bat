@@ -1,49 +1,53 @@
 @echo off
 
+pushd .
 SET scriptPath=%~dp0
 SET scriptPath=%scriptPath:~0,-1%
 cd /D %scriptPath%
-SET venvDir=venv
 
+SET projectName=sdk
+SET rccPath=%scriptPath%\rcc.exe
+SET condaYaml=%scriptPath%\develop.yaml
+SET activatePath=%scriptPath%\activate.bat
+
+echo 
 :: Get RCC, binary with which we're going to create the master environment.
-SET rccUrl=https://downloads.robocorp.com/rcc/releases/v18.5.0/windows64/rcc.exe
-IF NOT EXIST ".\rcc.exe" (
-    curl -o rcc.exe %rccUrl% --fail || goto venv_error
+SET rccUrl=https://cdn.sema4.ai/rcc/releases/v20.3.1/windows64/rcc.exe
+IF NOT EXIST "%rccPath%" (
+    curl -o %rccPath% %rccUrl% --fail || goto env_error
 )
 
 :: Create a new or replace an already existing virtual environment.
-IF EXIST "%scriptPath%\%venvDir%" (
+IF EXIST "%activatePath%" (
     echo Detected existing development environment.
     echo Do you want to create a clean environment? [Y/N]
     choice /C YN /N /M "Select [Y]es (clean environment) or [N]o (use existing):"
-    IF ERRORLEVEL 2 GOTO venv_setup
+    IF ERRORLEVEL 2 GOTO env_setup
 )
 
-:venv_new
+:env_new
 echo Creating a clean environment...
-%scriptPath%\rcc.exe venv %scriptPath%\development-environment.yaml --space sema4ai-vscode-development --force --sema4ai
+echo command: %rccPath% ht vars %condaYaml% --space %projectName% --sema4ai > %activatePath%
+%rccPath% ht vars %condaYaml% --space %projectName% --sema4ai > %activatePath%
 
-:venv_setup
+:env_setup
 :: Activate the virtual environment and install dependencies everytime.
-call .\%venvDir%\Scripts\activate.bat
-python -m pip install poetry==1.8.3
-cd /D %scriptPath%\..
+echo calling: call %activatePath%
+call %activatePath%
 
-call yarn install  || goto vscode_error
-call poetry install  || goto vscode_error
-
-code .\.vscode\sema4ai-code.code-workspace || goto vscode_error
+echo.
+echo Developer env. ready!
 goto end
 
-:venv_error
+:env_error
 echo.
 echo Development environment setup failed!
 goto end
 
-:vscode_error
-echo.
-echo Running VSCode failed!
-goto end
-
 :end
+SET rccPath=
+SET condaYamlPath=
+SET scriptPath=
+SET projectName=
+popd
 pause
