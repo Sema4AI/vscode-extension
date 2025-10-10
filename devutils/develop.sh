@@ -12,7 +12,7 @@ ACTIVATE_PATH="$SCRIPT_PATH/activate.sh"
 echo
 
 # Get RCC binary based on platform
-RCC_URL="https://cdn.sema4.ai/rcc/releases/v20.3.1"
+RCC_URL="https://cdn.sema4.ai/rcc/releases/v20.3.2"
 if [[ "$(uname)" == "Darwin" ]]; then
     RCC_URL="$RCC_URL/macos-arm64/rcc"
 else

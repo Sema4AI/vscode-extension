@@ -10,9 +10,9 @@ SET rccPath=%scriptPath%\rcc.exe
 SET condaYaml=%scriptPath%\develop.yaml
 SET activatePath=%scriptPath%\activate.bat
 
-echo 
+echo
 :: Get RCC, binary with which we're going to create the master environment.
-SET rccUrl=https://cdn.sema4.ai/rcc/releases/v20.3.1/windows64/rcc.exe
+SET rccUrl=https://cdn.sema4.ai/rcc/releases/v20.3.2/windows64/rcc.exe
 IF NOT EXIST "%rccPath%" (
     curl -o %rccPath% %rccUrl% --fail || goto env_error
 )

@@ -3,7 +3,7 @@
 - Improve the error messages when data server is not running
 - Agent Spec validation on enums relaxed to warnings.
 - Embedding signed `uv` v0.8.17
-  - RCC v20.3.1
+  - RCC v20.3.2
   - Action Server 2.16.0
 
 ## New in 2.15.0 (2025-09-12)
