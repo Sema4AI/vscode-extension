@@ -8,7 +8,7 @@ jobs:
   build_environments:
     runs-on: ${{ matrix.os }}
     env:
-      RCC_VERSION: v20.3.2
+      RCC_VERSION: v20.3.3
     strategy:
       fail-fast: false
       matrix:
