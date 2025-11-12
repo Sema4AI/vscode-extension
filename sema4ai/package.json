@@ -14,7 +14,7 @@
         "url": "https://github.com/Sema4AI/vscode-extension/.git"
     },
     "license": "SEE LICENSE",
-    "version": "2.15.0",
+    "version": "2.16.0",
     "icon": "images/icon.png",
     "engines": {
         "vscode": "^1.65.0"
