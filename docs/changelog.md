@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.16.0 (2025-11-12)
+
 - Improve the error messages when data server is not running
 - Agent Spec validation on enums relaxed to warnings.
 - Embedding signed `uv` v0.8.17
