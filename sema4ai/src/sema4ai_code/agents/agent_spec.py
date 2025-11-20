@@ -194,6 +194,19 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "required": false,
     "expected-type": "string"
   },
+  "agent-package/agents/semantic-data-models": {
+    "description": "Section to indicate semantic data models for the agent.",
+    "required": false,
+    "expected-type": "list"
+  },
+  "agent-package/agents/semantic-data-models/name": {
+    "description": "Relative path under \"semantic-data-models\" for the semantic data model file. Example: \"customer-analytics.yaml\"",
+    "required": true,
+    "expected-type": {
+      "type": "file",
+      "relative-to": "./semantic-data-models"
+    }
+  },
   "agent-package/agents/mcp-servers": {
     "description": "Section to define MCP (Model Context Protocol) servers that the agent can connect to.",
     "required": false,
@@ -370,6 +383,21 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
   },
   "agent-package/agents/metadata/worker-config/document-type": {
     "description": "Document type (required if 'worker-config' is specified)",
+    "required": true,
+    "expected-type": "string"
+  },
+  "agent-package/agents/selected-tools": {
+    "description": "Selected tools for the agent",
+    "required": false,
+    "expected-type": "object"
+  },
+  "agent-package/agents/selected-tools/tools": {
+    "description": "List of the selected tools for the agent",
+    "required": false,
+    "expected-type": "list"
+  },
+  "agent-package/agents/selected-tools/tools/name": {
+    "description": "Name of the selected tools for the agent",
     "required": true,
     "expected-type": "string"
   },
