@@ -70,7 +70,7 @@ To add a new setting, add it at the `SETTINGS` in `/sema4ai/codegen/settings.py`
 
 ## Updating the dependencies needed
 
-The dependencies are set based in `/robocorp/bin/create_env/condaXXX.yaml` files.
+The dependencies are set based in `/sema4ai/bin/create_env/condaXXX.yaml` files.
 When one of the conda-yaml files are updated, one needs to:
 
 Log into the Robocorp Control Room (sorry, you have to be an employee for that
