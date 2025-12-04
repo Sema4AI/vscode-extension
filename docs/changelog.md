@@ -1,5 +1,11 @@
 ## Unreleased
 
+## New in 2.17.1 (2025-12-04)
+
+- CVE updates
+
+## New in 2.17.0 (2025-11-20)
+
 - Action Server 2.17.0
 
 ## New in 2.16.0 (2025-11-12)
