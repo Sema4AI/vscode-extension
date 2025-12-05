@@ -2,21 +2,31 @@
 
 🚀 Base installations and first run
 
-Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to get the different Node versions easily
+### Prerequisites
 
-- `nvm install 20.12.2` installs correct Node version
-- `nvm use 20.12.2` to make sure you've switched to the correct version
-- If you're using `yarn` enable (v1.22.22): `corepack enable`
-- Verify sure that `node`, `npm` and `yarn` are working
+- **Node.js**: Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to manage Node versions
+  - `nvm install 20.12.2` - installs correct Node version
+  - `nvm use 20.12.2` - switch to the correct version
+  - Verify installation:
+    - `node --version`
+    - `npm --version`
 
-  - `node --version`
-  - `npm --version`
-  - `yarn --version`
+- **Python**: Python 3.11 (see [pyproject.toml](/sema4ai/pyproject.toml) for exact version requirements)
+- **Poetry**: For Python dependency management (`pip install poetry`)
+- **vsce**: For packaging VSIX files (`npm install -g vsce@2.15.0`)
 
-- Go to `/sema4ai` -folder and run: `yarn install`.
-- Now open `/sema4ai/.vscode/sema4ai-code.code-workspace` in VS Code and run debug
-  - ![](/docs/vscode-workspace.png)
-- A new VS Code window should pop-up with the VS Code extension in play.
+### Initial Setup
+
+1. Go to `/sema4ai` folder and install Node dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Set up Python environment (see "Creating a local environment for python backend development" below)
+
+3. Open `/sema4ai/.vscode/sema4ai-code.code-workspace` in VS Code and run debug
+   - ![](/docs/vscode-workspace.png)
+   - A new VS Code window should pop-up with the VS Code extension in play.
 
 ## Creating a local environment for python backend development
 
@@ -26,22 +36,94 @@ Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-up
 > Once you've created the env, activate it & then continue with the development installation.
 > For information regarding which Python Version you should use, please consult the [pyproject.toml](/sema4ai/pyproject.toml) file.
 
-For local development, `poetry` should be used to install the libraries needed,
-so, head on to `/sema4ai` and do `poetry install` to get your python
-environment setup.
+### Setup Steps
 
-If everything went well, just pointing your IDE to use the python executable
-at `.venv/Scripts/python` should suffice.
+1. Navigate to `/sema4ai` directory
+2. Install Python dependencies with Poetry:
+   ```bash
+   poetry install
+   ```
+3. Configure your IDE to use the Python interpreter:
+   - **VS Code**: Use the `Python: Select Interpreter` command and select `.venv/Scripts/python` (Windows) or `.venv/bin/python` (Linux/Mac)
+   - The virtual environment will be created in `.venv/` by Poetry
 
--- in VSCode that'd be using the `Python: Select Interpreter` command.
+### Available Python Dev Commands
 
-If everything is setup correctly
-`python -m dev`
-..lists the available commands to build etc.
+From the `/sema4ai` directory, run `python -m dev` to see all available commands. Common ones include:
+
+- `python -m dev codegen` - Generate code (package.json, constants, etc.)
+- `python -m dev local_install` - Build and install VSIX locally
+- `python -m dev vendor-robocorp-ls-core` - Vendor the language server core
+- `python -m dev remove-vendor-robocorp-ls-core` - Remove vendored core
+- `python -m dev set-version <version>` - Set version in all files
+- `python -m dev set-rcc-version <version>` - Set RCC version
+- `python -m dev ruff_format` - Check Python formatting
+- `python -m dev ruff_format --format` - Format Python code
+
+## Building and Compiling
+
+### TypeScript/Node.js
+
+From the `/sema4ai` directory:
+
+- **Compile TypeScript**: `npm run compile`
+- **Watch mode** (auto-compile on changes): `npm run watch`
+- **Format check**: `npm run prettier`
+- **Format fix**: `npm run prettier-fix`
+
+### Python
+
+From the `/sema4ai` directory:
+
+- **Format Python code**: `python -m dev ruff_format --format`
+- **Check Python formatting**: `python -m dev ruff_format`
+- **Generate code** (after adding commands/settings): `python -m dev codegen`
+- **Vendor language server core**: `python -m dev vendor-robocorp-ls-core`
 
 ## Building a VSIX locally
 
-`python -m dev local_install`
+From the `/sema4ai` directory:
+
+```bash
+python -m dev local_install
+```
+
+This will:
+1. Vendor the language server core
+2. Package the extension as a VSIX
+3. Install it in VS Code
+4. Remove the vendored core
+
+Alternatively, to just package without installing:
+```bash
+python -m dev vendor-robocorp-ls-core
+vsce package
+python -m dev remove-vendor-robocorp-ls-core
+```
+
+## Testing
+
+### TypeScript Tests
+
+From the `/sema4ai` directory:
+
+```bash
+npm test
+```
+
+This will compile the TypeScript code and run the test suite located in `vscode-client/src/tests/`.
+
+### Python Tests
+
+From the `/sema4ai/tests` directory:
+
+```bash
+poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv -n 1 -m "not data_server and not rcc_env" .
+```
+
+For integration tests, see `/sema4ai/tests/sema4ai_code_tests/test_vscode_integration.py`.
+
+Note: Tests require the Python environment to be set up with `poetry install` (see "Creating a local environment for python backend development" below).
 
 ## Adding a new command
 
@@ -68,30 +150,19 @@ Note: at least one integration test for each action must be added in
 To add a new setting, add it at the `SETTINGS` in `/sema4ai/codegen/settings.py` and then execute
 (in a shell in the `/sema4ai` directory) `python -m dev codegen`.
 
-## Updating the dependencies needed
+## Updating the extension Python environment
 
-The dependencies are set based in `/robocorp/bin/create_env/condaXXX.yaml` files.
-When one of the conda-yaml files are updated, one needs to:
+We prebuilt the Python env. that the extension it self needs using RCC.
 
-Log into the Robocorp Control Room (sorry, you have to be an employee for that
-right now), then go to `Environment pre-builts`, then go to `Unattended Processes`,
-and run the related processes with `Run with input data`, passing the related
-`conda.yaml` files as input data.
-
-After the runs are done, the file:
-
-`/sema4ai/vscode-client/src/rcc.ts`
-
-needs to be updated to set the `BASENAME_PREBUILT_XXX` global variables based
-on the new paths.
-
-Also, the `pyproject.toml` should be updated so that the python development environment
-is updated accordingly.
+1. The dependencies are set based in [`/sema4ai/bin/create_env/`](/sema4ai/bin/create_env/) `conda.yaml` files.
+   - Update all of these in sync  
+3. Once updated the environment builds are handled by GHA
+   - https://github.com/Sema4AI/vscode-extension/actions/workflows/build_environments.yaml
+4. After the runs are done, the file: `/sema4ai/vscode-client/src/rcc.ts` needs to be updated to set the `BASENAME_PREBUILT_XXX` global variables based on the new paths.
+5. Also, the `pyproject.toml` should be updated so that the python development environment is updated accordingly.
 
 ## Updating RCC
 
-- Open a shell at the proper place (something as `X:\vscode-robot\vscode-extension\sema4ai`)
-
-- Update version (`python -m dev set-rcc-version v11.14.5`).
-
+- Check RCC versions from [changelog](https://github.com/Sema4AI/rcc/blob/master/docs/changelog.md)
+- In a shell in the `/sema4ai` directory run: `python -m dev set-rcc-version 20.3.3`
 - Remove the rcc executable from the `bin` folder to redownload the next time the extension is executed.
