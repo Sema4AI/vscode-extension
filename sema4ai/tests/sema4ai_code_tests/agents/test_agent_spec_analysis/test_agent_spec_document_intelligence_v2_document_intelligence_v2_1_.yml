@@ -1,0 +1,10 @@
+- message: Unexpected spec-version (only `v1` and `v2` are currently supported).
+  range:
+    end:
+      character: 18
+      line: 1
+    start:
+      character: 16
+      line: 1
+  severity: 2
+  source: sema4ai

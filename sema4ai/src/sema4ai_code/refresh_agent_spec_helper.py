@@ -118,6 +118,7 @@ def _fix_agent_spec(agent_spec: dict) -> None:
                     "runbook": "runbook.md",
                     "action-packages": [],
                     "knowledge": [],
+                    "document-intelligence": "v2.1",
                     "metadata": {"mode": "conversational"},
                 }
             ],

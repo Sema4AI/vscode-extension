@@ -106,6 +106,43 @@ def v2_bad_mcp_transport(agent_path):
     )
 
 
+def v2_document_intelligence_v2(agent_path):
+    """Test that document-intelligence: v2 is valid."""
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    # Add document-intelligence: v2 after reasoning line
+    agent_spec.write_text(
+        txt.replace(
+            "reasoning: enabled", "reasoning: enabled\n      document-intelligence: v2"
+        )
+    )
+
+
+def v2_document_intelligence_v2_1(agent_path):
+    """Test that document-intelligence: v2.1 is valid."""
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    # Add document-intelligence: v2.1 after reasoning line
+    agent_spec.write_text(
+        txt.replace(
+            "reasoning: enabled",
+            "reasoning: enabled\n      document-intelligence: v2.1",
+        )
+    )
+
+
+def v2_document_intelligence_invalid(agent_path):
+    """Test that document-intelligence with invalid value is rejected."""
+    agent_spec = agent_path / "agent-spec.yaml"
+    txt = agent_spec.read_text()
+    # Add invalid document-intelligence value after reasoning line
+    agent_spec.write_text(
+        txt.replace(
+            "reasoning: enabled", "reasoning: enabled\n      document-intelligence: v3"
+        )
+    )
+
+
 def v2_unreferenced_action_package(agent_path):
     import shutil
 
@@ -197,4 +234,17 @@ def test_agent_spec_analysis_v2_agent3(datadir, scenario, data_regression) -> No
     [ok, v2_bad_mcp_transport],
 )
 def test_agent_spec_analysis_21_agent4(datadir, scenario, data_regression) -> None:
+    check("agent4", datadir, scenario, data_regression)
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [
+        v2_document_intelligence_v2,
+        v2_document_intelligence_v2_1,
+        v2_document_intelligence_invalid,
+    ],
+)
+def test_agent_spec_document_intelligence(datadir, scenario, data_regression) -> None:
+    """Test document-intelligence field validation with v2, v2.1, and invalid values."""
     check("agent4", datadir, scenario, data_regression)
