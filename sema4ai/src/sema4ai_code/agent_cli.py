@@ -172,6 +172,7 @@ class AgentCli:
             agent_spec = yaml.load(stream.read())
 
         agent_spec["agent-package"]["agents"][0]["name"] = name
+        agent_spec["agent-package"]["agents"][0]["document-intelligence"] = "v2.1"
 
         with open(package_path, "w") as file:
             yaml.dump(agent_spec, file)
