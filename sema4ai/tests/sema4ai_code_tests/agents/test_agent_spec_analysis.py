@@ -112,7 +112,9 @@ def v2_document_intelligence_v2(agent_path):
     txt = agent_spec.read_text()
     # Add document-intelligence: v2 after reasoning line
     agent_spec.write_text(
-        txt.replace("reasoning: enabled", "reasoning: enabled\n      document-intelligence: v2")
+        txt.replace(
+            "reasoning: enabled", "reasoning: enabled\n      document-intelligence: v2"
+        )
     )
 
 
@@ -122,7 +124,10 @@ def v2_document_intelligence_v2_1(agent_path):
     txt = agent_spec.read_text()
     # Add document-intelligence: v2.1 after reasoning line
     agent_spec.write_text(
-        txt.replace("reasoning: enabled", "reasoning: enabled\n      document-intelligence: v2.1")
+        txt.replace(
+            "reasoning: enabled",
+            "reasoning: enabled\n      document-intelligence: v2.1",
+        )
     )
 
 
@@ -132,7 +137,9 @@ def v2_document_intelligence_invalid(agent_path):
     txt = agent_spec.read_text()
     # Add invalid document-intelligence value after reasoning line
     agent_spec.write_text(
-        txt.replace("reasoning: enabled", "reasoning: enabled\n      document-intelligence: v3")
+        txt.replace(
+            "reasoning: enabled", "reasoning: enabled\n      document-intelligence: v3"
+        )
     )
 
 
