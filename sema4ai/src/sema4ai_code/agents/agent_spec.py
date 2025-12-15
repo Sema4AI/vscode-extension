@@ -346,11 +346,11 @@ AGENT_SPEC_V2: dict[str, Entry] = load_spec(
     "expected-type": "string"
   },
   "agent-package/agents/document-intelligence": {
-    "description": "Document intelligence version to use. Example: \"v2\"",
+    "description": "Document intelligence version to use. Example: \"v2\" or \"v2.1\"",
     "required": false,
     "expected-type": {
       "type": "enum",
-      "values": ["v2"]
+      "values": ["v2", "v2.1"]
     }
   },
   "agent-package/agents/welcome-message": {
