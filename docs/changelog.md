@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Added support for document-intelligence `v2.1` for agent spec
+
+## New in 2.17.0 (2025-12-05)
+
 - Action Server 2.17.0
 
 ## New in 2.16.0 (2025-11-12)
