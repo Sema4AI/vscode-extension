@@ -3,6 +3,7 @@
 ## New in 2.18.0 (2025-12-16)
 
 - Added support for document-intelligence `v2.1` for agent spec
+- Update `Agent CLI` to `2.2.3`
 
 ## New in 2.17.0 (2025-12-05)
 
