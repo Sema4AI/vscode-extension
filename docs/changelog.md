@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.18.0 (2025-12-16)
+
 - Added support for document-intelligence `v2.1` for agent spec
 
 ## New in 2.17.0 (2025-12-05)
