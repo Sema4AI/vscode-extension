@@ -12,9 +12,59 @@ vscode-client/src
 **/.pytest_cache/**
 **/*.pyc
 **/__pycache__
+
+# Build/dist artifacts
 src/build/**
 src/dist/**
 src/sema4ai_code.egg-info/**
 output/**
-node_modules/http-proxy-agent/test/**
-node_modules/agent-base/test/**
+
+# Python caches
+.mypy_cache/**
+.ruff_cache/**
+
+# Dev-only files
+dev.py
+codegen/**
+poetry.lock
+pyproject.toml
+console.ts
+vsce-tree.log
+
+# Config files not needed at runtime
+.nvmrc
+.prettierignore
+.yarnrc.yml
+.editorconfig
+tsconfig.json
+vscode-client/tsconfig.json
+vscode-client/.vscodeignore
+
+# TypeScript source (only need compiled JS)
+vscode-client/**/*.ts
+!vscode-client/**/*.d.ts
+
+# Source maps (not needed in production)
+**/*.js.map
+
+# Test files
+vscode-client/out/tests/**
+
+# Node modules cleanup
+node_modules/**/README.md
+node_modules/**/CHANGELOG.md
+node_modules/**/History.md
+node_modules/**/.travis.yml
+node_modules/**/.eslintrc*
+node_modules/**/.coveralls.yml
+node_modules/**/.npmignore
+node_modules/**/.editorconfig
+node_modules/**/.mocharc.json
+node_modules/**/Makefile
+node_modules/**/karma.conf.js
+node_modules/**/example/**
+node_modules/**/test/**
+node_modules/**/*.map
+node_modules/**/LICENSE*
+node_modules/**/license*
+node_modules/**/.github/**
