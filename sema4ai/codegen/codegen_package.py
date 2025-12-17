@@ -81,6 +81,20 @@ def get_json_contents():
             "vscode-languageclient": "^7.0.0",
             "vscode-nls": "^4.1.2",
         },
+        "main": "./vscode-client/out/extension",
+        "prettier": {
+            "tabWidth": 4,
+            "printWidth": 120,
+            "quoteProps": "preserve",
+            "overrides": [
+                {
+                    "files": "*.yaml",
+                    "options": {
+                        "tabWidth": 2,
+                    },
+                },
+            ],
+        },
         "taskDefinitions": [{"type": "Sema4.ai: dev-task"}],
         "activationEvents": get_activation_events_for_json()
         + views.get_activation_events_for_json()
@@ -156,8 +170,6 @@ def get_json_contents():
             "commands": get_commands_for_json(),
             "menus": get_menus(),
         },
-        "main": "./vscode-client/out/extension",
-        "prettier": {"tabWidth": 4, "printWidth": 120, "quoteProps": "preserve"},
     }
     return base_package_contents
 
