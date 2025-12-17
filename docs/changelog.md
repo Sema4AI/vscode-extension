@@ -1,5 +1,10 @@
 ## Unreleased
 
+## New in 2.19.0 (2025-12-17)
+
+- CVE updates
+- Fixes to .vsix content exclusions
+
 ## New in 2.18.0 (2025-12-16)
 
 - Added support for document-intelligence `v2.1` for agent spec
