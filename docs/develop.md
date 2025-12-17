@@ -5,15 +5,15 @@
 ### Prerequisites
 
 - **Node.js**: Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to manage Node versions
-  - `nvm install 20.12.2` - installs correct Node version
-  - `nvm use 20.12.2` - switch to the correct version
+  - `nvm install 20.19.6` - installs correct Node version
+  - `nvm use 20.19.6` - switch to the correct version
   - Verify installation:
     - `node --version`
     - `npm --version`
 
 - **Python**: Python 3.11 (see [pyproject.toml](/sema4ai/pyproject.toml) for exact version requirements)
 - **Poetry**: For Python dependency management (`pip install poetry`)
-- **vsce**: For packaging VSIX files (`npm install -g vsce@2.15.0`)
+- **vsce**: For packaging VSIX files [@vscode/vsce](https://www.npmjs.com/package/@vscode/vsce) - installed as a dev dependency via npm 
 
 ### Initial Setup
 
@@ -97,7 +97,7 @@ This will:
 Alternatively, to just package without installing:
 ```bash
 python -m dev vendor-robocorp-ls-core
-vsce package
+npm run vsce:package
 python -m dev remove-vendor-robocorp-ls-core
 ```
 
