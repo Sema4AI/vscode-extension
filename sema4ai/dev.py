@@ -113,7 +113,8 @@ class Dev:
             version, os.path.join(root, "sema4ai", "vscode-client", "src", "rcc.ts")
         )
         update_version(
-            version, os.path.join(root, ".github", "workflows", "build_environments.yaml")
+            version,
+            os.path.join(root, ".github", "workflows", "build_environments.yaml"),
         )
 
         print(
