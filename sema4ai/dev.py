@@ -99,16 +99,19 @@ class Dev:
                 contents = stream.read()
 
             new_contents = _fix_rcc_contents_version(contents, version)
-            assert contents != new_contents, (
-                f"Nothing changed after applying new version (file: {filepath})"
-            )
+            if contents == new_contents:
+                print(f"Already at version {version}: {filepath}")
+                return
+
             with open(filepath, "w", encoding="utf-8", newline="\n") as stream:
                 stream.write(new_contents)
 
-        update_version(version, os.path.join(".", "bin", "develop.sh"))
-        update_version(version, os.path.join(".", "bin", "develop.bat"))
-        update_version(version, os.path.join(".", "src", "sema4ai_code", "rcc.py"))
-        update_version(version, os.path.join(".", "vscode-client", "src", "rcc.ts"))
+        update_version(
+            version, os.path.join(root, "sema4ai", "src", "sema4ai_code", "rcc.py")
+        )
+        update_version(
+            version, os.path.join(root, "sema4ai", "vscode-client", "src", "rcc.ts")
+        )
         update_version(
             version,
             os.path.join(root, ".github", "workflows", "build_environments.yaml"),
