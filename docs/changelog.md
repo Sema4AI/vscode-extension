@@ -4,6 +4,7 @@
 
 - CVE updates
 - Fixes to .vsix content exclusions
+- Fix to `document-intelligence` support (not automatically adding it when updating old agents)
 
 ## New in 2.18.0 (2025-12-16)
 
