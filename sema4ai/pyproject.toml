@@ -115,6 +115,21 @@ ignore_missing_imports = true
 module = "robocorp_ls_core.*"
 ignore_missing_imports = true
 
+# comtypes is a Windows-only COM library without type stubs
+[[tool.mypy.overrides]]
+module = "comtypes.*"
+ignore_missing_imports = true
+ignore_errors = true
+
+# Windows-specific modules that use comtypes and ctypes.wintypes (unavailable on Linux)
+[[tool.mypy.overrides]]
+module = "sema4ai_code.inspector.windows.robocorp_windows._config_uiautomation"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "sema4ai_code.inspector.java.robocorp_java._event_pump"
+ignore_errors = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
