@@ -14,7 +14,7 @@
         "url": "https://github.com/Sema4AI/vscode-extension/.git"
     },
     "license": "SEE LICENSE",
-    "version": "2.18.0",
+    "version": "2.19.0",
     "icon": "images/icon.png",
     "engines": {
         "vscode": "^1.65.0"
@@ -22,6 +22,52 @@
     "categories": [
         "Debuggers"
     ],
+    "scripts": {
+        "setup": "npm install",
+        "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
+        "compile": "cd vscode-client && tsc -p ./ && cd ..",
+        "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
+        "pretest": "cd vscode-client && tsc -p ./ && cd ..",
+        "test": "node ./vscode-client/out/tests/runTests.js",
+        "prettier": "npx prettier -c vscode-client/**/*.ts",
+        "prettier-fix": "npx prettier -w vscode-client/**/*.ts",
+        "vsce:package": "vsce package",
+        "vsce:publish": "vsce publish"
+    },
+    "devDependencies": {
+        "@types/adm-zip": "^0.5.0",
+        "@types/mocha": "^2.2.32",
+        "@types/node": "^15.0.00",
+        "@types/rimraf": "^3.0.2",
+        "@types/vscode": "1.65.0",
+        "@vscode/vsce": "^3.2.0",
+        "prettier": "2.4.1",
+        "typescript": "^4.5.4",
+        "vscode-test": "1.5.1"
+    },
+    "dependencies": {
+        "adm-zip": "^0.5.9",
+        "http-proxy-agent": "^2.1.0",
+        "https-proxy-agent": "^2.2.4",
+        "path-exists": "^4.0.0",
+        "rimraf": "^3.0.2",
+        "vscode-languageclient": "^7.0.0",
+        "vscode-nls": "^4.1.2"
+    },
+    "main": "./vscode-client/out/extension",
+    "prettier": {
+        "tabWidth": 4,
+        "printWidth": 120,
+        "quoteProps": "preserve",
+        "overrides": [
+            {
+                "files": "*.yaml",
+                "options": {
+                    "tabWidth": 2
+                }
+            }
+        ]
+    },
     "taskDefinitions": [
         {
             "type": "Sema4.ai: dev-task"
@@ -1629,47 +1675,5 @@
                 }
             ]
         }
-    },
-    "main": "./vscode-client/out/extension",
-    "prettier": {
-        "tabWidth": 4,
-        "printWidth": 120,
-        "quoteProps": "preserve",
-        "overrides": [
-            {
-                "files": "*.yaml",
-                "options": {
-                    "tabWidth": 2
-                }
-            }
-        ]
-    },
-    "scripts": {
-        "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
-        "compile": "cd vscode-client && tsc -p ./ && cd ..",
-        "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
-        "pretest": "cd vscode-client && tsc -p ./ && cd ..",
-        "test": "node ./vscode-client/out/tests/runTests.js",
-        "prettier": "npx prettier -c vscode-client/**/*.ts",
-        "prettier-fix": "npx prettier -w vscode-client/**/*.ts"
-    },
-    "devDependencies": {
-        "@types/adm-zip": "^0.5.0",
-        "@types/mocha": "^2.2.32",
-        "@types/node": "^15.0.00",
-        "@types/rimraf": "^3.0.2",
-        "@types/vscode": "1.65.0",
-        "prettier": "2.4.1",
-        "typescript": "^4.5.4",
-        "vscode-test": "1.5.1"
-    },
-    "dependencies": {
-        "adm-zip": "^0.5.9",
-        "http-proxy-agent": "^2.1.0",
-        "https-proxy-agent": "^2.2.4",
-        "path-exists": "^4.0.0",
-        "rimraf": "^3.0.2",
-        "vscode-languageclient": "^7.0.0",
-        "vscode-nls": "^4.1.2"
     }
 }

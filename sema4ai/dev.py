@@ -77,12 +77,12 @@ class Dev:
         """
 
         def update_version(version, filepath):
-            with open(filepath) as stream:
+            with open(filepath, encoding="utf-8") as stream:
                 contents = stream.read()
 
             new_contents = _fix_contents_version(contents, version)
             assert contents != new_contents
-            with open(filepath, "w") as stream:
+            with open(filepath, "w", encoding="utf-8", newline="\n") as stream:
                 stream.write(new_contents)
 
         update_version(version, os.path.join(".", "package.json"))
@@ -95,14 +95,14 @@ class Dev:
         """
 
         def update_version(version, filepath):
-            with open(filepath) as stream:
+            with open(filepath, encoding="utf-8") as stream:
                 contents = stream.read()
 
             new_contents = _fix_rcc_contents_version(contents, version)
             assert contents != new_contents, (
                 f"Nothing changed after applying new version (file: {filepath})"
             )
-            with open(filepath, "w") as stream:
+            with open(filepath, "w", encoding="utf-8", newline="\n") as stream:
                 stream.write(new_contents)
 
         update_version(version, os.path.join(".", "bin", "develop.sh"))
@@ -213,7 +213,7 @@ class Dev:
         import re
 
         readme = os.path.join(os.path.dirname(__file__), "README.md")
-        with open(readme) as f:
+        with open(readme, encoding="utf-8") as f:
             content = f.read()
 
         tag = self.get_tag()
@@ -240,7 +240,7 @@ class Dev:
         )
 
         assert "apache" not in new_content.lower()
-        with open(readme, "w") as f:
+        with open(readme, "w", encoding="utf-8", newline="\n") as f:
             f.write(new_content)
 
     def generate_license_file(self):
@@ -254,11 +254,11 @@ class Dev:
         with urllib.request.urlopen(request) as response:
             content = response.read().decode("utf-8")
 
-        with open(readme, "w") as f:
+        with open(readme, "w", encoding="utf-8", newline="\n") as f:
             f.write(content)
 
         # Read the content back from LICENSE.txt for verification
-        with open(readme) as f:
+        with open(readme, encoding="utf-8") as f:
             written_content = f.read()
         assert "Sema4.ai End User License Agreement" in written_content
 
