@@ -26,7 +26,6 @@ RCC_TEMPLATE_NAMES = [
     "01-python",
     "02-python-browser",
     "03-python-workitems",
-    "04-python-assistant-ai",
 ]
 
 
