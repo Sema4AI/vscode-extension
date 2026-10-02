@@ -28,9 +28,9 @@ jobs:
             os: macos-15-intel
             rcc_folder: macos64
             # rcc v20.3.x macos64 builds embed an empty uv (only Windows/Linux/macOS arm64
-            # uv binaries are downloaded) and v21+ dropped macOS Intel entirely. v20.2.0 is
-            # the last release that uses the uv from the environment itself (uv in conda yaml).
-            rcc_version: v20.2.0
+            # uv binaries are downloaded) and v21+ dropped macOS Intel entirely. v20.1.1 uses
+            # the uv from the environment itself (uv in conda yaml) and built the 2025-05 zips.
+            rcc_version: v20.1.1
           - name: macos-arm
             os: macos-15
             rcc_folder: macos-arm64
