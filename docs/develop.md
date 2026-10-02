@@ -4,10 +4,10 @@
 
 ### Prerequisites
 
-- **Node.js**: Node 24 (the version is set in [`sema4ai/.nvmrc`](/sema4ai/.nvmrc), which all GitHub workflows also use).
+- **Node.js**: Node 24.21.0 (pinned in [`sema4ai/.nvmrc`](/sema4ai/.nvmrc), which all GitHub workflows also use).
   Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to manage Node versions
-  - `nvm install 24` - installs correct Node version
-  - `nvm use 24` - switch to the correct version
+  - `nvm install 24.21.0` - installs correct Node version
+  - `nvm use 24.21.0` - switch to the correct version
   - Verify installation:
     - `node --version`
     - `npm --version`
