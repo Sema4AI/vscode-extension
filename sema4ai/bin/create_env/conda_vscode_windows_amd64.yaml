@@ -4,7 +4,8 @@ channels:
     - conda-forge
 
 dependencies:
-    - python=3.11.10 # https://pyreadiness.org/3.10/
+    - python=3.11.10 # https://pyreadiness.org/3.11/
+    - openssl=3.6.4 # Explicit pin for security fixes (CVE): https://openssl-library.org/news/vulnerabilities/
     - uv=0.4.17 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.2
     - ruamel.yaml=0.18.10

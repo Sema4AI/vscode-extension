@@ -26,6 +26,11 @@ jobs:
           poetry config virtualenvs.use-poetry-python false
           poetry install
 
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: sema4ai/.nvmrc
+
       - name: Install prettier
         run: |
           npm install -g prettier@2.4.1

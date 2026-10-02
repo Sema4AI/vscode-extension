@@ -4,9 +4,10 @@
 
 ### Prerequisites
 
-- **Node.js**: Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to manage Node versions
-  - `nvm install 20.19.6` - installs correct Node version
-  - `nvm use 20.19.6` - switch to the correct version
+- **Node.js**: Node 24.21.0 (pinned in [`sema4ai/.nvmrc`](/sema4ai/.nvmrc), which all GitHub workflows also use).
+  Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to manage Node versions
+  - `nvm install 24.21.0` - installs correct Node version
+  - `nvm use 24.21.0` - switch to the correct version
   - Verify installation:
     - `node --version`
     - `npm --version`

@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Base environment now pins `openssl=3.6.4` (previously OpenSSL 3.5.0 was bundled) ([#249](https://github.com/Sema4AI/vscode-extension/issues/249))
+- CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
+
 ## New in 2.19.0 (2025-12-17)
 
 - CVE updates
