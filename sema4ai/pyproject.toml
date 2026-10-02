@@ -114,6 +114,16 @@ ignore_missing_imports = true
 module = "robocorp_ls_core.*"
 ignore_missing_imports = true
 
+# Legacy robocorp.actions fallback, only available in the user's target environment
+[[tool.mypy.overrides]]
+module = ["robocorp.actions.*", "robocorp.tasks.*"]
+ignore_missing_imports = true
+
+# Names are pre-declared as Any and imported from either sema4ai.actions or robocorp.actions
+[[tool.mypy.overrides]]
+module = "sema4ai_code.robo.lint_in_target_env"
+disable_error_code = ["no-redef"]
+
 # comtypes is a Windows-only COM library without type stubs
 [[tool.mypy.overrides]]
 module = "comtypes.*"
