@@ -27,6 +27,10 @@ jobs:
           - name: macos-intel
             os: macos-15-intel
             rcc_folder: macos64
+            # rcc v20.3.x macos64 builds embed an empty uv (only Windows/Linux/macOS arm64
+            # uv binaries are downloaded) and v21+ dropped macOS Intel entirely. v20.2.0 is
+            # the last release that uses the uv from the environment itself (uv in conda yaml).
+            rcc_version: v20.2.0
           - name: macos-arm
             os: macos-15
             rcc_folder: macos-arm64
@@ -43,7 +47,7 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: |
           cd sema4ai/bin/create_env
-          curl -L -o rcc "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc"
+          curl -L -o rcc "https://cdn.sema4.ai/rcc/releases/${{ matrix.rcc_version || env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc"
           chmod +x rcc
 
           python build_environment.py
@@ -52,7 +56,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: |
           Set-Location -Path sema4ai\bin\create_env
-          Invoke-WebRequest -Uri "https://cdn.sema4.ai/rcc/releases/${{ env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc.exe" -OutFile rcc.exe
+          Invoke-WebRequest -Uri "https://cdn.sema4.ai/rcc/releases/${{ matrix.rcc_version || env.RCC_VERSION }}/${{ matrix.rcc_folder }}/rcc.exe" -OutFile rcc.exe
           icacls .\rcc.exe /grant Everyone:F
 
           python build_environment.py
