@@ -46,8 +46,7 @@ def test_prebuilt_environments(rcc: IRcc, tmpdir):
             check = "const BASENAME_PREBUILT_DARWIN_ARM64 = "
             conda_yaml /= "conda_vscode_darwin_arm64.yaml"
         else:
-            check = "const BASENAME_PREBUILT_DARWIN_AMD64 = "
-            conda_yaml /= "conda_vscode_darwin_amd64.yaml"
+            raise AssertionError("macOS Intel (x86_64) is not supported.")
     else:
         raise AssertionError(f"Unexpected platform: {sys.platform}.")
 

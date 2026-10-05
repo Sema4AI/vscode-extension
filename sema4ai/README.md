@@ -40,7 +40,7 @@ This is under active development, so please [contact us](https://sema4.ai/contac
 
 ### Requirements
 
-Supported operating systems: Windows, Linux or Mac OS.
+Supported operating systems: Windows (x64), Linux (x64) or macOS on Apple Silicon (arm64). macOS on Intel (x64) is not supported.
 
 ### Configuration
 

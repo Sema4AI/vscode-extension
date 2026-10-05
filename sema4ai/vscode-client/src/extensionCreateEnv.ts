@@ -12,6 +12,7 @@ import {
     feedbackRobocorpCodeError,
     getRccLocation,
     getRobocorpHome,
+    MACOS_INTEL_NOT_SUPPORTED_MESSAGE,
     RCCDiagnostics,
     runConfigDiagnostics,
     STATUS_FATAL,
@@ -547,11 +548,11 @@ class StartupHelper {
 
         switch (process.platform) {
             case "darwin":
-                if (process.arch === "arm64") {
-                    this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_arm64.yaml");
-                } else {
-                    this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_amd64.yaml");
+                if (process.arch !== "arm64") {
+                    this.error("INIT_UNSUPPORTED_PLATFORM", MACOS_INTEL_NOT_SUPPORTED_MESSAGE);
+                    return;
                 }
+                this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_arm64.yaml");
                 break;
             case "linux":
                 this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_linux_amd64.yaml");

@@ -32,7 +32,7 @@ tomli = { version = "^2.0.1", python = "<3.11" }
 msgspec = "^0.19"
 pyyaml = "^6"
 playwright = "<2"
-pillow = "^10.2.0"
+pillow = "^12.3.0"
 pywin32 = { version = ">=300,<304", platform = "win32", python = "!=3.8.1" }
 psutil = "^5.9.0"
 comtypes = "^1.2"
@@ -52,7 +52,6 @@ sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
 
 fire = "*"
 
-robocorp-actions = "^0.2.1" # Just needed for testing.
 sema4ai-actions = "^1.3.5"  # Just needed for testing.
 sema4ai-data = "^1.0.0"     # Just needed for testing.
 
@@ -114,6 +113,16 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "robocorp_ls_core.*"
 ignore_missing_imports = true
+
+# Legacy robocorp.actions fallback, only available in the user's target environment
+[[tool.mypy.overrides]]
+module = ["robocorp.actions.*", "robocorp.tasks.*"]
+ignore_missing_imports = true
+
+# Names are pre-declared as Any and imported from either sema4ai.actions or robocorp.actions
+[[tool.mypy.overrides]]
+module = "sema4ai_code.robo.lint_in_target_env"
+disable_error_code = ["no-redef"]
 
 # comtypes is a Windows-only COM library without type stubs
 [[tool.mypy.overrides]]

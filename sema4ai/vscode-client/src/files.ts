@@ -70,7 +70,7 @@ export async function readFromFile(targetFile: string): Promise<string | undefin
 export async function writeToFile(
     targetFile: string,
     content: string,
-    options?: fs.BaseEncodingOptions
+    options?: fs.ObjectEncodingOptions
 ): Promise<void> {
     return await fs.promises.writeFile(targetFile, content, options);
 }

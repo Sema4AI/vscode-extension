@@ -121,6 +121,9 @@ async function checkCachedEnvValid(env): Promise<boolean> {
     return true;
 }
 
+export const MACOS_INTEL_NOT_SUPPORTED_MESSAGE =
+    "macOS Intel (x86_64) is not supported by this version of the Sema4.ai SDK extension. On an Intel Mac, use version 2.19.0 (the last version supporting macOS Intel): in the Extensions view, right-click Sema4.ai SDK and select 'Install Specific Version...'. Newer versions require a Mac with Apple Silicon (arm64).";
+
 async function downloadRcc(
     progress: Progress<{ message?: string; increment?: number }>,
     token: CancellationToken
@@ -139,7 +142,11 @@ async function downloadRcc(
             throw new Error("Currently only Windows amd64 is supported.");
         }
     } else if (process.platform == "darwin") {
-        relativePath = "/macos64/rcc";
+        if (process.arch === "arm64") {
+            relativePath = "/macos-arm64/rcc";
+        } else {
+            throw new Error(MACOS_INTEL_NOT_SUPPORTED_MESSAGE);
+        }
     } else {
         // Linux
         if (process.arch == "x64") {
@@ -148,7 +155,7 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v20.3.3";
+    const RCC_VERSION = "v21.3.0";
     const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await downloadWithProgress(url, progress, token, location);
@@ -156,10 +163,9 @@ async function downloadRcc(
 
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
-const BASENAME_PREBUILT_WIN_AMD64 = "a2eefcb6eb765393-windows_amd64.zip";
-const BASENAME_PREBUILT_LINUX_AMD64 = "2d449af3bd80289b-linux_amd64.zip";
-const BASENAME_PREBUILT_DARWIN_AMD64 = "3ab0a4536f872f2e-darwin_amd64.zip";
-const BASENAME_PREBUILT_DARWIN_ARM64 = "3ab0a4536f872f2e-darwin_arm64.zip";
+const BASENAME_PREBUILT_WIN_AMD64 = "1d7b235fd599a751-windows_amd64.zip";
+const BASENAME_PREBUILT_LINUX_AMD64 = "4ee85bc3dfa4e262-linux_amd64.zip";
+const BASENAME_PREBUILT_DARWIN_ARM64 = "cd2a861b11780804-darwin_arm64.zip";
 
 function getBaseAsZipBasename() {
     let basename: string;
@@ -174,7 +180,7 @@ function getBaseAsZipBasename() {
         if (process.arch === "arm64") {
             basename = BASENAME_PREBUILT_DARWIN_ARM64;
         } else {
-            basename = BASENAME_PREBUILT_DARWIN_AMD64;
+            throw new Error(MACOS_INTEL_NOT_SUPPORTED_MESSAGE);
         }
     } else {
         // Linux

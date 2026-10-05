@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **macOS Intel (x64) is no longer supported.** The extension is no longer published for macOS Intel; on macOS, a Mac with Apple Silicon (arm64) is required. Supported platforms are Windows x64, Linux x64 and macOS arm64.
+  - On an Intel Mac, keep using version `2.19.0` (Extensions view: right-click Sema4.ai SDK > _Install Specific Version..._).
+- Base environment now pins `openssl=3.6.4` (previously OpenSSL 3.5.0 was bundled) ([#249](https://github.com/Sema4AI/vscode-extension/issues/249))
+  - Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
+- CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
+- VS Code `1.101.0` or newer is now required
+- Update RCC to `v21.3.0`
+
 ## New in 2.19.0 (2025-12-17)
 
 - CVE updates

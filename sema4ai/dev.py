@@ -321,13 +321,21 @@ class Dev:
 
         print("\n--- installing Sema4.ai")
         curdir = root / "sema4ai"
-        run("python -m dev vendor_robocorp_ls_core".split())
-        run("vsce package".split(), shell=sys.platform == "win32")
-        run(
-            f"code --install-extension sema4ai-{get_version()}.vsix".split(),
-            shell=sys.platform == "win32",
-        )
-        run("python -m dev remove_vendor_robocorp_ls_core".split())
+        # Use the current interpreter (i.e.: the poetry env) and the vsce from the
+        # npm devDependencies (not a global install).
+        run([sys.executable, "-m", "dev", "vendor_robocorp_ls_core"])
+        try:
+            vsix = f"sema4ai-{get_version()}.vsix"
+            run(
+                f"npm run vsce:package -- -o {vsix}".split(),
+                shell=sys.platform == "win32",
+            )
+            run(
+                f"code --install-extension {vsix}".split(),
+                shell=sys.platform == "win32",
+            )
+        finally:
+            run([sys.executable, "-m", "dev", "remove_vendor_robocorp_ls_core"])
 
     def ruff_format(self, format=False):
         """
