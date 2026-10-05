@@ -104,27 +104,6 @@ jobs:
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
 
-      # Deal with Darwin x64 --------------
-      - name: Download rcc for darwin
-        run: python -m dev download-rcc darwin
-
-      - run: npm run vsce:package -- --pre-release --target darwin-x64 -o sema4ai-darwin-x64.vsix
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sema4ai-darwin-x64.vsix
-          path: ./sema4ai/sema4ai-darwin-x64.vsix
-
-      - name: Publish pre-release to vscode marketplace
-        run: npm run vsce:publish -- --packagePath ./sema4ai-darwin-x64.vsix -p $VSCODE_VSCE_TOKEN --pre-release
-        env:
-          VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
-
-      - name: Publish pre-release to open vsx marketplace
-        run: npx ovsx publish sema4ai-darwin-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
-        env:
-          VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
-
       # Deal with Darwin arm64 --------------
       - name: Download rcc for darwin arm64
         run: python -m dev download-rcc darwin-arm64

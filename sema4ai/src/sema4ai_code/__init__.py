@@ -53,7 +53,9 @@ def get_release_artifact_relative_path(sys_platform: str, executable_name: str) 
         if machine == "arm64":
             return f"macos-arm64/{executable_name}"
         else:
-            return f"macos64/{executable_name}"
+            raise RuntimeError(
+                "macOS Intel (x86_64) is not supported. A Mac with Apple Silicon (arm64) is required."
+            )
 
     else:
         if is_64:

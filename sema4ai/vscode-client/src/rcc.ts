@@ -131,11 +131,6 @@ async function downloadRcc(
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     let location = getExpectedRccLocation();
     let relativePath: string;
-    const RCC_VERSION = "v21.3.0";
-    // rcc v21+ has no macOS Intel (amd64) build and the v20.3.x macOS Intel builds
-    // embed an empty uv, so macOS Intel uses v20.1.1 (uses pip or the env's uv).
-    const RCC_VERSION_MACOS_INTEL = "v20.1.1";
-    let rccVersion = RCC_VERSION;
     if (process.platform == "win32") {
         if (process.arch === "x64" || process.env.hasOwnProperty("PROCESSOR_ARCHITEW6432")) {
             // Check if node is a 64 bit process or if it's a 32 bit process running in a 64 bit processor.
@@ -147,8 +142,7 @@ async function downloadRcc(
         if (process.arch === "arm64") {
             relativePath = "/macos-arm64/rcc";
         } else {
-            relativePath = "/macos64/rcc";
-            rccVersion = RCC_VERSION_MACOS_INTEL;
+            throw new Error("Currently only macOS arm64 (Apple Silicon) is supported.");
         }
     } else {
         // Linux
@@ -158,7 +152,8 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const prefix = "https://cdn.sema4.ai/rcc/releases/" + rccVersion;
+    const RCC_VERSION = "v21.3.0";
+    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await downloadWithProgress(url, progress, token, location);
 }
@@ -167,7 +162,6 @@ async function downloadRcc(
 // changes the (failing) test also needs to change.
 const BASENAME_PREBUILT_WIN_AMD64 = "1d7b235fd599a751-windows_amd64.zip";
 const BASENAME_PREBUILT_LINUX_AMD64 = "4ee85bc3dfa4e262-linux_amd64.zip";
-const BASENAME_PREBUILT_DARWIN_AMD64 = "cd2a861b11780804-darwin_amd64.zip";
 const BASENAME_PREBUILT_DARWIN_ARM64 = "cd2a861b11780804-darwin_arm64.zip";
 
 function getBaseAsZipBasename() {
@@ -183,7 +177,7 @@ function getBaseAsZipBasename() {
         if (process.arch === "arm64") {
             basename = BASENAME_PREBUILT_DARWIN_ARM64;
         } else {
-            basename = BASENAME_PREBUILT_DARWIN_AMD64;
+            throw new Error("Currently only macOS arm64 (Apple Silicon) is supported.");
         }
     } else {
         // Linux

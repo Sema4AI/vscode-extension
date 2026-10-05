@@ -547,11 +547,14 @@ class StartupHelper {
 
         switch (process.platform) {
             case "darwin":
-                if (process.arch === "arm64") {
-                    this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_arm64.yaml");
-                } else {
-                    this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_amd64.yaml");
+                if (process.arch !== "arm64") {
+                    this.error(
+                        "INIT_UNSUPPORTED_PLATFORM",
+                        "macOS Intel (x86_64) is not supported. A Mac with Apple Silicon (arm64) is required."
+                    );
+                    return;
                 }
+                this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_darwin_arm64.yaml");
                 break;
             case "linux":
                 this.robotConda = getExtensionRelativeFile("../../bin/create_env/conda_vscode_linux_amd64.yaml");
