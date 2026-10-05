@@ -65,8 +65,9 @@ def download_rcc(
     from sema4ai_code.tools import download_tool
 
     RCC_VERSION = "v21.3.0"
-    # rcc v21+ has no macOS Intel (amd64) build, so it stays on the last v20.
-    RCC_VERSION_MACOS_INTEL = "v20.3.3"
+    # rcc v21+ has no macOS Intel (amd64) build and the v20.3.x macOS Intel builds
+    # embed an empty uv, so macOS Intel uses v20.1.1 (uses pip or the env's uv).
+    RCC_VERSION_MACOS_INTEL = "v20.1.1"
 
     rcc_version = RCC_VERSION
     artifact = get_release_artifact_relative_path(sys_platform or sys.platform, "rcc")

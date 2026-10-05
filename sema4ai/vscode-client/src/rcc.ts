@@ -132,8 +132,9 @@ async function downloadRcc(
     let location = getExpectedRccLocation();
     let relativePath: string;
     const RCC_VERSION = "v21.3.0";
-    // rcc v21+ has no macOS Intel (amd64) build, so it stays on the last v20.
-    const RCC_VERSION_MACOS_INTEL = "v20.3.3";
+    // rcc v21+ has no macOS Intel (amd64) build and the v20.3.x macOS Intel builds
+    // embed an empty uv, so macOS Intel uses v20.1.1 (uses pip or the env's uv).
+    const RCC_VERSION_MACOS_INTEL = "v20.1.1";
     let rccVersion = RCC_VERSION;
     if (process.platform == "win32") {
         if (process.arch === "x64" || process.env.hasOwnProperty("PROCESSOR_ARCHITEW6432")) {
