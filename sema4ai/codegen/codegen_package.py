@@ -47,7 +47,7 @@ def get_json_contents():
         "license": "SEE LICENSE",
         "version": __version__,
         "icon": "images/icon.png",
-        "engines": {"vscode": f"^1.65.0"},
+        "engines": {"vscode": f"^1.101.0"},
         "categories": ["Debuggers"],
         "scripts": {
             "setup": "npm install",
@@ -63,9 +63,9 @@ def get_json_contents():
         },
         "devDependencies": {
             "@types/mocha": "^2.2.32",
-            "@types/node": "^16.18.126",
+            "@types/node": "~22.15.35",
             "@types/rimraf": "^3.0.2",
-            "@types/vscode": "1.65.0",
+            "@types/vscode": "1.101.0",
             "@vscode/vsce": "^4.0.0",
             "prettier": "2.4.1",
             "typescript": "^5.9.3",

@@ -3,6 +3,7 @@
 - Base environment now pins `openssl=3.6.4` (previously OpenSSL 3.5.0 was bundled) ([#249](https://github.com/Sema4AI/vscode-extension/issues/249))
   - Prebuilt base environments rebuilt for all platforms (Windows, Linux, macOS Intel and Apple Silicon)
 - CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
+- VS Code `1.101.0` or newer is now required
 
 ## New in 2.19.0 (2025-12-17)
 
