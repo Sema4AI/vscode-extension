@@ -57,10 +57,63 @@ def create_setup_config(
     return data_server_info
 
 
+KB_EMBEDDING_ENGINE = "kb_test_embedding_engine"
+KB_EMBEDDING_MODEL = "kb_test_embeddings"
+
+
+def _ensure_kb_embedding_model(data_server_cli: DataServerCliWrapper) -> None:
+    """
+    A knowledge base needs an embedding model and without one the data server
+    uses OpenAI (which requires a valid OPENAI_API_KEY). The tests never insert
+    or search content, so a (local) LangChain `FakeEmbeddings` model is enough.
+    """
+    import time
+
+    connection = data_server_cli.http_connection
+    engines = [
+        row["name"] for row in connection.query("", "SHOW ML_ENGINES").iter_as_dicts()
+    ]
+    if KB_EMBEDDING_ENGINE not in engines:
+        connection.run_sql(
+            f"CREATE ML_ENGINE {KB_EMBEDDING_ENGINE} FROM langchain_embedding"
+        )
+
+    def get_status() -> str | None:
+        for row in connection.query(
+            "",
+            f"SELECT status, error FROM sema4ai.models WHERE name = '{KB_EMBEDDING_MODEL}'",
+        ).iter_as_dicts():
+            if row["status"] == "error":
+                raise AssertionError(f"Embedding model failed: {row['error']}")
+            return row["status"]
+        return None
+
+    if get_status() is None:
+        connection.run_sql(
+            f"""
+            CREATE MODEL sema4ai.{KB_EMBEDDING_MODEL}
+            PREDICT embeddings
+            USING
+                engine = '{KB_EMBEDDING_ENGINE}',
+                class = 'FakeEmbeddings',
+                size = 16,
+                input_columns = ['content'];
+            """
+        )
+
+    timeout_at = time.time() + 120
+    while get_status() != "complete":
+        if time.time() > timeout_at:
+            raise AssertionError(f"Embedding model status: {get_status()}")
+        time.sleep(0.5)
+
+
 def setup_knowledge_base(data_server_cli: DataServerCliWrapper) -> None:
-    create_kb = """
+    _ensure_kb_embedding_model(data_server_cli)
+    create_kb = f"""
     CREATE KNOWLEDGE_BASE sema4ai.wikipedia_kb
     USING
+        model = sema4ai.{KB_EMBEDDING_MODEL},
         metadata_columns = ['wiki_id', 'infobox'],
         content_columns = ['wikitext', 'categories', 'general'],
         id_column = 'title';
