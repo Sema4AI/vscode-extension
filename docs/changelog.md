@@ -1,7 +1,10 @@
 ## Unreleased
 
 - Base environment now pins `openssl=3.6.4` (previously OpenSSL 3.5.0 was bundled) ([#249](https://github.com/Sema4AI/vscode-extension/issues/249))
+  - Prebuilt base environments rebuilt for all platforms (Windows, Linux, macOS Intel and Apple Silicon)
 - CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
+- Development: build tooling updated to Node `24.21.0` (pinned in `sema4ai/.nvmrc` and used by all workflows) and TypeScript `5.9`
+- Development: `python -m dev local_install` works with `poetry run` and uses the project's `vsce`
 
 ## New in 2.19.0 (2025-12-17)
 
