@@ -4,6 +4,7 @@
   - Prebuilt base environments rebuilt for all platforms (Windows, Linux, macOS Intel and Apple Silicon)
 - CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
 - VS Code `1.101.0` or newer is now required
+- Update RCC to `v21.3.0` (macOS Intel stays on `v20.3.3`, as RCC v21 no longer supports macOS Intel)
 
 ## New in 2.19.0 (2025-12-17)
 
