@@ -131,6 +131,10 @@ async function downloadRcc(
     configureXHR(httpSettings.get<string>("proxy"), httpSettings.get<boolean>("proxyStrictSSL"));
     let location = getExpectedRccLocation();
     let relativePath: string;
+    const RCC_VERSION = "v21.3.0";
+    // rcc v21+ has no macOS Intel (amd64) build, so it stays on the last v20.
+    const RCC_VERSION_MACOS_INTEL = "v20.3.3";
+    let rccVersion = RCC_VERSION;
     if (process.platform == "win32") {
         if (process.arch === "x64" || process.env.hasOwnProperty("PROCESSOR_ARCHITEW6432")) {
             // Check if node is a 64 bit process or if it's a 32 bit process running in a 64 bit processor.
@@ -139,7 +143,12 @@ async function downloadRcc(
             throw new Error("Currently only Windows amd64 is supported.");
         }
     } else if (process.platform == "darwin") {
-        relativePath = "/macos64/rcc";
+        if (process.arch === "arm64") {
+            relativePath = "/macos-arm64/rcc";
+        } else {
+            relativePath = "/macos64/rcc";
+            rccVersion = RCC_VERSION_MACOS_INTEL;
+        }
     } else {
         // Linux
         if (process.arch == "x64") {
@@ -148,8 +157,7 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v20.3.3";
-    const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
+    const prefix = "https://cdn.sema4.ai/rcc/releases/" + rccVersion;
     const url: string = prefix + relativePath;
     return await downloadWithProgress(url, progress, token, location);
 }

@@ -61,13 +61,22 @@ def download_rcc(
     :param force:
         Whether we should overwrite an existing installation.
     """
+    from sema4ai_code import get_release_artifact_relative_path
     from sema4ai_code.tools import download_tool
 
-    RCC_VERSION = "v20.3.3"
+    RCC_VERSION = "v21.3.0"
+    # rcc v21+ has no macOS Intel (amd64) build, so it stays on the last v20.
+    RCC_VERSION_MACOS_INTEL = "v20.3.3"
+
+    rcc_version = RCC_VERSION
+    artifact = get_release_artifact_relative_path(sys_platform or sys.platform, "rcc")
+    if artifact.startswith("macos64/"):
+        rcc_version = RCC_VERSION_MACOS_INTEL
+
     download_tool(
         Tool.RCC,
         location,
-        RCC_VERSION,
+        rcc_version,
         force=force,
         sys_platform=sys_platform,
         endpoint=endpoint,

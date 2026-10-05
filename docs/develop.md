@@ -225,5 +225,11 @@ We prebuilt the Python env. that the extension it self needs using RCC.
 ## Updating RCC
 
 - Check RCC versions from [changelog](https://github.com/Sema4AI/rcc/blob/master/docs/changelog.md)
-- In a shell in the `/sema4ai` directory run: `poetry run python -m dev set-rcc-version 20.3.3`
+- In a shell in the `/sema4ai` directory run: `poetry run python -m dev set-rcc-version v21.3.0` (the version must start with `v`)
+  - This updates `RCC_VERSION` in `src/sema4ai_code/rcc.py`, `vscode-client/src/rcc.ts` and `.github/workflows/build_environments.yaml`.
 - Remove the rcc executable from the `bin` folder to redownload the next time the extension is executed.
+
+**macOS Intel exception:** rcc v21+ has no macOS Intel (amd64) build, so macOS Intel stays on the last v20 releases.
+`set-rcc-version` does not change these pins:
+- `RCC_VERSION_MACOS_INTEL` (`v20.3.3`) in `src/sema4ai_code/rcc.py` and `vscode-client/src/rcc.ts`: the rcc bundled in / downloaded for the macOS Intel extension.
+- `rcc_version` (`v20.1.1`) of the `macos-intel` job in `.github/workflows/build_environments.yaml`: the v20.3.x macOS Intel builds embed an empty `uv`, so the prebuilt environment is built with v20.1.1, which uses the `uv` from the environment.
