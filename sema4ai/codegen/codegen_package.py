@@ -66,7 +66,7 @@ def get_json_contents():
             "@types/node": "^16.18.126",
             "@types/rimraf": "^3.0.2",
             "@types/vscode": "1.65.0",
-            "@vscode/vsce": "^3.2.0",
+            "@vscode/vsce": "^4.0.0",
             "prettier": "2.4.1",
             "typescript": "^5.9.3",
         },
