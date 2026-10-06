@@ -667,6 +667,23 @@ class _JavaInspectorThread(threading.Thread):
             self._java_inspector.shutdown()
 
     def run(self) -> None:
+        import sys
+
+        if sys.platform != "win32":
+            self._run()
+            return
+
+        from sema4ai_code.inspector.windows.robocorp_windows._vendored.uiautomation.uiautomation import (
+            UIAutomationInitializerInThread,
+        )
+
+        # The Java inspector uses UI Automation (COM) to find the window of the
+        # selected application, so COM must be initialized in this thread
+        # (otherwise: "CoInitialize has not been called").
+        with UIAutomationInitializerInThread():
+            self._run()
+
+    def _run(self) -> None:
         from concurrent.futures import Future
 
         from sema4ai_code.inspector.java.java_inspector import (
