@@ -550,14 +550,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "type": RobotEntryType.OpenRobotCondaYaml,
                         "parent": element,
                     },
-                    {
-                        "label": "Open Flow Explorer",
-                        "uri": element.uri,
-                        "robot": element.robot,
-                        "iconPath": "type-hierarchy-sub",
-                        "type": RobotEntryType.OpenFlowExplorer,
-                        "parent": element,
-                    },
                 ];
             } else if (element.type === RobotEntryType.AgentPackageOrganizationForActions) {
                 const ret = [];
@@ -783,13 +775,6 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                 "title": "Open Robot Terminal",
                 "command": roboCommands.SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION,
                 "arguments": [element],
-            };
-            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        } else if (element.type === RobotEntryType.OpenFlowExplorer) {
-            treeItem.command = {
-                "title": "Open Flow Explorer",
-                "command": "robot.openFlowExplorer",
-                "arguments": [vscode.Uri.file(element.robot.directory).toString()],
             };
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.UploadRobot) {

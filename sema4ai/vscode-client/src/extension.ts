@@ -121,7 +121,6 @@ import {
     SEMA4AI_SHOW_OUTPUT,
     SEMA4AI_SHOW_INTERPRETER_ENV_ERROR,
     SEMA4AI_FEEDBACK_INTERNAL,
-    SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION,
     SEMA4AI_OPEN_LOCATORS_JSON,
     SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION,
     SEMA4AI_PROFILE_IMPORT,
@@ -450,9 +449,6 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OPEN_LOCATORS_JSON, (locatorRoot) => views.openLocatorsJsonTreeSelection());
     C.register(SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.cloudUploadRobotTreeSelection(robot)
-    );
-    C.register(SEMA4AI_OPEN_FLOW_EXPLORER_TREE_SELECTION, (robot: RobotEntry) =>
-        commands.executeCommand("robot.openFlowExplorer", Uri.file(robot.robot.directory).toString())
     );
     C.register(SEMA4AI_RCC_TERMINAL_CREATE_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.createRccTerminalTreeSelection(robot)

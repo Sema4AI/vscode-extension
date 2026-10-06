@@ -165,7 +165,6 @@
         "onCommand:sema4ai.clearEnvAndRestart",
         "onCommand:sema4ai.showOutput",
         "onCommand:sema4ai.showInterpreterEnvError",
-        "onCommand:sema4ai.openFlowExplorerTreeSelection",
         "onCommand:sema4ai.profileImport",
         "onCommand:sema4ai.profileImport.internal",
         "onCommand:sema4ai.profileSwitch",
@@ -855,12 +854,6 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.openFlowExplorerTreeSelection",
-                "title": "Open Flow Explorer",
-                "category": "Sema4.ai",
-                "icon": "$(type-hierarchy-sub)"
-            },
-            {
                 "command": "sema4ai.profileImport",
                 "title": "Import Profile",
                 "category": "Sema4.ai",
@@ -1187,11 +1180,6 @@
                 },
                 {
                     "command": "sema4ai.cloudUploadRobotTreeSelection",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
-                    "group": "inline"
-                },
-                {
-                    "command": "sema4ai.openFlowExplorerTreeSelection",
                     "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
                     "group": "inline"
                 },
@@ -1576,10 +1564,6 @@
                 },
                 {
                     "command": "sema4ai.showInterpreterEnvError",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.openFlowExplorerTreeSelection",
                     "when": "false"
                 },
                 {

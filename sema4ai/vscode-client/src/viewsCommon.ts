@@ -32,7 +32,6 @@ export enum RobotEntryType {
     DebugAction = "DebugAction",
     DropDataSource = "DropDataSource",
     ActionsInRobot = "ActionsInRobot",
-    OpenFlowExplorer = "OpenFlowExplorer",
     UploadRobot = "UploadRobot",
     RobotTerminal = "RobotTerminal",
     OpenRobotYaml = "OpenRobotYaml",
