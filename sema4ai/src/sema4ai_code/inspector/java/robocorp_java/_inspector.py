@@ -10,6 +10,11 @@ from sema4ai_code.inspector.java.highlighter import TkHandlerThread
 
 log = get_logger(__name__)
 
+# Right after the Java Access Bridge is started it still needs to receive the Java
+# windows (the first listing is usually empty), so, an empty listing is retried
+# during this time (in seconds).
+_JAB_STARTUP_TIME = 3.0
+
 
 class ColletedTreeTypedDict(TypedDict):
     matches: ContextNode | list[ContextNode]
@@ -39,6 +44,7 @@ class ElementInspector:
         self._selected_window: str | None = None
         self._event_pump_thread: EventPumpThread | None = None
         self._jab_wrapper: JavaAccessBridgeWrapper | None = None
+        self._jab_wrapper_started_at: float = 0.0
         self._window_obj: WindowElement | None = None
         self._picker_thread: CursorListenerThread | None = None
 
@@ -53,27 +59,68 @@ class ElementInspector:
         return self._event_pump_thread
 
     @property
-    def jab_wrapper(self):
+    def jab_wrapper(self) -> JavaAccessBridgeWrapper:
+        import time
+
         try:
             if not self._jab_wrapper:
                 self._jab_wrapper = self.event_pump_thread.get_wrapper()
+                self._jab_wrapper_started_at = time.monotonic()
             return self._jab_wrapper
         except Exception as e:
-            log.error(e)
+            log.error(f"Error starting the Java Access Bridge: {e}")
             self.event_pump_thread.stop()
             self._event_pump_thread = None
             self._jab_wrapper = None
+            # Report the actual error (i.e.: the Access Bridge couldn't be loaded).
+            raise
 
     def list_windows(self) -> list[JavaWindow]:
-        return self.jab_wrapper.get_windows()
+        import time
+
+        jab_wrapper = self.jab_wrapper
+        windows = jab_wrapper.get_windows()
+        while (
+            not windows
+            and time.monotonic() - self._jab_wrapper_started_at < _JAB_STARTUP_TIME
+        ):
+            time.sleep(0.25)
+            windows = jab_wrapper.get_windows()
+        return windows
+
+    def _get_window_locator(self, window_title: str) -> str:
+        """
+        The (Windows) locator for the Java window with the given title: its handle
+        if it can be found (exact, even with duplicated titles), otherwise its name.
+
+        Note: the title can't be used as-is as a locator: i.e.: `Save or Discard`
+        would match `name:Save` or `name:Discard` and `File > Open` would be 2 levels.
+        """
+        try:
+            for java_window in self.list_windows():
+                if java_window.title == window_title and java_window.hwnd:
+                    return f"handle:{java_window.hwnd}"
+        except Exception:
+            log.exception("Error listing Java windows to get the window handle.")
+
+        # Everything inside quotes is used as-is, but a `"` can't be part of it
+        # (and a trailing backslash would escape the closing quote).
+        if '"' not in window_title and not window_title.endswith("\\"):
+            return f'name:"{window_title}"'
+
+        import re
+
+        pattern = re.escape(window_title).replace('"', ".")
+        return f'regex:"^{pattern}$"'
 
     def set_window(self, window: str) -> None:
         from sema4ai_code.inspector.windows.robocorp_windows import desktop
 
         self._selected_window = window
+        window_locator = self._get_window_locator(window)
         self.jab_wrapper.switch_window_by_title(self._selected_window)
         self._window_obj = desktop().find_window(
-            f"{window}",
+            window_locator,
             search_depth=1,
             foreground=True,
             move_cursor_to_center=False,
