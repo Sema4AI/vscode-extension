@@ -1,7 +1,10 @@
 import re
+import sys
 from dataclasses import dataclass
 
 import pytest
+
+from sema4ai_code.inspector.java.window_locator import get_window_locator
 
 
 @dataclass
@@ -10,35 +13,31 @@ class _JavaWindow:
     hwnd: int
 
 
-def _element_inspector(windows):
-    from sema4ai_code.inspector.java.robocorp_java._inspector import ElementInspector
+def _check_parsed(locator: str, expected: dict) -> None:
+    """
+    Checks that the locator is parsed by robocorp_windows to the expected search
+    params (in a single level and a single part, i.e.: not split by `and`, `or`,
+    parenthesis or `>`).
+    """
+    if sys.platform != "win32":
+        return  # robocorp_windows can only be imported on Windows.
 
-    # Don't start anything (no Java Access Bridge needed): only the locator is tested.
-    inspector = object.__new__(ElementInspector)
-    inspector.list_windows = lambda: windows  # type: ignore[method-assign]
-    return inspector
-
-
-def _search_params(locator: str) -> dict:
     from sema4ai_code.inspector.windows.robocorp_windows._match_ast import (
         SearchParams,
         collect_search_params,
     )
 
-    # A single level with a single set of search params (i.e.: not split in parts).
     (level,) = collect_search_params(locator)
     (search_params,) = level.parts
     assert isinstance(search_params, SearchParams)
-    return dict(search_params.search_params)
+    assert dict(search_params.search_params) == expected
 
 
 def test_window_locator_uses_handle():
-    inspector = _element_inspector(
-        [_JavaWindow("Other", 111), _JavaWindow("Hello World", 330554)]
-    )
-    locator = inspector._get_window_locator("Hello World")
+    windows = [_JavaWindow("Other", 111), _JavaWindow("Hello World", 330554)]
+    locator = get_window_locator("Hello World", lambda: windows)
     assert locator == "handle:330554"
-    assert _search_params(locator) == {"handle": 330554}
+    _check_parsed(locator, {"handle": 330554})
 
 
 @pytest.mark.parametrize(
@@ -57,8 +56,9 @@ def test_window_locator_uses_handle():
 def test_window_locator_falls_back_to_quoted_name(title):
     # i.e.: the window is no longer listed: match the whole title by name (most of
     # these don't work as a locator as-is).
-    inspector = _element_inspector([_JavaWindow("Other", 111)])
-    assert _search_params(inspector._get_window_locator(title)) == {"name": title}
+    locator = get_window_locator(title, lambda: [_JavaWindow("Other", 111)])
+    assert locator == f'name:"{title}"'
+    _check_parsed(locator, {"name": title})
 
 
 @pytest.mark.parametrize(
@@ -66,21 +66,17 @@ def test_window_locator_falls_back_to_quoted_name(title):
 )
 def test_window_locator_falls_back_to_regex(title):
     # A `"` can't be inside a quoted locator value: an anchored regex is used.
-    inspector = _element_inspector([_JavaWindow("Other", 111)])
-    regex = _search_params(inspector._get_window_locator(title))["regex"]
+    locator = get_window_locator(title, lambda: [_JavaWindow("Other", 111)])
+    assert locator.startswith('regex:"') and locator.endswith('"')
+    regex = locator[len('regex:"') : -1]
+    assert '"' not in regex
     assert re.match(regex, title)
     assert not re.match(regex, title + " (2)")
+    _check_parsed(locator, {"regex": regex})
 
 
 def test_window_locator_listing_error_falls_back_to_name():
-    from sema4ai_code.inspector.java.robocorp_java._inspector import ElementInspector
-
-    inspector = object.__new__(ElementInspector)
-
     def list_windows():
         raise RuntimeError("Java Access Bridge error")
 
-    inspector.list_windows = list_windows  # type: ignore[method-assign]
-    assert _search_params(inspector._get_window_locator("Hello World")) == {
-        "name": "Hello World"
-    }
+    assert get_window_locator("Hello World", list_windows) == 'name:"Hello World"'

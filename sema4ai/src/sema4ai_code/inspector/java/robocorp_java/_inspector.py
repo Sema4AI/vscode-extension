@@ -89,29 +89,9 @@ class ElementInspector:
         return windows
 
     def _get_window_locator(self, window_title: str) -> str:
-        """
-        The (Windows) locator for the Java window with the given title: its handle
-        if it can be found (exact, even with duplicated titles), otherwise its name.
+        from sema4ai_code.inspector.java.window_locator import get_window_locator
 
-        Note: the title can't be used as-is as a locator: i.e.: `Save or Discard`
-        would match `name:Save` or `name:Discard` and `File > Open` would be 2 levels.
-        """
-        try:
-            for java_window in self.list_windows():
-                if java_window.title == window_title and java_window.hwnd:
-                    return f"handle:{java_window.hwnd}"
-        except Exception:
-            log.exception("Error listing Java windows to get the window handle.")
-
-        # Everything inside quotes is used as-is, but a `"` can't be part of it
-        # (and a trailing backslash would escape the closing quote).
-        if '"' not in window_title and not window_title.endswith("\\"):
-            return f'name:"{window_title}"'
-
-        import re
-
-        pattern = re.escape(window_title).replace('"', ".")
-        return f'regex:"^{pattern}$"'
+        return get_window_locator(window_title, self.list_windows)
 
     def set_window(self, window: str) -> None:
         from sema4ai_code.inspector.windows.robocorp_windows import desktop
