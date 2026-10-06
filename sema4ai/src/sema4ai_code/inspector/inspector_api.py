@@ -678,8 +678,16 @@ class _JavaInspectorThread(threading.Thread):
         def _on_pick(picked: Any):
             endpoint.notify("$/javaPick", {"picked": picked})
 
-        self._java_inspector = JavaInspector()
-        self._java_inspector.on_pick.register(_on_pick)
+        # If the inspector can't be created (i.e.: the Java Access Bridge isn't
+        # available), each command fails with that error (otherwise the thread
+        # would just die and the commands would never be answered).
+        init_error: Exception | None = None
+        try:
+            self._java_inspector = JavaInspector()
+            self._java_inspector.on_pick.register(_on_pick)
+        except Exception as e:
+            log.exception("Error creating the Java inspector.")
+            init_error = e
 
         item: _JavaBaseCommand | None
 
@@ -691,6 +699,9 @@ class _JavaInspectorThread(threading.Thread):
 
             if item is not None:
                 future: Future = item.future
+                if init_error is not None:
+                    future.set_exception(init_error)
+                    continue
                 try:
                     log.debug("JavaInspectorThread: Start handling command: %s", item)
                     result = item(self)
