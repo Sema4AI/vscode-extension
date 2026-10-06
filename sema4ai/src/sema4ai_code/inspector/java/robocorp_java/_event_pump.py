@@ -46,8 +46,24 @@ class EventPumpThread(threading.Thread):
         if platform.system() != "Windows":
             return
 
-        # Raise the error to the main thread from here
-        self._jab_wrapper = JavaAccessBridgeWrapper(ignore_callbacks=True)
+        # Raise the error to the main thread from here (otherwise `get_wrapper()`
+        # would wait forever).
+        try:
+            self._jab_wrapper = JavaAccessBridgeWrapper(ignore_callbacks=True)
+        except Exception as e:
+            import os
+
+            dll = os.environ.get("RC_JAVA_ACCESS_BRIDGE_DLL")
+            log.exception(f"Error loading the Java Access Bridge: {dll}")
+            self._future.set_exception(
+                RuntimeError(
+                    f"Unable to load the Java Access Bridge ({dll}): {e}. Make sure it's "
+                    "a 64-bit Java installation that can be read by the current user, or "
+                    "set the RC_JAVA_ACCESS_BRIDGE_DLL environment variable to another "
+                    "WindowsAccessBridge-64.dll and restart VS Code."
+                )
+            )
+            return
         self._future.set_result(self._jab_wrapper)
         while not self._quit_event_loop.is_set():
             # The pump is non blocking. If the is no message in the queue

@@ -52,6 +52,29 @@ class JavaAccessBridge:
     jabswitch: Path | None
 
 
+def _is_dir(path: Path) -> bool:
+    # Path.is_dir() raises on e.g. PermissionError: an unreadable location is
+    # just skipped (so that the search continues and the user gets a proper message).
+    try:
+        return path.is_dir()
+    except (OSError, ValueError) as e:
+        log.info(f"JAVA: Unable to check {path}: {e}")
+        return False
+
+
+def _is_file(path: Path) -> bool:
+    try:
+        return path.is_file()
+    except (OSError, ValueError) as e:
+        log.info(f"JAVA: Unable to check {path}: {e}")
+        return False
+
+
+def _clean_path(value: str) -> str:
+    # i.e.: `set RC_JAVA_ACCESS_BRIDGE_DLL="C:\..."` in cmd keeps the quotes.
+    return os.path.expandvars(value.strip().strip('"').strip("'").strip())
+
+
 def _bin_dirs_of_java_home(java_home: str | Path) -> list[Path]:
     java_home = Path(java_home)
     return [java_home / "bin", java_home / "jre" / "bin"]
@@ -111,7 +134,7 @@ def _registry_java_homes() -> Iterator[str]:
                     with version_key:
                         java_home = value(version_key, value_name)
                     if java_home:
-                        yield java_home
+                        yield _clean_path(java_home)
 
 
 def _program_files_java_homes(environ: Mapping[str, str]) -> Iterator[Path]:
@@ -129,7 +152,7 @@ def _program_files_java_homes(environ: Mapping[str, str]) -> Iterator[Path]:
             except OSError:
                 continue
             for child in children:
-                if child.is_dir():
+                if _is_dir(child):
                     yield child
 
 
@@ -144,12 +167,15 @@ def iter_java_bin_dirs(environ: Mapping[str, str] | None = None) -> Iterator[Pat
     def candidates() -> Iterator[Path]:
         java_home = environ.get("JAVA_HOME")
         if java_home:
-            yield from _bin_dirs_of_java_home(java_home)
+            yield from _bin_dirs_of_java_home(_clean_path(java_home))
 
-        java = shutil.which("java", path=environ.get("PATH"))
-        if java:
-            # <java home>/bin/java.exe or <java home>/jre/bin/java.exe
-            yield Path(java).resolve().parent
+        try:
+            java = shutil.which("java", path=environ.get("PATH"))
+            if java:
+                # <java home>/bin/java.exe or <java home>/jre/bin/java.exe
+                yield Path(java).resolve().parent
+        except (OSError, ValueError) as e:
+            log.info(f"JAVA: Unable to check `java` in the PATH: {e}")
 
         for registry_java_home in _registry_java_homes():
             yield from _bin_dirs_of_java_home(registry_java_home)
@@ -167,7 +193,7 @@ def iter_java_bin_dirs(environ: Mapping[str, str] | None = None) -> Iterator[Pat
         if key in seen:
             continue
         seen.add(key)
-        if candidate.is_dir():
+        if _is_dir(candidate):
             yield candidate
 
 
@@ -177,7 +203,7 @@ def _not_found_message(searched: list[Path], env_var_value: str | None) -> str:
     ]
     if env_var_value:
         lines.append(
-            f"The {ENV_VAR} environment variable points to a file that does not exist: {env_var_value}"
+            f"The {ENV_VAR} environment variable points to a file that does not exist (or can't be read): {env_var_value}"
         )
     lines.append(
         "Install a 64-bit Java (8 or newer), or set the "
@@ -205,26 +231,26 @@ def find_java_access_bridge(
     def find_jabswitch(preferred_dir: Path) -> Path | None:
         for directory in [preferred_dir] + bin_dirs:
             jabswitch = directory / JABSWITCH
-            if jabswitch.is_file():
+            if _is_file(jabswitch):
                 return jabswitch
         return None
 
     # 1. The user-defined environment variable.
-    env_var_value = environ.get(ENV_VAR)
+    env_var_value = _clean_path(environ.get(ENV_VAR) or "")
     if env_var_value:
         dll = Path(env_var_value)
-        if dll.is_file():
+        if _is_file(dll):
             log.info(f"JAVA: Using {ENV_VAR}: {dll}")
             return JavaAccessBridge(dll, find_jabswitch(dll.parent))
         log.info(
-            f"JAVA: {ENV_VAR} points to a file that does not exist: {env_var_value}. "
+            f"JAVA: {ENV_VAR} points to a file that does not exist (or can't be read): {env_var_value}. "
             "Searching for the Java Access Bridge in the known locations."
         )
 
     # 2. Known locations.
     for directory in bin_dirs:
         dll = directory / ACCESS_BRIDGE_DLL
-        if dll.is_file():
+        if _is_file(dll):
             log.info(f"JAVA: Found the Java Access Bridge at: {dll}")
             return JavaAccessBridge(dll, find_jabswitch(directory))
 

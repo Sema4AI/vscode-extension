@@ -107,9 +107,11 @@ def test_program_files_newest_first(tmp_path):
     bridge = find_java_access_bridge(
         base_environ(tmp_path, ProgramFiles=str(program_files))
     )
-    assert bridge.dll == (
-        program_files / "Eclipse Adoptium" / "jdk-21.0.11.10-hotspot" / "bin"
-    ) / ACCESS_BRIDGE_DLL
+    assert (
+        bridge.dll
+        == (program_files / "Eclipse Adoptium" / "jdk-21.0.11.10-hotspot" / "bin")
+        / ACCESS_BRIDGE_DLL
+    )
 
 
 def test_system32_without_jabswitch(tmp_path):
@@ -155,3 +157,58 @@ def test_finds_access_bridge_on_this_machine_if_java_installed():
     except JavaAccessBridgeNotFound:
         return
     assert bridge.dll.is_file()
+
+
+@pytest.fixture
+def deny_access_to_locked(monkeypatch):
+    """
+    Simulates locations the user can't read: checking anything with "locked" in
+    its path raises PermissionError (as Path.is_dir()/is_file() do in that case).
+    """
+    real_stat = os.stat
+
+    def stat(path, *args, **kwargs):
+        if "locked" in str(path):
+            raise PermissionError(13, "Access is denied", str(path))
+        return real_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "stat", stat)
+
+
+def test_unreadable_locations_are_skipped(tmp_path, deny_access_to_locked):
+    program_files = tmp_path / "Program Files"
+    java_bin = make_java(program_files / "Java" / "jdk-21" / "bin")
+
+    bridge = find_java_access_bridge(
+        base_environ(
+            tmp_path,
+            **{
+                ENV_VAR: str(tmp_path / "locked" / ACCESS_BRIDGE_DLL),
+                "JAVA_HOME": str(tmp_path / "locked-jdk"),
+                "ProgramFiles": str(program_files),
+            },
+        )
+    )
+    assert bridge.dll == java_bin / ACCESS_BRIDGE_DLL
+
+
+def test_unreadable_locations_still_give_the_message(tmp_path, deny_access_to_locked):
+    locked_env_var = str(tmp_path / "locked" / ACCESS_BRIDGE_DLL)
+    with pytest.raises(JavaAccessBridgeNotFound) as e:
+        find_java_access_bridge(
+            base_environ(
+                tmp_path,
+                **{ENV_VAR: locked_env_var, "JAVA_HOME": str(tmp_path / "locked-jdk")},
+            )
+        )
+    assert f"set the {ENV_VAR} environment variable" in str(e.value)
+    assert locked_env_var in str(e.value)
+
+
+def test_env_var_with_quotes(tmp_path):
+    # i.e.: `set RC_JAVA_ACCESS_BRIDGE_DLL="C:\..."` in cmd keeps the quotes.
+    env_bin = make_java(tmp_path / "custom")
+    quoted = f'"{env_bin / ACCESS_BRIDGE_DLL}"'
+
+    bridge = find_java_access_bridge(base_environ(tmp_path, **{ENV_VAR: quoted}))
+    assert bridge.dll == env_bin / ACCESS_BRIDGE_DLL
