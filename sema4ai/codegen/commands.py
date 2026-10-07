@@ -694,14 +694,6 @@ COMMANDS = [
         hide_from_command_palette=True,
     ),
     Command(
-        "sema4ai.openFlowExplorerTreeSelection",
-        "Open Flow Explorer",
-        add_to_package_json=True,
-        server_handled=False,
-        hide_from_command_palette=True,
-        icon="$(type-hierarchy-sub)",
-    ),
-    Command(
         "sema4ai.profileImport",
         "Import Profile",
         add_to_package_json=True,

@@ -7,6 +7,7 @@
 - CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
 - VS Code `1.101.0` or newer is now required
 - Update RCC to `v21.3.0`
+- Removed the non-working _Open Flow Explorer_ action from Task Packages (it relied on a Robot Framework Language Server command that no longer exists)
 
 ## New in 2.19.0 (2025-12-17)
 

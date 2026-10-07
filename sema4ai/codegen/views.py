@@ -121,11 +121,6 @@ TREE_VIEW_CONTAINERS = [
                             MenuGroup.INLINE,
                             "viewItem == actionsInRobotItem",
                         ),
-                        Menu(
-                            "sema4ai.openFlowExplorerTreeSelection",
-                            MenuGroup.INLINE,
-                            "viewItem == actionsInRobotItem",
-                        ),
                         # Tasks: Needs right click (duplicating above + new actions)
                         Menu(
                             "sema4ai.robotsViewTaskRun",
