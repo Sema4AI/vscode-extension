@@ -6,6 +6,12 @@ on:
         required: true
 
 name: Pre-release - Sema4.ai Extension
+
+env:
+  # Publishing to Open VSX is disabled until VSCODE_OPEN_VSX_TOKEN is renewed
+  # (the current token has expired). Set to "true" to publish again.
+  PUBLISH_TO_OPEN_VSX: "false"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -79,6 +85,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
+        if: env.PUBLISH_TO_OPEN_VSX == 'true'
         run: npx ovsx publish sema4ai-win32-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
@@ -100,6 +107,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
+        if: env.PUBLISH_TO_OPEN_VSX == 'true'
         run: npx ovsx publish sema4ai-linux-x64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
@@ -121,6 +129,7 @@ jobs:
           VSCODE_VSCE_TOKEN: ${{ secrets.VSCODE_VSCE_TOKEN }}
 
       - name: Publish pre-release to open vsx marketplace
+        if: env.PUBLISH_TO_OPEN_VSX == 'true'
         run: npx ovsx publish sema4ai-darwin-arm64.vsix -p $VSCODE_OPEN_VSX_TOKEN --pre-release
         env:
           VSCODE_OPEN_VSX_TOKEN: ${{ secrets.VSCODE_OPEN_VSX_TOKEN }}
