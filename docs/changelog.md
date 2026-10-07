@@ -8,6 +8,11 @@
 - VS Code `1.101.0` or newer is now required
 - Update RCC to `v21.3.0`
 - Removed the non-working _Open Flow Explorer_ action from Task Packages (it relied on a Robot Framework Language Server command that no longer exists)
+- Java Locator: fixed detecting Java applications with Java 9 or newer
+  - The Java Access Bridge is taken from `RC_JAVA_ACCESS_BRIDGE_DLL` if set, otherwise it's searched from `JAVA_HOME`, `java` in the `PATH`, the Windows registry and the usual Java installation folders
+  - If it can't be found, an error explains how to set `RC_JAVA_ACCESS_BRIDGE_DLL` (previously the list of applications was just empty)
+  - Fixed selecting a Java application (`CoInitialize has not been called` error, and window titles such as `Save or Discard` or `File > Open` not being matched)
+  - Java applications are now listed right away when the Java Locator opens (the first list could be empty)
 
 ## New in 2.19.0 (2025-12-17)
 

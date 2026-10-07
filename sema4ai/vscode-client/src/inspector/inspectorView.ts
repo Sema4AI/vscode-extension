@@ -483,6 +483,10 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                             OUTPUT_CHANNEL.appendLine(`[Java] > Requesting: Get Apps: ${JSON.stringify(command)}`);
                             const actionResult: ActionResult<any> = await sendRequest("javaInspectorListWindows");
                             OUTPUT_CHANNEL.appendLine(`[Java] > Result: Get Apps: ${JSON.stringify(actionResult)}`);
+                            if (!actionResult.success) {
+                                // i.e.: the Java Access Bridge wasn't found (message explains how to fix it).
+                                vscode.window.showErrorMessage(`Java Locator: ${actionResult.message}`);
+                            }
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "javaApps")
                             );
