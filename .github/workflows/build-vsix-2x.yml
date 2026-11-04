@@ -1,0 +1,79 @@
+on:
+  push:
+    branches:
+      - "release/2.x"
+  pull_request:
+    branches:
+      - "release/2.x"
+  workflow_dispatch:
+
+name: Build VSIX - Sema4.ai Extension 2.x
+
+# Builds the 2.x extension .vsix files and uploads them as workflow artifacts
+# (to be stored in S3 for customers that still need 2.x).
+# Nothing is published to the VS Code marketplace or Open VSX.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sema4ai
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: win32-x64
+            rcc: win32
+          - target: linux-x64
+            rcc: linux
+          - target: darwin-arm64
+            rcc: darwin-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: sema4ai/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: sema4ai/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install --upgrade pip fire poetry
+      - name: Vendor sema4ai_ls_core
+        run: python -m dev vendor-robocorp-ls-core
+      - name: Fix README references
+        run: python -m dev fix-readme
+      - name: Generate LICENSE.md
+        run: python -m dev generate-license-file
+      - name: Install locally
+        run: poetry install
+      - name: Run codegen
+        run: python -m dev codegen
+        env:
+          PYTHONPATH: src
+
+      - name: Copy changelog to root for vsce
+        run: cp ../docs/changelog.md CHANGELOG.md
+
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Download rcc for ${{ matrix.rcc }}
+        run: python -m dev download-rcc ${{ matrix.rcc }}
+
+      - run: npm run vsce:package -- --target ${{ matrix.target }} -o sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+          path: ./sema4ai/sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+          if-no-files-found: error
