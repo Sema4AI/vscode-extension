@@ -1,5 +1,10 @@
 ## Unreleased
 
+## New in 2.20.1 (2026-11-05)
+
+- 2.x maintenance release, same functionality as `2.20.0`
+  - Not published to the VS Code Marketplace; the `.vsix` files are available from `https://downloads.robocorp.com/vscode-extension/releases/v2/v2.20.1/`
+
 ## New in 2.20.0 (2026-10-08)
 
 - **macOS Intel (x64) is no longer supported.** The extension is no longer published for macOS Intel; on macOS, a Mac with Apple Silicon (arm64) is required. Supported platforms are Windows x64, Linux x64 and macOS arm64.
