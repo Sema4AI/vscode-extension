@@ -565,64 +565,40 @@ class RobocorpResolveInterpreter:
             fs_path = Path(uris.to_fs_path(doc_uri))
             # Note: there's a use-case where a directory may be passed to
             # compute as the doc_uri, so, handle that too.
-            found_package_yaml = False
-
             for path in itertools.chain(iter([fs_path]), fs_path.parents):
-                # Give higher priority to package.yaml (in case conda.yaml became
-                # package.yaml but robot.yaml is still lingering around).
-                package_yaml: Path = path / "package.yaml"
-                if package_yaml.exists():
-                    found_package_yaml = True
-                    break
-
                 robot_yaml: Path = path / "robot.yaml"
                 if robot_yaml.exists():
                     break
 
             else:
-                # i.e.: Could not find any package.yaml nor robot.yaml in the structure.
-                log.debug("Could not find package.yaml nor robot.yaml for: %s", fs_path)
+                # i.e.: Could not find any robot.yaml in the structure.
+                log.debug("Could not find robot.yaml for: %s", fs_path)
                 return None
 
             robot_yaml_file_info: _CachedFileInfo | None
             parent: Path
-            if found_package_yaml:
-                # Dealing with a package.yaml.
-                parent = package_yaml.parent
-                robot_yaml_file_info = None
-                try:
-                    conda_or_package_file_info = _CacheInfo.get_file_info(package_yaml)
-                except Exception:
-                    log.exception("Error collecting info from: %s", package_yaml)
-                    return None
+            # Dealing with a robot.yaml (which must have an associated conda.yaml).
+            try:
+                robot_yaml_file_info = _CacheInfo.get_file_info(robot_yaml)
+            except Exception:
+                log.exception("Error collecting info from: %s", robot_yaml)
+                return None
 
-            else:
-                # Dealing with a robot.yaml (which must have an associated conda.yaml).
-                try:
-                    robot_yaml_file_info = _CacheInfo.get_file_info(robot_yaml)
-                except Exception:
-                    log.exception("Error collecting info from: %s", robot_yaml)
-                    return None
+            yaml_contents = robot_yaml_file_info.yaml_contents
+            if not isinstance(yaml_contents, dict):
+                log.critical(f"Expected dict as root in: {robot_yaml}")
+                return None
 
-                yaml_contents = robot_yaml_file_info.yaml_contents
-                if not isinstance(yaml_contents, dict):
-                    log.critical(f"Expected dict as root in: {robot_yaml}")
-                    return None
+            parent = robot_yaml.parent
+            conda_config_path = get_conda_config_path(parent, robot_yaml, yaml_contents)
+            if not conda_config_path:
+                return None
 
-                parent = robot_yaml.parent
-                conda_config_path = get_conda_config_path(
-                    parent, robot_yaml, yaml_contents
-                )
-                if not conda_config_path:
-                    return None
-
-                try:
-                    conda_or_package_file_info = _CacheInfo.get_file_info(
-                        conda_config_path
-                    )
-                except Exception:
-                    log.exception("Error collecting info from: %s", conda_config_path)
-                    return None
+            try:
+                conda_or_package_file_info = _CacheInfo.get_file_info(conda_config_path)
+            except Exception:
+                log.exception("Error collecting info from: %s", conda_config_path)
+                return None
 
             # Feature: read devdata/env.json and add it to the environment.
             env_json_path = parent / "devdata" / "env.json"
