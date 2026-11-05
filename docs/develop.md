@@ -168,7 +168,7 @@ This will compile the TypeScript code and run the test suite located in `vscode-
 From the `/sema4ai/tests` directory:
 
 ```bash
-poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv -n 1 -m "not data_server and not rcc_env" .
+poetry run python -u ../../sema4ai-python-ls-core/tests/run_tests.py -rfE -otests_output -vv -n 1 -m "not rcc_env" .
 ```
 
 To run a single test file or test:

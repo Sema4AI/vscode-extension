@@ -2,7 +2,7 @@
 
 # Sema4.ai VSCode Extension SDK
 
-Sema4.ai SDK: Visual Studio Code Extension for AI Agent, Actions and Automation Tasks development
+Sema4.ai SDK: Visual Studio Code Extension for Automation Tasks development
 
 <img src="./sema4ai/images/gif_run.gif" alt="Sema4.ai SDK Icon">
 
