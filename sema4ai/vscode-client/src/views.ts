@@ -5,7 +5,7 @@ import {
     TREE_VIEW_SEMA4AI_PACKAGE_RESOURCES_TREE,
 } from "./robocorpViews";
 import * as vscode from "vscode";
-import { commands, ExtensionContext } from "vscode";
+import { ExtensionContext } from "vscode";
 import { runRobotRCC, uploadRobot } from "./activities";
 import { createRccTerminal } from "./rccTerminal";
 import { RobotContentTreeDataProvider } from "./viewsRobotContent";
@@ -22,39 +22,7 @@ import { CloudTreeDataProvider } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 import { ResourcesTreeDataProvider } from "./viewsResources";
 import * as path from "path";
-import { fileExists, uriExists, verifyFileExists } from "./files";
-import { getTargetInputJson, runActionFromActionPackage } from "./robo/actionPackage";
-import { ActionResult } from "./protocols";
-import * as roboCommands from "./robocorpCommands";
-import { createActionInputs } from "./robo/actionInputs";
-
-export async function editInput(actionName?: string, actionDirectory?: string) {
-    if (!actionName || !actionDirectory) {
-        vscode.window.showErrorMessage("Unable to edit input: no target action entry defined for action.");
-        return;
-    }
-    const targetInput = await getTargetInputJson(actionName, actionDirectory);
-    let mustCreateInputs = !(await fileExists(targetInput));
-    if (!mustCreateInputs) {
-        const inputUri = vscode.Uri.file(targetInput);
-        // Check if the file is not empty
-        const fileContents = await vscode.workspace.fs.readFile(inputUri);
-        mustCreateInputs = fileContents.length === 0;
-    }
-    if (mustCreateInputs) {
-        const success = await createActionInputs(
-            vscode.Uri.file(actionDirectory),
-            actionName,
-            targetInput,
-            actionDirectory
-        );
-        if (!success) {
-            return;
-        }
-    }
-    const inputUri = vscode.Uri.file(targetInput);
-    await vscode.window.showTextDocument(inputUri);
-}
+import { uriExists, verifyFileExists } from "./files";
 
 export async function openRobotTreeSelection(robot?: RobotEntry) {
     if (!robot) {
@@ -86,57 +54,6 @@ export async function openRobotCondaTreeSelection(robot?: RobotEntry) {
             vscode.window.showTextDocument(condaYamlUri);
             return;
         }
-    }
-}
-
-export async function openPackageTreeSelection(robot?: RobotEntry) {
-    if (!robot) {
-        robot = getSelectedRobot();
-    }
-    if (robot) {
-        const packageYamlPath = path.join(robot.robot.directory, "package.yaml");
-        const packageYamlUri = vscode.Uri.file(packageYamlPath);
-        if (await uriExists(packageYamlUri)) {
-            vscode.window.showTextDocument(packageYamlUri);
-            return;
-        }
-    }
-}
-
-export async function openRunbookTreeSelection(robot?: RobotEntry) {
-    const selectedRobot = robot ?? getSelectedRobot();
-
-    if (!selectedRobot) {
-        vscode.window.showErrorMessage("Unable to open runbook: no agent selected.");
-        return;
-    }
-
-    const agentYamlPath = path.join(selectedRobot.robot.directory, "agent-spec.yaml");
-    const agentYamlUri = vscode.Uri.file(agentYamlPath);
-
-    if (!(await uriExists(agentYamlUri))) {
-        vscode.window.showErrorMessage(`Agent spec file not found in path: ${agentYamlPath}`);
-        return;
-    }
-
-    const result: ActionResult<string> = await commands.executeCommand(
-        roboCommands.SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
-        { agent_spec_path: agentYamlPath }
-    );
-
-    if (!result.success) {
-        vscode.window.showErrorMessage(`${result.message}`);
-        return;
-    }
-
-    const fullRunbookPath = path.join(selectedRobot.robot.directory, result.result);
-    const runbookUri = vscode.Uri.file(fullRunbookPath);
-
-    if (await uriExists(runbookUri)) {
-        vscode.window.showTextDocument(runbookUri);
-        return;
-    } else {
-        vscode.window.showErrorMessage(`Runbook file not found: ${fullRunbookPath}`);
     }
 }
 
@@ -177,44 +94,6 @@ export async function runSelectedRobot(noDebug: boolean, taskRobotEntry?: RobotE
         });
     }
     runRobotRCC(noDebug, taskRobotEntry.robot.filePath, taskRobotEntry.taskName);
-}
-
-export async function openAction(actionRobotEntry?: RobotEntry) {
-    const range = actionRobotEntry.range;
-    if (range) {
-        const selection: vscode.Range = new vscode.Range(
-            new vscode.Position(range.start.line - 1, range.start.character),
-            new vscode.Position(range.end.line - 1, range.end.character)
-        );
-        await vscode.window.showTextDocument(actionRobotEntry.uri, { selection: selection });
-    } else {
-        await vscode.window.showTextDocument(actionRobotEntry.uri);
-    }
-}
-
-export async function runSelectedAction(noDebug: boolean, actionRobotEntry?: RobotEntry) {
-    if (!actionRobotEntry) {
-        actionRobotEntry = await getSelectedRobot({
-            noSelectionMessage: "Unable to make launch (Action not selected in Packages Tree).",
-            moreThanOneSelectionMessage: "Unable to make launch -- only 1 action must be selected.",
-        });
-        if (!actionRobotEntry) {
-            return;
-        }
-    }
-
-    if (!actionRobotEntry.actionName) {
-        vscode.window.showErrorMessage("actionName not available in entry to launch.");
-        return;
-    }
-
-    await runActionFromActionPackage(
-        noDebug,
-        actionRobotEntry.actionName,
-        actionRobotEntry.robot.directory,
-        actionRobotEntry.robot.filePath,
-        actionRobotEntry.uri
-    );
 }
 
 export function registerViews(context: ExtensionContext) {
@@ -292,9 +171,7 @@ export function registerViews(context: ExtensionContext) {
 
     context.subscriptions.push(onSelectedRobotChanged((e) => resourcesDataProvider.onRobotsTreeSelectionChanged(e)));
 
-    const robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
-        "**/{robot.yaml,package.yaml,agent-spec.yaml,actions/*}"
-    );
+    const robotsWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/robot.yaml");
 
     const onChangeRobotsYaml = debounce(() => {
         // Note: this doesn't currently work if the parent folder is renamed or removed.

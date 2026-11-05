@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { LocalPackageMetadataInfo, Range } from "./protocols";
+import { LocalPackageMetadataInfo } from "./protocols";
 
 /**
  * Note: if type is error|info the name is the message to be shown.
@@ -20,43 +20,16 @@ export const NO_PACKAGE_FOUND_MSG = "No package found in current folder";
  * Rename when there is a collective term for Action/Task packages.
  */
 export enum RobotEntryType {
-    ActionPackage = "ActionPackage",
-    Action = "Action",
-    ActionsInActionPackage = "ActionsInActionPackage",
     Robot = "Robot",
     Task = "Task",
     Error = "Error",
     Run = "Run",
     Debug = "Debug",
-    RunAction = "RunAction",
-    DebugAction = "DebugAction",
-    DropDataSource = "DropDataSource",
     ActionsInRobot = "ActionsInRobot",
     UploadRobot = "UploadRobot",
     RobotTerminal = "RobotTerminal",
     OpenRobotYaml = "OpenRobotYaml",
     OpenRobotCondaYaml = "OpenRobotCondaYaml",
-    OpenPackageYaml = "OpenPackageYaml",
-    StartActionServer = "StartActionServer",
-    PackageRebuildEnvironment = "PackageRebuildEnvironment",
-    PackagePublishToSema4AIStudioApp = "PackagePublishToSema4AIStudioApp",
-    PackageBuildToWorkspace = "PackageBuildToWorkspace",
-    PackageMetadata = "PackageMetadata",
-    AgentPackage = "AgentPackage",
-    AgentPackageOrganizationForActions = "AgentPackageOrganizationForActions",
-    OpenAgentSpecYaml = "OpenAgentSpecYaml",
-    ActionsInAgentPackage = "ActionsInAgentPackage",
-    PublishAgentToSema4AIStudioApp = "PublishAgentToSema4AIStudioApp",
-    OpenRunbook = "OpenRunbook",
-    ExportAgentPackage = "ExportAgentPackage",
-    CreateActionPackage = "CreateActionPackage",
-    UpdateAgentVersion = "UpdateAgentVersion",
-    RefreshAgentConfiguration = "RefreshAgentConfiguration",
-    ImportActionPackage = "ImportActionPackage",
-    DataSourcesInActionPackage = "DataSourcesInActionPackage",
-    DataSource = "DataSource",
-    AddMCPServer = "AddMCPServer",
-    AddDockerMCPGateway = "AddDockerMCPGateway",
 }
 
 export interface CloudEntry {
@@ -80,12 +53,6 @@ export interface RobotEntry {
 
     // For task
     taskName?: string;
-
-    // For action
-    action_package_uri?: vscode.Uri | undefined;
-    actionName?: string;
-    range?: Range;
-    extraData?: Record<string, any>;
 }
 
 export interface FSEntry {
