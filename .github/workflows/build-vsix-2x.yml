@@ -1,0 +1,143 @@
+on:
+  push:
+    branches:
+      - "release/2.x"
+  pull_request:
+    branches:
+      - "release/2.x"
+  workflow_dispatch:
+
+name: Build VSIX - Sema4.ai Extension 2.x
+
+# Builds the 2.x extension .vsix files and uploads them as workflow artifacts.
+# On push (merge) to release/2.x they're also published to
+# https://downloads.robocorp.com/vscode-extension/releases/v2/vX.Y.Z/ for
+# customers that still need 2.x (fails if that version was already published).
+# Nothing is published to the VS Code marketplace or Open VSX.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    defaults:
+      run:
+        working-directory: ./sema4ai
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: win32-x64
+            rcc: win32
+          - target: linux-x64
+            rcc: linux
+          - target: darwin-arm64
+            rcc: darwin-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # fix-readme needs the latest sema4ai-* tag
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: sema4ai/.nvmrc
+          cache: 'npm'
+          cache-dependency-path: sema4ai/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install --upgrade pip fire poetry
+      - name: Vendor sema4ai_ls_core
+        run: python -m dev vendor-robocorp-ls-core
+      - name: Fix README references
+        run: python -m dev fix-readme
+      - name: Generate LICENSE.md
+        run: python -m dev generate-license-file
+      - name: Install locally
+        run: poetry install
+      - name: Run codegen
+        run: python -m dev codegen
+        env:
+          PYTHONPATH: src
+
+      - name: Copy changelog to root for vsce
+        run: cp ../docs/changelog.md CHANGELOG.md
+
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Download rcc for ${{ matrix.rcc }}
+        run: python -m dev download-rcc ${{ matrix.rcc }}
+
+      - run: npm run vsce:package -- --target ${{ matrix.target }} -o sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+          path: ./sema4ai/sema4ai-${{ steps.version.outputs.version }}-${{ matrix.target }}.vsix
+          if-no-files-found: error
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    permissions:
+      id-token: write # required by AWS aws-actions/configure-aws-credentials
+      contents: read
+    steps:
+      - name: Download VSIX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: sema4ai-*.vsix
+          path: vsix
+          merge-multiple: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::710450854638:role/github-action-vscode-extension
+
+      - name: Publish VSIX files
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          S3_BUCKET="downloads.robocorp.com"
+          S3_PREFIX="vscode-extension/releases/v2/v$VERSION"
+          cd vsix
+          ls -la
+
+          # Published releases are immutable: check all files before uploading any.
+          for file in *.vsix; do
+            if aws s3api head-object --bucket "$S3_BUCKET" --key "$S3_PREFIX/$file" > /dev/null 2>&1; then
+              echo "v$VERSION is already published ($S3_PREFIX/$file exists)."
+              echo "Bump the version (python -m dev set-version) to publish a new 2.x release."
+              exit 1
+            fi
+          done
+
+          # cache-control max-age=31536000, because these should be immutable
+          for file in *.vsix; do
+            aws s3 cp "$file" "s3://$S3_BUCKET/$S3_PREFIX/$file" --cache-control max-age=31536000
+
+            returnCode=$?
+
+            if [ $returnCode -ne 0 ]; then
+              echo "Uploading of '$file' failed, exiting..."
+              exit 1
+            fi
+          done
+
+          echo "### Published v$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          for file in *.vsix; do
+            echo "- https://downloads.robocorp.com/$S3_PREFIX/$file" >> "$GITHUB_STEP_SUMMARY"
+          done
