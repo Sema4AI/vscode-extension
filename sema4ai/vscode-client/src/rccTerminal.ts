@@ -13,8 +13,7 @@ import { randomBytes } from "crypto";
 export async function askAndCreateRccTerminal() {
     let robot: LocalPackageMetadataInfo = await listAndAskRobotSelection(
         "Please select the target Task Package for the terminal.",
-        "Unable to create terminal (no Task Package detected in the Workspace).",
-        { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
+        "Unable to create terminal (no Task Package detected in the Workspace)."
     );
     if (robot) {
         await createRccTerminal(robot);
