@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **Agent and Action Packages are no longer supported.** Version 3 of the extension is for Task Packages (`robot.yaml`) only. To keep working with Agent and Action Packages (legacy agent platform), install version 2.x: see [Version 2.x (legacy agent platform)](https://sema4.ai/docs/build/visual-studio-code#version-2x-legacy-agent-platform).
+  - Removed all Agent Package commands (create, import, export, publish to Sema4.ai Studio, runbook, agent configuration and version, MCP servers)
+  - Removed all Action Package commands (create, import, run/debug actions, action inputs, dev-tasks, Action Server, build/publish, OAuth2)
+  - Removed the Data Source commands and the integration with the Sema4.ai Data Access extension
+  - Removed the `@action` and `dev-tasks` code lenses (settings `sema4ai.codeLens.actionsLaunch` and `sema4ai.codeLens.devTask`) and the linting and hover for `package.yaml` and `agent-spec.yaml`
+  - The Packages view is now "Task Packages"
+  - A one-time notice is shown when a workspace has an Agent or Action Package
+
 ## New in 2.21.0 (2026-11-10)
 
 - Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
