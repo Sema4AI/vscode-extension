@@ -12,8 +12,6 @@ log = get_logger(__name__)
 
 class Tool(Enum):
     RCC = "rcc"
-    ACTION_SERVER = "action-server"
-    AGENT_CLI = "agent-cli"
 
 
 @dataclass
@@ -29,18 +27,6 @@ _tool_info_map = {
         mutex_name="robocorp_get_rcc",
         base_url="https://cdn.sema4.ai/rcc/releases",
         executable_name="rcc",
-        version_command=("--version",),
-    ),
-    Tool.ACTION_SERVER: ToolInfo(
-        mutex_name="sema4ai-get-action-server",
-        base_url="https://cdn.sema4.ai/action-server/releases",
-        executable_name="action-server",
-        version_command=("version",),
-    ),
-    Tool.AGENT_CLI: ToolInfo(
-        mutex_name="sema4ai-get-agent-cli",
-        base_url="https://cdn.sema4.ai/agent-cli/releases",
-        executable_name="agent-cli",
         version_command=("--version",),
     ),
 }

@@ -8,7 +8,6 @@ from typing import Any
 
 import pytest
 from sema4ai_ls_core.core_log import get_logger
-from sema4ai_ls_core.ep_resolve_interpreter import IInterpreterInfo
 from sema4ai_ls_core.protocols import IConfigProvider
 from sema4ai_ls_core.unittest_tools.cases_fixture import CasesFixture
 
@@ -336,9 +335,9 @@ class RccPatch:
             )
 
             conda_yaml = args[4]
-            assert conda_yaml.endswith("conda.yaml") or conda_yaml.endswith(
-                "package.yaml"
-            ), f"Expected conda.yaml or package.yaml. Found: {conda_yaml}. Args: {args}"
+            assert conda_yaml.endswith("conda.yaml"), (
+                f"Expected conda.yaml. Found: {conda_yaml}. Args: {args}"
+            )
             shutil.copyfile(conda_yaml, conda_prefix / "identity.yaml")
 
             return ActionResult(
@@ -398,8 +397,6 @@ def language_server_initialized(
     language_server_tcp: IRobocorpLanguageServerClient,
     ws_root_path: str,
     rcc_location: str,
-    action_server_location: str,
-    agent_cli_location: str,
     ci_endpoint: str,
     rcc_config_location: str,
     initialization_options,
@@ -418,10 +415,6 @@ def language_server_initialized(
                         "location": rcc_location,
                         "endpoint": ci_endpoint,
                         "config_location": rcc_config_location,
-                    },
-                    "actionServer": {"location": action_server_location},
-                    "agentCli": {
-                        "location": agent_cli_location,
                     },
                 }
             }
@@ -500,31 +493,6 @@ def patch_pypi_cloud_no_releases_12_months(monkeypatch):
     )
 
 
-@pytest.fixture
-def action_server_location() -> str:
-    from sema4ai_code.action_server import (
-        download_action_server,
-        get_default_action_server_location,
-    )
-
-    location = get_default_action_server_location()
-    download_action_server(location, force=False)
-    return location
-
-
-@pytest.fixture
-def agent_cli_location() -> str:
-    from sema4ai_code.agent_cli import (
-        download_agent_cli,
-        get_default_agent_cli_location,
-    )
-
-    location = get_default_agent_cli_location()
-    download_agent_cli(location, force=False)
-
-    return location
-
-
 def fix_locator(locator: "PickedLocatorTypedDict") -> "PickedLocatorTypedDict":
     """
     Utility to convert a locator into a format that's suitable to be
@@ -589,85 +557,3 @@ def tk_process() -> Iterator[subprocess.Popen]:
     yield popen
     if popen.poll() is None:
         kill_process_and_subprocesses(popen.pid)
-
-
-@pytest.fixture
-def create_agent_and_action(
-    language_server,
-    tmpdir,
-):
-    from sema4ai_code import commands
-
-    agent_dir = str(tmpdir.join("MyAgent"))
-    language_server.change_workspace_folders(
-        added_folders=[agent_dir], removed_folders=[]
-    )
-
-    # Create agent package
-    result = language_server.execute_command(
-        commands.SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": agent_dir,
-                "name": "Test Agent",
-            }
-        ],
-    )["result"]
-
-    assert result["success"]
-    assert os.path.exists(f"{agent_dir}/agent-spec.yaml")
-
-    # Create action package with specific name and path
-    result = language_server.execute_command(
-        commands.SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-        [
-            {
-                "directory": f"{agent_dir}/actions/MyActions/action-one",
-                "name": "Action One",
-                "template": "basic",
-            }
-        ],
-    )["result"]
-
-    assert result["success"]
-
-    return agent_dir
-
-
-class ResolveInterpreterCurrentEnv:
-    def get_interpreter_info_for_doc_uri(self, doc_uri) -> IInterpreterInfo | None:
-        """
-        Provides a customized interpreter for a given document uri.
-        """
-        import sys
-
-        from sema4ai_ls_core.ep_resolve_interpreter import DefaultInterpreterInfo
-
-        return DefaultInterpreterInfo("interpreter_id", sys.executable, {}, [])
-
-
-@pytest.fixture
-def actions_version_fixture(tmpdir):
-    from sema4ai_ls_core import pluginmanager, uris
-    from sema4ai_ls_core.ep_resolve_interpreter import EPResolveInterpreter
-    from sema4ai_ls_core.jsonrpc.monitor import Monitor
-
-    from sema4ai_code.robo.collect_actions import _get_actions_version
-
-    root = Path(tmpdir) / "check_version"
-    root.mkdir(parents=True, exist_ok=True)
-
-    pm = pluginmanager.PluginManager()
-    pm.register(EPResolveInterpreter, ResolveInterpreterCurrentEnv)
-
-    uri = uris.from_fs_path(str(root))
-    monitor = Monitor()
-
-    actions_library_result = _get_actions_version(pm, uri, monitor)
-    if not actions_library_result.success:
-        raise RuntimeError(
-            f"Failed to determine actions version: {actions_library_result.message}"
-        )
-
-    actions_version = actions_library_result.result
-    return actions_version, pm, monitor, uri, root

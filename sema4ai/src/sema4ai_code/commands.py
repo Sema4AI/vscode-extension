@@ -5,8 +5,6 @@ SEMA4AI_GET_LANGUAGE_SERVER_PYTHON = "sema4ai.getLanguageServerPython"  # Get a 
 SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO = "sema4ai.getLanguageServerPythonInfo"  # Get info suitable to start the language server {pythonExe, environ}
 SEMA4AI_GET_PLUGINS_DIR = "sema4ai.getPluginsDir"  # Get the directory for plugins
 SEMA4AI_CREATE_ROBOT = "sema4ai.createRobot"  # Create Task Package
-SEMA4AI_CREATE_ACTION_PACKAGE = "sema4ai.createActionPackage"  # Create Action Package
-SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE = "sema4ai.createTaskOrActionOrAgentPackage"  # Create Agent, Action or Task Package
 SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL = "sema4ai.listRobotTemplates.internal"  # Provides a list with the available Task Package templates
 SEMA4AI_CREATE_ROBOT_INTERNAL = "sema4ai.createRobot.internal"  # Actually calls rcc to create the Task Package
 SEMA4AI_UPLOAD_ROBOT_TO_CLOUD = "sema4ai.uploadRobotToCloud"  # Upload Task Package to Control Room
@@ -20,16 +18,9 @@ SEMA4AI_UPLOAD_TO_NEW_ROBOT_INTERNAL = "sema4ai.uploadToNewRobot.internal"  # Up
 SEMA4AI_UPLOAD_TO_EXISTING_ROBOT_INTERNAL = "sema4ai.uploadToExistingRobot.internal"  # Uploads a Task Package as an existing Task Package in the Control Room
 SEMA4AI_RUN_IN_RCC_INTERNAL = "sema4ai.runInRcc.internal"  # Runs a custom command in RCC
 SEMA4AI_RUN_ROBOT_RCC = "sema4ai.runRobotRcc"  # Run Task Package
-SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE = "sema4ai.runActionFromActionPackage"  # Run Action (from Action Package)
 SEMA4AI_DEBUG_ROBOT_RCC = "sema4ai.debugRobotRcc"  # Debug Task Package
-SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE = "sema4ai.debugActionFromActionPackage"  # Debug Action (from Action Package)
 SEMA4AI_ROBOTS_VIEW_TASK_RUN = "sema4ai.robotsViewTaskRun"  # Launch Task
 SEMA4AI_ROBOTS_VIEW_TASK_DEBUG = "sema4ai.robotsViewTaskDebug"  # Debug Task
-SEMA4AI_ROBOTS_VIEW_ACTION_RUN = "sema4ai.robotsViewActionRun"  # Launch Action
-SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG = "sema4ai.robotsViewActionDebug"  # Debug Action
-SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT = "sema4ai.robotsViewActionEditInput"  # Configure Action Input
-SEMA4AI_CONFIGURE_ACTION_INPUT = "sema4ai.configureActionInput"  # Configure Action Input
-SEMA4AI_ROBOTS_VIEW_ACTION_OPEN = "sema4ai.robotsViewActionOpen"  # Open Action
 SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK = "sema4ai.runRobocorpsPythonTask"  # Run Sema4.ai's Python Task
 SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK = "sema4ai.debugRobocorpsPythonTask"  # Debug Sema4.ai's Python Task
 SEMA4AI_SAVE_IN_DISK_LRU = "sema4ai.saveInDiskLRU"  # Saves some data in an LRU in the disk
@@ -61,7 +52,6 @@ SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR = "sema4ai.editRobocorpInspectorLocator"
 SEMA4AI_COPY_LOCATOR_TO_CLIPBOARD_INTERNAL = "sema4ai.copyLocatorToClipboard.internal"  # Copy locator name to clipboard
 SEMA4AI_OPEN_ROBOT_TREE_SELECTION = "sema4ai.openRobotTreeSelection"  # Configure Task Package (robot.yaml)
 SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION = "sema4ai.openRobotCondaTreeSelection"  # Configure Dependencies (conda.yaml)
-SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION = "sema4ai.openPackageYamlTreeSelection"  # Configure Action Package
 SEMA4AI_OPEN_EXTERNALLY = "sema4ai.openExternally"  # Open externally
 SEMA4AI_OPEN_IN_VS_CODE = "sema4ai.openInVSCode"  # Open in VSCode
 SEMA4AI_REVEAL_IN_EXPLORER = "sema4ai.revealInExplorer"  # Reveal in File Explorer
@@ -103,57 +93,9 @@ SEMA4AI_PROFILE_LIST_INTERNAL = "sema4ai.profileList.internal"  # List Profiles
 SEMA4AI_HAS_PRE_RUN_SCRIPTS_INTERNAL = "sema4ai.hasPreRunScripts.internal"  # Has Pre Run Scripts
 SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL = "sema4ai.runPreRunScripts.internal"  # Run Pre Run Scripts
 SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL = "sema4ai.getPyPiBaseUrls.internal"  # Get PyPi base urls
-SEMA4AI_START_ACTION_SERVER = "sema4ai.startActionServer"  # Start Action Server
-SEMA4AI_DOWNLOAD_ACTION_SERVER = "sema4ai.downloadActionServer"  # Download Action Server
-SEMA4AI_START_ACTION_SERVER_INTERNAL = "sema4ai.startActionServer.internal"  # Start Action Server (internal)
-SEMA4AI_LIST_ACTIONS_INTERNAL = "sema4ai.listActions.internal"  # Lists the actions available in an action package given a root dir (internal)
 SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD = "sema4ai.packageEnvironmentRebuild"  # Rebuild Package Environment
-SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.actionPackagePublishToSema4AIStudioApp"  # Publish Action Package to Sema4.ai Studio
-SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL = "sema4ai.listActionTemplates.internal"  # Provides a list with the available Action templates
-SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL = "sema4ai.createActionPackage.internal"  # Actually calls Action Server to create the Action Package
-SEMA4AI_ACTION_SERVER_CLOUD_LOGIN = "sema4ai.actionServerCloudLogin"  # Authenticate the Action Server to Control Room
-SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL = "sema4ai.actionServerCloudLogin.internal"  # Authenticate the Action Server to Control Room (internal)
-SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL = "sema4ai.actionServerCloudVerifyLogin.internal"  # Verify that the action server Control Room credentials are saved (internal)
-SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL = "sema4ai.actionServerCloudListOrganizations.internal"  # List Action Server authenticated organizations (internal)
-SEMA4AI_ACTION_SERVER_PACKAGE_BUILD = "sema4ai.actionServerPackageBuild"  # Build Action Package (zip)
-SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL = "sema4ai.actionServerPackageBuild.internal"  # Build Action Package (internal)
-SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL = "sema4ai.actionServerPackageUpload.internal"  # Upload action package to the Control Room (internal)
-SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL = "sema4ai.actionServerPackageStatus.internal"  # Get action package upload status from the Control Room (internal)
-SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL = "sema4ai.actionServerPackageSetChangelog.internal"  # Set action package changelog entry in the Control Room (internal)
-SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH = "sema4ai.actionServerPackagePublish"  # Publish Action Package to Control Room
-SEMA4AI_ACTION_SERVER_PACKAGE_METADATA = "sema4ai.actionServerPackageMetadata"  # Preview the Package OpenAPI Spec (metadata.json)
-SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL = "sema4ai.actionServerPackageMetadata.internal"  # Preview the Package OpenAPI Spec (metadata.json) (internal)
-SEMA4AI_OAUTH2_LOGOUT = "sema4ai.oauth2.logout"  # OAuth2 logout
-SEMA4AI_OAUTH2_OPEN_SETTINGS = "sema4ai.oauth2.open_settings"  # Open Oauth2 Settings
 SEMA4AI_RCC_DOWNLOAD_INTERNAL = "sema4ai.rccDownload.internal"  # Downloads the RCC (internal)
-SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL = "sema4ai.actionServerDownload.internal"  # Downloads the Action Server (internal)
-SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL = "sema4ai.agentCliDownload.internal"  # Downloads the Agent CLI (internal)
-SEMA4AI_ACTION_SERVER_VERSION_INTERNAL = "sema4ai.actionServerVersion.internal"  # Get the Action Server's version (internal)
-SEMA4AI_AGENT_CLI_VERSION_INTERNAL = "sema4ai.agentCliVersion.internal"  # Get the Agent CLI's version (internal)
-SEMA4AI_CREATE_AGENT_PACKAGE = "sema4ai.createAgentPackage"  # Create Agent Package
-SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL = "sema4ai.createAgentPackage.internal"  # Calls Agent Server to create new Agent Package
-SEMA4AI_PACK_AGENT_PACKAGE = "sema4ai.packAgentPackage"  # Export Agent Package (Zip)
-SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL = "sema4ai.packAgentPackage.internal"  # Export Agent Package (internal)
-SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION = "sema4ai.openRunbookTreeSelection"  # Edit Runbook
-SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL = "sema4ai.getRunbookPathFromAgentSpec.internal"  # Get Runbook Path from Agent Spec (internal)
-SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP = "sema4ai.agentPackagePublishToSema4AIStudioApp"  # Publish Agent Package to Sema4.ai Studio
-SEMA4AI_AGENT_PACKAGE_IMPORT = "sema4ai.agentPackageImport"  # Import Agent Package (Zip)
-SEMA4AI_REFRESH_AGENT_SPEC = "sema4ai.refreshAgentSpec"  # Refresh Agent Configuration
-SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL = "sema4ai.refreshAgentSpec.internal"  # Refresh Agent Spec (internal)
-SEMA4AI_UPDATE_AGENT_VERSION = "sema4ai.updateAgentVersion"  # Update Agent Version
-SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL = "sema4ai.updateAgentVersion.internal"  # Update Agent Version (internal)
 SEMA4AI_COLLAPSE_ALL_ENTRIES = "sema4ai.collapseAllEntries"  # Collapse All Entries
-SEMA4AI_IMPORT_ACTION_PACKAGE = "sema4ai.importActionPackage"  # Import Action Package
-SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK = "sema4ai.runActionPackageDevTask"  # Run dev-task (from Action Package)
-SEMA4AI_GET_ACTIONS_METADATA = "sema4ai.getActionsMetadata"  # Get Actions Metadata
-SEMA4AI_DROP_DATA_SOURCE = "sema4ai.dropDataSource"  # Remove Data Source
-SEMA4AI_SETUP_DATA_SOURCE = "sema4ai.setupDataSource"  # Setup Data Source
-SEMA4AI_OPEN_DATA_SOURCE_DEFINITION = "sema4ai.openDataSourceDefinition"  # Open Data Source definition
-SEMA4AI_DROP_ALL_DATA_SOURCES = "sema4ai.dropAllDataSources"  # Remove All Data Sources
-SEMA4AI_SETUP_ALL_DATA_SOURCES = "sema4ai.setupAllDataSources"  # Setup All Data Sources
-SEMA4AI_FIX_WRONG_AGENT_IMPORT = "sema4ai.fixWrongAgentImport"  # Fix wrong agent import
-SEMA4AI_ADD_MCP_SERVER = "sema4ai.addMCPServer"  # Add MCP Server
-SEMA4AI_ADD_DOCKER_MCP_GATEWAY = "sema4ai.addDockerMCPGateway"  # Add Docker MCP Gateway
 
 ALL_SERVER_COMMANDS = [
     SEMA4AI_GET_PLUGINS_DIR,
@@ -188,29 +130,7 @@ ALL_SERVER_COMMANDS = [
     SEMA4AI_HAS_PRE_RUN_SCRIPTS_INTERNAL,
     SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL,
     SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL,
-    SEMA4AI_START_ACTION_SERVER_INTERNAL,
-    SEMA4AI_LIST_ACTIONS_INTERNAL,
-    SEMA4AI_LIST_ACTION_TEMPLATES_INTERNAL,
-    SEMA4AI_CREATE_ACTION_PACKAGE_INTERNAL,
-    SEMA4AI_ACTION_SERVER_CLOUD_LOGIN_INTERNAL,
-    SEMA4AI_ACTION_SERVER_CLOUD_VERIFY_LOGIN_INTERNAL,
-    SEMA4AI_ACTION_SERVER_CLOUD_LIST_ORGANIZATIONS_INTERNAL,
-    SEMA4AI_ACTION_SERVER_PACKAGE_BUILD_INTERNAL,
-    SEMA4AI_ACTION_SERVER_PACKAGE_UPLOAD_INTERNAL,
-    SEMA4AI_ACTION_SERVER_PACKAGE_STATUS_INTERNAL,
-    SEMA4AI_ACTION_SERVER_PACKAGE_SET_CHANGELOG_INTERNAL,
-    SEMA4AI_ACTION_SERVER_PACKAGE_METADATA_INTERNAL,
-    SEMA4AI_OAUTH2_OPEN_SETTINGS,
     SEMA4AI_RCC_DOWNLOAD_INTERNAL,
-    SEMA4AI_ACTION_SERVER_DOWNLOAD_INTERNAL,
-    SEMA4AI_AGENT_CLI_DOWNLOAD_INTERNAL,
-    SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
-    SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
-    SEMA4AI_CREATE_AGENT_PACKAGE_INTERNAL,
-    SEMA4AI_PACK_AGENT_PACKAGE_INTERNAL,
-    SEMA4AI_GET_RUNBOOK_PATH_FROM_AGENT_SPEC_INTERNAL,
-    SEMA4AI_REFRESH_AGENT_SPEC_INTERNAL,
-    SEMA4AI_UPDATE_AGENT_VERSION_INTERNAL,
 ]
 
 # fmt: on

@@ -1,7 +1,7 @@
 import typing
 from enum import Enum
 from pathlib import Path
-from typing import Any, ContextManager, Literal, TypeVar
+from typing import Any, ContextManager, TypeVar
 
 # Backward-compatibility imports:
 from sema4ai_ls_core.protocols import ActionResult, ActionResultDict  # noqa
@@ -14,14 +14,10 @@ from typing import Protocol, TypedDict
 
 class PackageType(Enum):
     TASK = "task"
-    ACTION = "action"
-    AGENT = "agent"
 
 
 class PackageYamlName(Enum):
     ROBOT = "robot.yaml"
-    ACTION = "package.yaml"
-    AGENT = "agent-spec.yaml"
 
 
 class LocalPackageMetadataInfoDict(TypedDict, total=False):
@@ -30,14 +26,6 @@ class LocalPackageMetadataInfoDict(TypedDict, total=False):
     filePath: str  # The path to the YAML file
     name: str  # The name of the package
     yamlContents: dict  # The contents of the YAML file
-    organizations: list["LocalAgentPackageOrganizationInfoDict"] | None
-
-
-class LocalAgentPackageOrganizationInfoDict(TypedDict):
-    name: str  # Name of the organization.
-    actionPackages: list[
-        LocalPackageMetadataInfoDict
-    ]  # Action Packages specific to given organization.
 
 
 class LocatorEntryInfoDict(TypedDict):
@@ -71,11 +59,6 @@ class WorkspaceInfoDict(TypedDict):
     packages: list[PackageInfoDict]
 
 
-class ActionServerVerifyLoginInfoDict(TypedDict):
-    logged_in: bool
-    hostname: str
-
-
 T = TypeVar("T")
 
 
@@ -88,43 +71,6 @@ ActionResultDictLocatorsJsonInfo = ActionResultDict[list[LocatorEntryInfoDict]]
 ActionResultDictLocalRobotMetadata = ActionResultDict[
     list[LocalPackageMetadataInfoDict]
 ]
-
-ActionServerVerifyLoginResultDict = ActionResultDict[ActionServerVerifyLoginInfoDict]
-
-
-ActionServerListOrgsResultDict = ActionResultDict[list[str]]
-
-
-class ActionServerPackageBuildInfo(TypedDict):
-    package_path: str
-
-
-ActionServerPackageBuildResultDict = ActionResultDict[ActionServerPackageBuildInfo]
-
-
-class ActionPackageUploadStatusError(TypedDict):
-    code: str
-    message: str
-
-
-class ActionServerPackageUploadStatus(TypedDict):
-    id: str
-    name: str
-    url: str
-    version: str | None
-    changes: str | None
-    status: (
-        Literal["unknown"]
-        | Literal["pending"]
-        | Literal["validating"]
-        | Literal["failed"]
-        | Literal["completed"]
-        | Literal["published"]
-    )
-    error: ActionPackageUploadStatusError | None
-
-
-ActionServerPackageUploadStatusDict = ActionResultDict[ActionServerPackageUploadStatus]
 
 
 class WorkItem(TypedDict):
@@ -156,11 +102,6 @@ class ListWorkItemsParams(TypedDict):
     increment_output: bool  # Whether a new output folder should be generated (and older ones should be collected).
 
 
-class ListActionsParams(TypedDict):
-    action_package: str  # Path to the action package for which we want the actions (may be just the folder or the package.yaml).
-    collect_datasources: bool
-
-
 class ListWorkspacesActionResultDict(TypedDict):
     success: bool
     message: None | (
@@ -170,11 +111,6 @@ class ListWorkspacesActionResultDict(TypedDict):
 
 
 class RobotTemplate(TypedDict):
-    name: str
-    description: str
-
-
-class ActionTemplate(TypedDict):
     name: str
     description: str
 
@@ -197,12 +133,6 @@ class CloudListWorkspaceDict(TypedDict):
 
 
 class CreateRobotParamsDict(TypedDict):
-    directory: str
-    template: str
-    name: str
-
-
-class CreateActionPackageParamsDict(TypedDict):
     directory: str
     template: str
     name: str
@@ -237,64 +167,8 @@ class ProfileListResultTypedDict(TypedDict):
     profiles: dict  # name to description
 
 
-class ActionServerLoginDict(TypedDict):
-    access_credentials: str
-    hostname: str
-
-
-class ActionServerAccessCredentialsDict(TypedDict):
-    access_credentials: str | None
-    hostname: str | None
-
-
-class ActionServerPackageBuildDict(TypedDict):
-    workspace_dir: str
-    output_dir: str
-
-
-class ActionServerPackageUploadDict(TypedDict):
-    package_path: str
-    organization_id: str
-    access_credentials: str | None
-    hostname: str | None
-
-
-class ActionServerPackageStatusDict(TypedDict):
-    package_id: str
-    organization_id: str
-    access_credentials: str | None
-    hostname: str | None
-
-
-class ActionServerPackageSetChangelogDict(TypedDict):
-    package_id: str
-    organization_id: str
-    changelog_input: str
-    access_credentials: str | None
-    hostname: str | None
-
-
-class ActionServerPackageMetadataDict(TypedDict):
-    action_package_path: str
-    output_file_path: str
-
-
 class DownloadToolDict(TypedDict):
     location: str
-
-
-class CreateAgentPackageParamsDict(TypedDict):
-    directory: str
-    name: str
-
-
-class AgentSpecPathDict(TypedDict):
-    agent_spec_path: str
-
-
-class UpdateAgentVersionParamsDict(TypedDict):
-    agent_path: str
-    version_type: str
 
 
 class IRccWorkspace(Protocol):
@@ -508,33 +382,3 @@ class IRcc(Protocol):
         file_path: str,
     ) -> ActionResult[str]:
         pass
-
-
-class HttpConfigTypedDict(TypedDict):
-    host: str
-    port: str
-
-
-class MysqlConfigTypedDict(TypedDict):
-    host: str
-    port: str
-    ssl: bool
-
-
-class ApiConfigTypedDict(TypedDict):
-    http: HttpConfigTypedDict
-    mysql: MysqlConfigTypedDict
-
-
-class AuthConfigTypedDict(TypedDict):
-    http_auth_enabled: bool
-    password: str
-    username: str
-
-
-class DataServerConfigTypedDict(TypedDict):
-    api: ApiConfigTypedDict
-    auth: AuthConfigTypedDict
-    is_running: bool
-    pid: int
-    pid_file_path: str
