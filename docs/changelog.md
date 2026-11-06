@@ -16,6 +16,7 @@
 - Update RCC to `v21.4.2`
 - Base environment now pins `uv=0.13.7`
 - `conda.yaml` and `package.yaml`: no longer suggests updating `openssl` to the latest version (like `python` and `uv`, the version set in the template should be kept); versions older than `3.5.9` show a warning to update
+- Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
 
 ## New in 2.20.0 (2026-10-08)
 
