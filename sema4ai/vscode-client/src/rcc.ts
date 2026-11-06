@@ -153,7 +153,7 @@ async function downloadRcc(
             throw new Error("Currently only Linux amd64 is supported.");
         }
     }
-    const RCC_VERSION = "v21.3.0";
+    const RCC_VERSION = "v21.4.0";
     const prefix = "https://cdn.sema4.ai/rcc/releases/" + RCC_VERSION;
     const url: string = prefix + relativePath;
     return await downloadWithProgress(url, progress, token, location);
