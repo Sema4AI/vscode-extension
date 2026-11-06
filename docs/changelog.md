@@ -1,5 +1,7 @@
 ## Unreleased
 
+- `conda.yaml`: no longer suggests updating `openssl` (like `python` and `uv`, the version set in the template should be kept)
+
 ## New in 2.20.0 (2026-10-08)
 
 - **macOS Intel (x64) is no longer supported.** The extension is no longer published for macOS Intel; on macOS, a Mac with Apple Silicon (arm64) is required. Supported platforms are Windows x64, Linux x64 and macOS arm64.
