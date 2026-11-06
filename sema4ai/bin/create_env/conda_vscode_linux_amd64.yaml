@@ -5,7 +5,7 @@ channels:
 
 dependencies:
     - python=3.11.10 # https://pyreadiness.org/3.11/
-    - openssl=3.6.4 # Explicit pin for security fixes (CVE): https://openssl-library.org/news/vulnerabilities/
+    - openssl=3.5.9 # 3.5 is the OpenSSL LTS line (3.6 is end of life): https://openssl-library.org/policies/releasestrat/
     - uv=0.4.17 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
     - pyyaml=6.0.2
     - ruamel.yaml=0.18.10
