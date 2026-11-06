@@ -7,6 +7,7 @@
   - Removed the `@action` and `dev-tasks` code lenses (settings `sema4ai.codeLens.actionsLaunch` and `sema4ai.codeLens.devTask`) and the linting and hover for `package.yaml` and `agent-spec.yaml`
   - The Packages view is now "Task Packages"
   - A one-time notice is shown when a workspace has an Agent or Action Package
+- Base environment now pins `openssl=3.5.9` (OpenSSL 3.5 LTS, supported until 2030-04-08). OpenSSL 3.6 is no longer supported, and OpenSSL 4.x is not available for the Python 3.11 builds in conda-forge.
 - Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
 
 ## New in 2.20.0 (2026-10-08)
