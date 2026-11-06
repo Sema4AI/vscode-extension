@@ -12,7 +12,7 @@
     - `node --version`
     - `npm --version`
 
-- **Python**: Python 3.11 (see [pyproject.toml](/sema4ai/pyproject.toml) for exact version requirements)
+- **Python**: Python 3.13 (see [pyproject.toml](/sema4ai/pyproject.toml) for exact version requirements)
 - **Poetry** 2.x: manages the Python development environment (`pip install poetry` or `pipx install poetry`)
 - **vsce**: For packaging VSIX files [@vscode/vsce](https://www.npmjs.com/package/@vscode/vsce) - installed as a dev dependency via npm 
 
@@ -40,9 +40,9 @@ It includes the development tools (`fire` for `dev.py`, `pytest`, `mypy`, `ruff`
 
 Run these in the `/sema4ai` directory:
 
-1. If your default `python` is not 3.11, tell Poetry which interpreter to use:
+1. If your default `python` is not 3.13, tell Poetry which interpreter to use:
    ```bash
-   poetry env use 3.11        # or a full path, e.g. poetry env use C:\Python311\python.exe
+   poetry env use 3.13        # or a full path, e.g. poetry env use C:\Python313\python.exe
    ```
 2. Optional: keep the environment in `/sema4ai/.venv` (git-ignored) instead of Poetry's cache directory.
    This writes a `poetry.toml` in `/sema4ai`; it's a personal setting, so don't commit it:
@@ -60,7 +60,7 @@ Run these in the `/sema4ai` directory:
    poetry env info --path
    ```
    By default this is under Poetry's cache, e.g.
-   `%LOCALAPPDATA%\pypoetry\Cache\virtualenvs\sema4ai-vscode-extension-<hash>-py3.11` on Windows
+   `%LOCALAPPDATA%\pypoetry\Cache\virtualenvs\sema4ai-vscode-extension-<hash>-py3.13` on Windows
    or `.venv` if you did step 2.
 5. In VS Code, run `Python: Select Interpreter` and pick `<env path>/Scripts/python.exe` (Windows)
    or `<env path>/bin/python` (Linux/macOS).

@@ -18,17 +18,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: ["windows-py311", "ubuntu-py311", "macos-py311"]
+        name: ["windows-py313", "ubuntu-py313", "macos-py313"]
 
         include:
-          - name: "windows-py311"
-            python: "3.11"
+          - name: "windows-py313"
+            python: "3.13"
             os: windows-latest
-          - name: "ubuntu-py311"
-            python: "3.11"
+          - name: "ubuntu-py313"
+            python: "3.13"
             os: ubuntu-latest
-          - name: "macos-py311"
-            python: "3.11"
+          - name: "macos-py313"
+            python: "3.13"
             os: macos-latest
 
     steps:
