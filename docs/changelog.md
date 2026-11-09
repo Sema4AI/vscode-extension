@@ -1,7 +1,7 @@
 ## Unreleased
 
-- Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line (previously `3.6.4`; OpenSSL 3.6 is end of life)
-- Base environment now pins `playwright==1.64.1` (previously `1.52.0`), which bundles Node.js `24.22.1` (previously `22.14.0`)
+- Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
+- Base environment now pins `playwright==1.64.1`, which bundles Node.js `24.22.1`
 - Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
 - Update RCC to `v21.4.2`
 
