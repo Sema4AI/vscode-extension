@@ -184,6 +184,25 @@ class BaseAnalyzer:
                     yield diagnostic
                     break
 
+        dep_vspec = self._conda_deps.get_dep_vspec("openssl")
+
+        if dep_vspec is not None:
+            vspec = VersionSpec(dep_vspec)
+            # openssl should be 3.5.9 (LTS) or newer, so, check if an older version matches.
+            for old_version in _iter_old_openssl_versions():
+                if vspec.match(old_version):
+                    dep_range = self._conda_deps.get_dep_range("openssl")
+
+                    diagnostic = {
+                        "range": dep_range,
+                        "severity": _DiagnosticSeverity.Warning,
+                        "source": "sema4ai",
+                        "message": "Consider updating openssl to a newer version (at least openssl 3.5.9 is recommended as it has known security fixes).",
+                    }
+
+                    yield diagnostic
+                    break
+
         sqlite_queries = self._conda_cloud.sqlite_queries()
         if sqlite_queries:
             with sqlite_queries.db_cursors() as db_cursors:
@@ -253,6 +272,25 @@ class BaseAnalyzer:
             if is_inside(dep_info.dep_range, line, col):
                 return dep_info
         return None
+
+
+def _iter_old_openssl_versions() -> Iterator[str]:
+    """
+    Provides the openssl versions older than 3.5.9 (as available in conda-forge).
+    """
+    import string
+
+    for base in ("1.0.2", "1.1.0", "1.1.1"):
+        yield base
+        for letter in string.ascii_lowercase:
+            yield base + letter
+
+    for minor in range(5):
+        for patch in range(30):
+            yield f"3.{minor}.{patch}"
+
+    for patch in range(9):
+        yield f"3.5.{patch}"
 
 
 def extract_range(*items):
