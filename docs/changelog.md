@@ -11,6 +11,7 @@
 - Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
 - "Upload Task Package to Control Room" is now "Publish Task Package to Control Room". Publishing to an existing Task Package no longer says it overwrites it: the dialog now says it publishes a new version that replaces the current version in Control Room immediately. The whole flow now says "Task Package" instead of "Robot".
 - Fix an error when the publish confirmation is dismissed with Escape
+- The Control Room view shows the extension version, commit and build time as its last line. Click it to copy them to the clipboard.
 
 ## New in 2.21.0 (2026-11-10)
 
