@@ -53,6 +53,7 @@ export interface RobotEntry {
 
     // For task
     taskName?: string;
+    isRobotFrameworkTask?: boolean; // Robot Framework tasks can be run but not debugged.
 }
 
 export interface FSEntry {

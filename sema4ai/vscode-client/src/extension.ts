@@ -430,7 +430,6 @@ async function clearEnvAndRestart() {
 
 async function clearEnvsAndRestart(progress: vscode.Progress<{ message?: string; increment?: number }>) {
     let allOk: boolean = true;
-    let okToRestartRFLS = false;
     try {
         await langServerMutex.dispatch(async () => {
             let result = await clearEnvsLocked(progress);
@@ -438,7 +437,6 @@ async function clearEnvsAndRestart(progress: vscode.Progress<{ message?: string;
                 // Something didn't work out...
                 return;
             }
-            okToRestartRFLS = result["okToRestartRFLS"];
         });
         const timing = new Timing();
         progress.report({
@@ -461,13 +459,6 @@ async function clearEnvsAndRestart(progress: vscode.Progress<{ message?: string;
             C.useErrorStubs = false;
         } else {
             C.useErrorStubs = true;
-        }
-
-        if (okToRestartRFLS) {
-            progress.report({
-                "message": `Starting Robot Framework Language Server.`,
-            });
-            await commands.executeCommand("robot.clearCachesAndRestartProcesses.finish.internal");
         }
     }
 }
@@ -492,21 +483,7 @@ async function clearEnvsLocked(progress: vscode.Progress<{ message?: string; inc
 
     C.useErrorStubs = true; // Prevent any calls while restarting...
     C.errorMessage = "Unable to use Sema4.ai actions while clearing environments.";
-    let okToRestartRFLS = false;
     try {
-        let timing = new Timing();
-        const extension = extensions.getExtension("robocorp.robotframework-lsp");
-        if (extension) {
-            progress.report({
-                "message": `Stopping Robot Framework Language Server.`,
-            });
-            // In this case we also need to stop the language server.
-            okToRestartRFLS = await commands.executeCommand("robot.clearCachesAndRestartProcesses.start.internal");
-            OUTPUT_CHANNEL.appendLine(
-                "Stopped Robot Framework Language Server. Took: " + timing.getTotalElapsedAsStr()
-            );
-        }
-
         let timingStop = new Timing();
         progress.report({
             "message": `Stopping Sema4.ai.`,
@@ -535,7 +512,7 @@ async function clearEnvsLocked(progress: vscode.Progress<{ message?: string; inc
     } finally {
         C.errorMessage = undefined;
     }
-    return { "okToRestartRFLS": okToRestartRFLS };
+    return true;
 }
 
 export let langServer: LanguageClient;
@@ -683,31 +660,6 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
         vscode.window.registerWebviewViewProvider(RobotOutputViewProvider.viewType, outputProvider, options)
     );
     await setupDebugSessionOutViewIntegration(context);
-
-    const extension = extensions.getExtension("robocorp.robotframework-lsp");
-    if (extension) {
-        // If the Robot Framework Language server is present, make sure it is compatible with this
-        // version.
-        try {
-            const version: string = extension.packageJSON.version;
-            const splitted = version.split(".");
-            const major = parseInt(splitted[0]);
-            const minor = parseInt(splitted[1]);
-            const micro = parseInt(splitted[2]);
-            if (major < 1 || (major == 1 && (minor < 7 || (minor == 7 && micro < 0)))) {
-                const msg =
-                    "Unable to initialize the Sema4.ai extension because the Robot Framework Language Server version (" +
-                    version +
-                    ") is not compatible with this version of Sema4.ai. Robot Framework Language Server 1.7.0 or newer is required. Please update to proceed. ";
-                OUTPUT_CHANNEL.appendLine(msg);
-                C.useErrorStubs = true;
-                notifyOfInitializationErrorShowOutputTab(msg);
-                return;
-            }
-        } catch (err) {
-            logError("Error verifying Robot Framework Language Server version.", err, "INIT_RF_TOO_OLD");
-        }
-    }
 
     workspace.onDidChangeConfiguration((event) => {
         for (let s of [

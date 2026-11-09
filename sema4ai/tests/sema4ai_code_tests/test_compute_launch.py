@@ -36,18 +36,9 @@ ignoreFiles:
     )
 
     assert launch == {
-        "success": True,
-        "message": None,
-        "result": {
-            "type": "robotframework-lsp",
-            "name": "Launch name",
-            "request": "launch",
-            "target": "<target-in-args>",
-            "cwd": str(tmpdir),
-            "args": [str(tmpdir)],
-            "terminal": "integrated",
-            "internalConsoleOptions": "neverOpen",
-        },
+        "success": False,
+        "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+        "result": None,
     }
 
 
@@ -86,18 +77,9 @@ ignoreFiles:
     )
 
     assert launch == {
-        "success": True,
-        "message": None,
-        "result": {
-            "type": "robotframework-lsp",
-            "name": "Launch name",
-            "request": "launch",
-            "target": "<target-in-args>",
-            "cwd": str(tmpdir),
-            "args": [d, "task name"],
-            "terminal": "integrated",
-            "internalConsoleOptions": "neverOpen",
-        },
+        "success": False,
+        "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+        "result": None,
     }
 
 
@@ -135,28 +117,9 @@ ignoreFiles:
     )
 
     assert launch == {
-        "success": True,
-        "message": None,
-        "result": {
-            "type": "robotframework-lsp",
-            "name": "Launch name",
-            "request": "launch",
-            "target": "<target-in-args>",
-            "cwd": str(tmpdir),
-            "args": [
-                "--report",
-                "NONE",
-                "--outputdir",
-                "output",
-                "--logtitle",
-                "Task log",
-                "--task",
-                "my Task",
-                str(tmpdir),
-            ],
-            "terminal": "integrated",
-            "internalConsoleOptions": "neverOpen",
-        },
+        "success": False,
+        "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+        "result": None,
     }
 
 

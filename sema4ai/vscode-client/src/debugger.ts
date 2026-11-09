@@ -148,6 +148,22 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             await disablePythonTerminalActivateEnvironment();
         }
 
+        if (debugConfiguration.noDebug) {
+            // Not running with debug: just use rcc to launch (for both Python and
+            // Robot Framework tasks).
+            let vaultInfoActionResult: ActionResult = await commands.executeCommand(
+                SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
+            );
+            if (vaultInfoActionResult?.success && vaultInfoActionResult.result) {
+                debugConfiguration.workspaceId = vaultInfoActionResult.result.workspaceId;
+            }
+            debugConfiguration.env = env;
+            return debugConfiguration;
+        }
+
+        // Debugging: convert the launch for the task in robot.yaml into a Python launch.
+        // Robot Framework tasks can't be debugged, so this fails for them with a message
+        // to use Run Task instead.
         let actionResult: ActionResult = await commands.executeCommand(
             SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
             {
@@ -162,45 +178,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             }
         );
 
-        // In a custom run we get the input contents -- something as:
-        // "type": "sema4ai",
-        // "name": "Sema4.ai: Launch task from current robot.yaml",
-        // "request": "launch",
-        // "robot": "c:/robot.yaml",
-        // "task": "entrypoint",
-        //
-        // and convert it to the contents expected by robotframework-lsp:
-        //
-        // "type": "robotframework-lsp",
-        // "name": "Robot: Current File",
-        // "request": "launch",
-        // "cwd": "${workspaceFolder}",
-        // "target": "c:/task.robot",
-        //
-        // (making sure that we can actually do this and it's a robot launch for the task)
-
         let result = actionResult.result;
-        const isPythonRun = result && result.type && result.type == "python";
-
-        if (debugConfiguration.noDebug && (!actionResult.success || isPythonRun)) {
-            // In no debug mode if it didn't work that's ok, we'll just go back to running
-            // rcc directly (note that we try to go to the regular RF launch whenever
-            // possible because we can edit the command line to be able to track the run with the
-            // `Robot Output View` and put log messages in the `Console Output`).
-            //
-            // Also, in a Python run in noDebug mode we still run with RCC instead of falling
-            // back to the run with the Python extension.
-            let vaultInfoActionResult: ActionResult = await commands.executeCommand(
-                SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
-            );
-            if (vaultInfoActionResult?.success && vaultInfoActionResult.result) {
-                debugConfiguration.workspaceId = vaultInfoActionResult.result.workspaceId;
-            }
-            // Not running with debug: just use rcc to launch.
-            debugConfiguration.env = env;
-            return debugConfiguration;
-        }
-
         if (!actionResult.success) {
             window.showErrorMessage(actionResult.message);
             return;
