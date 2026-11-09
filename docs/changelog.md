@@ -5,7 +5,8 @@
 - 2.x maintenance release
   - Not published to the VS Code Marketplace; the `.vsix` files are available from `https://downloads.robocorp.com/vscode-extension/releases/v2/v2.20.2/`
 - Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line (previously `3.6.4`; OpenSSL 3.6 is end of life)
-  - Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
+- Base environment now pins `playwright==1.64.1` (previously `1.52.0`), which bundles Node.js `24.22.1` (previously `22.14.0`)
+- Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
 
 ## New in 2.20.1 (2026-11-05)
 
