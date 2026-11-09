@@ -881,7 +881,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         workspace_id = params["workspaceId"]
         robot_id = params["robotId"]
         with progress_context(
-            self._endpoint, "Uploading to existing robot", self._dir_cache
+            self._endpoint, "Publishing new version of Task Package", self._dir_cache
         ):
             result = self._rcc.cloud_set_robot_contents(
                 directory, workspace_id, robot_id
@@ -909,7 +909,7 @@ class RobocorpLanguageServer(PythonLanguageServer, InspectorLanguageServer):
         # When we upload to a new activity, clear the existing cache key.
         self._discard_listed_workspaces_info()
         with progress_context(
-            self._endpoint, "Uploading to new robot", self._dir_cache
+            self._endpoint, "Creating new Task Package", self._dir_cache
         ):
             new_robot_result = self._rcc.cloud_create_robot(workspace_id, robot_name)
             if not new_robot_result.success:

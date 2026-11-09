@@ -89,7 +89,7 @@ COMMANDS = [
     # Started from the client due to needing UI actions.
     Command(
         "sema4ai.uploadRobotToCloud",
-        "Upload Task Package to Control Room",
+        "Publish Task Package to Control Room",
         add_to_package_json=True,
         server_handled=False,
     ),
@@ -132,13 +132,13 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.uploadToNewRobot.internal",
-        "Uploads a Task Package as a new Task Package in the Control Room",
+        "Publishes a Task Package as a new Task Package in Control Room",
         add_to_package_json=False,
         server_handled=True,
     ),
     Command(
         "sema4ai.uploadToExistingRobot.internal",
-        "Uploads a Task Package as an existing Task Package in the Control Room",
+        "Publishes a Task Package as a new version of an existing Task Package in Control Room",
         add_to_package_json=False,
         server_handled=True,
     ),
@@ -436,7 +436,7 @@ COMMANDS = [
     ),
     Command(
         "sema4ai.cloudUploadRobotTreeSelection",
-        "Upload Task Package to Control Room",
+        "Publish Task Package to Control Room",
         add_to_package_json=True,
         server_handled=False,
         hide_from_command_palette=True,

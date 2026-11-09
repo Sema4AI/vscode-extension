@@ -219,7 +219,7 @@ export async function askRobotSelection(
 
 async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory: string) {
     let robotName: string = await window.showInputBox({
-        "prompt": "Please provide the name for the new Robot.",
+        "prompt": "Name for the new Task Package in Control Room.",
         "ignoreFocusOut": true,
     });
     if (!robotName) {
@@ -235,11 +235,11 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
         }
     );
     if (!actionResult.success) {
-        let msg: string = "Error uploading to new Robot: " + actionResult.message;
+        let msg: string = "Error creating Task Package '" + robotName + "': " + actionResult.message;
         OUTPUT_CHANNEL.appendLine(msg);
         window.showErrorMessage(msg);
     } else {
-        window.showInformationMessage("Successfully submitted new Robot " + robotName + " to the Control Room.");
+        window.showInformationMessage("Created Task Package '" + robotName + "' in Control Room.");
     }
 }
 
@@ -381,14 +381,14 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showInformationMessage("Error submitting Task Package to Control Room: " + actionResult.message);
+        window.showInformationMessage("Error publishing Task Package to Control Room: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
-            "Unable to submit Task Package to Control Room (no Task Package detected in the Workspace)."
+            "No Task Package found in this VS Code workspace, so there's nothing to publish."
         );
         return;
     }
@@ -407,7 +407,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     }
 
     if (!robot) {
-        robot = await askRobotSelection(robotsInfo, "Please select the Task Package to upload to the Control Room.");
+        robot = await askRobotSelection(robotsInfo, "Select the Task Package to publish to Control Room.");
         if (!robot) {
             return;
         }
@@ -416,7 +416,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     let refresh = false;
     SELECT_OR_REFRESH: do {
         let workspaceSelection = await selectWorkspace(
-            "Please select a Workspace to upload '" + robot.name + "' to.",
+            "Select the Control Room Workspace to publish '" + robot.name + "' to.",
             refresh
         );
         if (workspaceSelection === undefined) {
@@ -458,7 +458,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
             const wsDesc = getWorkspaceDescription(wsInfo);
             let caption: QuickPickItemWithAction = {
-                "label": "$(new-folder) + Create new Robot",
+                "label": "$(new-folder) + Create new Task Package",
                 "description": "(Workspace: " + wsDesc + ")",
                 "sortKey": "c" + wsDesc, // right before last item.
                 "action": { "newRobotPackageAtWorkspace": wsInfo },
@@ -467,7 +467,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         }
         let caption: QuickPickItemWithAction = {
             "label": "$(refresh) * Refresh list",
-            "description": "Expected Workspace or Robot is not appearing.",
+            "description": "Expected Workspace or Task Package is not appearing.",
             "sortKey": "d", // last item
             "action": { "refresh": true },
         };
@@ -477,7 +477,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
         let selectedItem: QuickPickItemWithAction = await showSelectOneQuickPick(
             captions,
-            "Update an existing Robot or create a new one."
+            "Publish a new version of an existing Task Package, or create a new Task Package."
         );
 
         if (!selectedItem) {
@@ -497,8 +497,8 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         }
 
         if (action.existingRobotPackage) {
-            let yesOverride: string = "Yes";
-            let noChooseDifferentTarget: string = "No";
+            let yesOverride: string = "Publish new version";
+            let noChooseDifferentTarget: string = "Go back";
             let cancel: string = "Cancel";
             let robotInfo: PackageInfo = action.existingRobotPackage;
 
@@ -506,31 +506,36 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
             let caption: QuickPickItemWithAction = {
                 "label": yesOverride,
-                "detail": "Override existing Robot",
+                "detail": "Anything that uses '" + robotInfo.name + "' in Control Room uses this version from now on.",
                 "action": yesOverride,
             };
             updateExistingCaptions.push(caption);
 
             caption = {
                 "label": noChooseDifferentTarget,
-                "detail": "Go back to choose a different Robot to update",
+                "detail": "Choose a different Task Package, or create a new one instead.",
                 "action": noChooseDifferentTarget,
             };
             updateExistingCaptions.push(caption);
 
             caption = {
                 "label": cancel,
-                "detail": "Cancel the Robot upload",
+                "detail": "Don't publish anything.",
                 "action": cancel,
             };
             updateExistingCaptions.push(caption);
 
             let selectedItem: QuickPickItemWithAction = await showSelectOneQuickPick(
                 updateExistingCaptions,
-                "This will overwrite the robot '" + robotInfo.name + "' on Control Room. Are you sure? "
+                "Publish a new version of '" +
+                    robotInfo.name +
+                    "'? It replaces the current version in Control Room immediately."
             );
 
             // robot.language-server.python
+            if (!selectedItem) {
+                return;
+            }
             if (selectedItem.action == noChooseDifferentTarget) {
                 refresh = false;
                 continue SELECT_OR_REFRESH;
@@ -545,11 +550,16 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
             );
 
             if (!actionResult.success) {
-                let msg: string = "Error uploading to existing Robot: " + actionResult.message;
+                let msg: string =
+                    "Error publishing a new version of Task Package '" + robotInfo.name + "': " + actionResult.message;
                 OUTPUT_CHANNEL.appendLine(msg);
                 window.showErrorMessage(msg);
             } else {
-                window.showInformationMessage("Successfully submitted Robot " + robot.name + " to the cloud.");
+                window.showInformationMessage(
+                    "Published a new version of Task Package '" +
+                        robotInfo.name +
+                        "' to Control Room. It's now the current version."
+                );
             }
             return;
         }

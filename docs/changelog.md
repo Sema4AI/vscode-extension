@@ -9,6 +9,8 @@
   - A one-time notice is shown when a workspace has an Agent or Action Package
 - Base environment updated to **Python 3.13** (`python=3.13.18`) and latest dependencies: `playwright` 1.64.1, `pywin32` 311, `psutil` 7.2.2, `comtypes` 1.4.16, `java-access-bridge-wrapper` 2.0.0, `python-mss` 10.2.0, `pyscreeze` 1.0.1, `msgspec` 0.22.0, `pyyaml` 6.0.3, `sema4ai-http-helper` 2.1.2
 - Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
+- "Upload Task Package to Control Room" is now "Publish Task Package to Control Room". Publishing to an existing Task Package no longer says it overwrites it: the dialog now says it publishes a new version that replaces the current version in Control Room immediately. The whole flow now says "Task Package" instead of "Robot".
+- Fix an error when the publish confirmation is dismissed with Escape
 
 ## New in 2.21.0 (2026-11-10)
 

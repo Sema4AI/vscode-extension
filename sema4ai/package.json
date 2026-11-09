@@ -348,7 +348,7 @@
             },
             {
                 "command": "sema4ai.uploadRobotToCloud",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai"
             },
             {
@@ -575,7 +575,7 @@
             },
             {
                 "command": "sema4ai.cloudUploadRobotTreeSelection",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai",
                 "icon": "$(cloud-upload)"
             },

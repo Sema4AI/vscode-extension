@@ -206,7 +206,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             } else if (element.type === RobotEntryType.ActionsInRobot) {
                 return [
                     {
-                        "label": "Upload Task Package to Control Room",
+                        "label": "Publish Task Package to Control Room",
                         "uri": element.uri,
                         "robot": element.robot,
                         "iconPath": "cloud-upload",
@@ -338,7 +338,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
         } else if (element.type === RobotEntryType.UploadRobot) {
             treeItem.command = {
-                "title": "Upload Robot to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "command": roboCommands.SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION,
                 "arguments": [element],
             };
