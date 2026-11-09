@@ -609,6 +609,12 @@ COMMANDS = [
         server_handled=False,
     ),
     Command(
+        "sema4ai.copyBuildInfo.internal",
+        "Copy the extension version, commit and build time to the clipboard",
+        add_to_package_json=False,
+        server_handled=False,
+    ),
+    Command(
         "sema4ai.showOutput",
         "Show Sema4.ai > Output logs",
         add_to_package_json=True,

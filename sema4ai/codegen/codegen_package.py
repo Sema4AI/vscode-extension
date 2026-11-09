@@ -52,7 +52,7 @@ def get_json_contents():
         "scripts": {
             "setup": "npm install",
             "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
-            "compile": "cd vscode-client && tsc -p ./ && cd ..",
+            "compile": "cd vscode-client && tsc -p ./ && cd .. && node scripts/writeBuildInfo.js",
             "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
             "pretest": "cd vscode-client && tsc -p ./ && cd ..",
             "test": "node ./vscode-client/out/tests/runTests.js",

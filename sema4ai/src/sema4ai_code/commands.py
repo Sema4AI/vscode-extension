@@ -83,6 +83,7 @@ SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL = "sema4ai.getConnectedVaultWorks
 SEMA4AI_SET_CONNECTED_VAULT_WORKSPACE_INTERNAL = "sema4ai.setConnectedVaultWorkspace.internal"  # Sets the currently connected Control Room Workspace
 SEMA4AI_OPEN_VAULT_HELP = "sema4ai.openVaultHelp"  # Open vault help
 SEMA4AI_CLEAR_ENV_AND_RESTART = "sema4ai.clearEnvAndRestart"  # Clear Sema4.ai (RCC) environments and restart Sema4.ai
+SEMA4AI_COPY_BUILD_INFO_INTERNAL = "sema4ai.copyBuildInfo.internal"  # Copy the extension version, commit and build time to the clipboard
 SEMA4AI_SHOW_OUTPUT = "sema4ai.showOutput"  # Show Sema4.ai > Output logs
 SEMA4AI_SHOW_INTERPRETER_ENV_ERROR = "sema4ai.showInterpreterEnvError"  # Show error related to interpreter env creation
 SEMA4AI_PROFILE_IMPORT = "sema4ai.profileImport"  # Import Profile
