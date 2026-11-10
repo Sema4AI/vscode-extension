@@ -4,7 +4,7 @@ import { logError, OUTPUT_CHANNEL } from "./channel";
 // Docs section with the downloads of the 2.x extension (the last version supporting
 // Agent and Action Packages of the legacy agent platform).
 export const LEGACY_AGENT_PLATFORM_DOCS_URL =
-    "https://sema4.ai/docs/build/visual-studio-code#version-2x-legacy-agent-platform";
+    "https://sema4.ai/docs/build-agents/develop-actions/install-development-tools#sema4ai-vs-code-extension";
 
 const LEGACY_AGENT_PLATFORM_NOTICE_SHOWN_KEY = "sema4ai.legacyAgentPlatformNoticeShown";
 // Set per workspace when it was searched and had no legacy packages (so that the search

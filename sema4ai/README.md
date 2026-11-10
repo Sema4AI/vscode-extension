@@ -30,13 +30,13 @@ Main features include:
 
 4. Open the sidebar and start running your tasks.
 
-Full instructions are available at our [documentation site](https://sema4.ai/docs/build/visual-studio-code) for the VS Code Extension.
+Full instructions are available at our [documentation site](https://sema4.ai/docs/automation/visual-studio-code) for the VS Code Extension.
 
 This is under active development, so please [contact us](https://sema4.ai/contact-us/) for issues and feature requests.
 
 ### Agent and Action Packages (legacy agent platform)
 
-Version 3 of the extension no longer supports Agent and Action Packages. To keep working with them, install version 2.x of the extension: see [Version 2.x (legacy agent platform)](https://sema4.ai/docs/build/visual-studio-code#version-2x-legacy-agent-platform).
+Version 3 of the extension no longer supports Agent and Action Packages. To keep working with them, install version 2.x of the extension: see [Installing the Sema4.ai SDK (legacy agent platform)](https://sema4.ai/docs/build-agents/develop-actions/install-development-tools#sema4ai-vs-code-extension).
 
 ### Requirements
 
