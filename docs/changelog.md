@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 2.21.0 (2026-11-10)
+
 - Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
 - Base environment now pins `playwright==1.64.1`, which bundles Node.js `24.22.1`
 - Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
