@@ -7,6 +7,8 @@
   - Removed the `@action` and `dev-tasks` code lenses (settings `sema4ai.codeLens.actionsLaunch` and `sema4ai.codeLens.devTask`) and the linting and hover for `package.yaml` and `agent-spec.yaml`
   - The Packages view is now "Task Packages"
   - A one-time notice is shown when a workspace has an Agent or Action Package
+- Base environment updated to **Python 3.13** (`python=3.13.18`) and latest dependencies: `playwright` 1.64.1, `pywin32` 311, `psutil` 7.2.2, `comtypes` 1.4.16, `java-access-bridge-wrapper` 2.0.0, `python-mss` 10.2.0, `pyscreeze` 1.0.1, `msgspec` 0.22.0, `pyyaml` 6.0.3, `sema4ai-http-helper` 2.1.2
+- Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
 
 ## New in 2.21.0 (2026-11-10)
 
@@ -16,8 +18,6 @@
 - Update RCC to `v21.4.2`
 - Base environment now pins `uv=0.13.7`
 - `conda.yaml` and `package.yaml`: no longer suggests updating `openssl` to the latest version (like `python` and `uv`, the version set in the template should be kept); versions older than `3.5.9` show a warning to update
-- Base environment updated to **Python 3.13** (`python=3.13.18`) and latest dependencies: `playwright` 1.64.1, `pywin32` 311, `psutil` 7.2.2, `comtypes` 1.4.16, `java-access-bridge-wrapper` 2.0.0, `python-mss` 10.2.0, `pyscreeze` 1.0.1, `msgspec` 0.22.0, `pyyaml` 6.0.3, `sema4ai-http-helper` 2.1.2
-- Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
 
 ## New in 2.20.0 (2026-10-08)
 
