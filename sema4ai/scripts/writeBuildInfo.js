@@ -15,7 +15,9 @@ function git(args) {
 }
 
 let commit = git("rev-parse --short HEAD") || "unknown";
-if (commit !== "unknown" && git("status --porcelain --untracked-files=no")) {
+// Only mark local builds as dirty: the release workflows intentionally rewrite
+// tracked files (set-version, codegen, fix-readme) before packaging.
+if (commit !== "unknown" && !process.env.GITHUB_ACTIONS && git("status --porcelain --untracked-files=no")) {
     commit += "-dirty";
 }
 
