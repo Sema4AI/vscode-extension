@@ -152,15 +152,21 @@ function getBuildInfoEntry(): CloudEntry {
     let commit = "unknown";
     let buildTime = "unknown";
     let buildTimeLabel = "unknown";
-    try {
-        const buildInfoPath = path.join(extension.extensionPath, "vscode-client", "out", "buildInfo.json");
-        const buildInfo = JSON.parse(fs.readFileSync(buildInfoPath, "utf-8"));
-        commit = buildInfo["commit"] ?? commit;
-        buildTime = buildInfo["buildTime"] ?? buildTime;
-        // i.e.: 2026-11-09T09:54:56.544Z -> 2026-11-09 09:54 UTC
-        buildTimeLabel = buildTime.slice(0, 16).replace("T", " ") + " UTC";
-    } catch (error) {
-        logError("Error reading build info", error, "VIEWS_CLOUD_BUILD_INFO");
+    // The file is missing in dev setups (`npm run watch` doesn't write it), so only
+    // log real read or parse errors.
+    const buildInfoPath = extension
+        ? path.join(extension.extensionPath, "vscode-client", "out", "buildInfo.json")
+        : undefined;
+    if (buildInfoPath && fs.existsSync(buildInfoPath)) {
+        try {
+            const buildInfo = JSON.parse(fs.readFileSync(buildInfoPath, "utf-8"));
+            commit = buildInfo["commit"] ?? commit;
+            buildTime = buildInfo["buildTime"] ?? buildTime;
+            // i.e.: 2026-11-09T09:54:56.544Z -> 2026-11-09 09:54 UTC
+            buildTimeLabel = buildTime.slice(0, 16).replace("T", " ") + " UTC";
+        } catch (error) {
+            logError("Error reading build info", error, "VIEWS_CLOUD_BUILD_INFO");
+        }
     }
     const buildInfo = `Sema4.ai SDK ${version} · ${commit} · ${buildTime}`;
     return {
