@@ -25,7 +25,7 @@
     "scripts": {
         "setup": "npm install",
         "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
-        "compile": "cd vscode-client && tsc -p ./ && cd ..",
+        "compile": "cd vscode-client && tsc -p ./ && cd .. && node scripts/writeBuildInfo.js",
         "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
         "pretest": "cd vscode-client && tsc -p ./ && cd ..",
         "test": "node ./vscode-client/out/tests/runTests.js",
@@ -148,6 +148,7 @@
         "onCommand:sema4ai.setConnectedVaultWorkspace.internal",
         "onCommand:sema4ai.openVaultHelp",
         "onCommand:sema4ai.clearEnvAndRestart",
+        "onCommand:sema4ai.copyBuildInfo.internal",
         "onCommand:sema4ai.showOutput",
         "onCommand:sema4ai.showInterpreterEnvError",
         "onCommand:sema4ai.profileImport",
@@ -348,7 +349,7 @@
             },
             {
                 "command": "sema4ai.uploadRobotToCloud",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai"
             },
             {
@@ -575,7 +576,7 @@
             },
             {
                 "command": "sema4ai.cloudUploadRobotTreeSelection",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai",
                 "icon": "$(cloud-upload)"
             },

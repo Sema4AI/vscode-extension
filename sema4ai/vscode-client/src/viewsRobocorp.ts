@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 import * as roboCommands from "./robocorpCommands";
 import { CloudEntry, treeViewIdToTreeDataProvider } from "./viewsCommon";
 import { SEMA4AI_SUBMIT_ISSUE } from "./robocorpCommands";
@@ -115,6 +117,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                     "command": SEMA4AI_SUBMIT_ISSUE,
                 },
             });
+            ret.push(getBuildInfoEntry());
 
             return ret;
         }
@@ -139,6 +142,43 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
         }
         return treeItem;
     }
+}
+
+// Version, commit and build time of the running extension (the commit and build
+// time come from out/buildInfo.json, written by scripts/writeBuildInfo.js).
+function getBuildInfoEntry(): CloudEntry {
+    const extension = vscode.extensions.getExtension("sema4ai.sema4ai");
+    const version: string = extension?.packageJSON.version ?? "unknown";
+    let commit = "unknown";
+    let buildTime = "unknown";
+    let buildTimeLabel = "unknown";
+    // The file is missing in dev setups (`npm run watch` doesn't write it), so only
+    // log real read or parse errors.
+    const buildInfoPath = extension
+        ? path.join(extension.extensionPath, "vscode-client", "out", "buildInfo.json")
+        : undefined;
+    if (buildInfoPath && fs.existsSync(buildInfoPath)) {
+        try {
+            const buildInfo = JSON.parse(fs.readFileSync(buildInfoPath, "utf-8"));
+            commit = buildInfo["commit"] ?? commit;
+            buildTime = buildInfo["buildTime"] ?? buildTime;
+            // i.e.: 2026-11-09T09:54:56.544Z -> 2026-11-09 09:54 UTC
+            buildTimeLabel = buildTime.slice(0, 16).replace("T", " ") + " UTC";
+        } catch (error) {
+            logError("Error reading build info", error, "VIEWS_CLOUD_BUILD_INFO");
+        }
+    }
+    const buildInfo = `Sema4.ai SDK ${version} · ${commit} · ${buildTime}`;
+    return {
+        "label": `Version ${version} · ${commit} · ${buildTimeLabel}`,
+        "iconPath": "info",
+        "tooltip": `Sema4.ai SDK ${version}\nCommit: ${commit}\nBuilt: ${buildTime}\n\nClick to copy to the clipboard.`,
+        "command": {
+            "title": "Copy to clipboard",
+            "command": roboCommands.SEMA4AI_COPY_BUILD_INFO_INTERNAL,
+            "arguments": [buildInfo],
+        },
+    };
 }
 
 export function refreshCloudTreeView() {

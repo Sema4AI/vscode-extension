@@ -118,6 +118,7 @@ import {
     SEMA4AI_CLEAR_ENV_AND_RESTART,
     SEMA4AI_NEW_ROBOCORP_INSPECTOR_WINDOWS,
     SEMA4AI_SHOW_OUTPUT,
+    SEMA4AI_COPY_BUILD_INFO_INTERNAL,
     SEMA4AI_SHOW_INTERPRETER_ENV_ERROR,
     SEMA4AI_FEEDBACK_INTERNAL,
     SEMA4AI_OPEN_LOCATORS_JSON,
@@ -635,6 +636,10 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     );
 
     C.registerWithoutStub(SEMA4AI_SHOW_OUTPUT, () => OUTPUT_CHANNEL.show());
+    C.registerWithoutStub(SEMA4AI_COPY_BUILD_INFO_INTERNAL, async (buildInfo: string) => {
+        await vscode.env.clipboard.writeText(buildInfo);
+        vscode.window.showInformationMessage(`Copied to clipboard: ${buildInfo}`);
+    });
     C.registerWithoutStub(SEMA4AI_SHOW_INTERPRETER_ENV_ERROR, async (params) => {
         const fileWithError = params.fileWithError;
         vscode.window.showTextDocument(Uri.file(fileWithError));
