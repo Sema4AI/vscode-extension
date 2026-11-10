@@ -7,6 +7,9 @@ export const LEGACY_AGENT_PLATFORM_DOCS_URL =
     "https://sema4.ai/docs/build/visual-studio-code#version-2x-legacy-agent-platform";
 
 const LEGACY_AGENT_PLATFORM_NOTICE_SHOWN_KEY = "sema4ai.legacyAgentPlatformNoticeShown";
+// Set per workspace when it was searched and had no legacy packages (so that the search
+// is done only once per workspace).
+const LEGACY_AGENT_PLATFORM_NOT_FOUND_KEY = "sema4ai.legacyAgentPlatformPackagesNotFound";
 const EXCLUDE_GLOB = "**/{node_modules,.venv,.git}/**";
 
 async function hasLegacyAgentPlatformPackage(): Promise<boolean> {
@@ -31,12 +34,17 @@ async function hasLegacyAgentPlatformPackage(): Promise<boolean> {
  * Shows (only once) a notice when the workspace has Agent or Action Packages, which are
  * no longer supported, pointing to the docs on how to install the 2.x extension.
  */
-export async function showLegacyAgentPlatformNotice(globalState: vscode.Memento): Promise<void> {
+export async function showLegacyAgentPlatformNotice(context: vscode.ExtensionContext): Promise<void> {
+    const { globalState, workspaceState } = context;
     try {
         if (globalState.get(LEGACY_AGENT_PLATFORM_NOTICE_SHOWN_KEY)) {
             return;
         }
+        if (!vscode.workspace.workspaceFolders?.length || workspaceState.get(LEGACY_AGENT_PLATFORM_NOT_FOUND_KEY)) {
+            return;
+        }
         if (!(await hasLegacyAgentPlatformPackage())) {
+            await workspaceState.update(LEGACY_AGENT_PLATFORM_NOT_FOUND_KEY, true);
             return;
         }
         await globalState.update(LEGACY_AGENT_PLATFORM_NOTICE_SHOWN_KEY, true);

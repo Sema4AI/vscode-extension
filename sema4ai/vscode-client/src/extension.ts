@@ -795,7 +795,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     // regardless of it -- as it may call robot.resolveInterpreter, it may need to activate the language
     // server extension, which in turn requires robocorp code to be activated already).
     installWorkspaceWatcher(context);
-    showLegacyAgentPlatformNotice(context.globalState);
+    showLegacyAgentPlatformNotice(context);
 }
 
 export function deactivate(): Thenable<void> | undefined {

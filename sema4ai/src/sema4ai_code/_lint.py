@@ -1,6 +1,5 @@
 import os
 import weakref
-from typing import List, Optional
 
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.core_log import get_logger

@@ -1,7 +1,7 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.11.13
+  - python=3.13.18
   - uv=0.8.17
   - pip:
     - poetry==2.1.3

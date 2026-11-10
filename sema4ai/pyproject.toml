@@ -39,13 +39,13 @@ pyscreeze = "^1.0"
 mss = "^10.2"
 
 java-access-bridge-wrapper = "^2.0"
-ruff = "^0.11.11"
 sema4ai-http-helper = "^2.1.2"
 
 [tool.poetry.group.dev.dependencies]
 sema4ai-python-ls-core = { path = "../sema4ai-python-ls-core/", develop = true }
 
 fire = "*"
+ruff = "^0.11.11"
 
 numpy = "*"
 mypy = "^1.1.1"
