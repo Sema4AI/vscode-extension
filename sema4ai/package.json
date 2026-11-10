@@ -808,7 +808,7 @@
             "view/item/context": [
                 {
                     "command": "sema4ai.robotsViewTaskRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "when": "view == sema4ai-task-packages-tree && viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                     "group": "inline@1"
                 },
                 {
@@ -838,7 +838,7 @@
                 },
                 {
                     "command": "sema4ai.robotsViewTaskRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "when": "view == sema4ai-task-packages-tree && viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                     "group": "navigation"
                 },
                 {

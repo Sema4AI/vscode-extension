@@ -53,6 +53,26 @@ export interface RobotEntry {
 
     // For task
     taskName?: string;
+    isRobotFrameworkTask?: boolean; // Robot Framework tasks can be run but not debugged.
+}
+
+/**
+ * Whether the given task (its entry in robot.yaml) runs Robot Framework, which
+ * can't be debugged (mirrors the checks in compute_launch.py).
+ */
+export function isRobotFrameworkTask(taskInfo: any): boolean {
+    if (!taskInfo || typeof taskInfo !== "object") {
+        return false;
+    }
+    let command: string[] | undefined = undefined;
+    if (Array.isArray(taskInfo["command"])) {
+        command = taskInfo["command"].map((c: any) => String(c));
+    } else if (typeof taskInfo["shell"] === "string") {
+        command = taskInfo["shell"].trim().split(/\s+/);
+    } else if (taskInfo["robotTaskName"]) {
+        return true;
+    }
+    return command !== undefined && command[0] === "python" && command[1] === "-m" && command[2] === "robot";
 }
 
 export interface FSEntry {

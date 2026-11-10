@@ -18,13 +18,15 @@ import {
     SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
     SEMA4AI_UPDATE_LAUNCH_ENV,
     SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
+    SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL,
 } from "./robocorpCommands";
 import { globalCachedPythonInfo } from "./extension";
 import {
     disablePythonTerminalActivateEnvironment,
     isPyDevDebuggerPythonExtensionInstalled,
 } from "./pythonExtIntegration";
-import { InterpreterInfo } from "./protocols";
+import { InterpreterInfo, LocalPackageMetadataInfo } from "./protocols";
+import { isRobotFrameworkTask } from "./viewsCommon";
 
 interface ActionResult {
     success: boolean;
@@ -69,6 +71,40 @@ export async function updateDebugConfigurationAndAutoActivatePythonExtension(
     return debugConfiguration;
 }
 
+const ROBOT_FRAMEWORK_DEBUG_NOT_SUPPORTED = "Debugging Robot Framework tasks is not supported. Use Run Task instead.";
+
+/**
+ * Whether the launched task is a Robot Framework task, based on the Task Packages in
+ * the workspace (if the robot.yaml isn't in the workspace, the language server still
+ * refuses the launch when computing it).
+ */
+async function isRobotFrameworkTaskInLaunch(robotYaml: string, taskName: string | undefined): Promise<boolean> {
+    try {
+        const actionResult: ActionResult = await commands.executeCommand(SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL);
+        if (!actionResult?.success || !actionResult.result) {
+            return false;
+        }
+        const normalize = (p: string) => {
+            const resolved = path.resolve(p);
+            return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+        };
+        const robotInfo = (<LocalPackageMetadataInfo[]>actionResult.result).find(
+            (r) => normalize(r.filePath) === normalize(robotYaml)
+        );
+        const tasks = robotInfo?.yamlContents?.["tasks"];
+        if (!tasks) {
+            return false;
+        }
+        const taskNames = Object.keys(tasks);
+        if (!taskName && taskNames.length === 1) {
+            taskName = taskNames[0];
+        }
+        return !!taskName && isRobotFrameworkTask(tasks[taskName]);
+    } catch (error) {
+        return false;
+    }
+}
+
 export class RobocorpCodeDebugConfigurationProvider implements DebugConfigurationProvider {
     provideDebugConfigurations?(folder: WorkspaceFolder | undefined, token?: CancellationToken): DebugConfiguration[] {
         let configurations: DebugConfiguration[] = [];
@@ -98,6 +134,12 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             return;
         }
         const targetYaml = debugConfiguration.robot;
+
+        if (!debugConfiguration.noDebug && (await isRobotFrameworkTaskInLaunch(targetYaml, debugConfiguration.task))) {
+            // Refuse before resolving the environment (which may take a while).
+            window.showErrorMessage(ROBOT_FRAMEWORK_DEBUG_NOT_SUPPORTED);
+            return;
+        }
 
         let interpreter: InterpreterInfo | undefined = undefined;
         let interpreterResult = await resolveInterpreter(targetYaml);
@@ -148,6 +190,21 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             await disablePythonTerminalActivateEnvironment();
         }
 
+        if (debugConfiguration.noDebug) {
+            // Not running with debug: just use rcc to launch (for both Python and
+            // Robot Framework tasks).
+            let vaultInfoActionResult: ActionResult = await commands.executeCommand(
+                SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
+            );
+            if (vaultInfoActionResult?.success && vaultInfoActionResult.result) {
+                debugConfiguration.workspaceId = vaultInfoActionResult.result.workspaceId;
+            }
+            debugConfiguration.env = env;
+            return debugConfiguration;
+        }
+
+        // Debugging: convert the launch for the task in robot.yaml into a Python launch.
+        // This also fails for Robot Framework tasks the check above didn't catch.
         let actionResult: ActionResult = await commands.executeCommand(
             SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
             {
@@ -162,45 +219,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             }
         );
 
-        // In a custom run we get the input contents -- something as:
-        // "type": "sema4ai",
-        // "name": "Sema4.ai: Launch task from current robot.yaml",
-        // "request": "launch",
-        // "robot": "c:/robot.yaml",
-        // "task": "entrypoint",
-        //
-        // and convert it to the contents expected by robotframework-lsp:
-        //
-        // "type": "robotframework-lsp",
-        // "name": "Robot: Current File",
-        // "request": "launch",
-        // "cwd": "${workspaceFolder}",
-        // "target": "c:/task.robot",
-        //
-        // (making sure that we can actually do this and it's a robot launch for the task)
-
         let result = actionResult.result;
-        const isPythonRun = result && result.type && result.type == "python";
-
-        if (debugConfiguration.noDebug && (!actionResult.success || isPythonRun)) {
-            // In no debug mode if it didn't work that's ok, we'll just go back to running
-            // rcc directly (note that we try to go to the regular RF launch whenever
-            // possible because we can edit the command line to be able to track the run with the
-            // `Robot Output View` and put log messages in the `Console Output`).
-            //
-            // Also, in a Python run in noDebug mode we still run with RCC instead of falling
-            // back to the run with the Python extension.
-            let vaultInfoActionResult: ActionResult = await commands.executeCommand(
-                SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
-            );
-            if (vaultInfoActionResult?.success && vaultInfoActionResult.result) {
-                debugConfiguration.workspaceId = vaultInfoActionResult.result.workspaceId;
-            }
-            // Not running with debug: just use rcc to launch.
-            debugConfiguration.env = env;
-            return debugConfiguration;
-        }
-
         if (!actionResult.success) {
             window.showErrorMessage(actionResult.message);
             return;

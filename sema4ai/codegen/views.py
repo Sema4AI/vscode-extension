@@ -69,7 +69,7 @@ TREE_VIEW_CONTAINERS = [
                         Menu(
                             "sema4ai.robotsViewTaskRun",
                             "inline@1",
-                            "viewItem == taskItem",
+                            "viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                         ),
                         Menu(
                             "sema4ai.robotsViewTaskDebug",
@@ -101,7 +101,7 @@ TREE_VIEW_CONTAINERS = [
                         Menu(
                             "sema4ai.robotsViewTaskRun",
                             MenuGroup.NAVIGATION,
-                            "viewItem == taskItem",
+                            "viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                         ),
                         Menu(
                             "sema4ai.robotsViewTaskDebug",

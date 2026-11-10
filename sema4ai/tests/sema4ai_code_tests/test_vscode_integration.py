@@ -537,26 +537,11 @@ def test_compute_robot_launch_from_robocorp_code_launch(
     result = _compute_robot_launch_from_robocorp_code_launch(
         client, "Web scraper", robot
     )
-    assert result["success"]
-    r = result["result"]
-
-    assert r["target"] == "<target-in-args>"
-    assert os.path.samefile(r["cwd"], cases.get_path("custom_envs/simple-web-scraper"))
-    assert os.path.samefile(
-        cases.get_path("custom_envs/simple-web-scraper/tasks"),
-        os.path.join(r["cwd"], r["args"][-1]),
-    )
-    del r["target"]
-    del r["cwd"]
-    r["args"].pop(-1)
-
-    assert r == {
-        "type": "robotframework-lsp",
-        "name": "Launch Name",
-        "request": "launch",
-        "args": ["-d", "output", "--logtitle", "Task log"],
-        "terminal": "integrated",
-        "internalConsoleOptions": "neverOpen",
+    # Robot Framework tasks can't be debugged (they're run with rcc instead).
+    assert result == {
+        "success": False,
+        "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+        "result": None,
     }
 
 

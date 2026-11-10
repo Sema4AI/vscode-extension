@@ -159,41 +159,16 @@ def _compute_task_package_launch(
     result: dict[str, Any]
 
     if command[:3] == ["python", "-m", "robot"]:
-        args: list[str] = command[3:]
-
-        if not args:
-            return {
-                "success": False,
-                "message": (
-                    f"Expected the robot file/directory to be executed to be provided"
-                ),
-                "result": None,
-            }
-
-        if additional_pythonpath_entries:
-            pythonpath_args = []
-            for s in additional_pythonpath_entries:
-                pythonpath_args.append("--pythonpath")
-                pythonpath_args.append(s)
-
-            args = pythonpath_args + args
-        target = "<target-in-args>"
-
-        result = {
-            "type": "robotframework-lsp",
-            "name": name,
-            "request": request,
-            "target": target,
-            "cwd": cwd,
-            "args": args,
-            "terminal": "integrated",
-            "internalConsoleOptions": "neverOpen",
+        # Robot Framework tasks can't be debugged (there's no Robot Framework
+        # debugger anymore). The client runs them with rcc instead when
+        # launched without debugging.
+        return {
+            "success": False,
+            "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+            "result": None,
         }
-        if env:
-            result["env"] = env
-        return {"success": True, "message": None, "result": result}
 
-    elif command[:1] == ["python"]:
+    if command[:1] == ["python"]:
         # It must be something as:
         # python [option] ... [-c cmd | -m mod | file | -] [arg]
         module = None
@@ -266,8 +241,8 @@ def _compute_task_package_launch(
         return {
             "success": False,
             "message": (
-                f"Currently it's only possible to debug Robot Framework or python tasks "
-                f"(i.e.: the task must start with 'python -m robot' or 'python'). Task command: {command}"
+                f"Currently it's only possible to debug python tasks "
+                f"(i.e.: the task must start with 'python'). Task command: {command}"
             ),
             "result": None,
         }

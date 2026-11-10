@@ -3,7 +3,7 @@ import { OUTPUT_CHANNEL } from "./channel";
 import { uriExists } from "./files";
 import { LocalPackageMetadataInfo, ActionResult } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
-import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
+import { basename, isRobotFrameworkTask, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
 
 let _globalSentMetric: boolean = false;
@@ -155,7 +155,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
         if (element) {
             // Get child elements.
             if (element.type === RobotEntryType.Task) {
-                return [
+                const taskChildren: RobotEntry[] = [
                     {
                         "label": "Run Task",
                         "uri": element.uri,
@@ -165,7 +165,9 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "type": RobotEntryType.Run,
                         "parent": element,
                     },
-                    {
+                ];
+                if (!element.isRobotFrameworkTask) {
+                    taskChildren.push({
                         "label": "Debug Task",
                         "uri": element.uri,
                         "robot": element.robot,
@@ -173,8 +175,9 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                         "iconPath": "debug",
                         "type": RobotEntryType.Debug,
                         "parent": element,
-                    },
-                ];
+                    });
+                }
+                return taskChildren;
             } else if (element.type === RobotEntryType.Robot) {
                 let yamlContents = element.robot.yamlContents;
                 let robotChildren = [];
@@ -187,6 +190,7 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
                             "uri": vscode.Uri.file(robotInfo.filePath),
                             "robot": robotInfo,
                             "taskName": task,
+                            "isRobotFrameworkTask": isRobotFrameworkTask(tasks[task]),
                             "iconPath": "debug-alt-small",
                             "type": RobotEntryType.Task,
                             "parent": element,
@@ -347,7 +351,8 @@ export class RobotsTreeDataProvider implements vscode.TreeDataProvider<RobotEntr
             treeItem.contextValue = "robotItem";
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         } else if (element.type === RobotEntryType.Task) {
-            treeItem.contextValue = "taskItem";
+            // Robot Framework tasks have no Debug action.
+            treeItem.contextValue = element.isRobotFrameworkTask ? "robotFrameworkTaskItem" : "taskItem";
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         } else if (element.type === RobotEntryType.Error) {
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
