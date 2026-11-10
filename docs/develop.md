@@ -225,7 +225,7 @@ We prebuilt the Python env. that the extension it self needs using RCC.
 ## Updating RCC
 
 - Check RCC versions from [changelog](https://github.com/Sema4AI/rcc/blob/master/docs/changelog.md)
-- In a shell in the `/sema4ai` directory run: `poetry run python -m dev set-rcc-version v21.3.0` (the version must start with `v`)
+- In a shell in the `/sema4ai` directory run: `poetry run python -m dev set-rcc-version v21.4.2` (the version must start with `v`)
   - This updates `RCC_VERSION` in `src/sema4ai_code/rcc.py`, `vscode-client/src/rcc.ts` and `.github/workflows/build_environments.yaml`.
 - Remove the rcc executable from the `bin` folder to redownload the next time the extension is executed.
 

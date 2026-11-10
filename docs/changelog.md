@@ -1,5 +1,14 @@
 ## Unreleased
 
+## New in 2.21.0 (2026-11-10)
+
+- Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
+- Base environment now pins `playwright==1.64.1`, which bundles Node.js `24.22.1`
+- Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
+- Update RCC to `v21.4.2`
+- Base environment now pins `uv=0.13.7`
+- `conda.yaml` and `package.yaml`: no longer suggests updating `openssl` to the latest version (like `python` and `uv`, the version set in the template should be kept); versions older than `3.5.9` show a warning to update
+
 ## New in 2.20.1 (2026-11-05)
 
 - 2.x maintenance release, same functionality as `2.20.0`
