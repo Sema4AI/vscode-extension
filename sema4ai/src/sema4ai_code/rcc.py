@@ -861,9 +861,6 @@ class Rcc:
             file_path,
         ]
 
-        if file_path.endswith("package.yaml"):
-            args.append("--devdeps")
-
         run_rcc_result = self._run_rcc(
             args,
             send_to_stdin=conda_yaml_contents,
@@ -1056,13 +1053,6 @@ class Rcc:
         args.append("--json")
         args.append("--no-retry-build")
         args.append("--no-pyc-management")
-
-        if (
-            robot_yaml_path is None
-            and conda_or_package_yaml_path.name == "package.yaml"
-        ):
-            # In VSCode we always want to use a dev environment.
-            args.append("--devdeps")
 
         try:
             sys.stderr.write(

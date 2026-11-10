@@ -1,11 +1,10 @@
 import os
 import weakref
-from typing import List, Optional
 
 from sema4ai_ls_core.basic import overrides
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.lsp import DiagnosticsTypedDict, LSPMessages
-from sema4ai_ls_core.protocols import IDocument, IEndPoint, IMonitor, IWorkspace
+from sema4ai_ls_core.protocols import IEndPoint, IMonitor, IWorkspace
 from sema4ai_ls_core.python_ls import BaseLintInfo, BaseLintManager
 
 from sema4ai_code.protocols import IRcc
@@ -21,31 +20,6 @@ log = get_logger(__name__)
 class DiagnosticsConfig:
     analyze_versions = True
     analyze_rcc = True
-
-
-def collect_package_yaml_diagnostics(
-    pypi_cloud: IPyPiCloud,
-    conda_cloud: ICondaCloud,
-    workspace: IWorkspace,
-    conda_yaml_uri: str,
-    monitor: IMonitor | None,
-) -> list[DiagnosticsTypedDict]:
-    from sema4ai_code.vendored_deps.package_deps import analyzer
-
-    if not DiagnosticsConfig.analyze_versions:
-        return []
-
-    doc = workspace.get_document(conda_yaml_uri, accept_from_file=True)
-    if doc is None:
-        return []
-    if monitor:
-        monitor.check_cancelled()
-
-    return list(
-        analyzer.PackageYamlAnalyzer(
-            doc.source, doc.path, conda_cloud, pypi_cloud
-        ).iter_package_yaml_issues()
-    )
 
 
 def collect_conda_yaml_diagnostics(
@@ -151,28 +125,6 @@ class _CurrLintInfo(BaseLintInfo):
         self._weak_robocorp_language_server = weak_robocorp_language_server
         BaseLintInfo.__init__(self, lsp_messages, doc_uri, is_saved, weak_lint_manager)
 
-    @staticmethod
-    def _find_action_or_agent(uri: str) -> bool:
-        """Checks if the given path is inside an action or agent package."""
-        from pathlib import Path
-        from sema4ai_ls_core import uris
-
-        fs_path = uris.to_fs_path(uri)
-        check_dir = Path(fs_path).parent
-
-        for _ in range(6):
-            package_yaml_path = check_dir / "package.yaml"
-            agent_spec_yaml_path = check_dir / "agent-spec.yaml"
-
-            if package_yaml_path.exists() or agent_spec_yaml_path.exists():
-                return True
-
-            if not check_dir.parent or check_dir.parent == check_dir:
-                return False
-            check_dir = check_dir.parent
-
-        return False
-
     @overrides(BaseLintInfo._do_lint)
     def _do_lint(self) -> None:
         from concurrent import futures
@@ -186,77 +138,9 @@ class _CurrLintInfo(BaseLintInfo):
         is_saved = self.is_saved
         doc_uri = self.doc_uri
 
-        if doc_uri.endswith(".py"):
-            ws: IWorkspace | None = robocorp_language_server.workspace
-            if not ws:
-                return
-
-            doc: IDocument | None = ws.get_document(doc_uri, accept_from_file=True)
-            errors = []
-
-            if doc is not None:
-                source = doc.source
-                ruff_future = None
-                if self._find_action_or_agent(doc_uri):
-                    from sema4ai_code.robo.lint_ruff import collect_ruff_errors
-                    from sema4ai.common.run_in_thread import run_in_thread
-
-                    ruff_future = run_in_thread(lambda: collect_ruff_errors(doc))
-
-                if "@action" in source:
-                    from sema4ai_code.robo.lint_action import collect_lint_errors
-
-                    errors = collect_lint_errors(robocorp_language_server.pm, doc)
-
-                if ruff_future:
-                    errors.extend(ruff_future.result())
-
-                self._lsp_messages.publish_diagnostics(doc_uri, errors)
-            return
-
-        if doc_uri.endswith("package.yaml"):
-            found = []
-            if robocorp_language_server is not None:
-                ws = robocorp_language_server.workspace
-                if ws is not None:
-                    found.extend(
-                        collect_package_yaml_diagnostics(
-                            robocorp_language_server.pypi_cloud,
-                            robocorp_language_server.conda_cloud,
-                            ws,
-                            doc_uri,
-                            self._monitor,
-                        )
-                    )
-
-            self._lsp_messages.publish_diagnostics(doc_uri, found)
-            return
-
-        if doc_uri.endswith("agent-spec.yaml"):
-            found = []
-            if robocorp_language_server is not None:
-                ws = robocorp_language_server.workspace
-                if ws is not None:
-                    from sema4ai_code.agents.collect_agent_spec_diagnostics import (
-                        collect_agent_spec_diagnostics,
-                    )
-
-                    found.extend(
-                        collect_agent_spec_diagnostics(
-                            ws,
-                            doc_uri,
-                            self._monitor,
-                        )
-                    )
-
-            self._lsp_messages.publish_diagnostics(doc_uri, found)
-            return
-
-        if doc_uri.endswith(("conda.yaml", "action-server.yaml")) or doc_uri.endswith(
-            "robot.yaml"
-        ):
+        if doc_uri.endswith(("conda.yaml", "robot.yaml")):
             robot_yaml_fs_path = uris.to_fs_path(doc_uri)
-            if robot_yaml_fs_path.endswith(("conda.yaml", "action-server.yaml")):
+            if robot_yaml_fs_path.endswith("conda.yaml"):
                 p = os.path.dirname(robot_yaml_fs_path)
                 for _ in range(3):
                     target = os.path.join(p, "robot.yaml")
@@ -287,7 +171,7 @@ class _CurrLintInfo(BaseLintInfo):
             found = []
             # Ok, we started collecting RCC diagnostics in a thread. We
             # can now also collect other diagnostics here.
-            if doc_uri.endswith(("conda.yaml", "action-server.yaml")):
+            if doc_uri.endswith("conda.yaml"):
                 if robocorp_language_server is not None:
                     ws = robocorp_language_server.workspace
                     if ws is not None:

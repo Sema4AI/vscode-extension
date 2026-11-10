@@ -53,7 +53,6 @@ import {
     updateLaunchEnvironment,
     resolveInterpreter,
     listAndAskRobotSelection,
-    createPackage,
 } from "./activities";
 import { handleProgressMessage, ProgressReport } from "./progress";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE, TREE_VIEW_SEMA4AI_PACKAGE_CONTENT_TREE } from "./robocorpViews";
@@ -130,46 +129,9 @@ import {
     SEMA4AI_OPEN_PLAYWRIGHT_RECORDER,
     SEMA4AI_INSPECTOR,
     SEMA4AI_INSPECTOR_DUPLICATE,
-    SEMA4AI_START_ACTION_SERVER,
-    SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION,
-    SEMA4AI_ROBOTS_VIEW_ACTION_RUN,
-    SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG,
-    SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT,
-    SEMA4AI_ROBOTS_VIEW_ACTION_OPEN,
-    SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE,
-    SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE,
-    SEMA4AI_CREATE_ACTION_PACKAGE,
-    SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE,
     SEMA4AI_NEW_ROBOCORP_INSPECTOR_JAVA,
-    SEMA4AI_DOWNLOAD_ACTION_SERVER,
     SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD,
-    SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
-    SEMA4AI_ACTION_SERVER_CLOUD_LOGIN,
-    SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH,
-    SEMA4AI_ACTION_SERVER_PACKAGE_BUILD,
-    SEMA4AI_ACTION_SERVER_PACKAGE_METADATA,
-    SEMA4AI_OAUTH2_LOGOUT,
-    SEMA4AI_CREATE_AGENT_PACKAGE,
-    SEMA4AI_PACK_AGENT_PACKAGE,
-    SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION,
-    SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP,
-    SEMA4AI_AGENT_PACKAGE_IMPORT,
-    SEMA4AI_UPDATE_AGENT_VERSION,
-    SEMA4AI_REFRESH_AGENT_SPEC,
     SEMA4AI_COLLAPSE_ALL_ENTRIES,
-    SEMA4AI_IMPORT_ACTION_PACKAGE,
-    SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK,
-    SEMA4AI_CONFIGURE_ACTION_INPUT,
-    SEMA4AI_GET_ACTIONS_METADATA,
-    SEMA4AI_DROP_DATA_SOURCE,
-    SEMA4AI_LIST_ACTIONS_INTERNAL,
-    SEMA4AI_SETUP_DATA_SOURCE,
-    SEMA4AI_OPEN_DATA_SOURCE_DEFINITION,
-    SEMA4AI_DROP_ALL_DATA_SOURCES,
-    SEMA4AI_SETUP_ALL_DATA_SOURCES,
-    SEMA4AI_FIX_WRONG_AGENT_IMPORT,
-    SEMA4AI_ADD_MCP_SERVER,
-    SEMA4AI_ADD_DOCKER_MCP_GATEWAY,
 } from "./robocorpCommands";
 import { installWorkspaceWatcher } from "./pythonExtIntegration";
 import { refreshCloudTreeView } from "./viewsRobocorp";
@@ -188,37 +150,7 @@ import { RobotOutputViewProvider } from "./output/outView";
 import { setupDebugSessionOutViewIntegration } from "./output/outViewRunIntegration";
 import { showInspectorUI } from "./inspector/inspectorView";
 import { IAppRoutes } from "./inspector/protocols";
-import { actionServerCloudLogin, downloadOrGetActionServerLocation, startActionServer } from "./actionServer";
-import {
-    askAndRunRobocorpActionFromActionPackage,
-    createActionPackage,
-    publishActionPackage,
-    buildActionPackage,
-    openMetadata,
-    getActionsMetadata,
-} from "./robo/actionPackage";
-import { oauth2Logout } from "./robo/oauth2InInput";
-import {
-    createAgentPackage,
-    selectAndPackAgentPackage,
-    packAgentPackage,
-    importAgentPackage,
-    updateAgentVersion,
-    refreshAgentSpec,
-    fixWrongAgentImport,
-    validateAgentPackage,
-} from "./robo/agentPackage";
-import {
-    getSema4AIStudioURLForAgentFolderPath,
-    getSema4AIStudioURLForFolderPath,
-    getSema4AIStudioURLForAgentZipPath,
-} from "./deepLink";
-import { DatasourceInfo, LocalPackageMetadataInfo } from "./protocols";
-import { importActionPackage } from "./robo/importActions";
-import { DevTaskInfo, runActionPackageDevTask } from "./robo/runActionPackageDevTask";
-import { dropAllDataSources, dropDataSource, setupAllDataSources, setupDataSource } from "./robo/dataSourceHandling";
-import { promptForUnsavedChanges } from "./common";
-import { addDockerMCPGateway, addMCPServer } from "./mcp";
+import { showLegacyAgentPlatformNotice } from "./legacyAgentPlatform";
 
 interface InterpreterInfo {
     pythonExe: string;
@@ -230,13 +162,9 @@ const clientOptions: LanguageClientOptions = {
     documentSelector: [
         { language: "json", pattern: "**/locators.json" },
         { language: "yaml", pattern: "**/conda.yaml" },
-        { language: "yaml", pattern: "**/action-server.yaml" },
         { language: "yaml", pattern: "**/robot.yaml" },
-        { language: "yaml", pattern: "**/package.yaml" },
-        { language: "yaml", pattern: "**/agent-spec.yaml" },
 
         // Needed to detect tasks decorated with @task (from robocorp.tasks).
-        // Needed to detect actions decorated with @action (from sema4ai.actions).
         { language: "python", pattern: "**/*.py" },
     ],
     synchronize: {
@@ -386,49 +314,18 @@ async function cloudLogoutAndRefresh() {
 }
 
 function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionContext) {
-    C.register(SEMA4AI_START_ACTION_SERVER, startActionServer);
-
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON, () => getLanguageServerPython());
     C.register(SEMA4AI_GET_LANGUAGE_SERVER_PYTHON_INFO, () => getLanguageServerPythonInfo());
     C.register(SEMA4AI_CREATE_ROBOT, () => createRobot());
-    C.register(SEMA4AI_CREATE_ACTION_PACKAGE, (agentPackage?: LocalPackageMetadataInfo) =>
-        createActionPackage(agentPackage)
-    );
-    C.register(SEMA4AI_CREATE_TASK_OR_ACTION_OR_AGENT_PACKAGE, () => createPackage());
-    C.register(SEMA4AI_DOWNLOAD_ACTION_SERVER, async () => {
-        try {
-            const location = await downloadOrGetActionServerLocation();
-            if (location) {
-                // If it failed a message should've been displayed already.
-                window.showInformationMessage(`Action Server downloaded to: ${location}`);
-            }
-        } catch (error) {
-            logError("Error downloading Action Server", error, "ERR_DOWNLOAD_ACTION_SERVER");
-            window.showErrorMessage(
-                "There was an error downloading the action server. See `OUTPUT > Sema4.ai` for more information."
-            );
-        }
-    });
     C.register(SEMA4AI_UPLOAD_ROBOT_TO_CLOUD, () => uploadRobot());
     C.register(SEMA4AI_CONFIGURATION_DIAGNOSTICS, () => rccConfigurationDiagnostics());
     C.register(SEMA4AI_RUN_ROBOT_RCC, () => askAndRunRobotRCC(true));
     C.register(SEMA4AI_DEBUG_ROBOT_RCC, () => askAndRunRobotRCC(false));
-    C.register(SEMA4AI_RUN_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(true));
-    C.register(SEMA4AI_DEBUG_ACTION_FROM_ACTION_PACKAGE, () => askAndRunRobocorpActionFromActionPackage(false));
     C.register(SEMA4AI_SET_PYTHON_INTERPRETER, () => setPythonInterpreterFromRobotYaml());
     C.register(SEMA4AI_REFRESH_ROBOTS_VIEW, () => refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE));
     C.register(SEMA4AI_REFRESH_CLOUD_VIEW, () => refreshCloudTreeView());
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_RUN, (entry: RobotEntry) => views.runSelectedRobot(true, entry));
     C.register(SEMA4AI_ROBOTS_VIEW_TASK_DEBUG, (entry: RobotEntry) => views.runSelectedRobot(false, entry));
-    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_RUN, (entry: RobotEntry) => views.runSelectedAction(true, entry));
-    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_DEBUG, (entry: RobotEntry) => views.runSelectedAction(false, entry));
-    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_EDIT_INPUT, (entry: RobotEntry) =>
-        views.editInput(entry.actionName, entry.robot.directory)
-    );
-    C.register(SEMA4AI_CONFIGURE_ACTION_INPUT, (actionName?: string, actionDirectory?: string) =>
-        views.editInput(actionName, actionDirectory)
-    );
-    C.register(SEMA4AI_ROBOTS_VIEW_ACTION_OPEN, (entry: RobotEntry) => views.openAction(entry));
     C.register(SEMA4AI_RUN_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(true, args));
     C.register(SEMA4AI_DEBUG_ROBOCORPS_PYTHON_TASK, (args: string[] | undefined) => runRobocorpTasks(false, args));
     C.register(SEMA4AI_EDIT_ROBOCORP_INSPECTOR_LOCATOR, (locator?: LocatorEntry): Promise<void> => {
@@ -445,7 +342,6 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_OPEN_ROBOT_CONDA_TREE_SELECTION, (robot: RobotEntry) =>
         views.openRobotCondaTreeSelection(robot)
     );
-    C.register(SEMA4AI_OPEN_PACKAGE_YAML_TREE_SELECTION, (robot: RobotEntry) => views.openPackageTreeSelection(robot));
     C.register(SEMA4AI_OPEN_LOCATORS_JSON, (locatorRoot) => views.openLocatorsJsonTreeSelection());
     C.register(SEMA4AI_CLOUD_UPLOAD_ROBOT_TREE_SELECTION, (robot: RobotEntry) =>
         views.cloudUploadRobotTreeSelection(robot)
@@ -517,33 +413,7 @@ function registerRobocorpCodeCommands(C: CommandRegistry, context: ExtensionCont
     C.register(SEMA4AI_HELP_WORK_ITEMS, openWorkItemHelp);
     C.register(SEMA4AI_PROFILE_IMPORT, async () => await profileImport());
     C.register(SEMA4AI_PROFILE_SWITCH, async () => await profileSwitch());
-    C.register(SEMA4AI_ACTION_SERVER_CLOUD_LOGIN, async () => await actionServerCloudLogin());
-    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_PUBLISH, publishActionPackage);
-    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_BUILD, buildActionPackage);
-    C.register(SEMA4AI_ACTION_SERVER_PACKAGE_METADATA, openMetadata);
-    C.register(SEMA4AI_OAUTH2_LOGOUT, oauth2Logout);
-    C.register(SEMA4AI_CREATE_AGENT_PACKAGE, createAgentPackage);
-    C.register(SEMA4AI_AGENT_PACKAGE_IMPORT, importAgentPackage);
-    C.register(SEMA4AI_PACK_AGENT_PACKAGE, async (agentPath: string) => selectAndPackAgentPackage(agentPath));
-    C.register(SEMA4AI_SETUP_DATA_SOURCE, (robot?: RobotEntry) => setupDataSource(robot));
-    C.register(SEMA4AI_OPEN_RUNBOOK_TREE_SELECTION, (robot: RobotEntry) => views.openRunbookTreeSelection(robot));
-    C.register(SEMA4AI_UPDATE_AGENT_VERSION, async (agentPath: string) => updateAgentVersion(agentPath));
-    C.register(SEMA4AI_REFRESH_AGENT_SPEC, async (agentPath: string) => refreshAgentSpec(agentPath));
     C.register(SEMA4AI_COLLAPSE_ALL_ENTRIES, collapseAllEntries);
-    C.register(SEMA4AI_IMPORT_ACTION_PACKAGE, async (agentPath: string) => importActionPackage(agentPath));
-    C.register(SEMA4AI_RUN_ACTION_PACKAGE_DEV_TASK, async (devTaskInfo: DevTaskInfo | undefined) =>
-        runActionPackageDevTask(devTaskInfo)
-    );
-    C.register(SEMA4AI_GET_ACTIONS_METADATA, getActionsMetadata);
-    C.register(SEMA4AI_DROP_DATA_SOURCE, async (datasource?: RobotEntry) => dropDataSource(datasource));
-    C.register(SEMA4AI_DROP_ALL_DATA_SOURCES, async (datasource?: RobotEntry) => dropAllDataSources(datasource));
-    C.register(SEMA4AI_OPEN_DATA_SOURCE_DEFINITION, async (datasource?: RobotEntry) =>
-        openDataSourceDefinition(datasource)
-    );
-    C.register(SEMA4AI_SETUP_ALL_DATA_SOURCES, async (datasource?: RobotEntry) => setupAllDataSources(datasource));
-    C.register(SEMA4AI_FIX_WRONG_AGENT_IMPORT, async (agentPath: string) => fixWrongAgentImport(agentPath));
-    C.register(SEMA4AI_ADD_MCP_SERVER, async (agentDir?: string) => addMCPServer(agentDir));
-    C.register(SEMA4AI_ADD_DOCKER_MCP_GATEWAY, async (agentDir?: string) => addDockerMCPGateway(agentDir));
 }
 
 async function clearEnvAndRestart() {
@@ -777,117 +647,23 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     // i.e.: allow other extensions to also use our feedback api.
     C.registerWithoutStub(SEMA4AI_FEEDBACK_INTERNAL, (name: string, value: string) => feedback(name, value));
 
-    C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async (actionPackagePath?: vscode.Uri) => {
-        if (!actionPackagePath) {
+    C.register(SEMA4AI_PACKAGE_ENVIRONMENT_REBUILD, async (packagePath?: vscode.Uri) => {
+        if (!packagePath) {
             const selected = await listAndAskRobotSelection(
-                "Please select the Action or Task Package for which you'd like to rebuild the environment",
-                "Unable to continue because no Action nor Task Package was found in the workspace.",
-                { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
+                "Please select the Task Package for which you'd like to rebuild the environment",
+                "Unable to continue because no Task Package was found in the workspace."
             );
             if (!selected) {
                 return;
             }
-            actionPackagePath = vscode.Uri.file(selected.filePath);
+            packagePath = vscode.Uri.file(selected.filePath);
         }
 
-        const result = await resolveInterpreter(actionPackagePath.fsPath);
+        const result = await resolveInterpreter(packagePath.fsPath);
         if (result.success) {
             vscode.window.showInformationMessage(`Environment built & cached. Python interpreter loaded.`);
         } else {
             vscode.window.showErrorMessage(`Error resolving interpreter: ${result.message}`);
-        }
-    });
-
-    C.register(SEMA4AI_ACTION_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async (actionPackagePath?: vscode.Uri) => {
-        if (!actionPackagePath) {
-            const selected = await listAndAskRobotSelection(
-                "Please select the Action Package that you'd like to be published to the Sema4.ai Studio",
-                "Unable to continue because no Action Package was found in the workspace.",
-                { showActionPackages: true, showTaskPackages: false, showAgentPackages: false, includeSemaOrg: false }
-            );
-            if (!selected) {
-                vscode.window.showErrorMessage(`Please open an Action Package and try again`);
-                return;
-            }
-            actionPackagePath = vscode.Uri.file(selected.filePath);
-        }
-
-        await promptForUnsavedChanges();
-
-        // Get the directory path - if we received a file path, get its parent directory
-        const directoryPath = path.dirname(actionPackagePath.fsPath);
-
-        // Check for ruff errors
-        if (!(await checkRuffErrors(directoryPath))) {
-            return;
-        }
-
-        const sema4aiStudioAPIPath = getSema4AIStudioURLForFolderPath(actionPackagePath.fsPath);
-        const opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
-        if (opened) {
-            vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
-        } else {
-            vscode.window.showErrorMessage(`Publishing to Sema4.ai Studio failed`);
-        }
-    });
-
-    C.register(SEMA4AI_AGENT_PACKAGE_PUBLISH_TO_SEMA4_AI_STUDIO_APP, async (agentPackagePath?: string) => {
-        if (!agentPackagePath) {
-            const selected = await listAndAskRobotSelection(
-                "Please select the Agent Package that you'd like to be published to the Sema4.ai Studio",
-                "Unable to continue because no Agent Package was found in the workspace.",
-                { showActionPackages: false, showTaskPackages: false, showAgentPackages: true, includeSemaOrg: false }
-            );
-
-            if (!selected) {
-                vscode.window.showErrorMessage(`Please open an Agent Package and try again`);
-                return;
-            }
-            agentPackagePath = selected.directory;
-        }
-        await promptForUnsavedChanges();
-
-        // Check for ruff errors
-        if (!(await checkRuffErrors(agentPackagePath))) {
-            return;
-        }
-
-        const sema4aiHome = await getRobocorpHome();
-        if (!sema4aiHome) {
-            vscode.window.showErrorMessage(`Unable to publish because no Sema4.ai Home was found.`);
-            return;
-        }
-
-        const versionTxtPath = path.join(sema4aiHome, "sema4ai-studio", "version.txt");
-        let opened: Thenable<boolean>;
-
-        // if version.txt folder exists it means that studio is new enough to have this agent as a folder feature
-        if (await fileExists(versionTxtPath)) {
-            const validationResult = await validateAgentPackage(agentPackagePath);
-            if (!validationResult || !validationResult.success) {
-                vscode.window.showErrorMessage(validationResult?.message);
-                return;
-            }
-
-            const agentSpecPath = Uri.joinPath(Uri.file(agentPackagePath)).fsPath;
-            const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentFolderPath(agentSpecPath);
-
-            opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
-        } else {
-            const packResult = await packAgentPackage(agentPackagePath);
-            if (!packResult) {
-                vscode.window.showErrorMessage(`Failed to pack the agent package`);
-                return;
-            }
-
-            const sema4aiStudioAPIPath = getSema4AIStudioURLForAgentZipPath(packResult.zipPath);
-            opened = vscode.env.openExternal(vscode.Uri.parse(sema4aiStudioAPIPath));
-        }
-
-        if (opened) {
-            vscode.window.showInformationMessage(`Publishing to Sema4.ai Studio succeeded`);
-        } else {
-            vscode.window.showErrorMessage(`Publishing to Sema4.ai Studio failed`);
         }
     });
 
@@ -1019,6 +795,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
     // regardless of it -- as it may call robot.resolveInterpreter, it may need to activate the language
     // server extension, which in turn requires robocorp code to be activated already).
     installWorkspaceWatcher(context);
+    showLegacyAgentPlatformNotice(context);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -1068,86 +845,3 @@ export async function getLanguageServerPythonInfo(): Promise<InterpreterInfo | u
 export const collapseAllEntries = async (): Promise<void> => {
     vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE}.collapseAll`);
 };
-
-export async function openDataSourceDefinition(entry?: RobotEntry) {
-    if (!entry) {
-        return;
-    }
-    const datasource: DatasourceInfo = entry.extraData?.datasource;
-    if (!datasource) {
-        window.showErrorMessage("Data Source object was not provided in extraData.");
-        return;
-    }
-    const uri = Uri.parse(datasource.uri);
-    if (!(await uriExists(uri))) {
-        window.showErrorMessage(`Data Source file: ${uri.fsPath} not found.`);
-        return;
-    }
-    const document = await vscode.workspace.openTextDocument(uri);
-    const editor = await window.showTextDocument(document, { preview: false });
-    if (editor) {
-        editor.revealRange(
-            new vscode.Range(
-                datasource.range.start.line - 1,
-                datasource.range.start.character,
-                datasource.range.end.line - 1,
-                datasource.range.end.character
-            ),
-            vscode.TextEditorRevealType.InCenter
-        );
-        editor.selection = new vscode.Selection(
-            datasource.range.start.line - 1,
-            datasource.range.start.character,
-            datasource.range.start.line - 1,
-            datasource.range.start.character
-        );
-    }
-}
-
-async function checkRuffErrors(folderPath: string): Promise<boolean> {
-    const ruffErrors: any = await langServer.sendRequest("checkRuffErrors", { folder_path: folderPath });
-    if (ruffErrors.result) {
-        const firstError = ruffErrors.result[0];
-        const filePath = firstError.filename;
-        const lineNumber = firstError.location.row;
-
-        const document = await vscode.workspace.openTextDocument(filePath);
-        const editor = await vscode.window.showTextDocument(document);
-        const position = new vscode.Position(lineNumber - 1, 0);
-        editor.selection = new vscode.Selection(position, position);
-        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-
-        OUTPUT_CHANNEL.appendLine(`Found ${ruffErrors.result.length} linting errors:`);
-        ruffErrors.result.forEach((error: any) => {
-            const fileUri = vscode.Uri.file(error.filename);
-            const line = error.location.row;
-            const column = error.location.column;
-            const errorLocation = `${fileUri.fsPath}:${line}:${column}`;
-            const link = `[${errorLocation}](${fileUri.toString()}#${line},${column})`;
-            OUTPUT_CHANNEL.appendLine(`${link}: ${error.message}`);
-        });
-
-        let initialMessage: string;
-        if (ruffErrors.result.length === 1) {
-            initialMessage = `Found linting error: ${firstError.message}. How would you like to proceed?`;
-        } else {
-            initialMessage = `Found ${ruffErrors.result.length} linting errors. First error: ${firstError.message}. How would you like to proceed?`;
-        }
-
-        const selection = await vscode.window.showWarningMessage(
-            initialMessage,
-            { modal: true },
-            "Ignore and Publish",
-            "Show Errors"
-        );
-
-        if (selection === "Ignore and Publish") {
-            return true;
-        }
-        if (selection === "Show Errors") {
-            OUTPUT_CHANNEL.show();
-        }
-        return false;
-    }
-    return true;
-}

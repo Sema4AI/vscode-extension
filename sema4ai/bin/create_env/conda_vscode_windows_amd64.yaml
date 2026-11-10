@@ -4,22 +4,17 @@ channels:
     - conda-forge
 
 dependencies:
-    - python=3.11.10 # https://pyreadiness.org/3.11/
+    - python=3.13.18 # https://pyreadiness.org/3.13/
     - openssl=3.5.9 # 3.5 is the OpenSSL LTS line (3.6 is end of life): https://openssl-library.org/policies/releasestrat/
     - uv=0.13.7 # https://github.com/astral-sh/uv/blob/main/CHANGELOG.md
-    - pyyaml=6.0.2
-    - ruamel.yaml=0.18.10
-    - msgspec=0.19.0
-    - pywin32=303 # https://github.com/mhammond/pywin32/blob/main/CHANGES.txt
-    - pyscreeze==0.1.30 # VSCode Image Inspector dependency
-    - python-mss==9.0.1 # VSCode Image Inspector dependency
-    - comtypes==1.2.1 # VSCode Windows Inspector dependency
-    - psutil==5.9.8 # VSCode Windows Inspector dependency
-    - java-access-bridge-wrapper==1.2.0 # VSCode Java Inspector dependency
+    - pyyaml=6.0.3
+    - msgspec=0.22.0
+    - pywin32=311 # https://github.com/mhammond/pywin32/blob/main/CHANGES.txt
+    - pyscreeze==1.0.1 # VSCode Image Inspector dependency
+    - python-mss==10.2.0 # VSCode Image Inspector dependency
+    - comtypes==1.4.16 # VSCode Windows Inspector dependency
+    - psutil==7.2.2 # VSCode Windows Inspector dependency
+    - java-access-bridge-wrapper==2.0.0 # VSCode Java Inspector dependency
     - pip:
           - playwright==1.64.1 # Bundles Node.js 24.22.1
-          - tree-sitter==0.24.0
-          - tree-sitter-yaml==0.7.0
-          - sema4ai-http-helper==2.1.0
-          - sema4ai-common==0.1.0
-          - ruff==0.11.11
+          - sema4ai-http-helper==2.1.2

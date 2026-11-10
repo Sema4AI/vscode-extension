@@ -4,7 +4,7 @@ import * as pathModule from "path";
 import * as os from "os";
 import { configure as configureXHR } from "./requestLight";
 import { fileExists, getExtensionRelativeFile } from "./files";
-import { CancellationToken, commands, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
+import { CancellationToken, extensions, Progress, ProgressLocation, window, workspace } from "vscode";
 import { logError, OUTPUT_CHANNEL } from "./channel";
 import { Timing } from "./time";
 import { execFilePromise, ExecFileReturn, mergeEnviron } from "./subprocess";
@@ -13,8 +13,6 @@ import { getProceedwithlongpathsdisabled } from "./robocorpSettings";
 import { runAsAdminWin32 } from "./extensionCreateEnv";
 import { GLOBAL_STATE, langServer } from "./extension";
 import { downloadWithProgress, DownloadProgress } from "./http";
-import * as roboCommands from "./robocorpCommands";
-import { ActionResult } from "./protocols";
 
 let lastPrintedRobocorpHome: string = "";
 
@@ -163,9 +161,9 @@ async function downloadRcc(
 
 // Note: python tests scan this file and get these constants, so, if the format
 // changes the (failing) test also needs to change.
-const BASENAME_PREBUILT_WIN_AMD64 = "bb97f0af263dacfb-windows_amd64.zip";
-const BASENAME_PREBUILT_LINUX_AMD64 = "595568cc99170b01-linux_amd64.zip";
-const BASENAME_PREBUILT_DARWIN_ARM64 = "0f095ce77b3aa737-darwin_arm64.zip";
+const BASENAME_PREBUILT_WIN_AMD64 = "d453bbe7366af46e-windows_amd64.zip";
+const BASENAME_PREBUILT_LINUX_AMD64 = "0506c6cd55829a90-linux_amd64.zip";
+const BASENAME_PREBUILT_DARWIN_ARM64 = "90ee58a8b7e9126c-darwin_arm64.zip";
 
 function getBaseAsZipBasename() {
     let basename: string;
@@ -466,18 +464,6 @@ async function collectToolsVersions(rccLocation: string): Promise<any> {
     const rccVersion: any = await execFilePromise(rccLocation, ["--version"], {});
     toolsVersions["rcc"] = rccVersion.stdout.trim();
 
-    const actionServerVersion: ActionResult<any> = await commands.executeCommand(
-        roboCommands.SEMA4AI_ACTION_SERVER_VERSION_INTERNAL,
-        { download_if_missing: false }
-    );
-    toolsVersions["action-server"] = actionServerVersion?.result?.trim() || "";
-
-    const agentCliVersion: ActionResult<any> = await commands.executeCommand(
-        roboCommands.SEMA4AI_AGENT_CLI_VERSION_INTERNAL,
-        { download_if_missing: false }
-    );
-    toolsVersions["action-cli"] = agentCliVersion?.result?.trim() || "";
-
     return toolsVersions;
 }
 
@@ -505,20 +491,8 @@ export async function submitIssue(
             try {
                 const currentPackages: any = await langServer.sendRequest("listRobots");
                 const packagesWithoutYamlContents = (currentPackages.result as any[]).map((pkg: any) => {
-                    const removeYamlContents = (obj: any): any => {
-                        const { yamlContents, ...rest } = obj;
-
-                        if (rest.organizations) {
-                            rest.organizations = rest.organizations.map((org: any) => ({
-                                ...org,
-                                actionPackages: org.actionPackages.map(removeYamlContents),
-                            }));
-                        }
-
-                        return rest;
-                    };
-
-                    return removeYamlContents(pkg);
+                    const { yamlContents, ...rest } = pkg;
+                    return rest;
                 });
 
                 metadata["packages"] = packagesWithoutYamlContents;

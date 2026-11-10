@@ -33,7 +33,7 @@ def get_json_contents():
         "name": "sema4ai",
         "publisher": "sema4ai",
         "displayName": "Sema4.ai SDK",
-        "description": "Sema4.ai SDK: Visual Studio Code Extension for AI Agent, Actions and Automation Tasks development",
+        "description": "Sema4.ai SDK: Visual Studio Code Extension for Automation Tasks development",
         "author": {
             "name": "Sema4.ai",
             "email": "dev@sema4.ai",
@@ -92,7 +92,6 @@ def get_json_contents():
                 },
             ],
         },
-        "taskDefinitions": [{"type": "Sema4.ai: dev-task"}],
         "activationEvents": get_activation_events_for_json()
         + views.get_activation_events_for_json()
         + ["onLanguage:json", "onLanguage:yaml", "onLanguage:python"],

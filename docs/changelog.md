@@ -1,5 +1,15 @@
 ## Unreleased
 
+- **Agent and Action Packages are no longer supported.** Version 3 of the extension is for Task Packages (`robot.yaml`) only. To keep working with Agent and Action Packages (legacy agent platform), install version 2.x: see [Installing the Sema4.ai SDK (legacy agent platform)](https://sema4.ai/docs/build-agents/develop-actions/install-development-tools#sema4ai-vs-code-extension).
+  - Removed all Agent Package commands (create, import, export, publish to Sema4.ai Studio, runbook, agent configuration and version, MCP servers)
+  - Removed all Action Package commands (create, import, run/debug actions, action inputs, dev-tasks, Action Server, build/publish, OAuth2)
+  - Removed the Data Source commands and the integration with the Sema4.ai Data Access extension
+  - Removed the `@action` and `dev-tasks` code lenses (settings `sema4ai.codeLens.actionsLaunch` and `sema4ai.codeLens.devTask`) and the linting and hover for `package.yaml` and `agent-spec.yaml`
+  - The Packages view is now "Task Packages"
+  - A one-time notice is shown when a workspace has an Agent or Action Package
+- Base environment updated to **Python 3.13** (`python=3.13.18`) and latest dependencies: `playwright` 1.64.1, `pywin32` 311, `psutil` 7.2.2, `comtypes` 1.4.16, `java-access-bridge-wrapper` 2.0.0, `python-mss` 10.2.0, `pyscreeze` 1.0.1, `msgspec` 0.22.0, `pyyaml` 6.0.3, `sema4ai-http-helper` 2.1.2
+- Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
+
 ## New in 2.21.0 (2026-11-10)
 
 - Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
