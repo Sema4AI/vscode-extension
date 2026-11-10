@@ -40,6 +40,8 @@ def check_conda_yaml(datadir, data_regression, cached_conda_cloud) -> Iterator:
         "check_bad_version",
         "check_bad_version2",
         "check_use_trustore",
+        "check_openssl_version",
+        "check_openssl_version_ok",
     ],
 )
 def test_python_version(check_conda_yaml, name: str, patch_pypi_cloud) -> None:
