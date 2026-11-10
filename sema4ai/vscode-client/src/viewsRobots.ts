@@ -3,27 +3,8 @@ import { OUTPUT_CHANNEL } from "./channel";
 import { uriExists } from "./files";
 import { LocalPackageMetadataInfo, ActionResult } from "./protocols";
 import * as roboCommands from "./robocorpCommands";
-import { basename, RobotEntry, RobotEntryType } from "./viewsCommon";
+import { basename, isRobotFrameworkTask, RobotEntry, RobotEntryType } from "./viewsCommon";
 import { getSelectedRobot } from "./viewsSelection";
-
-/**
- * Whether the given task (its entry in robot.yaml) runs Robot Framework, which
- * can't be debugged (mirrors the checks in compute_launch.py).
- */
-function isRobotFrameworkTask(taskInfo: any): boolean {
-    if (!taskInfo || typeof taskInfo !== "object") {
-        return false;
-    }
-    let command: string[] | undefined = undefined;
-    if (Array.isArray(taskInfo["command"])) {
-        command = taskInfo["command"].map((c: any) => String(c));
-    } else if (typeof taskInfo["shell"] === "string") {
-        command = taskInfo["shell"].trim().split(/\s+/);
-    } else if (taskInfo["robotTaskName"]) {
-        return true;
-    }
-    return command !== undefined && command[0] === "python" && command[1] === "-m" && command[2] === "robot";
-}
 
 let _globalSentMetric: boolean = false;
 

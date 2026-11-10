@@ -26,6 +26,7 @@ import {
 } from "./ask";
 import { feedback, feedbackRobocorpCodeError, getEndpointUrl } from "./rcc";
 import { refreshCloudTreeView } from "./viewsRobocorp";
+import { isRobotFrameworkTask } from "./viewsCommon";
 import {
     ActionResult,
     ActionResultWorkItems,
@@ -601,6 +602,10 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         if (tasks) {
             let taskNames: string[] = Object.keys(tasks);
             for (let taskName of taskNames) {
+                if (!noDebug && isRobotFrameworkTask(tasks[taskName])) {
+                    // Robot Framework tasks can't be debugged.
+                    continue;
+                }
                 let keyInLRU: string = robotInfo.name + " - " + taskName + " - " + robotInfo.filePath;
                 let item: QuickPickItemRobotTask = {
                     "label": "Run robot: " + robotInfo.name + "    Task: " + taskName,
@@ -619,8 +624,12 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         }
     }
 
-    if (!items) {
-        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
+    if (items.length == 0) {
+        window.showInformationMessage(
+            noDebug
+                ? "Unable to run Task Package (no Task Package detected in the Workspace)."
+                : "No task to debug in the Workspace (Robot Framework tasks can't be debugged, use Run Task instead)."
+        );
         return;
     }
 

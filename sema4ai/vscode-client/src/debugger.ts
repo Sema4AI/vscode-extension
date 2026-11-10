@@ -18,13 +18,15 @@ import {
     SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
     SEMA4AI_UPDATE_LAUNCH_ENV,
     SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL,
+    SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL,
 } from "./robocorpCommands";
 import { globalCachedPythonInfo } from "./extension";
 import {
     disablePythonTerminalActivateEnvironment,
     isPyDevDebuggerPythonExtensionInstalled,
 } from "./pythonExtIntegration";
-import { InterpreterInfo } from "./protocols";
+import { InterpreterInfo, LocalPackageMetadataInfo } from "./protocols";
+import { isRobotFrameworkTask } from "./viewsCommon";
 
 interface ActionResult {
     success: boolean;
@@ -69,6 +71,40 @@ export async function updateDebugConfigurationAndAutoActivatePythonExtension(
     return debugConfiguration;
 }
 
+const ROBOT_FRAMEWORK_DEBUG_NOT_SUPPORTED = "Debugging Robot Framework tasks is not supported. Use Run Task instead.";
+
+/**
+ * Whether the launched task is a Robot Framework task, based on the Task Packages in
+ * the workspace (if the robot.yaml isn't in the workspace, the language server still
+ * refuses the launch when computing it).
+ */
+async function isRobotFrameworkTaskInLaunch(robotYaml: string, taskName: string | undefined): Promise<boolean> {
+    try {
+        const actionResult: ActionResult = await commands.executeCommand(SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL);
+        if (!actionResult?.success || !actionResult.result) {
+            return false;
+        }
+        const normalize = (p: string) => {
+            const resolved = path.resolve(p);
+            return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+        };
+        const robotInfo = (<LocalPackageMetadataInfo[]>actionResult.result).find(
+            (r) => normalize(r.filePath) === normalize(robotYaml)
+        );
+        const tasks = robotInfo?.yamlContents?.["tasks"];
+        if (!tasks) {
+            return false;
+        }
+        const taskNames = Object.keys(tasks);
+        if (!taskName && taskNames.length === 1) {
+            taskName = taskNames[0];
+        }
+        return !!taskName && isRobotFrameworkTask(tasks[taskName]);
+    } catch (error) {
+        return false;
+    }
+}
+
 export class RobocorpCodeDebugConfigurationProvider implements DebugConfigurationProvider {
     provideDebugConfigurations?(folder: WorkspaceFolder | undefined, token?: CancellationToken): DebugConfiguration[] {
         let configurations: DebugConfiguration[] = [];
@@ -98,6 +134,12 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
             return;
         }
         const targetYaml = debugConfiguration.robot;
+
+        if (!debugConfiguration.noDebug && (await isRobotFrameworkTaskInLaunch(targetYaml, debugConfiguration.task))) {
+            // Refuse before resolving the environment (which may take a while).
+            window.showErrorMessage(ROBOT_FRAMEWORK_DEBUG_NOT_SUPPORTED);
+            return;
+        }
 
         let interpreter: InterpreterInfo | undefined = undefined;
         let interpreterResult = await resolveInterpreter(targetYaml);
@@ -162,8 +204,7 @@ export class RobocorpCodeDebugConfigurationProvider implements DebugConfiguratio
         }
 
         // Debugging: convert the launch for the task in robot.yaml into a Python launch.
-        // Robot Framework tasks can't be debugged, so this fails for them with a message
-        // to use Run Task instead.
+        // This also fails for Robot Framework tasks the check above didn't catch.
         let actionResult: ActionResult = await commands.executeCommand(
             SEMA4AI_COMPUTE_ROBOT_LAUNCH_FROM_ROBOCORP_CODE_LAUNCH,
             {
