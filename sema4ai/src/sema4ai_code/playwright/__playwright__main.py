@@ -169,8 +169,9 @@ def launch() -> None:
         print(f"Failed opening recorder:", flush=True)
         # using correct representation as it seems that playwright outputs strange characters
         sys.stdout.buffer.write(f"{e}\n".encode(sys.stdout.encoding, "replace"))
-        # attempt to install browsers & drivers
-        install_browser(BrowserEngine.CHROME)
+        # attempt to install browsers & drivers (the recorder is launched
+        # without a channel, so, it uses the Chromium bundled with playwright).
+        install_browser(BrowserEngine.CHROMIUM)
         # attempt to launch playwright again
         launch_playwright()
 

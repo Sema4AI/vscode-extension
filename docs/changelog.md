@@ -13,6 +13,7 @@
 - Fix an error when the publish confirmation is dismissed with Escape
 - The Control Room view shows the extension version, commit and build time as its last line. Click it to copy them to the clipboard.
 - **Robot Framework tasks no longer need the Robot Framework Language Server extension.** *Run Task* runs them with rcc. They can no longer be debugged: *Debug Task* is hidden for them, and a debug launch shows "Debugging Robot Framework tasks is not supported. Use Run Task instead."
+- Fix "Open Playwright Recorder" failing when the Chromium for the Task Package's `playwright` version isn't installed yet: the retry installed Google Chrome instead of the Chromium the recorder launches
 
 ## New in 2.21.0 (2026-11-10)
 
