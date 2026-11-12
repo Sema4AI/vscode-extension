@@ -104,11 +104,26 @@ def run_playwright_in_thread(launched_event):
             # may also be related to VSCode + Windows 11 + Windows Defender + python
             _stdin_write(process, b"\n")
 
+            # Read stdout in a separate thread so it can't deadlock on a full
+            # pipe buffer while we wait for the process to finish, and so we
+            # actually have output to report if it fails.
+            def _read_stdout():
+                try:
+                    for line in iter(process.stdout.readline, b""):
+                        full_output.append(line.decode(errors="replace"))
+                except Exception:
+                    pass
+
+            stdout_reader = threading.Thread(target=_read_stdout, daemon=True)
+            stdout_reader.name = "Read Playwright Stdout Thread"
+            stdout_reader.start()
+
             # launch event timer -> it will release the lock on the launch event
             launched_event_timer.start()
 
             # wait for playwright process to finish
             returncode = process.wait()
+            stdout_reader.join()
 
             if returncode != 0:
                 future.set_exception(
