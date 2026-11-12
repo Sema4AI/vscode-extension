@@ -136,12 +136,14 @@ def test_recorder_launched_with_playwright(tmpdir, monkeypatch):
     environ = {"SOME_VAR": "1"}
     playwright = _create_playwright_with_interpreter("python", environ)
 
-    result = playwright._threaded_playwright_recorder(
-        uris.from_fs_path(str(tmpdir.join("robot.yaml")))
-    )
+    robot_yaml_uri = uris.from_fs_path(str(tmpdir.join("robot.yaml")))
+    # Note: on Windows the drive letter is lowercased when converting from the uri.
+    cwd = os.path.dirname(uris.to_fs_path(robot_yaml_uri))
+
+    result = playwright._threaded_playwright_recorder(robot_yaml_uri)
 
     assert result == {"success": True, "message": None, "result": None}
-    assert check_args == [("python", environ, str(tmpdir))]
+    assert check_args == [("python", environ, cwd)]
     playwright._launch_playwright_recorder.assert_called_once_with(
-        "python", environ, cwd=str(tmpdir)
+        "python", environ, cwd=cwd
     )
