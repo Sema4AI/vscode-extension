@@ -14,6 +14,48 @@ log = get_logger(__name__)
 
 playwright_command_dispatcher = _SubCommandDispatcher("_playwright")
 
+PLAYWRIGHT_NOT_AVAILABLE_MESSAGE = (
+    "The Playwright Recorder needs the `playwright` Python package in the "
+    "environment of the Task Package. Add `robocorp-browser` or `playwright` "
+    "to its conda.yaml, rebuild the environment and try again."
+)
+
+
+def _is_playwright_available(
+    python_exe: str, environ: dict[str, str], cwd: str
+) -> bool:
+    """
+    Checks whether `playwright` can be imported with the given interpreter.
+
+    If the check itself can't be done, True is returned (so that the launch
+    proceeds and reports its own errors).
+    """
+    import subprocess
+
+    from sema4ai_ls_core.basic import build_subprocess_kwargs
+
+    cmd = [
+        python_exe,
+        "-c",
+        "import importlib.util, sys;"
+        "sys.exit(0 if importlib.util.find_spec('playwright') else 3)",
+    ]
+    full_env = dict(os.environ)
+    full_env.update(environ)
+    kwargs: dict = build_subprocess_kwargs(
+        cwd,
+        full_env,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
+    )
+    try:
+        returncode = subprocess.run(cmd, timeout=30, **kwargs).returncode
+    except Exception as e:
+        log.info("Unable to check whether playwright is available:", e)
+        return True
+    return returncode != 3
+
 
 class _Playwright:
     def __init__(
@@ -81,8 +123,17 @@ class _Playwright:
                                 "result": None,
                             }
                         )
+                    python_exe = interpreter_info.get_python_exe()
+                    if not _is_playwright_available(python_exe, environ, cwd):
+                        return ActionResultDict(
+                            {
+                                "success": False,
+                                "message": PLAYWRIGHT_NOT_AVAILABLE_MESSAGE,
+                                "result": None,
+                            }
+                        )
                     self._launch_playwright_recorder(
-                        interpreter_info.get_python_exe(),
+                        python_exe,
                         environ,
                         cwd=cwd,
                     )
