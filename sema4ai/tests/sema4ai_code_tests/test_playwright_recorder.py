@@ -47,29 +47,32 @@ def test_playwright_check_not_possible(tmpdir):
     ],
 )
 def test_playwright_available_returncodes(tmpdir, monkeypatch, returncode, expected):
-    import subprocess
     from unittest import mock
 
+    from sema4ai_code import _language_server_playwright
     from sema4ai_code._language_server_playwright import _is_playwright_available
 
-    run = mock.Mock(return_value=mock.Mock(returncode=returncode))
-    monkeypatch.setattr(subprocess, "run", run)
+    # Note: `subprocess.run` isn't mocked directly because threads from other
+    # tests may also call it.
+    run_check = mock.Mock(return_value=returncode)
+    monkeypatch.setattr(_language_server_playwright, "_run_playwright_check", run_check)
 
     assert _is_playwright_available("python", {}, str(tmpdir)) == expected
-    run.assert_called_once()
+    run_check.assert_called_once_with("python", {}, str(tmpdir))
 
 
 def test_playwright_check_timeout(tmpdir, monkeypatch):
     import subprocess
     from unittest import mock
 
+    from sema4ai_code import _language_server_playwright
     from sema4ai_code._language_server_playwright import _is_playwright_available
 
-    run = mock.Mock(side_effect=subprocess.TimeoutExpired("python", 30))
-    monkeypatch.setattr(subprocess, "run", run)
+    run_check = mock.Mock(side_effect=subprocess.TimeoutExpired("python", 30))
+    monkeypatch.setattr(_language_server_playwright, "_run_playwright_check", run_check)
 
     assert _is_playwright_available("python", {}, str(tmpdir))
-    run.assert_called_once()
+    run_check.assert_called_once_with("python", {}, str(tmpdir))
 
 
 def _create_playwright_with_interpreter(python_exe: str, environ: dict):

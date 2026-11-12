@@ -21,14 +21,9 @@ PLAYWRIGHT_NOT_AVAILABLE_MESSAGE = (
 )
 
 
-def _is_playwright_available(
-    python_exe: str, environ: dict[str, str], cwd: str
-) -> bool:
+def _run_playwright_check(python_exe: str, environ: dict[str, str], cwd: str) -> int:
     """
-    Checks whether `playwright` can be imported with the given interpreter.
-
-    If the check itself can't be done, True is returned (so that the launch
-    proceeds and reports its own errors).
+    Note: this function is mocked in tests.
     """
     import subprocess
 
@@ -49,8 +44,20 @@ def _is_playwright_available(
         stdout=subprocess.PIPE,
         stdin=subprocess.DEVNULL,
     )
+    return subprocess.run(cmd, timeout=30, **kwargs).returncode
+
+
+def _is_playwright_available(
+    python_exe: str, environ: dict[str, str], cwd: str
+) -> bool:
+    """
+    Checks whether `playwright` can be imported with the given interpreter.
+
+    If the check itself can't be done, True is returned (so that the launch
+    proceeds and reports its own errors).
+    """
     try:
-        returncode = subprocess.run(cmd, timeout=30, **kwargs).returncode
+        returncode = _run_playwright_check(python_exe, environ, cwd)
     except Exception as e:
         log.info("Unable to check whether playwright is available:", e)
         return True
