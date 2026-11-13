@@ -14,6 +14,7 @@
 - The Control Room view shows the extension version, commit and build time as its last line. Click it to copy them to the clipboard.
 - **Robot Framework tasks no longer need the Robot Framework Language Server extension.** *Run Task* runs them with rcc. They can no longer be debugged: *Debug Task* is hidden for them, and a debug launch shows "Debugging Robot Framework tasks is not supported. Use Run Task instead."
 - "Open Playwright Recorder" now explains that `robocorp-browser` or `playwright` must be added to the Task Package's `conda.yaml` when the environment doesn't have `playwright` (it used to show a generic error with a traceback in the output)
+- Fix "Open Playwright Recorder" failing when the Chromium for the Task Package's `playwright` version isn't installed yet: the retry installed Google Chrome instead of the Chromium the recorder launches
 
 ## New in 2.21.0 (2026-11-10)
 
