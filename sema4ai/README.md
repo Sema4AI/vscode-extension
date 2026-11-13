@@ -1,12 +1,12 @@
 ## Sema4.ai VS Code extension
 
-> Note: The `Sema4.ai` extension from VS Code replaces the [Robocorp Code](https://marketplace.visualstudio.com/items?itemName=robocorp.robocorp-code) -extension. The same features exist in this extension, so you can just switch to using `Sema4.ai`. Future development will be focused here.
+The Sema4.ai extension makes it easy to create Python based automation projects that run on Robocorp, and Sema4.ai Task Engine.
 
-The Sema4.ai extension makes it easy to create Python based automation projects (Task Packages).
-
-It can be used to scale up from simple image fetching or API calling all the way to complex process enterprise automation workflows.
+It can be used to scale up from simple image fetching or API calling all the way to complex process enterprise automation workflows running on desktop machines behind your firewalls and accessing ERP systems no AI agent currently can touch.
 
 Main features include:
+
+-   **Create, run and debug Tasks** - Sema4.ai Tasks provides end-to-end stack supporting every type of connection between AI and your apps and data. You are in control where to run the code and everything is built for easiness, security, and scalability.
 
 -   **Automatic configuration of dependencies** - Every Python oriented project uses its own lightweight virtual environment and runs in isolation.
 
@@ -14,11 +14,9 @@ Main features include:
 
 -   **Create, run and debug projects** - Do these with ease while developing Tasks to automate applications
 
--   **Deploy projects to Control Room** - Run unattended automation in a safe, reliable and easy to use Cloud Platform.
+-   **Deploy projects to Robocorp and Sema4.ai platforms** - Run unattended automation in a safe, reliable and easy to use cloud platform.
 
-> Note: the use of cloud-based orchestration in [Control Room](https://sema4.ai/docs/manage-agents/meet-control-room) requires an account.
-
-![Example of a Robot running with the extension](images/gif_run.gif)
+> Note: the use of cloud-based orchestration in [Control Room](https://sema4.ai/docs/manage-agents/meet-control-room) or [Sema4.ai](https://sema4.ai) requires an account.
 
 ### Get Started
 
@@ -28,11 +26,11 @@ Main features include:
 
 3. Select the command `Sema4.ai: Create Task Package`
 
-4. Open the sidebar and start running your tasks.
+4. Choose a template to start with
+
+5. Open the sidebar and start running your Tasks.
 
 Full instructions are available at our [documentation site](https://sema4.ai/docs/automation/visual-studio-code) for the VS Code Extension.
-
-This is under active development, so please [contact us](https://sema4.ai/contact-us/) for issues and feature requests.
 
 ### Agent and Action Packages (legacy agent platform)
 
@@ -48,16 +46,14 @@ During the first activation, the extension will download additional dependencies
 
 ### Developing
 
-See: [Developing](https://github.com/Sema4AI/vscode-extension/docs/develop.md) for details on how to develop the `Sema4.ai` -extension.
+See: [Developing](https://github.com/Sema4AI/vscode-extension/blob/master/docs/develop.md) for details on how to develop the `Sema4.ai` -extension.
 
 ### Changelog
 
-See: [Changelog](https://github.com/Sema4AI/vscode-extension/docs/changelog.md) for details on how to develop the `Sema4.ai` -extension.
+See: [Changelog](https://github.com/Sema4AI/vscode-extension/blob/master/docs/changelog.md) for the changes in each version of the `Sema4.ai` -extension.
 
 ### Reporting Issues
 
 Issues may be reported in the [GitHub Issues](https://github.com/Sema4AI/vscode-extension/issues/new/choose).
-
-Contact us via Slack: [sema4ai-users.slack.com](https://sema4ai-users.slack.com/ssb/redirect)
 
 ## License: Apache 2.0
