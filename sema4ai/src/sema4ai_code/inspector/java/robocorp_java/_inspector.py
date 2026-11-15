@@ -51,10 +51,10 @@ class ElementInspector:
     @property
     def event_pump_thread(self):
         if not self._event_pump_thread:
-            from ._event_pump import EventPumpThread
+            from ._event_pump import get_shared_event_pump_thread
 
-            self._event_pump_thread = EventPumpThread()
-            self._event_pump_thread.start()
+            # Shared: the Java Access Bridge may only be initialized once per process.
+            self._event_pump_thread = get_shared_event_pump_thread()
 
         return self._event_pump_thread
 
@@ -68,8 +68,10 @@ class ElementInspector:
                 self._jab_wrapper_started_at = time.monotonic()
             return self._jab_wrapper
         except Exception as e:
+            from ._event_pump import reset_shared_event_pump_thread
+
             log.error(f"Error starting the Java Access Bridge: {e}")
-            self.event_pump_thread.stop()
+            reset_shared_event_pump_thread(self.event_pump_thread)
             self._event_pump_thread = None
             self._jab_wrapper = None
             # Report the actual error (i.e.: the Access Bridge couldn't be loaded).
