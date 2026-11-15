@@ -379,6 +379,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                         } else if (command["type"] === "getAppWindows") {
                             OUTPUT_CHANNEL.appendLine(`[Windows] > Requesting: Get Apps: ${JSON.stringify(command)}`);
                             const actionResult: ActionResult<any> = await sendRequest("windowsInspectorListWindows");
+                            OUTPUT_CHANNEL.appendLine(`[Windows] > Result: Get Apps: ${JSON.stringify(actionResult)}`);
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "winApps")
                             );
@@ -483,12 +484,21 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                             OUTPUT_CHANNEL.appendLine(`[Java] > Requesting: Get Apps: ${JSON.stringify(command)}`);
                             const actionResult: ActionResult<any> = await sendRequest("javaInspectorListWindows");
                             OUTPUT_CHANNEL.appendLine(`[Java] > Result: Get Apps: ${JSON.stringify(actionResult)}`);
-                            if (!actionResult.success) {
+                            // The response is the inspector's JSON-RPC message, so, the ActionResult is
+                            // in its `result` (if the request itself failed, sendRequest() already
+                            // returns an ActionResult without a `result`).
+                            const listResult: ActionResult<any> = actionResult.result ?? actionResult;
+                            if (!listResult.success) {
                                 // i.e.: the Java Access Bridge wasn't found (message explains how to fix it).
-                                vscode.window.showErrorMessage(`Java Locator: ${actionResult.message}`);
+                                vscode.window.showErrorMessage(
+                                    `Java Locator: ${
+                                        listResult.message ||
+                                        "Unable to list the Java applications (see the Sema4.ai output for details)."
+                                    }`
+                                );
                             }
                             panel.webview.postMessage(
-                                buildProtocolResponseFromActionResponse(message, actionResult.result, "javaApps")
+                                buildProtocolResponseFromActionResponse(message, listResult, "javaApps")
                             );
                         } else if (command["type"] === "setSelectedApp") {
                             OUTPUT_CHANNEL.appendLine(
