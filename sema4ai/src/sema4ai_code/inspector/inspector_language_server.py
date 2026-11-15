@@ -308,6 +308,7 @@ class InspectorLanguageServer:
         locator: str,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ):
         inspector_api_client = self._inspector_server_manager.get_inspector_api_client()
         # Not blocking (return callback to run in thread).
@@ -318,6 +319,7 @@ class InspectorLanguageServer:
                 locator=locator,
                 search_depth=search_depth,
                 search_strategy=search_strategy,
+                fallback_search_depth=fallback_search_depth,
             ),
         )
 
@@ -326,6 +328,7 @@ class InspectorLanguageServer:
         locator: str,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ):
         inspector_api_client = self._inspector_server_manager.get_inspector_api_client()
         # Not blocking (return callback to run in thread).
@@ -336,6 +339,7 @@ class InspectorLanguageServer:
                 locator=locator,
                 search_depth=search_depth,
                 search_strategy=search_strategy,
+                fallback_search_depth=fallback_search_depth,
             ),
         )
 

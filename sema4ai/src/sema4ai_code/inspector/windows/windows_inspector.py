@@ -88,6 +88,21 @@ class MatchesAndHierarchyTypedDict(TypedDict):
     hierarchy: list[ControlLocatorInfoTypedDict]
 
 
+class HighlightResultTypedDict(MatchesAndHierarchyTypedDict):
+    # The search depth with which the matches were found (may be the
+    # `fallback_search_depth` if nothing was found with the `search_depth`).
+    search_depth: int
+    # If a robot wouldn't find any of the matches with the default search depth
+    # of `robocorp-windows` (i.e.: `window.find(locator)`), the search depth it
+    # needs (otherwise None).
+    robot_search_depth: int | None
+
+
+# The default `search_depth` used by `robocorp-windows` when finding elements
+# (i.e.: `window.find(locator)` in a robot).
+ROBOT_DEFAULT_SEARCH_DEPTH = 8
+
+
 def _get_from_obj(el: Union["WindowElement", "ControlElement"], dct_name: str) -> Any:
     from sema4ai_code.inspector.windows.robocorp_windows._ui_automation_wrapper import (
         LocationInfo,
@@ -262,16 +277,22 @@ class WindowsInspector:
         locator: str,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
-    ) -> MatchesAndHierarchyTypedDict:
+        fallback_search_depth: int | None = None,
+    ) -> HighlightResultTypedDict:
         """
         Starts highlighting the matches given by the locator specified.
 
         Args:
             locator: The locator whose matches should be highlighted.
+            fallback_search_depth: If given and nothing matches with the
+                `search_depth`, the search is retried with this (bigger) depth
+                (i.e.: elements deep inside Electron apps).
 
         Returns:
             The matches found as a flattened list (the tree hierarchy
-            may be rebuilt based on the `path` or `depth` and `child_pos`).
+            may be rebuilt based on the `path` or `depth` and `child_pos`),
+            the depth used to find them and the depth a robot needs to find
+            them (if bigger than its default).
         """
         if not self._element_inspector:
             raise RuntimeError(
@@ -280,15 +301,83 @@ class WindowsInspector:
 
         self.reset_to_default_state()
         self._state = _State.highlighting
-        matched_controls = self._element_inspector.start_highlight(
+        element_inspector = self._element_inspector
+        matched_controls = element_inspector.start_highlight(
             locator,
             search_depth=search_depth,
             timeout=0,
             search_strategy=search_strategy,
         )
+        if (
+            not matched_controls
+            and fallback_search_depth is not None
+            and fallback_search_depth > search_depth
+        ):
+            search_depth = fallback_search_depth
+            matched_controls = element_inspector.start_highlight(
+                locator,
+                search_depth=search_depth,
+                timeout=0,
+                search_strategy=search_strategy,
+            )
 
-        parent = self._element_inspector.control_element
-        return to_matches_and_hierarchy(parent, matched_controls)
+        parent = element_inspector.control_element
+        matches_and_hierarchy = to_matches_and_hierarchy(parent, matched_controls)
+        return {
+            "matched_paths": matches_and_hierarchy["matched_paths"],
+            "hierarchy": matches_and_hierarchy["hierarchy"],
+            "search_depth": search_depth,
+            "robot_search_depth": self._get_robot_search_depth(
+                parent,
+                locator,
+                search_depth,
+                search_strategy,
+                matches_and_hierarchy["matched_paths"],
+            ),
+        }
+
+    @staticmethod
+    def _get_robot_search_depth(
+        parent: "ControlElement",
+        locator: str,
+        search_depth: int,
+        search_strategy: Literal["siblings", "all"],
+        matched_paths: list[str],
+    ) -> int | None:
+        """
+        Returns:
+            None if a robot finds the locator with the default search depth of
+            `robocorp-windows` (at least one of the matches: `find()` returns the
+            first one), otherwise the search depth it needs.
+        """
+        if not matched_paths or search_depth <= ROBOT_DEFAULT_SEARCH_DEPTH:
+            return None
+
+        # The path of a match is relative to the element found by the previous
+        # part of the locator (i.e.: `id:RootWebArea > name:Filter`), so, without
+        # a `>` its length is the depth needed to find it.
+        min_path_depth = min(len(path.split("|")) for path in matched_paths)
+        if ">" not in locator and min_path_depth <= ROBOT_DEFAULT_SEARCH_DEPTH:
+            return None
+
+        # Search as a robot would (no highlight) to know whether it'd find them.
+        try:
+            robot_matches = parent.find_many(
+                locator,
+                ROBOT_DEFAULT_SEARCH_DEPTH,
+                0,
+                search_strategy,
+                wait_for_element=False,
+            )
+        except Exception:
+            robot_matches = []
+        robot_paths = {c.location_info.path for c in robot_matches}
+        if any(path in robot_paths for path in matched_paths):
+            return None
+
+        # With a `>` each part is searched with the search depth, so, the depth
+        # used here is enough (but the total depth isn't known).
+        return search_depth if ">" in locator else min_path_depth
 
     def stop_highlight(self) -> None:
         """
@@ -310,22 +399,36 @@ class WindowsInspector:
         locator: str,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ) -> MatchesAndHierarchyTypedDict:
+        """
+        Args:
+            fallback_search_depth: If given and nothing matches with the
+                `search_depth`, the search is retried with this (bigger) depth.
+        """
         if not self._element_inspector:
             raise RuntimeError(
                 "Unable to collect tree because `set_window_locator` was not previously used to set the window of interest."
             )
-        matched_controls: list["ControlElement"] = (
-            self._element_inspector.control_element.find_many(
+        control_element = self._element_inspector.control_element
+        matched_controls: list["ControlElement"] = control_element.find_many(
+            locator,
+            search_depth=search_depth,
+            search_strategy=search_strategy,
+            timeout=0,
+        )
+        if (
+            not matched_controls
+            and fallback_search_depth is not None
+            and fallback_search_depth > search_depth
+        ):
+            matched_controls = control_element.find_many(
                 locator,
-                search_depth=search_depth,
+                search_depth=fallback_search_depth,
                 search_strategy=search_strategy,
                 timeout=0,
             )
-        )
-        return to_matches_and_hierarchy(
-            self._element_inspector.control_element, matched_controls
-        )
+        return to_matches_and_hierarchy(control_element, matched_controls)
 
     def shutdown(self):
         if self._element_inspector:

@@ -35,6 +35,85 @@ let ROBOCORP_INSPECTOR_PANEL: vscode.WebviewPanel | undefined = undefined;
 
 let ROBOT_DIRECTORY: string | undefined = undefined;
 
+// When a Windows locator doesn't match with the search depth requested by the
+// Locator UI, it's searched again up to this depth.
+const WINDOWS_FALLBACK_SEARCH_DEPTH = 30;
+
+// The default search depth of `robocorp-windows` (i.e.: `window.find(locator)`).
+const WINDOWS_ROBOT_DEFAULT_SEARCH_DEPTH = 8;
+
+// Shows the search depth warning of the last checked Windows locator (clicking it
+// shows the details).
+const SHOW_SEARCH_DEPTH_WARNING_COMMAND = "sema4ai.inspector.showWindowsLocatorSearchDepthWarning";
+let searchDepthStatusBarItem: vscode.StatusBarItem | undefined = undefined;
+let searchDepthWarningMessage: string | undefined = undefined;
+// The notification is only shown the first time in a session (notifications
+// can't be closed or updated, so, they'd get outdated: the status bar item
+// always shows the last checked locator).
+let searchDepthWarningNotified = false;
+
+function getSearchDepthStatusBarItem(context: vscode.ExtensionContext): vscode.StatusBarItem {
+    if (searchDepthStatusBarItem === undefined) {
+        searchDepthStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        searchDepthStatusBarItem.name = "Windows Locator search depth";
+        searchDepthStatusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground");
+        searchDepthStatusBarItem.command = SHOW_SEARCH_DEPTH_WARNING_COMMAND;
+        context.subscriptions.push(
+            searchDepthStatusBarItem,
+            vscode.commands.registerCommand(SHOW_SEARCH_DEPTH_WARNING_COMMAND, () => {
+                if (searchDepthWarningMessage !== undefined) {
+                    vscode.window.showWarningMessage(searchDepthWarningMessage);
+                }
+            })
+        );
+    }
+    return searchDepthStatusBarItem;
+}
+
+function hideSearchDepthWarning() {
+    searchDepthWarningMessage = undefined;
+    searchDepthStatusBarItem?.hide();
+}
+
+/**
+ * Shows a warning (in the status bar, and the first time also as a notification)
+ * if a robot wouldn't find any of the matches of a Windows locator with the
+ * default search depth of `robocorp-windows` (otherwise the warning is hidden).
+ *
+ * @param highlightResult The `result` of the inspector's `windowsStartHighlight`.
+ */
+function updateSearchDepthWarning(
+    context: vscode.ExtensionContext,
+    locator: string,
+    highlightResult: ActionResult<any> | undefined
+) {
+    const result = highlightResult?.result;
+    const robotSearchDepth: number | null | undefined = result?.robot_search_depth;
+    if (!robotSearchDepth || !result.matched_paths?.length) {
+        hideSearchDepthWarning();
+        return;
+    }
+    const message =
+        `Windows Locator: a robot wouldn't find \`${locator}\`: it only searches ` +
+        `${WINDOWS_ROBOT_DEFAULT_SEARCH_DEPTH} levels deep by default. ` +
+        `Use \`search_depth=${robotSearchDepth}\` (i.e.: \`window.find(locator, search_depth=${robotSearchDepth})\`) ` +
+        "or start the locator from an element closer to it (i.e.: `id:RootWebArea > ...` in Electron apps).";
+    OUTPUT_CHANNEL.appendLine(message);
+    searchDepthWarningMessage = message;
+
+    const statusBarItem = getSearchDepthStatusBarItem(context);
+    statusBarItem.text = `$(warning) Locator needs search_depth=${robotSearchDepth}`;
+    statusBarItem.tooltip = `${message}\n\nClick to show this message.`;
+    statusBarItem.show();
+
+    if (!searchDepthWarningNotified) {
+        searchDepthWarningNotified = true;
+        vscode.window.showWarningMessage(
+            `${message} (Next ones are shown in the status bar, for the last tested locator.)`
+        );
+    }
+}
+
 // showInspectorUI - registered function for opening the Inspector while calling VSCode commands
 export async function showInspectorUI(context: vscode.ExtensionContext, route?: IAppRoutes) {
     if (ROBOCORP_INSPECTOR_PANEL !== undefined) {
@@ -259,6 +338,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
 
     panel.onDidDispose(() => {
         OUTPUT_CHANNEL.appendLine(`> Killing all Inspectors...`);
+        hideSearchDepthWarning();
         sendRequest("killInspectors", { inspector: null });
         ROBOCORP_INSPECTOR_PANEL = undefined;
     });
@@ -398,10 +478,15 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                             OUTPUT_CHANNEL.appendLine(
                                 `[Windows] > Requesting: Collect App Tree: ${JSON.stringify(command)}`
                             );
+                            const searchDepth = command["depth"] || 8;
                             const actionResult: ActionResult<any> = await sendRequest("windowsInspectorCollectTree", {
                                 locator: command["locator"],
-                                search_depth: command["depth"] || 8,
+                                search_depth: searchDepth,
                                 search_strategy: command["strategy"] || "all",
+                                // "Test Locator" counts the matches with this request: search deeper
+                                // as when highlighting. Not done when expanding the tree (depth 1),
+                                // where no matches just means that the element has no children.
+                                fallback_search_depth: searchDepth > 1 ? WINDOWS_FALLBACK_SEARCH_DEPTH : undefined,
                             });
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "winAppTree")
@@ -426,8 +511,11 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                     locator: command["locator"],
                                     search_depth: command["depth"] || 8,
                                     search_strategy: command["strategy"] || "all",
+                                    // i.e.: elements inside Electron apps may be ~20 levels deep.
+                                    fallback_search_depth: WINDOWS_FALLBACK_SEARCH_DEPTH,
                                 }
                             );
+                            updateSearchDepthWarning(context, command["locator"], actionResult.result);
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "locator")
                             );
@@ -440,6 +528,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "locator")
                             );
                         } else if (command["type"] === "killMe") {
+                            hideSearchDepthWarning();
                             await sendRequest("killInspectors", { inspector: LocatorType.Windows });
                         }
                     } else if (message.app === IApps.IMAGE_INSPECTOR) {
