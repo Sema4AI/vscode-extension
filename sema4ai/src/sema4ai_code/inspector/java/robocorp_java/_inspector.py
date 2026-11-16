@@ -64,7 +64,12 @@ class ElementInspector:
 
         try:
             if not self._jab_wrapper:
-                self._jab_wrapper = self.event_pump_thread.get_wrapper()
+                from ._event_pump import new_wrapper_sharing_dll
+
+                # The dll (and its thread) is shared, but not the selected Java VM.
+                self._jab_wrapper = new_wrapper_sharing_dll(
+                    self.event_pump_thread.get_wrapper()
+                )
                 self._jab_wrapper_started_at = time.monotonic()
             return self._jab_wrapper
         except Exception as e:

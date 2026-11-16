@@ -187,6 +187,32 @@ def get_shared_event_pump_thread() -> EventPumpThread:
         return _shared_event_pump_thread
 
 
+def new_wrapper_sharing_dll(
+    wrapper: JavaAccessBridgeWrapper,
+) -> JavaAccessBridgeWrapper:
+    """
+    Provides a new wrapper which shares the dll of the given one (and so, its
+    event pump thread: `Windows_run()` isn't called again), but with its own
+    state for the selected window / Java VM (`_hwnd`, `_vmID`, `context`).
+
+    Each `ElementInspector` needs its own: when the Java inspector is recreated
+    (i.e.: after a `killMe`) a picker of the previous one may still be running
+    and it must keep using the Java VM it was started for (and not the one
+    selected afterwards).
+    """
+    import copy
+    from ctypes import c_long
+
+    from JABWrapper.jab_types import JavaObject
+
+    ret = copy.copy(wrapper)
+    ret._context_callbacks = {}
+    ret._hwnd = None
+    ret._vmID = c_long()
+    ret.context = JavaObject()
+    return ret
+
+
 def reset_shared_event_pump_thread(event_pump_thread: EventPumpThread) -> None:
     """
     To be called only if the Java Access Bridge could not be loaded (so that
