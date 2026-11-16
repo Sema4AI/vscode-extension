@@ -17,6 +17,7 @@
 - "Open Playwright Recorder" now explains that `robocorp-browser` or `playwright` must be added to the Task Package's `conda.yaml` when the environment doesn't have `playwright` (it used to show a generic error with a traceback in the output)
 - Fix "Open Playwright Recorder" failing when the Chromium for the Task Package's `playwright` version isn't installed yet: the retry installed Google Chrome instead of the Chromium the recorder launches
 - Java Locator: fixed the "Java Locator: undefined" error notification shown every time the Java applications were listed (even when listing them worked)
+- Java Locator: fixed the inspector freezing when going back to the Java tab (i.e.: after switching to the Windows tab), which also made the other locators stop responding. The first list of Java applications could also miss an application.
 
 ## New in 2.21.0 (2026-11-10)
 
