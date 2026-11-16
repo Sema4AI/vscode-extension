@@ -31,7 +31,7 @@ python = ">=3.13,<3.14"
 msgspec = "^0.22"
 pyyaml = "^6"
 playwright = "<2"
-pillow = "^12.3.0"
+pillow = ">=12.3,<14.0"
 pywin32 = { version = "311", platform = "win32" }
 psutil = "^7.2"
 comtypes = "^1.4"
