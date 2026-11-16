@@ -1,5 +1,7 @@
 ## Unreleased
 
+## New in 3.0.0 (2026-11-16)
+
 - The Marketplace README now describes version 3: Task Packages that run on Robocorp and the Sema4.ai Task Engine
 - **Agent and Action Packages are no longer supported.** Version 3 of the extension is for Task Packages (`robot.yaml`) only. To keep working with Agent and Action Packages (legacy agent platform), install version 2.x: see [Installing the Sema4.ai SDK (legacy agent platform)](https://sema4.ai/docs/build-agents/develop-actions/install-development-tools#sema4ai-vs-code-extension).
   - Removed all Agent Package commands (create, import, export, publish to Sema4.ai Studio, runbook, agent configuration and version, MCP servers)
