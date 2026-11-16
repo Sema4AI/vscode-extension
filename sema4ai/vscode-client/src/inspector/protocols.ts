@@ -52,12 +52,25 @@ export type IWebInspectorCommands =
 export type IWindowsInspectorCommands =
     | { type: "getLocators" }
     | { type: "getAppWindows" }
-    | { type: "collectAppTree"; locator: string; depth?: number; strategy?: "all" | "siblings" }
+    // fallbackDepth: if nothing matches with `depth`, the locator is searched again up to this depth.
+    | {
+          type: "collectAppTree";
+          locator: string;
+          depth?: number;
+          strategy?: "all" | "siblings";
+          fallbackDepth?: number;
+      }
     | { type: "setSelectedApp"; handle: string }
     | { type: "validateLocatorSyntax"; locator: string }
     | { type: "startPicking" }
     | { type: "stopPicking" }
-    | { type: "startHighlighting"; locator: string; depth?: number; strategy?: "all" | "siblings" }
+    | {
+          type: "startHighlighting";
+          locator: string;
+          depth?: number;
+          strategy?: "all" | "siblings";
+          fallbackDepth?: number;
+      }
     | { type: "stopHighlighting" }
     | { type: "validate"; locator: Locator }
     | { type: "killMe" };
@@ -123,6 +136,12 @@ export type WindowsAppTree = WindowsAppElement[];
 export type WindowsAppTreeResponse = {
     matched_paths: string[];
     hierarchy: WindowsAppTree;
+    // Only in the result of `startHighlighting`:
+    // The depth the matches were searched with (`fallbackDepth` if nothing matched with `depth`).
+    search_depth?: number;
+    // The `search_depth` a robot needs to find the locator, if it wouldn't find any of the
+    // matches with the default search depth of `robocorp-windows` (8), otherwise null.
+    robot_search_depth?: number | null;
 };
 
 // == IMAGE
