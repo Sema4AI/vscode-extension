@@ -44,16 +44,12 @@ Supported operating systems: Windows (x64), Linux (x64) or macOS on Apple Silico
 
 During the first activation, the extension will download additional dependencies that are required for it to run.
 
-### Developing
+### Release notes
 
-See: [Developing](https://github.com/Sema4AI/vscode-extension/blob/master/docs/develop.md) for details on how to develop the `Sema4.ai` -extension.
-
-### Changelog
-
-See: [Changelog](https://github.com/Sema4AI/vscode-extension/blob/master/docs/changelog.md) for the changes in each version of the `Sema4.ai` -extension.
+See the [release notes](https://sema4.ai/docs/automation/release-notes/product/vs-code-extension) for the changes in each version of the `Sema4.ai` -extension.
 
 ### Reporting Issues
 
-Issues may be reported in the [GitHub Issues](https://github.com/Sema4AI/vscode-extension/issues/new/choose).
+To report an issue, open the command palette and run `Sema4.ai: Submit issue to Sema4.ai`. It sends your description together with the extension's logs.
 
 ## License: Apache 2.0
