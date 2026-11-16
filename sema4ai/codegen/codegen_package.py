@@ -40,10 +40,6 @@ def get_json_contents():
             "url": "https://sema4.ai",
         },
         "homepage": "https://sema4.ai",
-        "repository": {
-            "type": "git",
-            "url": "https://github.com/Sema4AI/vscode-extension/.git",
-        },
         "license": "SEE LICENSE",
         "version": __version__,
         "icon": "images/icon.png",
@@ -58,8 +54,8 @@ def get_json_contents():
             "test": "node ./vscode-client/out/tests/runTests.js",
             "prettier": "npx prettier -c vscode-client/**/*.ts",
             "prettier-fix": "npx prettier -w vscode-client/**/*.ts",
-            "vsce:package": "vsce package",
-            "vsce:publish": "vsce publish",
+            "vsce:package": "vsce package --allow-missing-repository",
+            "vsce:publish": "vsce publish --allow-missing-repository",
         },
         "devDependencies": {
             "@types/mocha": "^2.2.32",
