@@ -70,9 +70,21 @@ function getSearchDepthStatusBarItem(context: vscode.ExtensionContext): vscode.S
     return searchDepthStatusBarItem;
 }
 
+// Incremented when the Windows inspector is left (panel closed or `killMe`), so
+// that the results of the highlights still running are ignored.
+let searchDepthWarningGeneration = 0;
+
 function hideSearchDepthWarning() {
     searchDepthWarningMessage = undefined;
     searchDepthStatusBarItem?.hide();
+}
+
+/**
+ * Hides the warning and ignores the results of the highlights still running.
+ */
+function invalidateSearchDepthWarning() {
+    searchDepthWarningGeneration++;
+    hideSearchDepthWarning();
 }
 
 /**
@@ -80,13 +92,19 @@ function hideSearchDepthWarning() {
  * if a robot wouldn't find any of the matches of a Windows locator with the
  * default search depth of `robocorp-windows` (otherwise the warning is hidden).
  *
+ * @param generation The `searchDepthWarningGeneration` when the highlight was requested
+ *  (if it changed, the Windows inspector was left meanwhile and the result is ignored).
  * @param highlightResult The `result` of the inspector's `windowsStartHighlight`.
  */
 function updateSearchDepthWarning(
     context: vscode.ExtensionContext,
+    generation: number,
     locator: string,
     highlightResult: ActionResult<any> | undefined
 ) {
+    if (generation !== searchDepthWarningGeneration) {
+        return;
+    }
     const result = highlightResult?.result;
     const robotSearchDepth: number | null | undefined = result?.robot_search_depth;
     if (!robotSearchDepth || !result.matched_paths?.length) {
@@ -338,7 +356,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
 
     panel.onDidDispose(() => {
         OUTPUT_CHANNEL.appendLine(`> Killing all Inspectors...`);
-        hideSearchDepthWarning();
+        invalidateSearchDepthWarning();
         sendRequest("killInspectors", { inspector: null });
         ROBOCORP_INSPECTOR_PANEL = undefined;
     });
@@ -505,6 +523,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                             OUTPUT_CHANNEL.appendLine(
                                 `[Windows] > Requesting: Start Highlighting: ${JSON.stringify(command)}`
                             );
+                            const generation = searchDepthWarningGeneration;
                             const actionResult: ActionResult<any> = await sendRequest(
                                 "windowsInspectorStartHighlight",
                                 {
@@ -515,7 +534,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                     fallback_search_depth: WINDOWS_FALLBACK_SEARCH_DEPTH,
                                 }
                             );
-                            updateSearchDepthWarning(context, command["locator"], actionResult.result);
+                            updateSearchDepthWarning(context, generation, command["locator"], actionResult.result);
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "locator")
                             );
@@ -528,7 +547,7 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "locator")
                             );
                         } else if (command["type"] === "killMe") {
-                            hideSearchDepthWarning();
+                            invalidateSearchDepthWarning();
                             await sendRequest("killInspectors", { inspector: LocatorType.Windows });
                         }
                     } else if (message.app === IApps.IMAGE_INSPECTOR) {
