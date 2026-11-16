@@ -402,6 +402,9 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                 locator: command["locator"],
                                 search_depth: command["depth"] || 8,
                                 search_strategy: command["strategy"] || "all",
+                                // Searched again up to this depth if nothing matches (sent by the
+                                // Locator UI when testing a locator, not when expanding the tree).
+                                fallback_search_depth: command["fallbackDepth"],
                             });
                             panel.webview.postMessage(
                                 buildProtocolResponseFromActionResponse(message, actionResult.result, "winAppTree")
@@ -426,6 +429,9 @@ export async function showInspectorUI(context: vscode.ExtensionContext, route?: 
                                     locator: command["locator"],
                                     search_depth: command["depth"] || 8,
                                     search_strategy: command["strategy"] || "all",
+                                    // Searched again up to this depth if nothing matches (i.e.:
+                                    // elements inside Electron apps may be ~20 levels deep).
+                                    fallback_search_depth: command["fallbackDepth"],
                                 }
                             );
                             panel.webview.postMessage(

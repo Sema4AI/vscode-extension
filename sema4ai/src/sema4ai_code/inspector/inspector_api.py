@@ -448,11 +448,13 @@ class _WindowsStartHighlight(_WindowsBaseCommand):
         locator,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ):
         super().__init__()
         self.locator = locator
         self.search_depth = search_depth
         self.search_strategy = search_strategy
+        self.fallback_search_depth = fallback_search_depth
 
     def __call__(
         self, windows_inspector_thread: _WindowsInspectorThread
@@ -463,6 +465,7 @@ class _WindowsStartHighlight(_WindowsBaseCommand):
             locator=self.locator,
             search_depth=self.search_depth,
             search_strategy=self.search_strategy,
+            fallback_search_depth=self.fallback_search_depth,
         )
         return {"success": True, "message": None, "result": result}
 
@@ -473,11 +476,13 @@ class _WindowsCollectTree(_WindowsBaseCommand):
         locator,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ):
         super().__init__()
         self.locator = locator
         self.search_depth = search_depth
         self.search_strategy = search_strategy
+        self.fallback_search_depth = fallback_search_depth
 
     def __call__(
         self, windows_inspector_thread: _WindowsInspectorThread
@@ -488,6 +493,7 @@ class _WindowsCollectTree(_WindowsBaseCommand):
             locator=self.locator,
             search_depth=self.search_depth,
             search_strategy=self.search_strategy,
+            fallback_search_depth=self.fallback_search_depth,
         )
         return {"success": True, "message": None, "result": result}
 
@@ -1098,9 +1104,12 @@ class InspectorApi(PythonLanguageServer):
         locator,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ) -> ActionResultDict:
         return self._enqueue_windows(
-            _WindowsStartHighlight(locator, search_depth, search_strategy)
+            _WindowsStartHighlight(
+                locator, search_depth, search_strategy, fallback_search_depth
+            )
         )
 
     def m_windows_collect_tree(
@@ -1108,9 +1117,12 @@ class InspectorApi(PythonLanguageServer):
         locator,
         search_depth: int = 8,
         search_strategy: Literal["siblings", "all"] = "all",
+        fallback_search_depth: int | None = None,
     ) -> ActionResultDict:
         return self._enqueue_windows(
-            _WindowsCollectTree(locator, search_depth, search_strategy)
+            _WindowsCollectTree(
+                locator, search_depth, search_strategy, fallback_search_depth
+            )
         )
 
     def m_windows_list_windows(
