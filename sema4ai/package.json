@@ -157,6 +157,7 @@
         "onCommand:sema4ai.profileSwitch",
         "onCommand:sema4ai.profileSwitch.internal",
         "onCommand:sema4ai.profileList.internal",
+        "onCommand:sema4ai.profileDownload.internal",
         "onCommand:sema4ai.hasPreRunScripts.internal",
         "onCommand:sema4ai.runPreRunScripts.internal",
         "onCommand:sema4ai.getPyPiBaseUrls.internal",
@@ -747,6 +748,11 @@
                 "category": "Sema4.ai"
             },
             {
+                "command": "sema4ai.profileDownload.internal",
+                "title": "Download the rcc profile a Control Room publishes",
+                "category": "Sema4.ai"
+            },
+            {
                 "command": "sema4ai.hasPreRunScripts.internal",
                 "title": "Has Pre Run Scripts",
                 "category": "Sema4.ai"
@@ -1157,6 +1163,10 @@
                 },
                 {
                     "command": "sema4ai.profileList.internal",
+                    "when": "false"
+                },
+                {
+                    "command": "sema4ai.profileDownload.internal",
                     "when": "false"
                 },
                 {

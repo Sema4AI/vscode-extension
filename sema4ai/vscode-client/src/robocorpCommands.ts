@@ -90,6 +90,7 @@ export const SEMA4AI_PROFILE_IMPORT_INTERNAL = "sema4ai.profileImport.internal";
 export const SEMA4AI_PROFILE_SWITCH = "sema4ai.profileSwitch";  // Switch Profile
 export const SEMA4AI_PROFILE_SWITCH_INTERNAL = "sema4ai.profileSwitch.internal";  // Switch Profile
 export const SEMA4AI_PROFILE_LIST_INTERNAL = "sema4ai.profileList.internal";  // List Profiles
+export const SEMA4AI_PROFILE_DOWNLOAD_INTERNAL = "sema4ai.profileDownload.internal";  // Download the rcc profile a Control Room publishes
 export const SEMA4AI_HAS_PRE_RUN_SCRIPTS_INTERNAL = "sema4ai.hasPreRunScripts.internal";  // Has Pre Run Scripts
 export const SEMA4AI_RUN_PRE_RUN_SCRIPTS_INTERNAL = "sema4ai.runPreRunScripts.internal";  // Run Pre Run Scripts
 export const SEMA4AI_GET_PY_PI_BASE_URLS_INTERNAL = "sema4ai.getPyPiBaseUrls.internal";  // Get PyPi base urls

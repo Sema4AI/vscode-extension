@@ -24,7 +24,8 @@ import {
     showSelectOneStrQuickPick,
     askForWs,
 } from "./ask";
-import { feedback, feedbackRobocorpCodeError, getEndpointUrl } from "./rcc";
+import { feedback, feedbackRobocorpCodeError } from "./rcc";
+import { ControlRoomLinkFlow, getProfileToSwitchBackOnUnlink, switchBackToRccDefaults } from "./controlRoom";
 import { refreshCloudTreeView } from "./viewsRobocorp";
 import { isRobotFrameworkTask } from "./viewsCommon";
 import {
@@ -50,6 +51,7 @@ import {
 } from "./common";
 
 export async function cloudLogin(): Promise<boolean> {
+    const linkFlow = new ControlRoomLinkFlow();
     let loggedIn: boolean;
     do {
         let credentials: string = await window.showInputBox({
@@ -59,10 +61,16 @@ export async function cloudLogin(): Promise<boolean> {
             "ignoreFocusOut": true,
         });
         if (credentials == undefined) {
+            await linkFlow.cancel();
             return false;
         }
         if (!credentials) {
-            const cloudBaseUrl = await getEndpointUrl("cloud-ui");
+            // Asks which Control Room to link to (if no rcc profile is active yet).
+            const cloudBaseUrl = await linkFlow.chooseControlRoomUi();
+            if (cloudBaseUrl === undefined) {
+                await linkFlow.cancel();
+                return false;
+            }
             env.openExternal(Uri.parse(cloudBaseUrl + "settings/access-credentials"));
             continue;
         }
@@ -85,6 +93,7 @@ export async function cloudLogin(): Promise<boolean> {
                 retry
             );
             if (!selectedItem) {
+                await linkFlow.cancel();
                 return false;
             }
         }
@@ -120,10 +129,17 @@ export async function cloudLogout(): Promise<void> {
         refreshCloudTreeView();
         return;
     }
+    // If linking activated an rcc profile, unlinking switches back to rcc's defaults.
+    const profileToSwitchBack = await getProfileToSwitchBackOnUnlink();
     let YES = "Unlink";
     const result = await window.showWarningMessage(
         `Are you sure you want to unlink and remove credentials from Control Room?`,
-        { "modal": true },
+        {
+            "modal": true,
+            "detail": profileToSwitchBack
+                ? `This also switches rcc on this computer from the "${profileToSwitchBack}" profile back to its defaults (Robocorp Control Room).`
+                : undefined,
+        },
         YES
     );
     if (result !== YES) {
@@ -137,6 +153,9 @@ export async function cloudLogout(): Promise<void> {
     if (!loggedOut.success) {
         window.showInformationMessage("Unable to unlink and remove Control Room credentials.");
         return;
+    }
+    if (profileToSwitchBack) {
+        await switchBackToRccDefaults(profileToSwitchBack);
     }
     window.showInformationMessage("Control Room credentials successfully unlinked and removed.");
 }

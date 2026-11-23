@@ -1,4 +1,5 @@
 import json
+import re
 from collections.abc import Sequence
 
 from sema4ai_ls_core.command_dispatcher import _SubCommandDispatcher
@@ -8,6 +9,7 @@ from sema4ai_ls_core.core_log import get_logger
 from sema4ai_code import commands
 from sema4ai_code.protocols import (
     IRcc,
+    ProfileDownloadParamsDict,
     ProfileImportParamsDict,
     ProfileListResultTypedDict,
     ProfileSwitchParamsDict,
@@ -15,6 +17,123 @@ from sema4ai_code.protocols import (
 
 log = get_logger(__name__)
 profile_command_dispatcher = _SubCommandDispatcher("_profile")
+
+# Where a Control Room (Robocorp or Sema4.ai) publishes the rcc profile that points
+# rcc at it.
+RCC_PROFILE_WELL_KNOWN_PATH = "/.well-known/rcc-profile.yaml"
+
+# rcc takes the profile name on its command line and we use it as a file name.
+_PROFILE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+class ProfileDownloadError(Exception):
+    pass
+
+
+def normalize_control_room_origin(url: str) -> str:
+    """
+    Returns the origin (scheme://host[:port]) of the Control Room at `url`.
+
+    `url` may be just a host ("us3.sema4.ai"), in which case https is used.
+    """
+    from urllib.parse import urlsplit
+
+    url = url.strip()
+    if not url:
+        raise ProfileDownloadError("No Control Room address given.")
+    if "://" not in url:
+        url = "https://" + url
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        raise ProfileDownloadError(
+            f"Not a valid Control Room address: {url!r}. Use an address such as https://us3.sema4.ai"
+        )
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+def parse_rcc_profile(contents: str, source: str) -> tuple[str, str, str]:
+    """
+    Checks that `contents` is an rcc profile and returns (name, description, cloud_ui).
+    """
+    from sema4ai_ls_core import yaml_wrapper
+
+    try:
+        profile = yaml_wrapper.load(contents)
+    except Exception as e:
+        raise ProfileDownloadError(f"{source} is not valid YAML: {e}")
+
+    if not isinstance(profile, dict):
+        raise ProfileDownloadError(f"{source} is not an rcc profile.")
+
+    name = profile.get("name")
+    if not isinstance(name, str) or not _PROFILE_NAME_RE.match(name):
+        raise ProfileDownloadError(
+            f"{source} has no valid profile name (found: {name!r})."
+        )
+
+    description = profile.get("description")
+    if not isinstance(description, str) or not description.strip():
+        description = name
+
+    settings = profile.get("settings")
+    endpoints = settings.get("endpoints") if isinstance(settings, dict) else None
+    if not isinstance(endpoints, dict):
+        raise ProfileDownloadError(f"{source} has no Control Room endpoints.")
+
+    for key in ("cloud-api", "cloud-ui"):
+        value = endpoints.get(key)
+        if not isinstance(value, str) or not value.startswith(("https://", "http://")):
+            raise ProfileDownloadError(
+                f"{source} has no valid '{key}' endpoint (found: {value!r})."
+            )
+
+    cloud_ui: str = endpoints["cloud-ui"]
+    if not cloud_ui.endswith("/"):
+        cloud_ui += "/"
+    return name, description.strip(), cloud_ui
+
+
+def download_rcc_profile(origin: str, target_dir: str) -> dict:
+    """
+    Downloads the rcc profile published by the Control Room at `origin` and
+    saves it in `target_dir`.
+
+    Returns a ProfileDownloadResultTypedDict.
+    """
+    import os
+
+    import sema4ai_http
+
+    from sema4ai_ls_core import uris
+
+    origin = normalize_control_room_origin(origin)
+    url = origin + RCC_PROFILE_WELL_KNOWN_PATH
+    try:
+        response = sema4ai_http.get(url, timeout=30)
+    except Exception as e:
+        log.exception(f"Error downloading the rcc profile from {url}")
+        raise ProfileDownloadError(f"Unable to reach {origin}: {e}")
+
+    if response.status != 200:
+        raise ProfileDownloadError(
+            f"{origin} does not publish an rcc profile "
+            f"({url} returned HTTP {response.status}). Check the address."
+        )
+
+    contents = response.text
+    name, description, cloud_ui = parse_rcc_profile(contents, url)
+
+    os.makedirs(target_dir, exist_ok=True)
+    file_path = os.path.join(target_dir, f"{name}.yaml")
+    with open(file_path, "w", encoding="utf-8") as stream:
+        stream.write(contents)
+
+    return {
+        "profileUri": uris.from_fs_path(file_path),
+        "name": name,
+        "description": description,
+        "cloudUi": cloud_ui,
+    }
 
 
 class _Profile:
@@ -100,6 +219,33 @@ class _Profile:
                 result = True
         finally:
             self._last_rcc_settings = None
+        return {"success": True, "message": None, "result": result}
+
+    @profile_command_dispatcher(commands.SEMA4AI_PROFILE_DOWNLOAD_INTERNAL)
+    def _profile_download(self, params: ProfileDownloadParamsDict) -> ActionResultDict:
+        import os
+        import tempfile
+
+        from sema4ai_ls_core.progress_report import progress_context
+
+        self._feedback.metric("vscode.profile.download")
+
+        origin = params.get("origin", "") if isinstance(params, dict) else ""
+        try:
+            with progress_context(
+                self._endpoint, "Download Control Room profile", None
+            ):
+                target_dir = os.path.join(tempfile.gettempdir(), "sema4ai-rcc-profiles")
+                result = download_rcc_profile(origin, target_dir)
+        except ProfileDownloadError as e:
+            return {"success": False, "message": str(e), "result": None}
+        except Exception as e:
+            log.exception(f"Error downloading the rcc profile from: {origin}")
+            return {
+                "success": False,
+                "message": f"Error downloading the rcc profile from {origin}: {e}",
+                "result": None,
+            }
         return {"success": True, "message": None, "result": result}
 
     @profile_command_dispatcher(commands.SEMA4AI_PROFILE_LIST_INTERNAL)

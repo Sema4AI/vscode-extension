@@ -665,6 +665,13 @@ COMMANDS = [
         hide_from_command_palette=True,
     ),
     Command(
+        "sema4ai.profileDownload.internal",
+        "Download the rcc profile a Control Room publishes",
+        add_to_package_json=True,
+        server_handled=True,
+        hide_from_command_palette=True,
+    ),
+    Command(
         "sema4ai.hasPreRunScripts.internal",
         "Has Pre Run Scripts",
         add_to_package_json=True,

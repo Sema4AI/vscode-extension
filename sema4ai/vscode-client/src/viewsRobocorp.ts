@@ -8,6 +8,7 @@ import { TREE_VIEW_SEMA4AI_CLOUD_TREE } from "./robocorpViews";
 import { getWorkspaceDescription } from "./ask";
 import { logError } from "./channel";
 import { ActionResult, IAccountInfo, IVaultInfo } from "./protocols";
+import { getLinkedControlRoomLabel } from "./controlRoom";
 
 export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry> {
     private _onDidChangeTreeData: vscode.EventEmitter<CloudEntry | null> = new vscode.EventEmitter<CloudEntry | null>();
@@ -39,8 +40,18 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
             });
         } else {
             const accountInfo: IAccountInfo = accountInfoResult.result;
+            const profileListResult = await profileListResultPromise;
+            const controlRoomLabel = getLinkedControlRoomLabel(
+                profileListResult?.success ? profileListResult.result : undefined
+            );
             ret.push({
-                "label": "Linked: " + accountInfo.fullname + " (" + accountInfo.email + ")",
+                "label":
+                    "Linked: " +
+                    accountInfo.fullname +
+                    " (" +
+                    accountInfo.email +
+                    ")" +
+                    (controlRoomLabel ? " · " + controlRoomLabel : ""),
                 "iconPath": "link",
                 "viewItemContextValue": "cloudLogoutItem",
             });

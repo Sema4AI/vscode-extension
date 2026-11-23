@@ -162,6 +162,19 @@ class ProfileSwitchParamsDict(TypedDict):
     profileName: str
 
 
+class ProfileDownloadParamsDict(TypedDict):
+    # The Control Room's origin, as https://us3.sema4.ai
+    origin: str
+
+
+class ProfileDownloadResultTypedDict(TypedDict):
+    # The downloaded profile, ready for sema4ai.profileImport.internal
+    profileUri: str
+    name: str
+    description: str
+    cloudUi: str
+
+
 class ProfileListResultTypedDict(TypedDict):
     current: str
     profiles: dict  # name to description
