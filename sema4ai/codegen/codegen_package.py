@@ -62,7 +62,7 @@ def get_json_contents():
             "@types/node": "~22.15.35",
             "@types/rimraf": "^3.0.2",
             "@types/vscode": "1.101.0",
-            "@vscode/vsce": "^4.0.0",
+            "@vscode/vsce": "^4.1.1",
             "prettier": "2.4.1",
             "typescript": "^5.9.3",
         },
@@ -73,6 +73,12 @@ def get_json_contents():
             "rimraf": "^3.0.2",
             "vscode-languageclient": "^7.0.0",
             "vscode-nls": "^4.1.2",
+        },
+        # @vscode/vsce still requires minimatch ^10, which has no fix for CVE-2026-118764.
+        "overrides": {
+            "@vscode/vsce": {
+                "minimatch": "^11.0.1",
+            },
         },
         "main": "./vscode-client/out/extension",
         "prettier": {
