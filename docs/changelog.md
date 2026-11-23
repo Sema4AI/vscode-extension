@@ -1,5 +1,7 @@
 ## Unreleased
 
+- CVE updates: `pillow` updated to 13.0.0; npm build dependencies updated (`@vscode/vsce` 4.1.1, `minimatch` 11.0.9, `qs` 6.17.1, `@azure/msal-node` 7.2.3)
+
 ## New in 3.0.0 (2026-11-16)
 
 - The Marketplace README now describes version 3: Task Packages that run on Robocorp and the Sema4.ai Task Engine
