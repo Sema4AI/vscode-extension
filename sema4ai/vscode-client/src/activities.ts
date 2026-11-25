@@ -52,12 +52,24 @@ import {
 
 export async function cloudLogin(): Promise<boolean> {
     const linkFlow = new ControlRoomLinkFlow();
+
+    // Asks which Control Room to link to (if no rcc profile is active yet).
+    const cloudBaseUrl = await linkFlow.chooseControlRoomUi();
+    if (cloudBaseUrl === undefined) {
+        await linkFlow.cancel();
+        return false;
+    }
+    const credentialsPageUri = Uri.parse(cloudBaseUrl + "settings/access-credentials");
+    env.openExternal(credentialsPageUri);
+
     let loggedIn: boolean;
     do {
         let credentials: string = await window.showInputBox({
             "password": true,
+            "title": `Link to Control Room (${credentialsPageUri.authority})`,
             "prompt":
-                "1. Press the Enter key to open Control Room and create a new access credential. 2. Paste the access credential in the field above ",
+                "Create a new access credential in the Control Room page that opened and paste it in the field above. " +
+                "Press Enter on an empty field to open the page again.",
             "ignoreFocusOut": true,
         });
         if (credentials == undefined) {
@@ -65,13 +77,7 @@ export async function cloudLogin(): Promise<boolean> {
             return false;
         }
         if (!credentials) {
-            // Asks which Control Room to link to (if no rcc profile is active yet).
-            const cloudBaseUrl = await linkFlow.chooseControlRoomUi();
-            if (cloudBaseUrl === undefined) {
-                await linkFlow.cancel();
-                return false;
-            }
-            env.openExternal(Uri.parse(cloudBaseUrl + "settings/access-credentials"));
+            env.openExternal(credentialsPageUri);
             continue;
         }
         let commandResult: ActionResult<any> = await commands.executeCommand(
