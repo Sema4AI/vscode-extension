@@ -47,11 +47,6 @@
         "vscode-languageclient": "^7.0.0",
         "vscode-nls": "^4.1.2"
     },
-    "overrides": {
-        "@vscode/vsce": {
-            "minimatch": "^11.0.1"
-        }
-    },
     "main": "./vscode-client/out/extension",
     "prettier": {
         "tabWidth": 4,

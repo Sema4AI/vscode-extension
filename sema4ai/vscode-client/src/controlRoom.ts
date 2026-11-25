@@ -49,9 +49,6 @@ interface IProfileList {
 
 interface IProfileDownloadResult {
     profileUri: string;
-    name: string;
-    description: string;
-    cloudUi: string;
 }
 
 interface IControlRoomPickItem extends QuickPickItem {
@@ -180,19 +177,22 @@ export class ControlRoomLinkFlow {
             }
 
             let origin: string;
+            let label: string;
             if (selected.controlRoom) {
                 if (selected.controlRoom.usesRccDefaults) {
                     return await getEndpointUrl("cloud-ui");
                 }
                 origin = selected.controlRoom.origin;
+                label = selected.controlRoom.label;
             } else {
                 origin = await askForOtherControlRoomOrigin();
                 if (origin === undefined) {
                     continue; // Back to the list.
                 }
+                label = Uri.parse(origin).authority;
             }
 
-            const result = await this.activateControlRoomProfile(origin);
+            const result = await this.activateControlRoomProfile(origin, label);
             if (result === "cancelled") {
                 return undefined;
             }
@@ -208,31 +208,24 @@ export class ControlRoomLinkFlow {
      *
      * Returns the Control Room UI URL, "cancelled" or "failed".
      */
-    private async activateControlRoomProfile(origin: string): Promise<string | "cancelled" | "failed"> {
-        const downloadResult: ActionResult<IProfileDownloadResult> = await commands.executeCommand(
-            SEMA4AI_PROFILE_DOWNLOAD_INTERNAL,
-            { "origin": origin }
-        );
-        if (!downloadResult?.success || !downloadResult.result) {
-            await window.showErrorMessage(
-                downloadResult?.message || `Unable to get the rcc profile of the Control Room at ${origin}.`
-            );
-            return "failed";
-        }
-        const profile = downloadResult.result;
-        const host = Uri.parse(profile.cloudUi).authority;
+    private async activateControlRoomProfile(origin: string, label: string): Promise<string | "cancelled" | "failed"> {
+        const host = Uri.parse(origin).authority;
 
         // Activating an rcc profile affects every tool that uses rcc, not just this extension.
         const ACTIVATE = "Activate profile and continue";
         const answer = await window.showWarningMessage(
-            `Link to ${profile.description}?`,
+            `Link to ${label}?`,
             {
                 "modal": true,
                 "detail":
-                    `To link to ${profile.description} (${host}), rcc's "${profile.name}" profile is imported and made the active profile.\n\n` +
+                    `To link to ${label}, the rcc profile published by ${host} is imported and made the active rcc profile.
+
+` +
                     `The active rcc profile is shared by every tool on this computer that uses rcc (such as other editors, ` +
-                    `Assistants and the rcc command line). They will all use ${profile.description} for Control Room, ` +
-                    `not only this extension.\n\n` +
+                    `Assistants and the rcc command line). They will all use ${label} for Control Room, ` +
+                    `not only this extension.
+
+` +
                     `To go back, unlink from Control Room or run "Sema4.ai: Switch Profile".`,
             },
             ACTIVATE
@@ -241,27 +234,39 @@ export class ControlRoomLinkFlow {
             return "cancelled";
         }
 
-        const importResult: ActionResult<any> = await commands.executeCommand(SEMA4AI_PROFILE_IMPORT_INTERNAL, {
-            "profileUri": profile.profileUri,
-        });
-        if (!importResult?.success) {
-            await window.showErrorMessage(importResult?.message || `Unable to import the "${profile.name}" profile.`);
+        const downloadResult: ActionResult<IProfileDownloadResult> = await commands.executeCommand(
+            SEMA4AI_PROFILE_DOWNLOAD_INTERNAL,
+            { "origin": origin }
+        );
+        if (!downloadResult?.success || !downloadResult.result) {
+            await window.showErrorMessage(downloadResult?.message || `Unable to get the rcc profile from ${host}.`);
             return "failed";
         }
+
+        // rcc validates the profile when importing it.
+        const importResult: ActionResult<{ name: string; description: string }> = await commands.executeCommand(
+            SEMA4AI_PROFILE_IMPORT_INTERNAL,
+            { "profileUri": downloadResult.result.profileUri }
+        );
+        if (!importResult?.success || !importResult.result?.name) {
+            await window.showErrorMessage(importResult?.message || `Unable to import the rcc profile from ${host}.`);
+            return "failed";
+        }
+        const profileName = importResult.result.name;
 
         const switchResult: ActionResult<any> = await commands.executeCommand(SEMA4AI_PROFILE_SWITCH_INTERNAL, {
-            "profileName": profile.name,
+            "profileName": profileName,
         });
         if (!switchResult?.success) {
-            await window.showErrorMessage(
-                switchResult?.message || `Unable to switch to the "${profile.name}" profile.`
-            );
+            await window.showErrorMessage(switchResult?.message || `Unable to switch to the "${profileName}" profile.`);
             return "failed";
         }
 
-        this.activatedProfile = profile.name;
-        await GLOBAL_STATE?.update(STATE_KEY_ACTIVATED_PROFILE, profile.name);
-        return profile.cloudUi;
+        this.activatedProfile = profileName;
+        await GLOBAL_STATE?.update(STATE_KEY_ACTIVATED_PROFILE, profileName);
+
+        // The active profile now points rcc at the chosen Control Room.
+        return await getEndpointUrl("cloud-ui");
     }
 
     /**

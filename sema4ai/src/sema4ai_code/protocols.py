@@ -170,9 +170,6 @@ class ProfileDownloadParamsDict(TypedDict):
 class ProfileDownloadResultTypedDict(TypedDict):
     # The downloaded profile, ready for sema4ai.profileImport.internal
     profileUri: str
-    name: str
-    description: str
-    cloudUi: str
 
 
 class ProfileListResultTypedDict(TypedDict):

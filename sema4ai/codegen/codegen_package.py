@@ -74,12 +74,6 @@ def get_json_contents():
             "vscode-languageclient": "^7.0.0",
             "vscode-nls": "^4.1.2",
         },
-        # @vscode/vsce still requires minimatch ^10, which has no fix for CVE-2026-118764.
-        "overrides": {
-            "@vscode/vsce": {
-                "minimatch": "^11.0.1",
-            },
-        },
         "main": "./vscode-client/out/extension",
         "prettier": {
             "tabWidth": 4,

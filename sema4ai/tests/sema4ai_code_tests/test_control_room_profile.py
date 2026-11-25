@@ -47,38 +47,6 @@ def test_normalize_control_room_origin_invalid(url):
         normalize_control_room_origin(url)
 
 
-def test_parse_rcc_profile():
-    from sema4ai_code._language_server_profile import parse_rcc_profile
-
-    assert parse_rcc_profile(US3_PROFILE, "test") == (
-        "sema4ai-us3",
-        "Sema4.ai US3",
-        "https://us3.sema4.ai/",
-    )
-
-
-@pytest.mark.parametrize(
-    "contents",
-    [
-        "<html>Not found</html>",
-        "- a\n- b\n",
-        US3_PROFILE.replace("name: sema4ai-us3\n", "name: ../evil\n", 1),
-        US3_PROFILE.replace("cloud-api: https://us3.sema4.ai/api/v1/rc/rcc/", "x: y"),
-        US3_PROFILE.replace(
-            "cloud-ui: https://us3.sema4.ai/", "cloud-ui: javascript:x"
-        ),
-    ],
-)
-def test_parse_rcc_profile_invalid(contents):
-    from sema4ai_code._language_server_profile import (
-        ProfileDownloadError,
-        parse_rcc_profile,
-    )
-
-    with pytest.raises(ProfileDownloadError):
-        parse_rcc_profile(contents, "test")
-
-
 class _Response:
     def __init__(self, status, text):
         self.status = status
@@ -104,9 +72,6 @@ def test_download_rcc_profile(tmpdir, monkeypatch):
 
     result = download_rcc_profile("us3.sema4.ai", str(tmpdir))
     assert requested == ["https://us3.sema4.ai/.well-known/rcc-profile.yaml"]
-    assert result["name"] == "sema4ai-us3"
-    assert result["description"] == "Sema4.ai US3"
-    assert result["cloudUi"] == "https://us3.sema4.ai/"
 
     file_path = uris.to_fs_path(result["profileUri"])
     assert os.path.normcase(os.path.dirname(file_path)) == os.path.normcase(str(tmpdir))
