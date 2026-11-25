@@ -55,6 +55,16 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
                 "iconPath": "link",
                 "viewItemContextValue": "cloudLogoutItem",
             });
+            ret.push({
+                "label": "Unlink from Control Room",
+                "iconPath": "debug-disconnect",
+                "viewItemContextValue": "cloudUnlinkItem",
+                "tooltip": "Unlink and remove the Control Room credentials from this computer.",
+                "command": {
+                    "title": "Unlink from Control Room",
+                    "command": roboCommands.SEMA4AI_CLOUD_LOGOUT,
+                },
+            });
 
             let vaultInfoResult: ActionResult<any> = await vscode.commands.executeCommand(
                 roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL
