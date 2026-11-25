@@ -25,7 +25,7 @@ import {
     askForWs,
 } from "./ask";
 import { feedback, feedbackRobocorpCodeError } from "./rcc";
-import { ControlRoomLinkFlow, getProfileToSwitchBackOnUnlink, switchBackToRccDefaults } from "./controlRoom";
+import { chooseControlRoomUi, getProfileToSwitchBackOnUnlink, switchBackToRccDefaults } from "./controlRoom";
 import { refreshCloudTreeView } from "./viewsRobocorp";
 import { isRobotFrameworkTask } from "./viewsCommon";
 import {
@@ -51,12 +51,9 @@ import {
 } from "./common";
 
 export async function cloudLogin(): Promise<boolean> {
-    const linkFlow = new ControlRoomLinkFlow();
-
     // Asks which Control Room to link to (if no rcc profile is active yet).
-    const cloudBaseUrl = await linkFlow.chooseControlRoomUi();
+    const cloudBaseUrl = await chooseControlRoomUi();
     if (cloudBaseUrl === undefined) {
-        await linkFlow.cancel();
         return false;
     }
     const credentialsPageUri = Uri.parse(cloudBaseUrl + "settings/access-credentials");
@@ -73,7 +70,6 @@ export async function cloudLogin(): Promise<boolean> {
             "ignoreFocusOut": true,
         });
         if (credentials == undefined) {
-            await linkFlow.cancel();
             return false;
         }
         if (!credentials) {
@@ -99,7 +95,6 @@ export async function cloudLogin(): Promise<boolean> {
                 retry
             );
             if (!selectedItem) {
-                await linkFlow.cancel();
                 return false;
             }
         }

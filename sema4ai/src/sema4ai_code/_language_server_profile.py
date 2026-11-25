@@ -169,7 +169,7 @@ class _Profile:
 
     @profile_command_dispatcher(commands.SEMA4AI_PROFILE_DOWNLOAD_INTERNAL)
     def _profile_download(self, params: ProfileDownloadParamsDict) -> ActionResultDict:
-        import os
+        import shutil
         import tempfile
 
         from sema4ai_ls_core.progress_report import progress_context
@@ -177,15 +177,18 @@ class _Profile:
         self._feedback.metric("vscode.profile.download")
 
         origin = params.get("origin", "") if isinstance(params, dict) else ""
+        # A directory per download (the client removes it after the import).
+        target_dir = tempfile.mkdtemp(prefix="sema4ai-rcc-profile-")
         try:
             with progress_context(
                 self._endpoint, "Download Control Room profile", None
             ):
-                target_dir = os.path.join(tempfile.gettempdir(), "sema4ai-rcc-profiles")
                 result = download_rcc_profile(origin, target_dir)
         except ProfileDownloadError as e:
+            shutil.rmtree(target_dir, ignore_errors=True)
             return {"success": False, "message": str(e), "result": None}
         except Exception as e:
+            shutil.rmtree(target_dir, ignore_errors=True)
             log.exception(f"Error downloading the rcc profile from: {origin}")
             return {
                 "success": False,

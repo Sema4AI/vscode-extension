@@ -1,6 +1,6 @@
 ## Unreleased
 
-- **Link to Control Room** now asks which Control Room to link to when no rcc profile is active: Sema4.ai (US3) (default), Robocorp Control Room, or another Control Room by its address. Linking to a Sema4.ai Control Room downloads its rcc profile and makes it the active rcc profile (after a confirmation, since every tool that uses rcc on the computer then uses that Control Room). Cancelling the link, or unlinking later, switches rcc back to its defaults. The Control Room view shows which Control Room you are linked to, and has an **Unlink from Control Room** item.
+- **Link to Control Room** now asks which Control Room to link to when no rcc profile is active: Sema4.ai (US3) (default), Robocorp Control Room, or another Control Room by its address. Linking to a Sema4.ai Control Room downloads its rcc profile and makes it the active rcc profile (after a confirmation, since every tool that uses rcc on the computer then uses that Control Room). Unlinking switches rcc back to its defaults. The Control Room view shows which Control Room you are linked to, and has an **Unlink from Control Room** item.
 
 - CVE updates: `pillow` updated to 13.0.0; npm build dependencies updated (`@vscode/vsce` 4.1.1, `qs` 6.17.1, `@azure/msal-node` 7.2.3)
 
