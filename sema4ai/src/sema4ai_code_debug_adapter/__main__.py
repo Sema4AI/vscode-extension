@@ -27,7 +27,7 @@ if __file__.endswith((".pyc", ".pyo")):
 
 
 _critical_error_log_file = os.path.join(
-    os.path.expanduser("~"), "robocorp_code_dap_critical.log"
+    os.path.expanduser("~"), "sema4ai_code_dap_critical.log"
 )
 
 

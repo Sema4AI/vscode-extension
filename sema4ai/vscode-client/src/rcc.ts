@@ -516,7 +516,7 @@ export async function submitIssue(
 
             const robocorpHome = await getRobocorpHome();
 
-            const reportPath: string = path.join(os.tmpdir(), `robocode_issue_report_${Date.now()}.json`);
+            const reportPath: string = path.join(os.tmpdir(), `sema4ai_issue_report_${Date.now()}.json`);
             fs.writeFileSync(reportPath, JSON.stringify(metadata, null, 4), { encoding: "utf-8" });
             let args: string[] = [
                 "feedback",
