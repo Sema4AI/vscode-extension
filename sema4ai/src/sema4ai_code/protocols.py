@@ -162,6 +162,21 @@ class ProfileSwitchParamsDict(TypedDict):
     profileName: str
 
 
+class ProfileDownloadParamsDict(TypedDict):
+    # The Control Room's origin, as https://us3.sema4.ai
+    origin: str
+
+
+class ProfileDownloadResultTypedDict(TypedDict):
+    # The downloaded profile, ready for sema4ai.profileImport.internal
+    profileUri: str
+    # What the profile points rcc at (shown before importing it; empty if not set).
+    cloudUi: str
+    cloudApi: str
+    # Other rcc settings the profile changes (besides endpoints).
+    otherSettings: list[str]
+
+
 class ProfileListResultTypedDict(TypedDict):
     current: str
     profiles: dict  # name to description

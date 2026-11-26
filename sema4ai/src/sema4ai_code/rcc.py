@@ -156,6 +156,9 @@ class Rcc:
         self._config_provider = weakref.ref(config_provider)
 
         self._last_verified_account_info: AccountInfo | None = None
+        # The active rcc profile last seen by profile_list(), to notice when it's
+        # switched (also outside of VS Code).
+        self._last_seen_profile: str | None = None
         self.rcc_listeners: list[IRccListener] = []
         self._feedback_metrics_reported: set[str] = set()
 
@@ -443,6 +446,8 @@ class Rcc:
 
     @implements(IRcc.profile_switch)
     def profile_switch(self, profile_name: str) -> ActionResult:
+        # The linked account depends on the profile's Control Room.
+        self._last_verified_account_info = None
         if profile_name == "<remove-current-back-to-defaults>":
             args = ["config", "switch", "-n"]
         else:
@@ -470,7 +475,20 @@ class Rcc:
             return ActionResult(False, ret.message, None)
         try:
             assert ret.result
-            return ActionResult(True, None, json.loads(ret.result))
+            profiles = json.loads(ret.result)
+            current = profiles.get("current")
+            if current != self._last_seen_profile:
+                if self._last_seen_profile is not None:
+                    # Switched since last time (maybe outside of VS Code): the cached
+                    # account belongs to the previous profile's Control Room.
+                    log.info(
+                        "Active rcc profile changed from %r to %r.",
+                        self._last_seen_profile,
+                        current,
+                    )
+                    self._last_verified_account_info = None
+                self._last_seen_profile = current
+            return ActionResult(True, None, profiles)
         except Exception as e:
             message = f"Error loading result as json. {e}"
             log.exception(message)
