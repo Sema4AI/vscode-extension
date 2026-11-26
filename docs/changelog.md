@@ -1,6 +1,10 @@
 ## Unreleased
 
+- **Link to Control Room** now asks which Control Room to link to when no rcc profile is active: Sema4.ai (US3) (default), Robocorp Control Room, or another Control Room by its address. Linking to a Sema4.ai Control Room downloads its rcc profile and makes it the active rcc profile, after a confirmation that shows what the profile points rcc at (every tool that uses rcc on the computer then uses that Control Room). Another Control Room must use https (http only for localhost). If the link isn't completed, you're asked whether to keep the profile. Unlinking switches rcc back to its defaults. The Control Room view shows which Control Room you are linked to, has an **Unlink from Control Room** item, and updates when the active rcc profile is switched outside of VS Code.
+- After linking to Control Room, the workspace for Vault and Storage is connected right away (the only workspace is picked automatically) instead of asking first whether to connect one.
 - Logs and log files no longer use the old "Robocorp Code" name: the output shows "Error initializing Sema4.ai language server." when the language server fails to start, crash logs are written to `~/sema4ai_code_critical.log` and `~/sema4ai_code_dap_critical.log` (was `robocorp_code_critical.log` and `robocorp_code_dap_critical.log`), and Submit Issue writes `sema4ai_issue_report_<timestamp>.json` in the temp folder. Crash logs from earlier versions stay under the old names.
+
+- CVE updates: `pillow` updated to 13.0.0; npm build dependencies updated (`@vscode/vsce` 4.1.1, `qs` 6.17.1, `@azure/msal-node` 7.2.3)
 
 ## New in 3.0.0 (2026-11-16)
 
