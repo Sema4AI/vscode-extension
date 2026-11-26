@@ -51,6 +51,11 @@ interface IProfileList {
 
 interface IProfileDownloadResult {
     profileUri: string;
+    // What the profile points rcc at (shown before importing it; empty if not set).
+    cloudUi: string;
+    cloudApi: string;
+    // Other rcc settings the profile changes (besides endpoints), as "certificates".
+    otherSettings: string[];
 }
 
 interface IControlRoomPickItem extends QuickPickItem {
@@ -102,6 +107,10 @@ async function shouldAskForControlRoom(): Promise<boolean> {
     return isNoProfile(profileList.current);
 }
 
+// http is only accepted for a Control Room running on this computer: the profile
+// becomes rcc's active profile for every tool, so it must not be swappable on the network.
+const LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]"];
+
 function normalizeOrigin(value: string): string | undefined {
     value = value.trim();
     if (!value) {
@@ -112,10 +121,13 @@ function normalizeOrigin(value: string): string | undefined {
     }
     try {
         const url = new URL(value);
-        if ((url.protocol !== "https:" && url.protocol !== "http:") || !url.hostname) {
+        if (!url.hostname) {
             return undefined;
         }
-        return url.origin;
+        if (url.protocol === "https:" || (url.protocol === "http:" && LOCAL_HOSTNAMES.includes(url.hostname))) {
+            return url.origin;
+        }
+        return undefined;
     } catch (err) {
         return undefined;
     }
@@ -131,7 +143,9 @@ async function askForOtherControlRoomOrigin(): Promise<string | undefined> {
             if (!text.trim()) {
                 return "Enter the Control Room address.";
             }
-            return normalizeOrigin(text) ? undefined : "Enter an address such as https://us3.sema4.ai";
+            return normalizeOrigin(text)
+                ? undefined
+                : "Enter an https address such as https://us3.sema4.ai (http only for localhost).";
         },
     });
     if (value === undefined) {
@@ -140,14 +154,20 @@ async function askForOtherControlRoomOrigin(): Promise<string | undefined> {
     return normalizeOrigin(value);
 }
 
+export interface IChosenControlRoom {
+    // The URL of the Control Room UI (as https://us3.sema4.ai/).
+    cloudUi: string;
+    // The rcc profile activated to link to it (undefined if the active profile didn't change).
+    activatedProfile?: string;
+}
+
 /**
- * Asks which Control Room to link to (when no rcc profile is active) and returns the
- * URL of its UI to create the credential in (as https://us3.sema4.ai/), or undefined
- * if the user cancelled.
+ * Asks which Control Room to link to (when no rcc profile is active) and returns it,
+ * or undefined if the user cancelled.
  */
-export async function chooseControlRoomUi(): Promise<string | undefined> {
+export async function chooseControlRoomUi(): Promise<IChosenControlRoom | undefined> {
     if (!(await shouldAskForControlRoom())) {
-        return await getEndpointUrl("cloud-ui");
+        return { "cloudUi": await getEndpointUrl("cloud-ui") };
     }
 
     while (true) {
@@ -175,7 +195,7 @@ export async function chooseControlRoomUi(): Promise<string | undefined> {
         let label: string;
         if (selected.controlRoom) {
             if (selected.controlRoom.usesRccDefaults) {
-                return await getEndpointUrl("cloud-ui");
+                return { "cloudUi": await getEndpointUrl("cloud-ui") };
             }
             origin = selected.controlRoom.origin;
             label = selected.controlRoom.label;
@@ -199,31 +219,14 @@ export async function chooseControlRoomUi(): Promise<string | undefined> {
 }
 
 /**
- * Asks the user to confirm, then downloads the Control Room's rcc profile and activates it.
- *
- * Returns the Control Room UI URL, "cancelled" or "failed".
+ * Downloads the Control Room's rcc profile, shows what it points rcc at and, if the
+ * user confirms, imports it and makes it the active profile.
  */
-async function activateControlRoomProfile(origin: string, label: string): Promise<string | "cancelled" | "failed"> {
+async function activateControlRoomProfile(
+    origin: string,
+    label: string
+): Promise<IChosenControlRoom | "cancelled" | "failed"> {
     const host = Uri.parse(origin).authority;
-
-    // Activating an rcc profile affects every tool that uses rcc, not just this extension.
-    const ACTIVATE = "Activate profile and continue";
-    const answer = await window.showWarningMessage(
-        `Link to ${label}?`,
-        {
-            "modal": true,
-            "detail":
-                `To link to ${label}, the rcc profile published by ${host} is imported and made the active rcc profile.\n\n` +
-                `The active rcc profile is shared by every tool on this computer that uses rcc (such as other editors, ` +
-                `Assistants and the rcc command line). They will all use ${label} for Control Room, ` +
-                `not only this extension.\n\n` +
-                `To go back, unlink from Control Room or run "Sema4.ai: Switch Profile".`,
-        },
-        ACTIVATE
-    );
-    if (answer !== ACTIVATE) {
-        return "cancelled";
-    }
 
     const downloadResult: ActionResult<IProfileDownloadResult> = await commands.executeCommand(
         SEMA4AI_PROFILE_DOWNLOAD_INTERNAL,
@@ -233,16 +236,44 @@ async function activateControlRoomProfile(origin: string, label: string): Promis
         await window.showErrorMessage(downloadResult?.message || `Unable to get the rcc profile from ${host}.`);
         return "failed";
     }
+    const profile = downloadResult.result;
+    // The download is only needed until the import.
+    const removeDownload = () =>
+        fs.rm(path.dirname(Uri.parse(profile.profileUri).fsPath), { "recursive": true, "force": true }, () => {});
+
+    // Activating an rcc profile affects every tool that uses rcc, not just this extension.
+    const notSet = "(not set in the profile)";
+    let pointsTo =
+        `• Control Room: ${profile.cloudUi || notSet}\n` + `• Control Room API: ${profile.cloudApi || notSet}\n`;
+    if (profile.otherSettings?.length) {
+        pointsTo += `• It also changes rcc's settings for: ${profile.otherSettings.join(", ")}\n`;
+    }
+    const ACTIVATE = "Activate profile and continue";
+    const answer = await window.showWarningMessage(
+        `Link to ${label}?`,
+        {
+            "modal": true,
+            "detail":
+                `To link to ${label}, the rcc profile published by ${host} is imported and made the active rcc profile:\n\n` +
+                pointsTo +
+                `\nThe active rcc profile is shared by every tool on this computer that uses rcc (such as other editors, ` +
+                `Assistants and the rcc command line). They will all use ${label} for Control Room, ` +
+                `not only this extension.\n\n` +
+                `To go back, unlink from Control Room or run "Sema4.ai: Switch Profile".`,
+        },
+        ACTIVATE
+    );
+    if (answer !== ACTIVATE) {
+        removeDownload();
+        return "cancelled";
+    }
 
     // rcc validates the profile when importing it.
-    const profileUri = downloadResult.result.profileUri;
     const importResult: ActionResult<{ name: string; description: string }> = await commands.executeCommand(
         SEMA4AI_PROFILE_IMPORT_INTERNAL,
-        { "profileUri": profileUri }
+        { "profileUri": profile.profileUri }
     );
-    // The download is only needed for the import.
-    fs.rm(path.dirname(Uri.parse(profileUri).fsPath), { "recursive": true, "force": true }, () => {});
-
+    removeDownload();
     if (!importResult?.success || !importResult.result?.name) {
         await window.showErrorMessage(importResult?.message || `Unable to import the rcc profile from ${host}.`);
         return "failed";
@@ -260,7 +291,31 @@ async function activateControlRoomProfile(origin: string, label: string): Promis
     await GLOBAL_STATE?.update(STATE_KEY_ACTIVATED_PROFILE, profileName);
 
     // The active profile now points rcc at the chosen Control Room.
-    return await getEndpointUrl("cloud-ui");
+    return { "cloudUi": await getEndpointUrl("cloud-ui"), "activatedProfile": profileName };
+}
+
+/**
+ * The link was not completed after activating `profileName` for it: ask whether to keep
+ * it (dismissing the question keeps it, nothing is switched without the user asking).
+ */
+export async function askToKeepProfileAfterCancelledLink(profileName: string): Promise<void> {
+    const KEEP = "Keep profile";
+    const SWITCH_BACK = "Switch back to rcc defaults";
+    const answer = await window.showInformationMessage(
+        `Keep the "${profileName}" rcc profile active?`,
+        {
+            "modal": true,
+            "detail":
+                `The link to Control Room wasn't completed, but the "${profileName}" profile activated for it is ` +
+                `still the active rcc profile for every tool on this computer that uses rcc.\n\n` +
+                `You can also switch later with "Sema4.ai: Switch Profile".`,
+        },
+        KEEP,
+        SWITCH_BACK
+    );
+    if (answer === SWITCH_BACK) {
+        await switchBackToRccDefaults(profileName);
+    }
 }
 
 export async function switchBackToRccDefaults(profileName: string): Promise<void> {

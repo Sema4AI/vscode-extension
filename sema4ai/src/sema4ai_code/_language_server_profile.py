@@ -21,6 +21,10 @@ profile_command_dispatcher = _SubCommandDispatcher("_profile")
 # rcc at it.
 RCC_PROFILE_WELL_KNOWN_PATH = "/.well-known/rcc-profile.yaml"
 
+# http is only accepted for a Control Room on this computer: the profile becomes rcc's
+# active profile for every tool, so it must not be swappable on the network.
+_LOCAL_HOSTNAMES = ("localhost", "127.0.0.1", "::1")
+
 
 class ProfileDownloadError(Exception):
     pass
@@ -40,11 +44,43 @@ def normalize_control_room_origin(url: str) -> str:
     if "://" not in url:
         url = "https://" + url
     parts = urlsplit(url)
-    if parts.scheme not in ("http", "https") or not parts.hostname:
+    if not parts.hostname or not (
+        parts.scheme == "https"
+        or (parts.scheme == "http" and parts.hostname in _LOCAL_HOSTNAMES)
+    ):
         raise ProfileDownloadError(
-            f"Not a valid Control Room address: {url!r}. Use an address such as https://us3.sema4.ai"
+            f"Not a valid Control Room address: {url!r}. Use an https address such as "
+            "https://us3.sema4.ai (http only for localhost)."
         )
     return f"{parts.scheme}://{parts.netloc}"
+
+
+def describe_rcc_profile(contents: str) -> dict:
+    """
+    What the profile points rcc at, to show the user before importing it.
+
+    Best effort: rcc validates the profile when it's imported, so this never fails
+    (missing values are empty).
+    """
+    from sema4ai_ls_core import yaml_wrapper
+
+    cloud_ui = cloud_api = ""
+    other_settings: list[str] = []
+    try:
+        settings = yaml_wrapper.load(contents).get("settings") or {}
+        endpoints = settings.get("endpoints") or {}
+        cloud_ui = str(endpoints.get("cloud-ui") or "")
+        cloud_api = str(endpoints.get("cloud-api") or "")
+        other_settings = [
+            str(key) for key in settings if key not in ("endpoints", "meta")
+        ]
+    except Exception:
+        log.exception("Unable to read the endpoints of the downloaded rcc profile.")
+    return {
+        "cloudUi": cloud_ui,
+        "cloudApi": cloud_api,
+        "otherSettings": other_settings,
+    }
 
 
 def download_rcc_profile(origin: str, target_dir: str) -> dict:
@@ -76,10 +112,14 @@ def download_rcc_profile(origin: str, target_dir: str) -> dict:
 
     os.makedirs(target_dir, exist_ok=True)
     file_path = os.path.join(target_dir, "rcc-profile.yaml")
+    contents = response.text
     with open(file_path, "w", encoding="utf-8") as stream:
-        stream.write(response.text)
+        stream.write(contents)
 
-    return {"profileUri": uris.from_fs_path(file_path)}
+    return {
+        "profileUri": uris.from_fs_path(file_path),
+        **describe_rcc_profile(contents),
+    }
 
 
 class _Profile:

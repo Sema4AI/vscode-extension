@@ -170,6 +170,11 @@ class ProfileDownloadParamsDict(TypedDict):
 class ProfileDownloadResultTypedDict(TypedDict):
     # The downloaded profile, ready for sema4ai.profileImport.internal
     profileUri: str
+    # What the profile points rcc at (shown before importing it; empty if not set).
+    cloudUi: str
+    cloudApi: str
+    # Other rcc settings the profile changes (besides endpoints).
+    otherSettings: list[str]
 
 
 class ProfileListResultTypedDict(TypedDict):

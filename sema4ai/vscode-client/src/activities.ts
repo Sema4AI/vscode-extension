@@ -21,11 +21,15 @@ import {
     showSelectOneQuickPick,
     getWorkspaceDescription,
     selectWorkspace,
-    showSelectOneStrQuickPick,
     askForWs,
 } from "./ask";
 import { feedback, feedbackRobocorpCodeError } from "./rcc";
-import { chooseControlRoomUi, getProfileToSwitchBackOnUnlink, switchBackToRccDefaults } from "./controlRoom";
+import {
+    askToKeepProfileAfterCancelledLink,
+    chooseControlRoomUi,
+    getProfileToSwitchBackOnUnlink,
+    switchBackToRccDefaults,
+} from "./controlRoom";
 import { refreshCloudTreeView } from "./viewsRobocorp";
 import { isRobotFrameworkTask } from "./viewsCommon";
 import {
@@ -52,11 +56,18 @@ import {
 
 export async function cloudLogin(): Promise<boolean> {
     // Asks which Control Room to link to (if no rcc profile is active yet).
-    const cloudBaseUrl = await chooseControlRoomUi();
-    if (cloudBaseUrl === undefined) {
+    const chosen = await chooseControlRoomUi();
+    if (chosen === undefined) {
         return false;
     }
-    const credentialsPageUri = Uri.parse(cloudBaseUrl + "settings/access-credentials");
+    // If this link activated an rcc profile and the link isn't completed, ask whether to keep it.
+    const linkNotCompleted = async (): Promise<boolean> => {
+        if (chosen.activatedProfile) {
+            await askToKeepProfileAfterCancelledLink(chosen.activatedProfile);
+        }
+        return false;
+    };
+    const credentialsPageUri = Uri.parse(chosen.cloudUi + "settings/access-credentials");
     env.openExternal(credentialsPageUri);
 
     let loggedIn: boolean;
@@ -70,7 +81,7 @@ export async function cloudLogin(): Promise<boolean> {
             "ignoreFocusOut": true,
         });
         if (credentials == undefined) {
-            return false;
+            return await linkNotCompleted();
         }
         if (!credentials) {
             env.openExternal(credentialsPageUri);
@@ -95,19 +106,15 @@ export async function cloudLogin(): Promise<boolean> {
                 retry
             );
             if (!selectedItem) {
-                return false;
+                return await linkNotCompleted();
             }
         }
     } while (!loggedIn);
 
-    const doConnectToWorkspace = await showSelectOneStrQuickPick(
-        ["Yes", "No"],
-        "Linked account. Connect to a workspace to access related Vault Secrets and Storage?"
-    );
-    if (doConnectToWorkspace === "Yes") {
-        const checkLogin = false; // no need to check login, we just logged in.
-        await connectWorkspace(checkLogin);
-    }
+    // Connect to a workspace (for Vault and Storage) right away: with one workspace
+    // it's picked automatically, otherwise the user picks one.
+    const checkLogin = false; // no need to check login, we just logged in.
+    await connectWorkspace(checkLogin);
 
     return true;
 }
