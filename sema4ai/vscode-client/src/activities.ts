@@ -21,11 +21,17 @@ import {
     showSelectOneQuickPick,
     getWorkspaceDescription,
     selectWorkspace,
-    showSelectOneStrQuickPick,
     askForWs,
 } from "./ask";
-import { feedback, feedbackRobocorpCodeError, getEndpointUrl } from "./rcc";
+import { feedback, feedbackRobocorpCodeError } from "./rcc";
+import {
+    askToKeepProfileAfterCancelledLink,
+    chooseControlRoomUi,
+    getProfileToSwitchBackOnUnlink,
+    switchBackToRccDefaults,
+} from "./controlRoom";
 import { refreshCloudTreeView } from "./viewsRobocorp";
+import { isRobotFrameworkTask } from "./viewsCommon";
 import {
     ActionResult,
     ActionResultWorkItems,
@@ -43,40 +49,42 @@ import { applyOutViewIntegrationEnvVars } from "./output/outViewRunIntegration";
 import { connectWorkspace } from "./vault";
 import {
     getPackageTargetDirectoryAndName,
-    isActionPackage,
     verifyIfIsPackageDirectory,
     refreshFilesExplorer,
     verifyIfPathOkToCreatePackage,
-    isAgentPackage,
 } from "./common";
-import { createActionPackage } from "./robo/actionPackage";
-import { createAgentPackage } from "./robo/agentPackage";
-import { langServer } from "./extension";
-import * as path from "path";
-import * as fs from "fs";
-
-export interface ListRobotSelectionOpts {
-    showTaskPackages: boolean;
-    showActionPackages: boolean;
-    showAgentPackages: boolean;
-    includeSemaOrg?: boolean;
-}
 
 export async function cloudLogin(): Promise<boolean> {
+    // Asks which Control Room to link to (if no rcc profile is active yet).
+    const chosen = await chooseControlRoomUi();
+    if (chosen === undefined) {
+        return false;
+    }
+    // If this link activated an rcc profile and the link isn't completed, ask whether to keep it.
+    const linkNotCompleted = async (): Promise<boolean> => {
+        if (chosen.activatedProfile) {
+            await askToKeepProfileAfterCancelledLink(chosen.activatedProfile);
+        }
+        return false;
+    };
+    const credentialsPageUri = Uri.parse(chosen.cloudUi + "settings/access-credentials");
+    env.openExternal(credentialsPageUri);
+
     let loggedIn: boolean;
     do {
         let credentials: string = await window.showInputBox({
             "password": true,
+            "title": `Link to Control Room (${credentialsPageUri.authority})`,
             "prompt":
-                "1. Press the Enter key to open Control Room and create a new access credential. 2. Paste the access credential in the field above ",
+                "Create a new access credential in the Control Room page that opened and paste it in the field above. " +
+                "Press Enter on an empty field to open the page again.",
             "ignoreFocusOut": true,
         });
         if (credentials == undefined) {
-            return false;
+            return await linkNotCompleted();
         }
         if (!credentials) {
-            const cloudBaseUrl = await getEndpointUrl("cloud-ui");
-            env.openExternal(Uri.parse(cloudBaseUrl + "settings/access-credentials"));
+            env.openExternal(credentialsPageUri);
             continue;
         }
         let commandResult: ActionResult<any> = await commands.executeCommand(
@@ -98,19 +106,15 @@ export async function cloudLogin(): Promise<boolean> {
                 retry
             );
             if (!selectedItem) {
-                return false;
+                return await linkNotCompleted();
             }
         }
     } while (!loggedIn);
 
-    const doConnectToWorkspace = await showSelectOneStrQuickPick(
-        ["Yes", "No"],
-        "Linked account. Connect to a workspace to access related Vault Secrets and Storage?"
-    );
-    if (doConnectToWorkspace === "Yes") {
-        const checkLogin = false; // no need to check login, we just logged in.
-        await connectWorkspace(checkLogin);
-    }
+    // Connect to a workspace (for Vault and Storage) right away: with one workspace
+    // it's picked automatically, otherwise the user picks one.
+    const checkLogin = false; // no need to check login, we just logged in.
+    await connectWorkspace(checkLogin);
 
     return true;
 }
@@ -133,10 +137,17 @@ export async function cloudLogout(): Promise<void> {
         refreshCloudTreeView();
         return;
     }
+    // If linking activated an rcc profile, unlinking switches back to rcc's defaults.
+    const profileToSwitchBack = await getProfileToSwitchBackOnUnlink();
     let YES = "Unlink";
     const result = await window.showWarningMessage(
         `Are you sure you want to unlink and remove credentials from Control Room?`,
-        { "modal": true },
+        {
+            "modal": true,
+            "detail": profileToSwitchBack
+                ? `This also switches rcc on this computer from the "${profileToSwitchBack}" profile back to its defaults (Robocorp Control Room).`
+                : undefined,
+        },
         YES
     );
     if (result !== YES) {
@@ -150,6 +161,9 @@ export async function cloudLogout(): Promise<void> {
     if (!loggedOut.success) {
         window.showInformationMessage("Unable to unlink and remove Control Room credentials.");
         return;
+    }
+    if (profileToSwitchBack) {
+        await switchBackToRccDefaults(profileToSwitchBack);
     }
     window.showInformationMessage("Control Room credentials successfully unlinked and removed.");
 }
@@ -177,36 +191,9 @@ export async function resolveInterpreter(targetRobot: string): Promise<ActionRes
     }
 }
 
-async function flattenRobotsAndActions(
-    robotsInfo: LocalPackageMetadataInfo[],
-    includeSemaOrg: boolean
-): Promise<LocalPackageMetadataInfo[]> {
-    const flattenedRobotsInfo: LocalPackageMetadataInfo[] = [];
-
-    robotsInfo.forEach((entry) => {
-        flattenedRobotsInfo.push(entry);
-
-        if (isAgentPackage(entry) && entry.organizations) {
-            entry.organizations.forEach((org) => {
-                if (includeSemaOrg || org.name.toLowerCase().replace(".", "") !== "sema4ai") {
-                    org.actionPackages.forEach((action) => {
-                        flattenedRobotsInfo.push({
-                            ...action,
-                            name: `${entry.name}/${action.name}`,
-                        });
-                    });
-                }
-            });
-        }
-    });
-
-    return flattenedRobotsInfo;
-}
-
 export async function listAndAskRobotSelection(
     selectionMessage: string,
-    noRobotErrorMessage: string,
-    opts: ListRobotSelectionOpts
+    noRobotErrorMessage: string
 ): Promise<LocalPackageMetadataInfo> {
     let actionResult: ActionResult<LocalPackageMetadataInfo[]> = await commands.executeCommand(
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
@@ -218,34 +205,6 @@ export async function listAndAskRobotSelection(
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
 
-    if (!robotsInfo || robotsInfo.length == 0) {
-        window.showInformationMessage(noRobotErrorMessage);
-        return;
-    }
-
-    if (opts.showActionPackages) {
-        robotsInfo = await flattenRobotsAndActions(robotsInfo, opts.includeSemaOrg ?? true);
-    }
-
-    const filter = (entry: LocalPackageMetadataInfo) => {
-        const isActionPkg = isActionPackage(entry);
-        const isTaskPackage = !isActionPkg;
-        const isAgentPkg = isAgentPackage(entry);
-
-        if (opts.showAgentPackages && isAgentPkg) {
-            return true;
-        }
-        if (opts.showActionPackages && isActionPkg) {
-            return true;
-        }
-        if (opts.showTaskPackages && isTaskPackage) {
-            return true;
-        }
-
-        return false;
-    };
-
-    robotsInfo = robotsInfo.filter(filter);
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(noRobotErrorMessage);
         return;
@@ -288,7 +247,7 @@ export async function askRobotSelection(
 
 async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory: string) {
     let robotName: string = await window.showInputBox({
-        "prompt": "Please provide the name for the new Robot.",
+        "prompt": "Name for the new Task Package in Control Room.",
         "ignoreFocusOut": true,
     });
     if (!robotName) {
@@ -304,11 +263,11 @@ async function askAndCreateNewRobotAtWorkspace(wsInfo: WorkspaceInfo, directory:
         }
     );
     if (!actionResult.success) {
-        let msg: string = "Error uploading to new Robot: " + actionResult.message;
+        let msg: string = "Error creating Task Package '" + robotName + "': " + actionResult.message;
         OUTPUT_CHANNEL.appendLine(msg);
         window.showErrorMessage(msg);
     } else {
-        window.showInformationMessage("Successfully submitted new Robot " + robotName + " to the Control Room.");
+        window.showInformationMessage("Created Task Package '" + robotName + "' in Control Room.");
     }
 }
 
@@ -408,12 +367,6 @@ export async function rccConfigurationDiagnostics() {
         return;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
-    if (robotsInfo) {
-        // Only use task packages.
-        robotsInfo = robotsInfo.filter((r) => {
-            return !isActionPackage(r);
-        });
-    }
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
@@ -456,19 +409,14 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showInformationMessage("Error submitting Task Package to Control Room: " + actionResult.message);
+        window.showInformationMessage("Error publishing Task Package to Control Room: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
-    if (robotsInfo) {
-        robotsInfo = robotsInfo.filter((r) => {
-            return !isActionPackage(r);
-        });
-    }
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage(
-            "Unable to submit Task Package to Control Room (no Task Package detected in the Workspace)."
+            "No Task Package found in this VS Code workspace, so there's nothing to publish."
         );
         return;
     }
@@ -487,7 +435,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     }
 
     if (!robot) {
-        robot = await askRobotSelection(robotsInfo, "Please select the Task Package to upload to the Control Room.");
+        robot = await askRobotSelection(robotsInfo, "Select the Task Package to publish to Control Room.");
         if (!robot) {
             return;
         }
@@ -496,7 +444,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
     let refresh = false;
     SELECT_OR_REFRESH: do {
         let workspaceSelection = await selectWorkspace(
-            "Please select a Workspace to upload '" + robot.name + "' to.",
+            "Select the Control Room Workspace to publish '" + robot.name + "' to.",
             refresh
         );
         if (workspaceSelection === undefined) {
@@ -538,7 +486,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
             const wsDesc = getWorkspaceDescription(wsInfo);
             let caption: QuickPickItemWithAction = {
-                "label": "$(new-folder) + Create new Robot",
+                "label": "$(new-folder) + Create new Task Package",
                 "description": "(Workspace: " + wsDesc + ")",
                 "sortKey": "c" + wsDesc, // right before last item.
                 "action": { "newRobotPackageAtWorkspace": wsInfo },
@@ -547,7 +495,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         }
         let caption: QuickPickItemWithAction = {
             "label": "$(refresh) * Refresh list",
-            "description": "Expected Workspace or Robot is not appearing.",
+            "description": "Expected Workspace or Task Package is not appearing.",
             "sortKey": "d", // last item
             "action": { "refresh": true },
         };
@@ -557,7 +505,7 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
         let selectedItem: QuickPickItemWithAction = await showSelectOneQuickPick(
             captions,
-            "Update an existing Robot or create a new one."
+            "Publish a new version of an existing Task Package, or create a new Task Package."
         );
 
         if (!selectedItem) {
@@ -577,8 +525,8 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
         }
 
         if (action.existingRobotPackage) {
-            let yesOverride: string = "Yes";
-            let noChooseDifferentTarget: string = "No";
+            let yesOverride: string = "Publish new version";
+            let noChooseDifferentTarget: string = "Go back";
             let cancel: string = "Cancel";
             let robotInfo: PackageInfo = action.existingRobotPackage;
 
@@ -586,31 +534,36 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
 
             let caption: QuickPickItemWithAction = {
                 "label": yesOverride,
-                "detail": "Override existing Robot",
+                "detail": "Anything that uses '" + robotInfo.name + "' in Control Room uses this version from now on.",
                 "action": yesOverride,
             };
             updateExistingCaptions.push(caption);
 
             caption = {
                 "label": noChooseDifferentTarget,
-                "detail": "Go back to choose a different Robot to update",
+                "detail": "Choose a different Task Package, or create a new one instead.",
                 "action": noChooseDifferentTarget,
             };
             updateExistingCaptions.push(caption);
 
             caption = {
                 "label": cancel,
-                "detail": "Cancel the Robot upload",
+                "detail": "Don't publish anything.",
                 "action": cancel,
             };
             updateExistingCaptions.push(caption);
 
             let selectedItem: QuickPickItemWithAction = await showSelectOneQuickPick(
                 updateExistingCaptions,
-                "This will overwrite the robot '" + robotInfo.name + "' on Control Room. Are you sure? "
+                "Publish a new version of '" +
+                    robotInfo.name +
+                    "'? It replaces the current version in Control Room immediately."
             );
 
             // robot.language-server.python
+            if (!selectedItem) {
+                return;
+            }
             if (selectedItem.action == noChooseDifferentTarget) {
                 refresh = false;
                 continue SELECT_OR_REFRESH;
@@ -625,11 +578,16 @@ export async function uploadRobot(robot?: LocalPackageMetadataInfo) {
             );
 
             if (!actionResult.success) {
-                let msg: string = "Error uploading to existing Robot: " + actionResult.message;
+                let msg: string =
+                    "Error publishing a new version of Task Package '" + robotInfo.name + "': " + actionResult.message;
                 OUTPUT_CHANNEL.appendLine(msg);
                 window.showErrorMessage(msg);
             } else {
-                window.showInformationMessage("Successfully submitted Robot " + robot.name + " to the cloud.");
+                window.showInformationMessage(
+                    "Published a new version of Task Package '" +
+                        robotInfo.name +
+                        "' to Control Room. It's now the current version."
+                );
             }
             return;
         }
@@ -653,15 +611,10 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
     );
     if (!actionResult.success) {
-        window.showErrorMessage("Error listing Task/Action Packages: " + actionResult.message);
+        window.showErrorMessage("Error listing Task Packages: " + actionResult.message);
         return;
     }
     let robotsInfo: LocalPackageMetadataInfo[] = actionResult.result;
-    if (robotsInfo) {
-        robotsInfo = robotsInfo.filter((r) => {
-            return !isActionPackage(r);
-        });
-    }
 
     if (!robotsInfo || robotsInfo.length == 0) {
         window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
@@ -676,6 +629,10 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         if (tasks) {
             let taskNames: string[] = Object.keys(tasks);
             for (let taskName of taskNames) {
+                if (!noDebug && isRobotFrameworkTask(tasks[taskName])) {
+                    // Robot Framework tasks can't be debugged.
+                    continue;
+                }
                 let keyInLRU: string = robotInfo.name + " - " + taskName + " - " + robotInfo.filePath;
                 let item: QuickPickItemRobotTask = {
                     "label": "Run robot: " + robotInfo.name + "    Task: " + taskName,
@@ -694,8 +651,12 @@ export async function askAndRunRobotRCC(noDebug: boolean) {
         }
     }
 
-    if (!items) {
-        window.showInformationMessage("Unable to run Task Package (no Task Package detected in the Workspace).");
+    if (items.length == 0) {
+        window.showInformationMessage(
+            noDebug
+                ? "Unable to run Task Package (no Task Package detected in the Workspace)."
+                : "No task to debug in the Workspace (Robot Framework tasks can't be debugged, use Run Task instead)."
+        );
         return;
     }
 
@@ -743,10 +704,6 @@ export async function createRobot() {
         roboCommands.SEMA4AI_LIST_ROBOT_TEMPLATES_INTERNAL
     );
 
-    let asyncListPackages: Thenable<ActionResult<LocalPackageMetadataInfo[]>> = commands.executeCommand(
-        roboCommands.SEMA4AI_LOCAL_LIST_ROBOTS_INTERNAL
-    );
-
     let ws: WorkspaceFolder | undefined = await askForWs();
     if (!ws) {
         // Operation cancelled.
@@ -773,33 +730,6 @@ export async function createRobot() {
         feedbackRobocorpCodeError("ACT_NO_ROBOT_TEMPLATE");
         window.showErrorMessage("Unable to create Task Package (the Task Package templates could not be loaded).");
         return;
-    }
-
-    let actionResultListPackages: ActionResult<LocalPackageMetadataInfo[]> = await asyncListPackages;
-    if (actionResultListPackages.success && actionResultListPackages.result.length > 0) {
-        // Filter just for agents.
-        const agentsFound = actionResultListPackages.result.filter((data) => {
-            return data.packageType === PackageType.Agent;
-        });
-        if (agentsFound.length > 0) {
-            const msgStart =
-                actionResultListPackages.result.length === 1
-                    ? "It seems there is an Agent Package"
-                    : "It seems there are Agent Packages";
-            let confirmCreateTaskInAgent = await showSelectOneQuickPick(
-                [
-                    { action: "cancel", label: "Cancel", detail: "Cancel Task Package Creation" },
-                    { action: "proceed", label: "Proceed", detail: "Proceed with Task Package Creation" },
-                ],
-                "",
-                `${msgStart} already created in the workspace and Task Packages
-                don't usually interact with Agent Packages.
-                Are you sure you want to create a Task Package instead of an Action Package whose actions can be used in an Agent?`
-            );
-            if (!confirmCreateTaskInAgent || confirmCreateTaskInAgent.action === "cancel") {
-                return;
-            }
-        }
     }
 
     let selectedItem = await window.showQuickPick(
@@ -869,65 +799,9 @@ export async function createRobot() {
     }
 }
 
-export async function createPackage() {
-    const TASK_PACKAGE = "Task Package (Robot)";
-    const ACTION_PACKAGE = "Action Package";
-    const AGENT_PACKAGE = "Agent Package";
-
-    const packageType = await showSelectOneStrQuickPick(
-        [AGENT_PACKAGE, ACTION_PACKAGE, TASK_PACKAGE],
-        "Which kind of Package would you like to create?"
-    );
-    if (packageType) {
-        if (packageType === TASK_PACKAGE) {
-            await createRobot();
-        } else if (packageType === ACTION_PACKAGE) {
-            await createActionPackage();
-        } else if (packageType === AGENT_PACKAGE) {
-            await createAgentPackage();
-        }
-    }
-}
-
-/**
- * Update the launch environment when running a task or action (main entry point for ACTIONS,
- * tasks will use `updateLaunchEnvironment`).
- */
-export async function updateLaunchEnvironmentCommonTasksAndActions(
-    environment: Record<string, string>,
-    targetYaml?: string
-): Promise<Record<string, string>> {
-    const newEnv = applyOutViewIntegrationEnvVars(environment);
-
-    const externalApiUrl: any = await langServer.sendRequest("getExternalApiUrl");
-    if (externalApiUrl) {
-        newEnv["SEMA4AI_CREDENTIAL_API"] = externalApiUrl;
-    }
-
-    if (targetYaml) {
-        const packageDir = path.dirname(targetYaml);
-        const devdataPath = path.join(packageDir, "devdata", "chat-files");
-
-        try {
-            if (!fs.existsSync(devdataPath)) {
-                fs.mkdirSync(devdataPath, { recursive: true });
-            }
-            newEnv["SEMA4AI_FILE_MANAGEMENT_URL"] = `file://${devdataPath}`;
-        } catch (error) {
-            logError("Error creating devdata/chat-files directory", error, "ERR_CREATE_DEVDATA_DIR");
-        }
-    }
-
-    return newEnv;
-}
-
 /**
  * Main entry point to update the launch environment for tasks when running a robot
  * (usually the command SEMA4AI_UPDATE_LAUNCH_ENV should be used as the public API).
- *
- * Important: this is used when running TASKS, not ACTIONS!
- *
- * For actions, only `updateLaunchEnvironmentCommonTasksAndActions` is used.
  */
 export async function updateLaunchEnvironment(args): Promise<{ [key: string]: string } | "cancelled"> {
     OUTPUT_CHANNEL.appendLine(`updateLaunchEnvironment for ${args["targetRobot"]}.`);
@@ -1017,7 +891,7 @@ export async function updateLaunchEnvironmentPart0(args): Promise<{ [key: string
     // - Vault
     // - Work items
 
-    const newEnv: { [key: string]: string } = await updateLaunchEnvironmentCommonTasksAndActions(environment);
+    const newEnv: { [key: string]: string } = applyOutViewIntegrationEnvVars(environment);
 
     let vaultInfoActionResult: ActionResult<IVaultInfo> = await commands.executeCommand(
         roboCommands.SEMA4AI_GET_CONNECTED_VAULT_WORKSPACE_INTERNAL

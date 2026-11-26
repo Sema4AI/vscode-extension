@@ -183,6 +183,10 @@ class JavaInspector:
             ElementInspector,
         )
 
+        # Make sure we have the access bridge dll inside the environment (done
+        # first so that nothing is started if it's not available).
+        self.__setup_access_bridge()
+
         self._element_inspector = ElementInspector()
         self._tk_handler_thread: TkHandlerThread = TkHandlerThread()
         self._tk_handler_thread.start()
@@ -190,55 +194,34 @@ class JavaInspector:
         self._timer_thread: threading.Timer | None = None
 
         self.on_pick: IOnPickCallback = Callback()
-        # make sure we have the access bridge dll inside the environment
-        self.__inject_access_bridge_path()
-        self.__enable_switch()
 
     @staticmethod
-    def __inject_access_bridge_path() -> None:
-        # TODO: change the Exceptions to something more specific
-        import os
-
-        # check if RC_JAVA_ACCESS_BRIDGE_DLL is set & use it as such
-        java_access_bridge_path = os.environ.get("RC_JAVA_ACCESS_BRIDGE_DLL", None)
-        if not java_access_bridge_path:
-            # if not, check if the JAVA_HOME is set
-            java_home = os.environ.get("JAVA_HOME", None)
-            if not java_home:
-                raise Exception(
-                    "Java wasn't detected. JAVA_HOME environment variable is not set."
-                )
-            # automatically construct the path to the bridge
-            java_access_bridge_path = os.path.join(
-                java_home, "jre", "bin", "WindowsAccessBridge-64.dll"
-            )
-            if os.path.exists(java_access_bridge_path):
-                os.environ["RC_JAVA_ACCESS_BRIDGE_DLL"] = java_access_bridge_path
-                log.debug("JAVA: RC_JAVA_ACCESS_BRIDGE_DLL:", java_access_bridge_path)
-                return
-            raise Exception(
-                "Path to Java Access Bridge DLL (RC_JAVA_ACCESS_BRIDGE_DLL) was not found. Please check Java installation or set the environment variable properly and try again."
-            )
-
-    @staticmethod
-    def __enable_switch() -> None:
+    def __setup_access_bridge() -> None:
         import os
         import subprocess
 
-        java_home = os.environ.get("JAVA_HOME", None)
+        from sema4ai_code.inspector.java.java_access_bridge import (
+            ENV_VAR,
+            find_java_access_bridge,
+        )
+
+        # Raises JavaAccessBridgeNotFound (with instructions for the user).
+        bridge = find_java_access_bridge()
+        # JABWrapper loads the dll from this environment variable.
+        os.environ[ENV_VAR] = str(bridge.dll)
+
+        if bridge.jabswitch is None:
+            log.info(
+                "JAVA: jabswitch.exe not found, not enabling the Java Access Bridge "
+                "(it may need to be enabled with `jabswitch -enable`)."
+            )
+            return
         try:
-            if not java_home:
-                raise Exception(
-                    "Java wasn't detected. JAVA_HOME environment variable is not set."
-                )
-            jabswitch = os.path.join(java_home, "jre", "bin", "jabswitch.exe")
-            if not os.path.exists(jabswitch):
-                raise Exception("Could not find the jabswitch")
-            output = subprocess.check_output([jabswitch, "-enable"])
+            output = subprocess.check_output([str(bridge.jabswitch), "-enable"])
             log.debug("JAVA: enabling jabswitch:", output)
-        except Exception as e:
-            log.critical("JAVA: Enabling jabswitch raised an exception:", e)
-            raise e
+        except Exception:
+            # Not fatal: the bridge may already be enabled.
+            log.exception(f"JAVA: Error running: {bridge.jabswitch} -enable")
 
     def list_opened_applications(self) -> list[JavaWindowInfoTypedDict]:
         """

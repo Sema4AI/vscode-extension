@@ -41,29 +41,6 @@ def hover_on_conda_yaml(
     return None
 
 
-def hover_on_package_yaml(
-    doc: IDocument,
-    line: int,
-    col: int,
-    pypi_cloud: IPyPiCloud,
-    conda_cloud: ICondaCloud,
-) -> HoverTypedDict | None:
-    from sema4ai_ls_core.protocols import IDocumentSelection
-
-    from sema4ai_code.vendored_deps.package_deps.analyzer import PackageYamlAnalyzer
-
-    sel: IDocumentSelection = doc.selection(line, col)
-    analyzer = PackageYamlAnalyzer(doc.source, doc.path, conda_cloud, pypi_cloud)
-    pip_dep = analyzer.find_pip_dep_at(sel.line, sel.col)
-    if pip_dep is not None:
-        return _hover_handle_pip_dep(pypi_cloud, pip_dep)
-
-    conda_dep: CondaDepInfo | None = analyzer.find_conda_dep_at(sel.line, sel.col)
-    if conda_dep is not None:
-        return _hover_handle_conda_dep(conda_cloud, conda_dep)
-    return None
-
-
 def _create_conda_requirements_desc_parts(
     version_info: CondaVersionInfo,
 ) -> list[str]:

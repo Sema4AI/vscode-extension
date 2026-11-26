@@ -20,9 +20,8 @@ export async function openPlaywrightRecorder(useTreeSelected: boolean = false): 
         if (robot === undefined) {
             // Ask for the robot to be used and then show dialog with the options.
             robot = await listAndAskRobotSelection(
-                "Please select the Task or Action Package where the locators should be saved.",
-                "Unable to open Inspector (no Task or Action Package detected in the Workspace).",
-                { showActionPackages: true, showTaskPackages: true, showAgentPackages: false }
+                "Please select the Task Package where the locators should be saved.",
+                "Unable to open Inspector (no Task Package detected in the Workspace)."
             );
             if (!robot) {
                 return;

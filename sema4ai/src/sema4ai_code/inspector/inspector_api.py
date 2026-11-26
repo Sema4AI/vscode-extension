@@ -667,6 +667,23 @@ class _JavaInspectorThread(threading.Thread):
             self._java_inspector.shutdown()
 
     def run(self) -> None:
+        import sys
+
+        if sys.platform != "win32":
+            self._run()
+            return
+
+        from sema4ai_code.inspector.windows.robocorp_windows._vendored.uiautomation.uiautomation import (
+            UIAutomationInitializerInThread,
+        )
+
+        # The Java inspector uses UI Automation (COM) to find the window of the
+        # selected application, so COM must be initialized in this thread
+        # (otherwise: "CoInitialize has not been called").
+        with UIAutomationInitializerInThread():
+            self._run()
+
+    def _run(self) -> None:
         from concurrent.futures import Future
 
         from sema4ai_code.inspector.java.java_inspector import (
@@ -678,8 +695,16 @@ class _JavaInspectorThread(threading.Thread):
         def _on_pick(picked: Any):
             endpoint.notify("$/javaPick", {"picked": picked})
 
-        self._java_inspector = JavaInspector()
-        self._java_inspector.on_pick.register(_on_pick)
+        # If the inspector can't be created (i.e.: the Java Access Bridge isn't
+        # available), each command fails with that error (otherwise the thread
+        # would just die and the commands would never be answered).
+        init_error: Exception | None = None
+        try:
+            self._java_inspector = JavaInspector()
+            self._java_inspector.on_pick.register(_on_pick)
+        except Exception as e:
+            log.exception("Error creating the Java inspector.")
+            init_error = e
 
         item: _JavaBaseCommand | None
 
@@ -691,6 +716,9 @@ class _JavaInspectorThread(threading.Thread):
 
             if item is not None:
                 future: Future = item.future
+                if init_error is not None:
+                    future.set_exception(init_error)
+                    continue
                 try:
                     log.debug("JavaInspectorThread: Start handling command: %s", item)
                     result = item(self)

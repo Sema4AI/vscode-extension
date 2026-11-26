@@ -7,8 +7,6 @@ import {
     Uri,
     window,
     workspace,
-    Terminal,
-    TerminalOptions,
 } from "vscode";
 import { resolveInterpreter } from "./activities";
 import { logError, OUTPUT_CHANNEL } from "./channel";
@@ -17,17 +15,11 @@ import { ActionResult, InterpreterInfo } from "./protocols";
 import { getAutosetpythonextensioninterpreter } from "./robocorpSettings";
 import { TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE } from "./robocorpViews";
 import { refreshTreeView } from "./viewsCommon";
-import { getActionServerTerminal, isActionServerAlive, restartActionServer } from "./actionServer";
 
 const dirtyWorkspaceFiles = new Set<string>();
 
 export function isEnvironmentFile(fsPath: string): boolean {
-    return (
-        fsPath.endsWith("conda.yaml") ||
-        fsPath.endsWith("action-server.yaml") ||
-        fsPath.endsWith("package.yaml") ||
-        fsPath.endsWith("robot.yaml")
-    );
+    return fsPath.endsWith("conda.yaml") || fsPath.endsWith("robot.yaml");
 }
 
 export function isPythonFile(fsPath: string): boolean {
@@ -97,10 +89,6 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                 dirtyWorkspaceFiles.has(docURI.fsPath) &&
                 (isEnvironmentFile(docURI.fsPath) || isPythonFile(docURI.fsPath))
             ) {
-                const actionServerTerminal: Terminal = getActionServerTerminal();
-                const terminalOptions = actionServerTerminal?.creationOptions as TerminalOptions;
-                const terminalCwd = terminalOptions?.cwd as Uri;
-
                 // let's refresh the view each time we get a hit on the files that might impact the workspace
                 refreshTreeView(TREE_VIEW_SEMA4AI_TASK_PACKAGES_TREE);
                 dirtyWorkspaceFiles.delete(docURI.fsPath);
@@ -122,25 +110,6 @@ export async function installWorkspaceWatcher(context: ExtensionContext) {
                                 } else {
                                     window.showErrorMessage(`Failed to Auto Update the Python Interpreter`);
                                 }
-                            }
-                        });
-                }
-
-                /* If Action Server is running in the package the file was modified in, ask the user if they want to restart it. */
-                if (
-                    terminalCwd?.fsPath &&
-                    docURI.fsPath.includes(terminalCwd.fsPath) &&
-                    (await isActionServerAlive())
-                ) {
-                    window
-                        .showInformationMessage(
-                            "Changes were detected in the Action files. Would you like to restart the Action Server?",
-                            "Yes",
-                            "No"
-                        )
-                        .then(async (selection) => {
-                            if (selection === "Yes") {
-                                await restartActionServer(terminalCwd);
                             }
                         });
                 }

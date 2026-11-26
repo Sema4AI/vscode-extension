@@ -1,105 +1,11 @@
 import os
 from typing import Any
 
-from sema4ai_ls_core import uris
 from sema4ai_ls_core.core_log import get_logger
 
 from sema4ai_code.protocols import ActionResultDictRobotLaunch
 
 log = get_logger(__name__)
-
-
-def _compute_action_package_launch(
-    name: str | None,
-    request: str | None,
-    additional_pythonpath_entries: list[str] | None,
-    env: dict[str, str] | None,
-    python_exe: str | None,
-    package: str,
-    action_name: str | None,
-    uri: str | None,
-    json_input: str | None,
-):
-    from pathlib import Path
-
-    from sema4ai_code.robo import launch_actions
-
-    if not os.path.isfile(package):
-        return {
-            "success": False,
-            "message": f"The specified package.yaml does not exist or is not a file ({package}).",
-            "result": None,
-        }
-    if not action_name:
-        return {
-            "success": False,
-            "message": "'actionName' must be specified to make action launch.",
-            "result": None,
-        }
-
-    if not uri:
-        return {
-            "success": False,
-            "message": "'uri' must be specified to make action launch.",
-            "result": None,
-        }
-
-    if not json_input:
-        return {
-            "success": False,
-            "message": "'jsonInput' must be specified to make action launch.",
-            "result": None,
-        }
-
-    try:
-        from sema4ai_ls_core import yaml_wrapper
-
-        with open(package) as stream:
-            yaml_contents = yaml_wrapper.load(stream)
-
-        if not yaml_contents:
-            raise RuntimeError("Empty yaml contents.")
-        if not isinstance(yaml_contents, dict):
-            raise RuntimeError("Expected yaml contents root to be a dict.")
-    except Exception:
-        log.exception("Error loading contents from: %s", package)
-        return {
-            "success": False,
-            "message": f"Unable to load yaml contents from: ({package}).",
-            "result": None,
-        }
-
-    args = [
-        "run",
-        "--action",
-        action_name,
-        "--json-input",
-        json_input,
-        uris.to_fs_path(uri),
-    ]
-    args = [str(c) for c in args]
-    cwd = os.path.dirname(package)
-
-    result: dict[str, Any]
-    result = {
-        "type": "python",
-        "name": name,
-        "request": request,
-        "cwd": cwd,
-        "program": Path(launch_actions.__file__).as_posix(),
-        "args": args,
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen",
-        # "justMyCode": False,
-    }
-
-    if python_exe:
-        result["python"] = python_exe
-
-    if env:
-        result["env"] = env
-
-    return {"success": True, "message": None, "result": result}
 
 
 def compute_robot_launch_from_robocorp_code_launch(
@@ -110,10 +16,6 @@ def compute_robot_launch_from_robocorp_code_launch(
     additional_pythonpath_entries: list[str] | None,
     env: dict[str, str] | None,
     python_exe: str | None,
-    package: str | None = None,
-    action_name: str | None = None,
-    uri: str | None = None,
-    json_input: str | None = None,
 ) -> ActionResultDictRobotLaunch:
     if not name:
         return {
@@ -128,22 +30,9 @@ def compute_robot_launch_from_robocorp_code_launch(
             "result": None,
         }
 
-    if package:
-        return _compute_action_package_launch(
-            name,
-            request,
-            additional_pythonpath_entries,
-            env,
-            python_exe,
-            package,
-            action_name,
-            uri,
-            json_input,
-        )
-    else:
-        return _compute_task_package_launch(
-            name, request, task, robot, additional_pythonpath_entries, env, python_exe
-        )
+    return _compute_task_package_launch(
+        name, request, task, robot, additional_pythonpath_entries, env, python_exe
+    )
 
 
 def _compute_task_package_launch(
@@ -270,41 +159,16 @@ def _compute_task_package_launch(
     result: dict[str, Any]
 
     if command[:3] == ["python", "-m", "robot"]:
-        args: list[str] = command[3:]
-
-        if not args:
-            return {
-                "success": False,
-                "message": (
-                    f"Expected the robot file/directory to be executed to be provided"
-                ),
-                "result": None,
-            }
-
-        if additional_pythonpath_entries:
-            pythonpath_args = []
-            for s in additional_pythonpath_entries:
-                pythonpath_args.append("--pythonpath")
-                pythonpath_args.append(s)
-
-            args = pythonpath_args + args
-        target = "<target-in-args>"
-
-        result = {
-            "type": "robotframework-lsp",
-            "name": name,
-            "request": request,
-            "target": target,
-            "cwd": cwd,
-            "args": args,
-            "terminal": "integrated",
-            "internalConsoleOptions": "neverOpen",
+        # Robot Framework tasks can't be debugged (there's no Robot Framework
+        # debugger anymore). The client runs them with rcc instead when
+        # launched without debugging.
+        return {
+            "success": False,
+            "message": "Debugging Robot Framework tasks is not supported. Use Run Task instead.",
+            "result": None,
         }
-        if env:
-            result["env"] = env
-        return {"success": True, "message": None, "result": result}
 
-    elif command[:1] == ["python"]:
+    if command[:1] == ["python"]:
         # It must be something as:
         # python [option] ... [-c cmd | -m mod | file | -] [arg]
         module = None
@@ -377,8 +241,8 @@ def _compute_task_package_launch(
         return {
             "success": False,
             "message": (
-                f"Currently it's only possible to debug Robot Framework or python tasks "
-                f"(i.e.: the task must start with 'python -m robot' or 'python'). Task command: {command}"
+                f"Currently it's only possible to debug python tasks "
+                f"(i.e.: the task must start with 'python'). Task command: {command}"
             ),
             "result": None,
         }

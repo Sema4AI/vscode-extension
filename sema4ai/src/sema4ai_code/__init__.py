@@ -2,7 +2,7 @@ import os.path
 import sys
 from typing import List
 
-__version__ = "2.19.0"
+__version__ = "3.0.0"
 version_info: list[int] = [int(x) for x in __version__.split(".")]
 
 __file__ = os.path.abspath(__file__)
@@ -24,6 +24,15 @@ def get_bin_folder() -> str:
     # Note: if we're installed in the site-packages, this could return
     # site-packages/bin.
     return get_extension_relative_path("bin")
+
+
+MACOS_INTEL_NOT_SUPPORTED_MESSAGE = (
+    "macOS Intel (x86_64) is not supported by this version of the Sema4.ai SDK "
+    "extension. On an Intel Mac, use version 2.19.0 (the last version supporting "
+    "macOS Intel): in the Extensions view, right-click Sema4.ai SDK and select "
+    "'Install Specific Version...'. Newer versions require a Mac with Apple "
+    "Silicon (arm64)."
+)
 
 
 def get_release_artifact_relative_path(sys_platform: str, executable_name: str) -> str:
@@ -53,7 +62,7 @@ def get_release_artifact_relative_path(sys_platform: str, executable_name: str) 
         if machine == "arm64":
             return f"macos-arm64/{executable_name}"
         else:
-            return f"macos64/{executable_name}"
+            raise RuntimeError(MACOS_INTEL_NOT_SUPPORTED_MESSAGE)
 
     else:
         if is_64:

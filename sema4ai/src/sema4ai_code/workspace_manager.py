@@ -1,16 +1,10 @@
-import os
-from collections import defaultdict
-from collections.abc import Iterator
 from pathlib import Path
-from typing import DefaultDict, Dict, List, Optional, Tuple
 
 from sema4ai_ls_core.cache import CachedFileInfo
 from sema4ai_ls_core.core_log import get_logger
 from sema4ai_ls_core.protocols import IWorkspace
 
-from sema4ai_code.agent_cli import get_agent_package_actions_sub_directory
 from sema4ai_code.protocols import (
-    LocalAgentPackageOrganizationInfoDict,
     LocalPackageMetadataInfoDict,
     PackageType,
     PackageYamlName,
@@ -31,14 +25,9 @@ class WorkspaceManager:
             Path, CachedFileInfo[LocalPackageMetadataInfoDict]
         ] = {}
 
-        self._local_list_agent_packages_cache: dict[
-            Path, CachedFileInfo[LocalPackageMetadataInfoDict]
-        ] = {}
-
     def get_local_robots(self) -> list[LocalPackageMetadataInfoDict]:
         """
-        Returns all local Robot/Action packages present in the workspace, either at root or first level.
-        Ignores Agent packages.
+        Returns all local Task Packages (robot.yaml) present in the workspace, either at root or first level.
         """
         curr_cache = self._local_list_robots_cache
         new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]] = {}
@@ -51,14 +40,7 @@ class WorkspaceManager:
                     # Check the root directory itself for the robot.yaml.
                     p = Path(folder_path)
                     robot_metadata = self._get_package_metadata(
-                        [
-                            PackageYamlName.ROBOT,
-                            PackageYamlName.ACTION,
-                            PackageYamlName.AGENT,
-                        ],
-                        p,
-                        curr_cache,
-                        new_cache,
+                        p, curr_cache, new_cache
                     )
 
                     if robot_metadata is not None:
@@ -66,35 +48,12 @@ class WorkspaceManager:
                     elif p.is_dir():
                         for sub in p.iterdir():
                             robot_metadata = self._get_package_metadata(
-                                [
-                                    PackageYamlName.ROBOT,
-                                    PackageYamlName.ACTION,
-                                    PackageYamlName.AGENT,
-                                ],
-                                sub,
-                                curr_cache,
-                                new_cache,
+                                sub, curr_cache, new_cache
                             )
                             if robot_metadata is not None:
                                 robots.append(robot_metadata)
 
-            def get_key(dct):
-                package_type = dct["packageType"]
-                priority = 2
-                if package_type == PackageType.AGENT.value:
-                    priority = 0
-                elif package_type == PackageType.ACTION.value:
-                    priority = 1
-                return priority, dct["name"].lower()
-
-            robots.sort(key=get_key)
-
-            for package in robots:
-                if package["packageType"] == PackageType.AGENT.value:
-                    package["organizations"] = self._get_agent_package_organizations(
-                        package["directory"],
-                        new_cache,
-                    )
+            robots.sort(key=lambda dct: dct["name"].lower())
 
         finally:
             # Set the new cache after we finished computing all entries.
@@ -102,88 +61,8 @@ class WorkspaceManager:
 
         return robots
 
-    def _get_agent_package_organizations(
-        self,
-        actions_directory: str,
-        new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
-    ) -> list[LocalAgentPackageOrganizationInfoDict]:
-        curr_cache = self._local_list_agent_packages_cache
-
-        actions_path = (
-            Path(actions_directory) / get_agent_package_actions_sub_directory()
-        )
-
-        organizations: list[LocalAgentPackageOrganizationInfoDict] = []
-
-        if not actions_path.is_dir():
-            return []
-
-        for org_directory in actions_path.iterdir():
-            if not org_directory.is_dir():
-                continue
-
-            action_packages: DefaultDict[
-                str, list[tuple[str, LocalPackageMetadataInfoDict]]
-            ] = defaultdict(list)
-
-            # Organization name is the name of the directory the Action Package exists in.
-            organization_name = os.path.basename(org_directory)
-
-            organization: LocalAgentPackageOrganizationInfoDict = {
-                "name": organization_name,
-                "actionPackages": [],
-            }
-
-            for action_package_metadata in self._get_action_package_from_dir(
-                org_directory, curr_cache, new_cache
-            ):
-                v = action_package_metadata["yamlContents"].get("version")
-                if v is None:
-                    log.info(
-                        f"No version found for action package: {action_package_metadata.get('name')} in dir: {action_package_metadata.get('directory')}"
-                    )
-                    v = "0.0.1"
-
-                action_packages[action_package_metadata["name"]].append(
-                    (
-                        v,
-                        action_package_metadata,
-                    )
-                )
-
-            for action_name, action_versions in action_packages.items():
-                if len(action_versions) == 1:
-                    organization["actionPackages"].append(action_versions[0][1])
-                else:
-                    for [version_number, action_package] in action_versions:
-                        action_package["name"] = (
-                            f"{action_package['name']}/v{version_number}"
-                        )
-
-                        organization["actionPackages"].append(action_package)
-                        log.info(f"[debug 2] {action_package}")
-
-            organizations.append(organization)
-
-        return organizations
-
-    def _get_action_package_from_dir(
-        self, directory: Path, current_cache, new_cache
-    ) -> Iterator[LocalPackageMetadataInfoDict]:
-        for sub_directory in directory.iterdir():
-            if sub_directory.is_dir():
-                yield from self._get_action_package_from_dir(
-                    sub_directory, current_cache, new_cache
-                )
-
-        if action_package_metadata := self._get_package_metadata(
-            [PackageYamlName.ACTION], directory, current_cache, new_cache
-        ):
-            yield action_package_metadata
-
     def _get_package_metadata(
         self,
-        yaml_file_names: list[PackageYamlName],
         sub: Path,
         curr_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
         new_cache: dict[Path, CachedFileInfo[LocalPackageMetadataInfoDict]],
@@ -203,57 +82,35 @@ class WorkspaceManager:
                 new_cache[sub] = cached_file_info
                 return cached_file_info.value
 
-        for package_yaml_name in yaml_file_names:
-            yaml_file = sub / package_yaml_name.value
+        yaml_file = sub / PackageYamlName.ROBOT.value
 
-            if yaml_file.exists():
-                from sema4ai_ls_core import yaml_wrapper
+        if yaml_file.exists():
+            from sema4ai_ls_core import yaml_wrapper
 
-                try:
+            try:
 
-                    def get_package_metadata(yaml_file_path: Path):
-                        with yaml_file_path.open("r", encoding="utf-8") as stream:
-                            yaml_contents = yaml_wrapper.load(stream)
+                def get_package_metadata(yaml_file_path: Path):
+                    with yaml_file_path.open("r", encoding="utf-8") as stream:
+                        yaml_contents = yaml_wrapper.load(stream)
 
-                        name = yaml_contents.get("name", yaml_file_path.parent.name)
-                        if package_yaml_name == PackageYamlName.AGENT:
-                            try:
-                                name = yaml_contents["agent-package"]["agents"][0][
-                                    "name"
-                                ]
-                            except Exception:
-                                pass
+                    name = yaml_contents.get("name", yaml_file_path.parent.name)
 
-                        robot_metadata: LocalPackageMetadataInfoDict = {
-                            "packageType": self._package_type_by_package_yaml_name(
-                                package_yaml_name
-                            ),
-                            "directory": str(sub),
-                            "filePath": str(yaml_file_path),
-                            "name": name,
-                            "yamlContents": yaml_contents,
-                        }
+                    robot_metadata: LocalPackageMetadataInfoDict = {
+                        "packageType": PackageType.TASK.value,
+                        "directory": str(sub),
+                        "filePath": str(yaml_file_path),
+                        "name": name,
+                        "yamlContents": yaml_contents,
+                    }
 
-                        return robot_metadata
+                    return robot_metadata
 
-                    cached_file_info = new_cache[sub] = CachedFileInfo(
-                        yaml_file, get_package_metadata
-                    )
-                    return cached_file_info.value
+                cached_file_info = new_cache[sub] = CachedFileInfo(
+                    yaml_file, get_package_metadata
+                )
+                return cached_file_info.value
 
-                except Exception:
-                    log.exception(f"Unable to get load metadata for: {yaml_file}")
+            except Exception:
+                log.exception(f"Unable to get load metadata for: {yaml_file}")
 
         return None
-
-    def _package_type_by_package_yaml_name(
-        self, package_yaml_name: PackageYamlName
-    ) -> str:
-        if package_yaml_name == PackageYamlName.AGENT:
-            return PackageType.AGENT.value
-        if package_yaml_name == PackageYamlName.ACTION:
-            return PackageType.ACTION.value
-        if package_yaml_name == PackageYamlName.ROBOT:
-            return PackageType.TASK.value
-
-        return ""

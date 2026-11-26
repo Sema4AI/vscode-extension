@@ -26,6 +26,7 @@ output/**
 # Dev-only files
 dev.py
 codegen/**
+scripts/**
 poetry.lock
 pyproject.toml
 console.ts

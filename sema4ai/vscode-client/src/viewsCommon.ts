@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { LocalPackageMetadataInfo, Range } from "./protocols";
+import { LocalPackageMetadataInfo } from "./protocols";
 
 /**
  * Note: if type is error|info the name is the message to be shown.
@@ -20,44 +20,16 @@ export const NO_PACKAGE_FOUND_MSG = "No package found in current folder";
  * Rename when there is a collective term for Action/Task packages.
  */
 export enum RobotEntryType {
-    ActionPackage = "ActionPackage",
-    Action = "Action",
-    ActionsInActionPackage = "ActionsInActionPackage",
     Robot = "Robot",
     Task = "Task",
     Error = "Error",
     Run = "Run",
     Debug = "Debug",
-    RunAction = "RunAction",
-    DebugAction = "DebugAction",
-    DropDataSource = "DropDataSource",
     ActionsInRobot = "ActionsInRobot",
-    OpenFlowExplorer = "OpenFlowExplorer",
     UploadRobot = "UploadRobot",
     RobotTerminal = "RobotTerminal",
     OpenRobotYaml = "OpenRobotYaml",
     OpenRobotCondaYaml = "OpenRobotCondaYaml",
-    OpenPackageYaml = "OpenPackageYaml",
-    StartActionServer = "StartActionServer",
-    PackageRebuildEnvironment = "PackageRebuildEnvironment",
-    PackagePublishToSema4AIStudioApp = "PackagePublishToSema4AIStudioApp",
-    PackageBuildToWorkspace = "PackageBuildToWorkspace",
-    PackageMetadata = "PackageMetadata",
-    AgentPackage = "AgentPackage",
-    AgentPackageOrganizationForActions = "AgentPackageOrganizationForActions",
-    OpenAgentSpecYaml = "OpenAgentSpecYaml",
-    ActionsInAgentPackage = "ActionsInAgentPackage",
-    PublishAgentToSema4AIStudioApp = "PublishAgentToSema4AIStudioApp",
-    OpenRunbook = "OpenRunbook",
-    ExportAgentPackage = "ExportAgentPackage",
-    CreateActionPackage = "CreateActionPackage",
-    UpdateAgentVersion = "UpdateAgentVersion",
-    RefreshAgentConfiguration = "RefreshAgentConfiguration",
-    ImportActionPackage = "ImportActionPackage",
-    DataSourcesInActionPackage = "DataSourcesInActionPackage",
-    DataSource = "DataSource",
-    AddMCPServer = "AddMCPServer",
-    AddDockerMCPGateway = "AddDockerMCPGateway",
 }
 
 export interface CloudEntry {
@@ -81,12 +53,26 @@ export interface RobotEntry {
 
     // For task
     taskName?: string;
+    isRobotFrameworkTask?: boolean; // Robot Framework tasks can be run but not debugged.
+}
 
-    // For action
-    action_package_uri?: vscode.Uri | undefined;
-    actionName?: string;
-    range?: Range;
-    extraData?: Record<string, any>;
+/**
+ * Whether the given task (its entry in robot.yaml) runs Robot Framework, which
+ * can't be debugged (mirrors the checks in compute_launch.py).
+ */
+export function isRobotFrameworkTask(taskInfo: any): boolean {
+    if (!taskInfo || typeof taskInfo !== "object") {
+        return false;
+    }
+    let command: string[] | undefined = undefined;
+    if (Array.isArray(taskInfo["command"])) {
+        command = taskInfo["command"].map((c: any) => String(c));
+    } else if (typeof taskInfo["shell"] === "string") {
+        command = taskInfo["shell"].trim().split(/\s+/);
+    } else if (taskInfo["robotTaskName"]) {
+        return true;
+    }
+    return command !== undefined && command[0] === "python" && command[1] === "-m" && command[2] === "robot";
 }
 
 export interface FSEntry {

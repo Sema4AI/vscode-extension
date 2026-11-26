@@ -1,3 +1,8 @@
+> **Note:** Publishing to [Open VSX](https://open-vsx.org/extension/sema4ai/sema4ai) is currently
+> disabled because the `VSCODE_OPEN_VSX_TOKEN` secret has expired. Once it's renewed, set
+> `PUBLISH_TO_OPEN_VSX: "true"` in `.github/workflows/release-sema4ai-sdk.yml` and
+> `.github/workflows/pre-release-sema4ai-sdk.yml`.
+
 ## Pre-Release
 
 To release a new **pre-release** version:

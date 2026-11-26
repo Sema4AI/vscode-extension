@@ -8,6 +8,7 @@ from sema4ai_ls_core.core_log import get_logger
 from sema4ai_code import commands
 from sema4ai_code.protocols import (
     IRcc,
+    ProfileDownloadParamsDict,
     ProfileImportParamsDict,
     ProfileListResultTypedDict,
     ProfileSwitchParamsDict,
@@ -15,6 +16,110 @@ from sema4ai_code.protocols import (
 
 log = get_logger(__name__)
 profile_command_dispatcher = _SubCommandDispatcher("_profile")
+
+# Where a Control Room (Robocorp or Sema4.ai) publishes the rcc profile that points
+# rcc at it.
+RCC_PROFILE_WELL_KNOWN_PATH = "/.well-known/rcc-profile.yaml"
+
+# http is only accepted for a Control Room on this computer: the profile becomes rcc's
+# active profile for every tool, so it must not be swappable on the network.
+_LOCAL_HOSTNAMES = ("localhost", "127.0.0.1", "::1")
+
+
+class ProfileDownloadError(Exception):
+    pass
+
+
+def normalize_control_room_origin(url: str) -> str:
+    """
+    Returns the origin (scheme://host[:port]) of the Control Room at `url`.
+
+    `url` may be just a host ("us3.sema4.ai"), in which case https is used.
+    """
+    from urllib.parse import urlsplit
+
+    url = url.strip()
+    if not url:
+        raise ProfileDownloadError("No Control Room address given.")
+    if "://" not in url:
+        url = "https://" + url
+    parts = urlsplit(url)
+    if not parts.hostname or not (
+        parts.scheme == "https"
+        or (parts.scheme == "http" and parts.hostname in _LOCAL_HOSTNAMES)
+    ):
+        raise ProfileDownloadError(
+            f"Not a valid Control Room address: {url!r}. Use an https address such as "
+            "https://us3.sema4.ai (http only for localhost)."
+        )
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+def describe_rcc_profile(contents: str) -> dict:
+    """
+    What the profile points rcc at, to show the user before importing it.
+
+    Best effort: rcc validates the profile when it's imported, so this never fails
+    (missing values are empty).
+    """
+    from sema4ai_ls_core import yaml_wrapper
+
+    cloud_ui = cloud_api = ""
+    other_settings: list[str] = []
+    try:
+        settings = yaml_wrapper.load(contents).get("settings") or {}
+        endpoints = settings.get("endpoints") or {}
+        cloud_ui = str(endpoints.get("cloud-ui") or "")
+        cloud_api = str(endpoints.get("cloud-api") or "")
+        other_settings = [
+            str(key) for key in settings if key not in ("endpoints", "meta")
+        ]
+    except Exception:
+        log.exception("Unable to read the endpoints of the downloaded rcc profile.")
+    return {
+        "cloudUi": cloud_ui,
+        "cloudApi": cloud_api,
+        "otherSettings": other_settings,
+    }
+
+
+def download_rcc_profile(origin: str, target_dir: str) -> dict:
+    """
+    Downloads the rcc profile published by the Control Room at `origin` and
+    saves it in `target_dir` (rcc validates it when it's imported).
+
+    Returns a ProfileDownloadResultTypedDict.
+    """
+    import os
+
+    import sema4ai_http
+
+    from sema4ai_ls_core import uris
+
+    origin = normalize_control_room_origin(origin)
+    url = origin + RCC_PROFILE_WELL_KNOWN_PATH
+    try:
+        response = sema4ai_http.get(url, timeout=30)
+    except Exception as e:
+        log.exception(f"Error downloading the rcc profile from {url}")
+        raise ProfileDownloadError(f"Unable to reach {origin}: {e}")
+
+    if response.status != 200:
+        raise ProfileDownloadError(
+            f"{origin} does not publish an rcc profile "
+            f"({url} returned HTTP {response.status}). Check the address."
+        )
+
+    os.makedirs(target_dir, exist_ok=True)
+    file_path = os.path.join(target_dir, "rcc-profile.yaml")
+    contents = response.text
+    with open(file_path, "w", encoding="utf-8") as stream:
+        stream.write(contents)
+
+    return {
+        "profileUri": uris.from_fs_path(file_path),
+        **describe_rcc_profile(contents),
+    }
 
 
 class _Profile:
@@ -100,6 +205,36 @@ class _Profile:
                 result = True
         finally:
             self._last_rcc_settings = None
+        return {"success": True, "message": None, "result": result}
+
+    @profile_command_dispatcher(commands.SEMA4AI_PROFILE_DOWNLOAD_INTERNAL)
+    def _profile_download(self, params: ProfileDownloadParamsDict) -> ActionResultDict:
+        import shutil
+        import tempfile
+
+        from sema4ai_ls_core.progress_report import progress_context
+
+        self._feedback.metric("vscode.profile.download")
+
+        origin = params.get("origin", "") if isinstance(params, dict) else ""
+        # A directory per download (the client removes it after the import).
+        target_dir = tempfile.mkdtemp(prefix="sema4ai-rcc-profile-")
+        try:
+            with progress_context(
+                self._endpoint, "Download Control Room profile", None
+            ):
+                result = download_rcc_profile(origin, target_dir)
+        except ProfileDownloadError as e:
+            shutil.rmtree(target_dir, ignore_errors=True)
+            return {"success": False, "message": str(e), "result": None}
+        except Exception as e:
+            shutil.rmtree(target_dir, ignore_errors=True)
+            log.exception(f"Error downloading the rcc profile from: {origin}")
+            return {
+                "success": False,
+                "message": f"Error downloading the rcc profile from {origin}: {e}",
+                "result": None,
+            }
         return {"success": True, "message": None, "result": result}
 
     @profile_command_dispatcher(commands.SEMA4AI_PROFILE_LIST_INTERNAL)

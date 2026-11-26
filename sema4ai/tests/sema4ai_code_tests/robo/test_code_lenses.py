@@ -76,20 +76,6 @@ def _fix_code_lenses(code_lenses: list | None, root):
                             arg_list[i] = os.path.relpath(
                                 os.path.normcase(arg), start=os.path.normcase(root)
                             )
-                elif isinstance(arg_list, dict):
-                    if "uri" in arg_list:
-                        arg_list["uri"] = os.path.basename(arg_list["uri"])
-
-                    if "robot" in arg_list:
-                        if "filePath" in arg_list["robot"]:
-                            arg_list["robot"]["filePath"] = os.path.basename(
-                                arg_list["robot"]["filePath"]
-                            )
-
-                        if "directory" in arg_list["robot"]:
-                            arg_list["robot"]["directory"] = os.path.basename(
-                                arg_list["robot"]["directory"]
-                            )
     return code_lenses
 
 
@@ -98,8 +84,6 @@ def _fix_code_lenses(code_lenses: list | None, root):
     [
         "simple",
         "no_import",
-        "actions",
-        "queries",
     ],
 )
 def test_call_compute_code_lenses_directly(
@@ -127,33 +111,6 @@ from robocorp.tasks import task
 def my_entry_point():
     pass
     """
-
-    elif scenario == "queries":
-        txt = """
-from sema4ai.data import query, predict
-
-@query
-def my_query_entry_point():
-    pass
-
-@predict
-def my_predict_entry_point():
-    pass
-    """
-
-        # We must have a package.yaml file in the root directory for actions to be searched for.
-        (root / "package.yaml").write_text("")
-
-    elif scenario == "actions":
-        txt = """
-from sema4ai.actions import action
-@action
-def my_entry_point():
-    pass
-    """
-
-        # We must have a package.yaml file in the root directory for actions to be searched for.
-        (root / "package.yaml").write_text("")
 
     elif scenario == "no_import":
         txt = """

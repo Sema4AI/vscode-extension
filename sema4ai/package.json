@@ -2,22 +2,18 @@
     "name": "sema4ai",
     "publisher": "sema4ai",
     "displayName": "Sema4.ai SDK",
-    "description": "Sema4.ai SDK: Visual Studio Code Extension for AI Agent, Actions and Automation Tasks development",
+    "description": "Sema4.ai SDK: Visual Studio Code Extension for Automation Tasks development",
     "author": {
         "name": "Sema4.ai",
         "email": "dev@sema4.ai",
         "url": "https://sema4.ai"
     },
     "homepage": "https://sema4.ai",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Sema4AI/vscode-extension/.git"
-    },
     "license": "SEE LICENSE",
-    "version": "2.19.0",
+    "version": "3.0.0",
     "icon": "images/icon.png",
     "engines": {
-        "vscode": "^1.65.0"
+        "vscode": "^1.101.0"
     },
     "categories": [
         "Debuggers"
@@ -25,28 +21,25 @@
     "scripts": {
         "setup": "npm install",
         "vscode:prepublish": "cd vscode-client && npm run compile && cd ..",
-        "compile": "cd vscode-client && tsc -p ./ && cd ..",
+        "compile": "cd vscode-client && tsc -p ./ && cd .. && node scripts/writeBuildInfo.js",
         "watch": "cd vscode-client && tsc -watch -p ./ && cd ..",
         "pretest": "cd vscode-client && tsc -p ./ && cd ..",
         "test": "node ./vscode-client/out/tests/runTests.js",
         "prettier": "npx prettier -c vscode-client/**/*.ts",
         "prettier-fix": "npx prettier -w vscode-client/**/*.ts",
-        "vsce:package": "vsce package",
-        "vsce:publish": "vsce publish"
+        "vsce:package": "vsce package --allow-missing-repository",
+        "vsce:publish": "vsce publish --allow-missing-repository"
     },
     "devDependencies": {
-        "@types/adm-zip": "^0.5.0",
         "@types/mocha": "^2.2.32",
-        "@types/node": "^15.0.00",
+        "@types/node": "~22.15.35",
         "@types/rimraf": "^3.0.2",
-        "@types/vscode": "1.65.0",
-        "@vscode/vsce": "^3.2.0",
+        "@types/vscode": "1.101.0",
+        "@vscode/vsce": "^4.1.1",
         "prettier": "2.4.1",
-        "typescript": "^4.5.4",
-        "vscode-test": "1.5.1"
+        "typescript": "^5.9.3"
     },
     "dependencies": {
-        "adm-zip": "^0.5.9",
         "http-proxy-agent": "^2.1.0",
         "https-proxy-agent": "^2.2.4",
         "path-exists": "^4.0.0",
@@ -68,18 +61,11 @@
             }
         ]
     },
-    "taskDefinitions": [
-        {
-            "type": "Sema4.ai: dev-task"
-        }
-    ],
     "activationEvents": [
         "onCommand:sema4ai.getLanguageServerPython",
         "onCommand:sema4ai.getLanguageServerPythonInfo",
         "onCommand:sema4ai.getPluginsDir",
         "onCommand:sema4ai.createRobot",
-        "onCommand:sema4ai.createActionPackage",
-        "onCommand:sema4ai.createTaskOrActionOrAgentPackage",
         "onCommand:sema4ai.listRobotTemplates.internal",
         "onCommand:sema4ai.createRobot.internal",
         "onCommand:sema4ai.uploadRobotToCloud",
@@ -93,16 +79,9 @@
         "onCommand:sema4ai.uploadToExistingRobot.internal",
         "onCommand:sema4ai.runInRcc.internal",
         "onCommand:sema4ai.runRobotRcc",
-        "onCommand:sema4ai.runActionFromActionPackage",
         "onCommand:sema4ai.debugRobotRcc",
-        "onCommand:sema4ai.debugActionFromActionPackage",
         "onCommand:sema4ai.robotsViewTaskRun",
         "onCommand:sema4ai.robotsViewTaskDebug",
-        "onCommand:sema4ai.robotsViewActionRun",
-        "onCommand:sema4ai.robotsViewActionDebug",
-        "onCommand:sema4ai.robotsViewActionEditInput",
-        "onCommand:sema4ai.configureActionInput",
-        "onCommand:sema4ai.robotsViewActionOpen",
         "onCommand:sema4ai.runRobocorpsPythonTask",
         "onCommand:sema4ai.debugRobocorpsPythonTask",
         "onCommand:sema4ai.saveInDiskLRU",
@@ -134,7 +113,6 @@
         "onCommand:sema4ai.copyLocatorToClipboard.internal",
         "onCommand:sema4ai.openRobotTreeSelection",
         "onCommand:sema4ai.openRobotCondaTreeSelection",
-        "onCommand:sema4ai.openPackageYamlTreeSelection",
         "onCommand:sema4ai.openExternally",
         "onCommand:sema4ai.openInVSCode",
         "onCommand:sema4ai.revealInExplorer",
@@ -166,68 +144,21 @@
         "onCommand:sema4ai.setConnectedVaultWorkspace.internal",
         "onCommand:sema4ai.openVaultHelp",
         "onCommand:sema4ai.clearEnvAndRestart",
+        "onCommand:sema4ai.copyBuildInfo.internal",
         "onCommand:sema4ai.showOutput",
         "onCommand:sema4ai.showInterpreterEnvError",
-        "onCommand:sema4ai.openFlowExplorerTreeSelection",
         "onCommand:sema4ai.profileImport",
         "onCommand:sema4ai.profileImport.internal",
         "onCommand:sema4ai.profileSwitch",
         "onCommand:sema4ai.profileSwitch.internal",
         "onCommand:sema4ai.profileList.internal",
+        "onCommand:sema4ai.profileDownload.internal",
         "onCommand:sema4ai.hasPreRunScripts.internal",
         "onCommand:sema4ai.runPreRunScripts.internal",
         "onCommand:sema4ai.getPyPiBaseUrls.internal",
-        "onCommand:sema4ai.startActionServer",
-        "onCommand:sema4ai.downloadActionServer",
-        "onCommand:sema4ai.startActionServer.internal",
-        "onCommand:sema4ai.listActions.internal",
         "onCommand:sema4ai.packageEnvironmentRebuild",
-        "onCommand:sema4ai.actionPackagePublishToSema4AIStudioApp",
-        "onCommand:sema4ai.listActionTemplates.internal",
-        "onCommand:sema4ai.createActionPackage.internal",
-        "onCommand:sema4ai.actionServerCloudLogin",
-        "onCommand:sema4ai.actionServerCloudLogin.internal",
-        "onCommand:sema4ai.actionServerCloudVerifyLogin.internal",
-        "onCommand:sema4ai.actionServerCloudListOrganizations.internal",
-        "onCommand:sema4ai.actionServerPackageBuild",
-        "onCommand:sema4ai.actionServerPackageBuild.internal",
-        "onCommand:sema4ai.actionServerPackageUpload.internal",
-        "onCommand:sema4ai.actionServerPackageStatus.internal",
-        "onCommand:sema4ai.actionServerPackageSetChangelog.internal",
-        "onCommand:sema4ai.actionServerPackagePublish",
-        "onCommand:sema4ai.actionServerPackageMetadata",
-        "onCommand:sema4ai.actionServerPackageMetadata.internal",
-        "onCommand:sema4ai.oauth2.logout",
-        "onCommand:sema4ai.oauth2.open_settings",
         "onCommand:sema4ai.rccDownload.internal",
-        "onCommand:sema4ai.actionServerDownload.internal",
-        "onCommand:sema4ai.agentCliDownload.internal",
-        "onCommand:sema4ai.actionServerVersion.internal",
-        "onCommand:sema4ai.agentCliVersion.internal",
-        "onCommand:sema4ai.createAgentPackage",
-        "onCommand:sema4ai.createAgentPackage.internal",
-        "onCommand:sema4ai.packAgentPackage",
-        "onCommand:sema4ai.packAgentPackage.internal",
-        "onCommand:sema4ai.openRunbookTreeSelection",
-        "onCommand:sema4ai.getRunbookPathFromAgentSpec.internal",
-        "onCommand:sema4ai.agentPackagePublishToSema4AIStudioApp",
-        "onCommand:sema4ai.agentPackageImport",
-        "onCommand:sema4ai.refreshAgentSpec",
-        "onCommand:sema4ai.refreshAgentSpec.internal",
-        "onCommand:sema4ai.updateAgentVersion",
-        "onCommand:sema4ai.updateAgentVersion.internal",
         "onCommand:sema4ai.collapseAllEntries",
-        "onCommand:sema4ai.importActionPackage",
-        "onCommand:sema4ai.runActionPackageDevTask",
-        "onCommand:sema4ai.getActionsMetadata",
-        "onCommand:sema4ai.dropDataSource",
-        "onCommand:sema4ai.setupDataSource",
-        "onCommand:sema4ai.openDataSourceDefinition",
-        "onCommand:sema4ai.dropAllDataSources",
-        "onCommand:sema4ai.setupAllDataSources",
-        "onCommand:sema4ai.fixWrongAgentImport",
-        "onCommand:sema4ai.addMCPServer",
-        "onCommand:sema4ai.addDockerMCPGateway",
         "onDebugInitialConfigurations",
         "onDebugResolve:sema4ai",
         "onView:sema4ai-task-packages-tree",
@@ -307,16 +238,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown."
-                },
-                "sema4ai.codeLens.actionsLaunch": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Specifies whether the 'Run Action' and 'Debug Action' code lenses should be shown."
-                },
-                "sema4ai.codeLens.devTask": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Specifies whether the 'Run Task' and 'Debug Task' code lenses should be shown in `dev-tasks` in `package.yaml`."
                 }
             }
         },
@@ -331,7 +252,7 @@
             "panel": [
                 {
                     "id": "sema4ai-python-view-output",
-                    "title": "Task/Action Output",
+                    "title": "Task Output",
                     "icon": "$(output)"
                 }
             ]
@@ -340,8 +261,8 @@
             "sem4ai-packages": [
                 {
                     "id": "sema4ai-task-packages-tree",
-                    "name": "Agent/Action/Task Packages",
-                    "contextualTitle": "Agent/Action/Task Packages"
+                    "name": "Task Packages",
+                    "contextualTitle": "Task Packages"
                 },
                 {
                     "id": "sema4ai-package-content-tree",
@@ -365,8 +286,8 @@
                 {
                     "type": "webview",
                     "id": "sema4ai.python.view.output",
-                    "name": "Task/Action Output",
-                    "contextualTitle": "Task/Action Output"
+                    "name": "Task Output",
+                    "contextualTitle": "Task Output"
                 }
             ]
         },
@@ -424,20 +345,8 @@
                 "icon": "$(add)"
             },
             {
-                "command": "sema4ai.createActionPackage",
-                "title": "Create Action Package",
-                "category": "Sema4.ai",
-                "icon": "$(add)"
-            },
-            {
-                "command": "sema4ai.createTaskOrActionOrAgentPackage",
-                "title": "Create Agent, Action or Task Package",
-                "category": "Sema4.ai",
-                "icon": "$(add)"
-            },
-            {
                 "command": "sema4ai.uploadRobotToCloud",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai"
             },
             {
@@ -452,18 +361,8 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.runActionFromActionPackage",
-                "title": "Run Action (from Action Package)",
-                "category": "Sema4.ai"
-            },
-            {
                 "command": "sema4ai.debugRobotRcc",
                 "title": "Debug Task Package",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.debugActionFromActionPackage",
-                "title": "Debug Action (from Action Package)",
                 "category": "Sema4.ai"
             },
             {
@@ -483,41 +382,6 @@
                     "light": "images/light/debug.svg",
                     "dark": "images/dark/debug.svg"
                 }
-            },
-            {
-                "command": "sema4ai.robotsViewActionRun",
-                "title": "Launch Action",
-                "category": "Sema4.ai",
-                "icon": {
-                    "light": "images/light/run.svg",
-                    "dark": "images/dark/run.svg"
-                }
-            },
-            {
-                "command": "sema4ai.robotsViewActionDebug",
-                "title": "Debug Action",
-                "category": "Sema4.ai",
-                "icon": {
-                    "light": "images/light/debug.svg",
-                    "dark": "images/dark/debug.svg"
-                }
-            },
-            {
-                "command": "sema4ai.robotsViewActionEditInput",
-                "title": "Configure Action Input",
-                "category": "Sema4.ai",
-                "icon": "$(symbol-variable)"
-            },
-            {
-                "command": "sema4ai.configureActionInput",
-                "title": "Configure Action Input",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.robotsViewActionOpen",
-                "title": "Open Action",
-                "category": "Sema4.ai",
-                "icon": "$(go-to-file)"
             },
             {
                 "command": "sema4ai.runRobocorpsPythonTask",
@@ -684,12 +548,6 @@
                 "icon": "$(list-tree)"
             },
             {
-                "command": "sema4ai.openPackageYamlTreeSelection",
-                "title": "Configure Action Package",
-                "category": "Sema4.ai",
-                "icon": "$(list-tree)"
-            },
-            {
                 "command": "sema4ai.openExternally",
                 "title": "Open externally",
                 "category": "Sema4.ai",
@@ -715,7 +573,7 @@
             },
             {
                 "command": "sema4ai.cloudUploadRobotTreeSelection",
-                "title": "Upload Task Package to Control Room",
+                "title": "Publish Task Package to Control Room",
                 "category": "Sema4.ai",
                 "icon": "$(cloud-upload)"
             },
@@ -858,12 +716,6 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.openFlowExplorerTreeSelection",
-                "title": "Open Flow Explorer",
-                "category": "Sema4.ai",
-                "icon": "$(type-hierarchy-sub)"
-            },
-            {
                 "command": "sema4ai.profileImport",
                 "title": "Import Profile",
                 "category": "Sema4.ai",
@@ -891,6 +743,11 @@
                 "category": "Sema4.ai"
             },
             {
+                "command": "sema4ai.profileDownload.internal",
+                "title": "Download the rcc profile a Control Room publishes",
+                "category": "Sema4.ai"
+            },
+            {
                 "command": "sema4ai.hasPreRunScripts.internal",
                 "title": "Has Pre Run Scripts",
                 "category": "Sema4.ai"
@@ -906,140 +763,8 @@
                 "category": "Sema4.ai"
             },
             {
-                "command": "sema4ai.startActionServer",
-                "title": "Start Action Server",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.downloadActionServer",
-                "title": "Download Action Server",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.startActionServer.internal",
-                "title": "Start Action Server (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.listActions.internal",
-                "title": "Lists the actions available in an action package given a root dir (internal)",
-                "category": "Sema4.ai"
-            },
-            {
                 "command": "sema4ai.packageEnvironmentRebuild",
                 "title": "Rebuild Package Environment",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionPackagePublishToSema4AIStudioApp",
-                "title": "Publish Action Package to Sema4.ai Studio",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerCloudLogin",
-                "title": "Authenticate the Action Server to Control Room",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerCloudLogin.internal",
-                "title": "Authenticate the Action Server to Control Room (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerCloudVerifyLogin.internal",
-                "title": "Verify that the action server Control Room credentials are saved (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerCloudListOrganizations.internal",
-                "title": "List Action Server authenticated organizations (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageBuild",
-                "title": "Build Action Package (zip)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageBuild.internal",
-                "title": "Build Action Package (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageUpload.internal",
-                "title": "Upload action package to the Control Room (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageStatus.internal",
-                "title": "Get action package upload status from the Control Room (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageSetChangelog.internal",
-                "title": "Set action package changelog entry in the Control Room (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackagePublish",
-                "title": "Publish Action Package to Control Room",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageMetadata",
-                "title": "Preview the Package OpenAPI Spec (metadata.json)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.actionServerPackageMetadata.internal",
-                "title": "Preview the Package OpenAPI Spec (metadata.json) (internal)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.oauth2.logout",
-                "title": "OAuth2 logout",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.oauth2.open_settings",
-                "title": "Open Oauth2 Settings",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.createAgentPackage",
-                "title": "Create Agent Package",
-                "category": "Sema4.ai",
-                "icon": "$(add)"
-            },
-            {
-                "command": "sema4ai.packAgentPackage",
-                "title": "Export Agent Package (Zip)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.openRunbookTreeSelection",
-                "title": "Edit Runbook",
-                "category": "Sema4.ai",
-                "icon": "$(go-to-file)"
-            },
-            {
-                "command": "sema4ai.agentPackagePublishToSema4AIStudioApp",
-                "title": "Publish Agent Package to Sema4.ai Studio",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.agentPackageImport",
-                "title": "Import Agent Package (Zip)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.refreshAgentSpec",
-                "title": "Refresh Agent Configuration",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.updateAgentVersion",
-                "title": "Update Agent Version",
                 "category": "Sema4.ai"
             },
             {
@@ -1047,66 +772,6 @@
                 "title": "Collapse All Entries",
                 "category": "Sema4.ai",
                 "icon": "$(collapse-all)"
-            },
-            {
-                "command": "sema4ai.importActionPackage",
-                "title": "Import Action Package",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.runActionPackageDevTask",
-                "title": "Run dev-task (from Action Package)",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.getActionsMetadata",
-                "title": "Get Actions Metadata",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.dropDataSource",
-                "title": "Remove Data Source",
-                "category": "Sema4.ai",
-                "icon": "$(trash)"
-            },
-            {
-                "command": "sema4ai.setupDataSource",
-                "title": "Setup Data Source",
-                "category": "Sema4.ai",
-                "icon": "$(diff-added)"
-            },
-            {
-                "command": "sema4ai.openDataSourceDefinition",
-                "title": "Open Data Source definition",
-                "category": "Sema4.ai",
-                "icon": "$(go-to-file)"
-            },
-            {
-                "command": "sema4ai.dropAllDataSources",
-                "title": "Remove All Data Sources",
-                "category": "Sema4.ai",
-                "icon": "$(trash)"
-            },
-            {
-                "command": "sema4ai.setupAllDataSources",
-                "title": "Setup All Data Sources",
-                "category": "Sema4.ai",
-                "icon": "$(diff-added)"
-            },
-            {
-                "command": "sema4ai.fixWrongAgentImport",
-                "title": "Fix wrong agent import",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.addMCPServer",
-                "title": "Add MCP Server",
-                "category": "Sema4.ai"
-            },
-            {
-                "command": "sema4ai.addDockerMCPGateway",
-                "title": "Add Docker MCP Gateway",
-                "category": "Sema4.ai"
             }
         ],
         "menus": {
@@ -1117,7 +782,7 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "sema4ai.createTaskOrActionOrAgentPackage",
+                    "command": "sema4ai.createRobot",
                     "when": "view == sema4ai-task-packages-tree",
                     "group": "navigation"
                 },
@@ -1145,33 +810,13 @@
             "view/item/context": [
                 {
                     "command": "sema4ai.robotsViewTaskRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "when": "view == sema4ai-task-packages-tree && viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                     "group": "inline@1"
                 },
                 {
                     "command": "sema4ai.robotsViewTaskDebug",
                     "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
                     "group": "inline@2"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionOpen",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionEditInput",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "inline@2"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "inline@3"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionDebug",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "inline@4"
                 },
                 {
                     "command": "sema4ai.openRobotTreeSelection",
@@ -1194,64 +839,14 @@
                     "group": "inline"
                 },
                 {
-                    "command": "sema4ai.openFlowExplorerTreeSelection",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionsInRobotItem",
-                    "group": "inline"
-                },
-                {
                     "command": "sema4ai.robotsViewTaskRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
+                    "when": "view == sema4ai-task-packages-tree && viewItem =~ /^(taskItem|robotFrameworkTaskItem)$/",
                     "group": "navigation"
                 },
                 {
                     "command": "sema4ai.robotsViewTaskDebug",
                     "when": "view == sema4ai-task-packages-tree && viewItem == taskItem",
                     "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionRun",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionDebug",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionEditInput",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionOpen",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == actionItem",
-                    "group": "navigation"
-                },
-                {
-                    "command": "sema4ai.openDataSourceDefinition",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
-                    "group": "inline"
-                },
-                {
-                    "command": "sema4ai.setupDataSource",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
-                    "group": "inline"
-                },
-                {
-                    "command": "sema4ai.dropDataSource",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourceItem",
-                    "group": "inline"
-                },
-                {
-                    "command": "sema4ai.setupAllDataSources",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourcesInActionPackageItem",
-                    "group": "inline"
-                },
-                {
-                    "command": "sema4ai.dropAllDataSources",
-                    "when": "view == sema4ai-task-packages-tree && viewItem == datasourcesInActionPackageItem",
-                    "group": "inline"
                 },
                 {
                     "command": "sema4ai.revealRobotInExplorer",
@@ -1406,35 +1001,11 @@
             ],
             "commandPalette": [
                 {
-                    "command": "sema4ai.createTaskOrActionOrAgentPackage",
-                    "when": "false"
-                },
-                {
                     "command": "sema4ai.robotsViewTaskRun",
                     "when": "false"
                 },
                 {
                     "command": "sema4ai.robotsViewTaskDebug",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionRun",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionDebug",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionEditInput",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.configureActionInput",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.robotsViewActionOpen",
                     "when": "false"
                 },
                 {
@@ -1495,10 +1066,6 @@
                 },
                 {
                     "command": "sema4ai.openRobotCondaTreeSelection",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.openPackageYamlTreeSelection",
                     "when": "false"
                 },
                 {
@@ -1582,10 +1149,6 @@
                     "when": "false"
                 },
                 {
-                    "command": "sema4ai.openFlowExplorerTreeSelection",
-                    "when": "false"
-                },
-                {
                     "command": "sema4ai.profileImport.internal",
                     "when": "false"
                 },
@@ -1598,6 +1161,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "sema4ai.profileDownload.internal",
+                    "when": "false"
+                },
+                {
                     "command": "sema4ai.hasPreRunScripts.internal",
                     "when": "false"
                 },
@@ -1607,70 +1174,6 @@
                 },
                 {
                     "command": "sema4ai.getPyPiBaseUrls.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.startActionServer.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.listActions.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerCloudLogin",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerCloudLogin.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerCloudVerifyLogin.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerCloudListOrganizations.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackageBuild.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackageUpload.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackageStatus.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackageSetChangelog.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackagePublish",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.actionServerPackageMetadata.internal",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.openRunbookTreeSelection",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.getActionsMetadata",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.setupDataSource",
-                    "when": "false"
-                },
-                {
-                    "command": "sema4ai.openDataSourceDefinition",
                     "when": "false"
                 }
             ]

@@ -1,5 +1,57 @@
 ## Unreleased
 
+- **Link to Control Room** now asks which Control Room to link to when no rcc profile is active: Sema4.ai (US3) (default), Robocorp Control Room, or another Control Room by its address. Linking to a Sema4.ai Control Room downloads its rcc profile and makes it the active rcc profile, after a confirmation that shows what the profile points rcc at (every tool that uses rcc on the computer then uses that Control Room). Another Control Room must use https (http only for localhost). If the link isn't completed, you're asked whether to keep the profile. Unlinking switches rcc back to its defaults. The Control Room view shows which Control Room you are linked to, has an **Unlink from Control Room** item, and updates when the active rcc profile is switched outside of VS Code.
+- After linking to Control Room, the workspace for Vault and Storage is connected right away (the only workspace is picked automatically) instead of asking first whether to connect one.
+- Logs and log files no longer use the old "Robocorp Code" name: the output shows "Error initializing Sema4.ai language server." when the language server fails to start, crash logs are written to `~/sema4ai_code_critical.log` and `~/sema4ai_code_dap_critical.log` (was `robocorp_code_critical.log` and `robocorp_code_dap_critical.log`), and Submit Issue writes `sema4ai_issue_report_<timestamp>.json` in the temp folder. Crash logs from earlier versions stay under the old names.
+
+- CVE updates: `pillow` updated to 13.0.0; npm build dependencies updated (`@vscode/vsce` 4.1.1, `qs` 6.17.1, `@azure/msal-node` 7.2.3)
+
+## New in 3.0.0 (2026-11-16)
+
+- The Marketplace README now describes version 3: Task Packages that run on Robocorp and the Sema4.ai Task Engine
+- **Agent and Action Packages are no longer supported.** Version 3 of the extension is for Task Packages (`robot.yaml`) only. To keep working with Agent and Action Packages (legacy agent platform), install version 2.x: see [Installing the Sema4.ai SDK (legacy agent platform)](https://sema4.ai/docs/build-agents/develop-actions/install-development-tools#sema4ai-vs-code-extension).
+  - Removed all Agent Package commands (create, import, export, publish to Sema4.ai Studio, runbook, agent configuration and version, MCP servers)
+  - Removed all Action Package commands (create, import, run/debug actions, action inputs, dev-tasks, Action Server, build/publish, OAuth2)
+  - Removed the Data Source commands and the integration with the Sema4.ai Data Access extension
+  - Removed the `@action` and `dev-tasks` code lenses (settings `sema4ai.codeLens.actionsLaunch` and `sema4ai.codeLens.devTask`) and the linting and hover for `package.yaml` and `agent-spec.yaml`
+  - The Packages view is now "Task Packages"
+  - A one-time notice is shown when a workspace has an Agent or Action Package
+- Base environment updated to **Python 3.13** (`python=3.13.18`) and latest dependencies: `playwright` 1.64.1, `pywin32` 311, `psutil` 7.2.2, `comtypes` 1.4.16, `java-access-bridge-wrapper` 2.0.0, `python-mss` 10.2.0, `pyscreeze` 1.0.1, `msgspec` 0.22.0, `pyyaml` 6.0.3, `sema4ai-http-helper` 2.1.2
+- Base environment: removed packages only used by the Agent/Action Package features (`ruamel.yaml`, `tree-sitter`, `tree-sitter-yaml`, `sema4ai-common`, `ruff`)
+- "Upload Task Package to Control Room" is now "Publish Task Package to Control Room". Publishing to an existing Task Package no longer says it overwrites it: the dialog now says it publishes a new version that replaces the current version in Control Room immediately. The whole flow now says "Task Package" instead of "Robot".
+- Fix an error when the publish confirmation is dismissed with Escape
+- The Control Room view shows the extension version, commit and build time as its last line. Click it to copy them to the clipboard.
+- **Robot Framework tasks no longer need the Robot Framework Language Server extension.** *Run Task* runs them with rcc. They can no longer be debugged: *Debug Task* is hidden for them, and a debug launch shows "Debugging Robot Framework tasks is not supported. Use Run Task instead."
+- "Open Playwright Recorder" now explains that `robocorp-browser` or `playwright` must be added to the Task Package's `conda.yaml` when the environment doesn't have `playwright` (it used to show a generic error with a traceback in the output)
+- Fix "Open Playwright Recorder" failing when the Chromium for the Task Package's `playwright` version isn't installed yet: the retry installed Google Chrome instead of the Chromium the recorder launches
+- Java Locator: fixed the "Java Locator: undefined" error notification shown every time the Java applications were listed (even when listing them worked)
+- Java Locator: fixed the inspector freezing when going back to the Java tab (i.e.: after switching to the Windows tab), which also made the other locators stop responding. The first list of Java applications could also miss an application.
+
+## New in 2.21.0 (2026-11-10)
+
+- Base environment now pins `openssl=3.5.9`, the OpenSSL long-term support line
+- Base environment now pins `playwright==1.64.1`, which bundles Node.js `24.22.1`
+- Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
+- Update RCC to `v21.4.2`
+- Base environment now pins `uv=0.13.7`
+- `conda.yaml` and `package.yaml`: no longer suggests updating `openssl` to the latest version (like `python` and `uv`, the version set in the template should be kept); versions older than `3.5.9` show a warning to update
+
+## New in 2.20.0 (2026-10-08)
+
+- **macOS Intel (x64) is no longer supported.** The extension is no longer published for macOS Intel; on macOS, a Mac with Apple Silicon (arm64) is required. Supported platforms are Windows x64, Linux x64 and macOS arm64.
+  - On an Intel Mac, keep using version `2.19.0` (Extensions view: right-click Sema4.ai SDK > _Install Specific Version..._).
+- Base environment now pins `openssl=3.6.4` (previously OpenSSL 3.5.0 was bundled) ([#249](https://github.com/Sema4AI/vscode-extension/issues/249))
+  - Prebuilt base environments rebuilt for all supported platforms (Windows, Linux and macOS Apple Silicon)
+- CVE updates: npm dependencies (removed unused `adm-zip` and `vscode-test`), `pillow` updated to `12.3`, Python lock files refreshed
+- VS Code `1.101.0` or newer is now required
+- Update RCC to `v21.3.0`
+- Removed the non-working _Open Flow Explorer_ action from Task Packages (it relied on a Robot Framework Language Server command that no longer exists)
+- Java Locator: fixed detecting Java applications with Java 9 or newer
+  - The Java Access Bridge is taken from `RC_JAVA_ACCESS_BRIDGE_DLL` if set, otherwise it's searched from `JAVA_HOME`, `java` in the `PATH`, the Windows registry and the usual Java installation folders
+  - If it can't be found, an error explains how to set `RC_JAVA_ACCESS_BRIDGE_DLL` (previously the list of applications was just empty)
+  - Fixed selecting a Java application (`CoInitialize has not been called` error, and window titles such as `Save or Discard` or `File > Open` not being matched)
+  - Java applications are now listed right away when the Java Locator opens (the first list could be empty)
+
 ## New in 2.19.0 (2025-12-17)
 
 - CVE updates
