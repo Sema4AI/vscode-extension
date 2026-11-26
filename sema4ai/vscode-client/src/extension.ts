@@ -745,7 +745,7 @@ export async function doActivate(context: ExtensionContext, C: CommandRegistry) 
             "Took: " + startLsTiming.getTotalElapsedAsStr() + " to initialize Sema4.ai Language Server."
         );
     } catch (error) {
-        logError("Error initializing Robocorp code.", error, "ERROR_INITIALIZING_ROBOCORP_CODE_LANG_SERVER");
+        logError("Error initializing Sema4.ai language server.", error, "ERROR_INITIALIZING_ROBOCORP_CODE_LANG_SERVER");
     }
 
     // Note: start the async ones below but don't await on them (the extension should be considered initialized

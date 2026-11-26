@@ -27,7 +27,7 @@ if __file__.endswith((".pyc", ".pyo")):
 LOG_FORMAT = "%(asctime)s UTC pid: %(process)d - %(threadName)s - %(levelname)s - %(name)s\n%(message)s\n\n"
 
 _critical_error_log_file = os.path.join(
-    os.path.expanduser("~"), "robocorp_code_critical.log"
+    os.path.expanduser("~"), "sema4ai_code_critical.log"
 )
 
 

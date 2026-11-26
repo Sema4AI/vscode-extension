@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Logs and log files no longer use the old "Robocorp Code" name: the output shows "Error initializing Sema4.ai language server." when the language server fails to start, crash logs are written to `~/sema4ai_code_critical.log` and `~/sema4ai_code_dap_critical.log` (was `robocorp_code_critical.log` and `robocorp_code_dap_critical.log`), and Submit Issue writes `sema4ai_issue_report_<timestamp>.json` in the temp folder. Crash logs from earlier versions stay under the old names.
+
 ## New in 3.0.0 (2026-11-16)
 
 - The Marketplace README now describes version 3: Task Packages that run on Robocorp and the Sema4.ai Task Engine
