@@ -4,6 +4,7 @@
 - After linking to Control Room, the workspace for Vault and Storage is connected right away (the only workspace is picked automatically) instead of asking first whether to connect one.
 - Logs and log files no longer use the old "Robocorp Code" name: the output shows "Error initializing Sema4.ai language server." when the language server fails to start, crash logs are written to `~/sema4ai_code_critical.log` and `~/sema4ai_code_dap_critical.log` (was `robocorp_code_critical.log` and `robocorp_code_dap_critical.log`), and Submit Issue writes `sema4ai_issue_report_<timestamp>.json` in the temp folder. Crash logs from earlier versions stay under the old names.
 - The inspector (Locators) uses the updated `@robocorp` design system and follows the VS Code light or dark theme, also when the theme is switched while it is open. The page background is the editor background.
+- **Windows Locator** can test locators of deeply nested elements (i.e.: inside Electron apps, ~20 levels below the window): if nothing matches 12 levels deep, Test Locator, Test Rule and highlighting search again up to 30 levels. When a robot wouldn't find the element with its default `search_depth` of 8, the Locator shows the `search_depth` it needs (i.e.: `window.find(locator, search_depth=19)`).
 
 - CVE updates: `pillow` updated to 13.0.0; npm build dependencies updated (`@vscode/vsce` 4.1.1, `qs` 6.17.1, `@azure/msal-node` 7.2.3)
 
