@@ -18,7 +18,7 @@ import {
     treeViewIdToTreeView,
 } from "./viewsCommon";
 import { getSelectedRobot, onSelectedRobotChanged, onChangedRobotSelection } from "./viewsSelection";
-import { CloudTreeDataProvider } from "./viewsRobocorp";
+import { CloudTreeDataProvider, refreshCloudTreeViewIfProfileChanged } from "./viewsRobocorp";
 import { RobotsTreeDataProvider } from "./viewsRobots";
 import { ResourcesTreeDataProvider } from "./viewsResources";
 import * as path from "path";
@@ -104,6 +104,20 @@ export function registerViews(context: ExtensionContext) {
     });
     treeViewIdToTreeView.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, viewsCloudTree);
     treeViewIdToTreeDataProvider.set(TREE_VIEW_SEMA4AI_CLOUD_TREE, cloudTreeDataProvider);
+    // The active rcc profile can be switched outside of VS Code: check it when the
+    // Control Room view is shown again or VS Code gets the focus back while it's shown.
+    context.subscriptions.push(
+        viewsCloudTree.onDidChangeVisibility((e) => {
+            if (e.visible) {
+                refreshCloudTreeViewIfProfileChanged();
+            }
+        }),
+        vscode.window.onDidChangeWindowState((e) => {
+            if (e.focused && viewsCloudTree.visible) {
+                refreshCloudTreeViewIfProfileChanged();
+            }
+        })
+    );
 
     // Robots (i.e.: list of robots, not its contents)
     const robotsTreeDataProvider = new RobotsTreeDataProvider();

@@ -8,12 +8,16 @@ import { TREE_VIEW_SEMA4AI_CLOUD_TREE } from "./robocorpViews";
 import { getWorkspaceDescription } from "./ask";
 import { logError } from "./channel";
 import { ActionResult, IAccountInfo, IVaultInfo } from "./protocols";
+import { getLinkedControlRoomLabel } from "./controlRoom";
 
 export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry> {
     private _onDidChangeTreeData: vscode.EventEmitter<CloudEntry | null> = new vscode.EventEmitter<CloudEntry | null>();
     readonly onDidChangeTreeData: vscode.Event<CloudEntry | null> = this._onDidChangeTreeData.event;
 
     public refreshOnce = false;
+
+    // The active rcc profile shown in the view (undefined until the view is filled).
+    public shownProfile: string | undefined = undefined;
 
     fireRootChange() {
         this._onDidChangeTreeData.fire(null);
@@ -39,10 +43,30 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
             });
         } else {
             const accountInfo: IAccountInfo = accountInfoResult.result;
+            const profileListResult = await profileListResultPromise;
+            const controlRoomLabel = getLinkedControlRoomLabel(
+                profileListResult?.success ? profileListResult.result : undefined
+            );
             ret.push({
-                "label": "Linked: " + accountInfo.fullname + " (" + accountInfo.email + ")",
+                "label":
+                    "Linked: " +
+                    accountInfo.fullname +
+                    " (" +
+                    accountInfo.email +
+                    ")" +
+                    (controlRoomLabel ? " · " + controlRoomLabel : ""),
                 "iconPath": "link",
                 "viewItemContextValue": "cloudLogoutItem",
+            });
+            ret.push({
+                "label": "Unlink from Control Room",
+                "iconPath": "debug-disconnect",
+                "viewItemContextValue": "cloudUnlinkItem",
+                "tooltip": "Unlink and remove the Control Room credentials from this computer.",
+                "command": {
+                    "title": "Unlink from Control Room",
+                    "command": roboCommands.SEMA4AI_CLOUD_LOGOUT,
+                },
             });
 
             let vaultInfoResult: ActionResult<any> = await vscode.commands.executeCommand(
@@ -69,6 +93,7 @@ export class CloudTreeDataProvider implements vscode.TreeDataProvider<CloudEntry
         }
 
         const profileListResult = await profileListResultPromise;
+        this.shownProfile = profileListResult?.success ? profileListResult.result["current"] : undefined;
         if (profileListResult?.success) {
             ret.push({
                 "label": `Profile: ${profileListResult.result["current"]}`,
@@ -179,6 +204,28 @@ function getBuildInfoEntry(): CloudEntry {
             "arguments": [buildInfo],
         },
     };
+}
+
+/**
+ * Refreshes the Control Room view if the active rcc profile changed since it was shown
+ * (it can be switched outside of VS Code). It's one quick local rcc call, done only when
+ * the view is shown.
+ */
+export async function refreshCloudTreeViewIfProfileChanged() {
+    const dataProvider = <CloudTreeDataProvider>treeViewIdToTreeDataProvider.get(TREE_VIEW_SEMA4AI_CLOUD_TREE);
+    if (!dataProvider || dataProvider.shownProfile === undefined) {
+        return; // Not filled yet: it reads the profile when it is.
+    }
+    try {
+        const profileListResult: ActionResult<any> = await vscode.commands.executeCommand(
+            roboCommands.SEMA4AI_PROFILE_LIST_INTERNAL
+        );
+        if (profileListResult?.success && profileListResult.result["current"] !== dataProvider.shownProfile) {
+            refreshCloudTreeView();
+        }
+    } catch (error) {
+        logError("Error checking the active rcc profile", error, "VIEWS_CLOUD_CHECK_PROFILE");
+    }
 }
 
 export function refreshCloudTreeView() {
