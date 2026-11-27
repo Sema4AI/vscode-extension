@@ -35,3 +35,29 @@ def test_launch_does_not_install_browser_on_success(monkeypatch):
 
     install_browser.assert_not_called()
     launch_playwright.assert_called_once()
+
+
+def test_recorder_failure_includes_output(monkeypatch):
+    import subprocess
+    import sys
+    import threading
+
+    import pytest
+
+    from sema4ai_code.playwright import __playwright__main as playwright_main
+
+    popen = subprocess.Popen
+
+    def failing_codegen(cmd, **kwargs):
+        # Stands in for `playwright codegen` printing an error and exiting.
+        script = "print('Simulated codegen failure'); raise SystemExit(1)"
+        return popen([sys.executable, "-c", script], **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", failing_codegen)
+
+    future = playwright_main.run_playwright_in_thread(threading.Event())
+
+    with pytest.raises(
+        playwright_main.RecordingError, match="Simulated codegen failure"
+    ):
+        future.result(timeout=60)
